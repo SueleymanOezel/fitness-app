@@ -154,9 +154,12 @@ Alle Fremdschlüssel `on delete cascade` wo die Kind-Zeile ohne die
 Eltern-Zeile keinen Sinn ergibt (z. B. `workout_session_sets` →
 `workout_sessions`).
 
-Migration wird manuell per `supabase link` + `supabase db push` gegen das
-vom Nutzer neu angelegte Supabase-Projekt angewendet (kein Docker, keine
-lokale Postgres-Instanz).
+Supabase-Projekt ist bereits über die GitHub-Integration mit dem Repo
+`SueleymanOezel/fitness-app` verbunden, "Deploy to production" wird vom
+Nutzer aktiviert (Production-Branch = `main`). Migration wird dadurch
+automatisch angewendet, sobald der PR mit `0001_initial_schema.sql` auf
+`main` gemerged wird — kein manueller `supabase db push` nötig (kein
+Docker, keine lokale Postgres-Instanz).
 
 ## 5. CI/CD-Grundgerüst
 
@@ -199,7 +202,10 @@ da ein echtes Supabase-Projekt + Zugangsdaten nötig sind):
 
 ## Offene Punkte für den Nutzer (nicht Teil der Implementierung)
 
-- Supabase-Projekt muss vom Nutzer neu angelegt werden (siehe Frage 1),
-  Werte dann in `.env` eintragen
-- GitHub-Repo muss vom Nutzer angelegt und der lokale Git-Remote gesetzt
-  werden, damit die CI/CD-Pipeline tatsächlich läuft
+- ~~Supabase-Projekt anlegen~~ erledigt: `https://zqliubzvzbnaogqcmypg.supabase.co`,
+  publishable key vorhanden, wird bei der Implementierung in `.env` eingetragen
+  (nicht committet)
+- ~~GitHub-Repo anlegen~~ erledigt: `git@github.com:SueleymanOezel/fitness-app.git`
+  ist als lokaler Remote gesetzt, Push erfolgt nach Implementierung
+- Nutzer aktiviert in Supabase unter Settings → Integrations → GitHub den
+  Toggle "Deploy to production" mit Production-Branch `main`
