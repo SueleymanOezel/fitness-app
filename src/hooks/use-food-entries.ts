@@ -14,9 +14,11 @@ export type FoodEntry = {
   } | null
 }
 
-function todayRange() {
-  const today = new Date().toISOString().slice(0, 10)
-  return { start: `${today}T00:00:00`, end: `${today}T23:59:59` }
+export function todayRange() {
+  const now = new Date()
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+  return { start: start.toISOString(), end: end.toISOString() }
 }
 
 export function useFoodEntries(userId: string) {

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 
 function createQueryBuilder(result: { data: unknown; error?: unknown }) {
@@ -65,5 +65,42 @@ describe('useFoodEntries', () => {
 
     expect(builder.delete).toHaveBeenCalled()
     expect(builder.eq).toHaveBeenCalledWith('id', 'e1')
+  })
+})
+
+// Minimal ambient type for the Node `process` global this test file relies
+// on (to pin the timezone). The project's browser-only tsconfig has no
+// @types/node, so this is scoped locally instead of adding that dependency.
+declare const process: { env: Record<string, string | undefined> }
+
+describe('todayRange', () => {
+  const originalTz = process.env.TZ
+
+  beforeEach(() => {
+    // Pin a non-UTC timezone (CEST, matching this app's German-speaking
+    // users) so the test reproduces the local-midnight/UTC-day-boundary
+    // mismatch regardless of the host machine's own timezone.
+    process.env.TZ = 'Europe/Berlin'
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    process.env.TZ = originalTz
+  })
+
+  it('uses the local calendar day, not the UTC calendar day, for the day boundaries', async () => {
+    // Local time 2026-08-19T00:30:00 CEST (UTC+2) is 2026-08-18T22:30:00Z —
+    // i.e. the UTC calendar date is still the 18th while the local calendar
+    // date is already the 19th. A UTC-based implementation
+    // (`new Date().toISOString().slice(0, 10)`) would compute "today" as the
+    // 18th here and shift the whole query window a day early.
+    vi.setSystemTime(new Date(2026, 7, 19, 0, 30, 0))
+
+    const { todayRange } = await import('./use-food-entries')
+    const { start, end } = todayRange()
+
+    expect(start).toBe('2026-08-18T22:00:00.000Z')
+    expect(end).toBe('2026-08-19T21:59:59.000Z')
   })
 })
