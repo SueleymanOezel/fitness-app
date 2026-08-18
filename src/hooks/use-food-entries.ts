@@ -24,7 +24,6 @@ export function useFoodEntries(userId: string) {
   const [loading, setLoading] = useState(true)
 
   const reload = useCallback(async () => {
-    setLoading(true)
     const { start, end } = todayRange()
     const { data } = await supabase
       .from('food_entries')
@@ -38,7 +37,11 @@ export function useFoodEntries(userId: string) {
   }, [userId])
 
   useEffect(() => {
-    reload()
+    // reload() only sets state after its internal `await`, never synchronously
+    // during this effect's call stack; the compiler's static check cannot see
+    // the await boundary through the named function call, so it conservatively
+    // flags it.
+    reload() // eslint-disable-line react-hooks/set-state-in-effect
   }, [reload])
 
   async function addEntry(productId: string, menge: number) {

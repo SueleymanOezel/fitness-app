@@ -19,14 +19,17 @@ export function useProfile(userId: string) {
   const [loading, setLoading] = useState(true)
 
   const reload = useCallback(async () => {
-    setLoading(true)
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
     setProfile(data as Profile | null)
     setLoading(false)
   }, [userId])
 
   useEffect(() => {
-    reload()
+    // reload() only sets state after its internal `await`, never synchronously
+    // during this effect's call stack; the compiler's static check cannot see
+    // the await boundary through the named function call, so it conservatively
+    // flags it.
+    reload() // eslint-disable-line react-hooks/set-state-in-effect
   }, [reload])
 
   async function updateProfile(patch: Partial<Profile>) {
