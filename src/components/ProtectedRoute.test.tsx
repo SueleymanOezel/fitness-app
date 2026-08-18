@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 const mockUseSession = vi.fn()
@@ -8,7 +8,6 @@ vi.mock('../hooks/use-session', () => ({
 }))
 
 beforeEach(() => {
-  cleanup()
   mockUseSession.mockClear()
 })
 
