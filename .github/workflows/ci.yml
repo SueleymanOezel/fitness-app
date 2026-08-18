@@ -55,7 +55,7 @@ jobs:
       - run: nohup npm run preview -- --host 0.0.0.0 > preview.log 2>&1 &
       - run: npx --yes wait-on http://localhost:4173
       - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: 'http://localhost:4173'
           cmd_options: '-a'
