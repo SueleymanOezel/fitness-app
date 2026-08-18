@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { BrowserMultiFormatReader } from '@zxing/browser'
-import type { IScannerControls } from '@zxing/browser'
+
+type ScannerControls = { stop: () => void }
 
 type Props = {
   onDetected: (barcode: string) => void
@@ -18,7 +19,7 @@ export default function BarcodeScanner({ onDetected, onClose }: Props) {
 
   useEffect(() => {
     const reader = new BrowserMultiFormatReader()
-    let controls: IScannerControls | undefined
+    let controls: ScannerControls | undefined
 
     reader
       .decodeFromVideoDevice(undefined, videoRef.current ?? undefined, (result) => {
