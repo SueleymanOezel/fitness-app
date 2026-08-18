@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
   const navigate = useNavigate()
 
   function validate(): string | null {
@@ -27,22 +28,51 @@ export default function LoginPage() {
       return
     }
 
-    const { error: authError } =
-      mode === 'signup'
-        ? await supabase.auth.signUp({ email, password })
-        : await supabase.auth.signInWithPassword({ email, password })
+    setSubmitting(true)
+    try {
+      if (mode === 'signup') {
+        const { data, error: authError } = await supabase.auth.signUp({ email, password })
 
-    if (authError) {
-      setError(authError.message)
-      return
+        if (authError) {
+          setError(authError.message)
+          return
+        }
+
+        if (!data.session) {
+          setError('Bitte bestätige deine E-Mail-Adresse, dann kannst du dich einloggen.')
+          return
+        }
+
+        navigate('/')
+        return
+      }
+
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (authError) {
+        setError(authError.message)
+        return
+      }
+
+      if (data.session) {
+        navigate('/')
+      }
+    } finally {
+      setSubmitting(false)
     }
+  }
 
-    navigate('/')
+  function toggleMode() {
+    setError(null)
+    setMode(mode === 'login' ? 'signup' : 'login')
   }
 
   return (
     <form onSubmit={handleSubmit}>
-      <h1>{mode === 'login' ? 'Login' : 'Signup'}</h1>
+      <h1>{mode === 'login' ? 'Login' : 'Registrieren'}</h1>
       <label>
         E-Mail
         <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
@@ -56,8 +86,10 @@ export default function LoginPage() {
         />
       </label>
       {error && <p role="alert">{error}</p>}
-      <button type="submit">{mode === 'login' ? 'Einloggen' : 'Registrieren'}</button>
-      <button type="button" onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}>
+      <button type="submit" disabled={submitting}>
+        {mode === 'login' ? 'Einloggen' : 'Registrieren'}
+      </button>
+      <button type="button" onClick={toggleMode}>
         {mode === 'login' ? 'Noch keinen Account? Registrieren' : 'Schon registriert? Einloggen'}
       </button>
     </form>

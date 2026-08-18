@@ -50,7 +50,7 @@ describe('LoginPage', () => {
   })
 
   it('calls signInWithPassword with valid credentials', async () => {
-    mockSignIn.mockResolvedValue({ error: null })
+    mockSignIn.mockResolvedValue({ data: { session: { user: { id: 'u1' } } }, error: null })
     await renderLoginPage()
 
     fireEvent.change(screen.getByLabelText('E-Mail'), { target: { value: 'a@b.com' } })
@@ -63,7 +63,7 @@ describe('LoginPage', () => {
   })
 
   it('switches to signup mode and calls signUp', async () => {
-    mockSignUp.mockResolvedValue({ error: null })
+    mockSignUp.mockResolvedValue({ data: { session: { user: { id: 'u1' } } }, error: null })
     await renderLoginPage()
 
     fireEvent.click(screen.getByRole('button', { name: 'Noch keinen Account? Registrieren' }))
@@ -73,6 +73,22 @@ describe('LoginPage', () => {
 
     await waitFor(() =>
       expect(mockSignUp).toHaveBeenCalledWith({ email: 'a@b.com', password: 'password123' }),
+    )
+  })
+
+  it('shows a confirmation message when signup succeeds but no session is returned (e-mail confirmation on)', async () => {
+    mockSignUp.mockResolvedValue({ data: { session: null }, error: null })
+    await renderLoginPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Noch keinen Account? Registrieren' }))
+    fireEvent.change(screen.getByLabelText('E-Mail'), { target: { value: 'a@b.com' } })
+    fireEvent.change(screen.getByLabelText('Passwort'), { target: { value: 'password123' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Registrieren' }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Bitte bestätige deine E-Mail-Adresse, dann kannst du dich einloggen.',
+      ),
     )
   })
 })
