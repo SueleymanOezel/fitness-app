@@ -5,9 +5,9 @@ const mockDecodeFromVideoDevice = vi.fn()
 const mockStop = vi.fn()
 
 vi.mock('@zxing/browser', () => ({
-  BrowserMultiFormatReader: vi.fn().mockImplementation(() => ({
-    decodeFromVideoDevice: mockDecodeFromVideoDevice,
-  })),
+  BrowserMultiFormatReader: vi.fn().mockImplementation(function () {
+    return { decodeFromVideoDevice: mockDecodeFromVideoDevice }
+  }),
 }))
 
 describe('BarcodeScanner', () => {
