@@ -50,7 +50,7 @@ create table public.products (
 alter table public.products enable row level security;
 
 create policy "products_select_all" on public.products
-  for select using (auth.role() = 'authenticated');
+  for select to authenticated using (true);
 
 create policy "products_insert_own" on public.products
   for insert with check (created_by = auth.uid());
@@ -93,7 +93,7 @@ create table public.exercises (
 alter table public.exercises enable row level security;
 
 create policy "exercises_select_all" on public.exercises
-  for select using (auth.role() = 'authenticated');
+  for select to authenticated using (true);
 
 create policy "exercises_insert_own" on public.exercises
   for insert with check (created_by = auth.uid());
@@ -201,7 +201,8 @@ create table public.body_metrics (
   armumfang numeric,
   ruckenumfang numeric,
   brustumfang numeric,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  unique (user_id, datum)
 );
 
 alter table public.body_metrics enable row level security;
@@ -229,7 +230,8 @@ create table public.day_status (
   user_id uuid not null references auth.users (id) on delete cascade,
   datum date not null,
   status text not null check (status in ('trainingstag', 'restday')),
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  unique (user_id, datum)
 );
 
 alter table public.day_status enable row level security;
@@ -251,3 +253,15 @@ alter table public.health_sync_data enable row level security;
 
 create policy "health_sync_data_all_own" on public.health_sync_data
   for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- Indexes on columns used by RLS policy filters (owner checks and the
+-- exists(...) subquery policies), so every RLS check can use an index scan.
+create index on public.food_entries (user_id);
+create index on public.workout_plans (user_id);
+create index on public.workout_plan_exercises (workout_plan_id);
+create index on public.workout_sessions (user_id);
+create index on public.workout_session_sets (workout_session_id);
+create index on public.body_metrics (user_id);
+create index on public.body_photos (user_id);
+create index on public.day_status (user_id);
+create index on public.health_sync_data (user_id);
