@@ -14,10 +14,11 @@ export default function AddEntryFlow({ onAdd }: Props) {
   const [product, setProduct] = useState<Product | null>(null)
   const [scannedBarcode, setScannedBarcode] = useState<string | undefined>(undefined)
   const [menge, setMenge] = useState('100')
+  const [error, setError] = useState<string | null>(null)
 
   const handleDetected = useCallback(async (barcode: string) => {
     setStep('looking-up')
-    const found = await findOrFetchProductByBarcode(barcode)
+    const found = await findOrFetchProductByBarcode(barcode).catch(() => null)
     if (found) {
       setProduct(found)
       setStep('confirm-quantity')
@@ -32,13 +33,19 @@ export default function AddEntryFlow({ onAdd }: Props) {
     setProduct(null)
     setScannedBarcode(undefined)
     setMenge('100')
+    setError(null)
   }
 
   async function handleConfirmQuantity(event: FormEvent) {
     event.preventDefault()
     if (!product) return
-    await onAdd(product.id, Number(menge))
-    reset()
+    setError(null)
+    try {
+      await onAdd(product.id, Number(menge))
+      reset()
+    } catch {
+      setError('Eintrag konnte nicht gespeichert werden. Bitte erneut versuchen.')
+    }
   }
 
   function handleManuallyCreated(created: Product) {
@@ -79,6 +86,7 @@ export default function AddEntryFlow({ onAdd }: Props) {
           Menge (g)
           <input type="number" value={menge} onChange={(event) => setMenge(event.target.value)} />
         </label>
+        {error && <p role="alert">{error}</p>}
         <button type="submit">Hinzufügen</button>
         <button type="button" onClick={reset}>
           Abbrechen

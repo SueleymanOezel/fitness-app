@@ -89,4 +89,40 @@ describe('AddEntryFlow', () => {
     expect(screen.getByRole('button', { name: 'Simulierte manuelle Erstellung' })).toBeInTheDocument()
     expect(mockFindOrFetch).not.toHaveBeenCalled()
   })
+
+  it('falls back to the manual form when the product lookup rejects', async () => {
+    mockFindOrFetch.mockRejectedValue(new Error('network error'))
+    const onAdd = vi.fn().mockResolvedValue(undefined)
+
+    const { default: AddEntryFlow } = await import('./AddEntryFlow')
+    render(<AddEntryFlow onAdd={onAdd} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Barcode scannen' }))
+    mockOnDetected.current('4001234567890')
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Simulierte manuelle Erstellung' })).toBeInTheDocument(),
+    )
+    expect(screen.queryByText('Produkt wird gesucht…')).not.toBeInTheDocument()
+  })
+
+  it('shows an error and keeps the confirm form when adding fails', async () => {
+    mockFindOrFetch.mockResolvedValue(product)
+    const onAdd = vi.fn().mockRejectedValue(new Error('save failed'))
+
+    const { default: AddEntryFlow } = await import('./AddEntryFlow')
+    render(<AddEntryFlow onAdd={onAdd} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Barcode scannen' }))
+    mockOnDetected.current('4001234567890')
+
+    await waitFor(() => expect(screen.getByText('Gefundenes Produkt')).toBeInTheDocument())
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hinzufügen' }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('Eintrag konnte nicht gespeichert werden. Bitte erneut versuchen.'),
+    )
+    expect(screen.getByText('Gefundenes Produkt')).toBeInTheDocument()
+  })
 })
