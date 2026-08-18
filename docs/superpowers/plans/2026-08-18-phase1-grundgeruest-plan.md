@@ -1387,9 +1387,13 @@ Report Phase 1 as locally complete and ready for review. Do **not** run `git pus
 
 These steps need the real, deployed Supabase project and can't be automated here:
 
-1. Push the local `main` branch to `origin` (`git push -u origin master:main` or rename the local branch to `main` first — the local branch is currently named `master`).
-2. Confirm the `CI` workflow runs on the resulting PR/push and all 4 jobs go green.
-3. In Supabase, enable "Deploy to production" (Settings → Integrations → GitHub) now that `main` exists on GitHub — this applies `0001_initial_schema.sql`.
+1. Push the local `master` branch to a new branch on `origin` — not directly to `main` — and open a pull request into `main` on GitHub, e.g.:
+   ```bash
+   git push -u origin master:phase-1-grundgeruest
+   ```
+   Then open a PR from `phase-1-grundgeruest` into `main` on GitHub. Pushing straight to `origin/main` would fire no CI (the workflow only triggers on `pull_request`) while Supabase's GitHub integration would still auto-apply the migration on that same push — opening a PR ensures CI runs before anything merges.
+2. Confirm the `CI` workflow runs on the PR and all 4 jobs go green, then merge the PR into `main`.
+3. In Supabase, enable "Deploy to production" (Settings → Integrations → GitHub) now that `main` exists on GitHub — this applies `0001_initial_schema.sql` on the next push to `main` (i.e. this merge, or the next one).
 4. Start the dev server (`npm run dev`) with a real `.env`.
 5. Sign up with a new e-mail → should redirect to `/` and show the Home placeholder with the four tabs and a Logout button.
 6. Click through all four tabs (Home/Training/Ernährung/Körper) — each shows its placeholder heading.
