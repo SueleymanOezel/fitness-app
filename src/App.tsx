@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute'
 import AppLayout from './components/AppLayout'
 import LoginPage from './pages/LoginPage'
@@ -13,45 +13,19 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route
-          path="/"
           element={
             <ProtectedRoute>
               <AppLayout>
-                <HomePage />
+                <Outlet />
               </AppLayout>
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/training"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <TrainingPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/nutrition"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <NutritionPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/body"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <BodyPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="/" element={<HomePage />} />
+          <Route path="/training" element={<TrainingPage />} />
+          <Route path="/nutrition" element={<NutritionPage />} />
+          <Route path="/body" element={<BodyPage />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )
