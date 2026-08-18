@@ -91,4 +91,33 @@ Scoped Re-Review: alle 15 Findings ADDRESSED, keine neue Critical/Important-Regr
 
 **Phase 1 ist vollständig abgeschlossen**, inklusive Manual-Verification (Signup mit E-Mail-Bestätigung, Login, alle vier Dashboard-Tabs, Logout, `profiles`-Zeile via `handle_new_user`-Trigger — alles bestätigt funktionsfähig gegen die echte Produktions-Supabase-Instanz).
 
-**Nächster Schritt:** Phase 2 (Ernährungsbereich: Barcode-Scan, manuelle Eingabe, Ernährungs-Dashboard) starten — Spec/Plan dafür noch zu erstellen (`superpowers:brainstorming` → `superpowers:writing-plans`).
+## Phase 2 – Ernährungsbereich (in Arbeit)
+
+- Spec: `docs/superpowers/specs/2026-08-18-phase2-ernaehrungsbereich-design.md`
+- Plan: `docs/superpowers/plans/2026-08-18-phase2-ernaehrungsbereich-plan.md` (14 Tasks)
+- Umsetzung läuft per Subagent-Driven-Development in isoliertem Worktree: `.claude/worktrees/phase-2-ernaehrungsbereich`, Branch `worktree-phase-2-ernaehrungsbereich`
+- Ledger/Fortschritt der Task-Ausführung: `.superpowers/sdd/2026-08-18-phase2-ernaehrungsbereich-plan/progress.md` (nur im Worktree, git-ignored — enthält alle Rulings/Fix-Runden im Detail)
+- Neue Dependency: `@zxing/browser` (Kamera-Barcode-Scan)
+
+**Task-Status (12 von 14 Tasks fertig, alle reviewed):**
+- [x] Task 1: Migration `0002` (Kalorienziel-Felder + Barcode-Unique-Index) — Commit `55b7387`
+- [x] Task 2: `lib/nutrition-goal.ts` (Mifflin-St-Jeor-Berechnung) — Commit `8f16c8f`
+- [x] Task 3: `lib/open-food-facts.ts` (Barcode-Lookup) — Commit `61b0ce7` (1 Minor geparkt)
+- [x] Task 4: `lib/product-lookup.ts` (lokaler Cache + OFF-Fallback) — Commit `6b23c06`
+- [x] Task 5: `hooks/use-profile.ts` — Commit `21521d7`
+- [x] Task 6: `hooks/use-food-entries.ts` — Commits `21521d7..4d95a20` (2 Fix-Runden: echter `react-hooks/set-state-in-effect`-Lint-Fehler behoben, echter UTC-vs-lokal-Tag-Grenze-Bug in `todayRange()` gefunden und behoben)
+- [x] Task 7: `components/CalorieGoalEditor.tsx` — Commit `5143d4d`
+- [x] Task 8: `components/DailySummary.tsx` — Commit `a312bdf`
+- [x] Task 9: `components/FoodEntryList.tsx` — Commit `d7566db`
+- [x] Task 10: `components/ManualProductForm.tsx` — Commit `ddef760`
+- [x] Task 11: `components/BarcodeScanner.tsx` (+ `@zxing/browser`) — Commits `ddef760..c0c7eb4` (2 Fix-Runden: Vitest-Mock-Inkompatibilität sauber im Test statt mit Production-Workaround gelöst, unnötige Typ-Abweichung zurückgenommen)
+- [x] Task 12: `components/AddEntryFlow.tsx` — Commits `c0c7eb4..ffde50a` (1 Fix-Runde: echter Dead-End-Bug behoben — `looking-up`-Status blieb bei Netzwerkfehler beim Barcode-Lookup hängen, kein Cancel möglich)
+- [x] Task 13: `pages/NutritionPage.tsx` (Dashboard zusammengesetzt) — Commit `3df68f3`, alle 8 Cross-Task-Interfaces vom Reviewer unabhängig verifiziert
+- [ ] **Task 14 (offen): Finale lokale Verifikation** — volle Suite (Test/Lint/Build) laufen lassen, `docs/domaenenmodell.md` um die neuen `profiles`-Spalten + `products_barcode_unique`-Index ergänzen (und nach `../fitness-app.wiki/Domain-Model.md` spiegeln, noch nicht pushen), `CLAUDE.md`-Status-Sektion mit Commit-Hashes committen
+
+**Nächste Schritte danach (noch offen):**
+1. Finale Whole-Branch-Review (stärkstes Modell) über den gesamten Phase-2-Diff, Findings ggf. in EINER gebündelten Fix-Runde beheben
+2. SDD-Workspace löschen (`.superpowers/sdd/2026-08-18-phase2-ernaehrungsbereich-plan`)
+3. `superpowers:finishing-a-development-branch` aufrufen — Push/PR-Entscheidung analog Phase 1 (nicht direkt auf `master` pushen, Branch pushen + PR öffnen, CI abwarten, mergen)
+4. Nach Merge: Wiki (`fitness-app.wiki`) und `docs/domaenenmodell.md` final synchron halten (siehe Memory `project-wiki-and-domain-model`)
+5. Manual-Verification-Checkliste aus der Plan-Datei mit dem Nutzer durchgehen (echte Kamera, echter Barcode, echte Supabase-Instanz)
