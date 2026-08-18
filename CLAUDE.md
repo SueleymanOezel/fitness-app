@@ -83,9 +83,17 @@ Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer 
 - [x] Task 8: CI/CD-Pipeline (Semgrep, npm audit, ZAP) + Dependabot — fertig, Review approved (Commit `7bfb16f`)
 - [x] Task 9: Finale lokale Verifikation — fertig, Review approved (Commit `cefcef2`; build/lint/test alle grün, 20/20 Tests)
 
-**Finale Whole-Branch-Review:** abgeschlossen (Verdict: "ready to merge with fixes"). Security-Kern bestätigt solide (kein service_role/Secrets im Code, RLS fail-closed auf allen 12 Tabellen, kein Push passiert, Build/Lint/Typecheck/20 Tests grün). 6 Important- und ausgewählte Minor-Findings (u.a. Routing-Remount-Bug, Signup-Dead-End bei aktivierter E-Mail-Bestätigung, CI-Trigger passt nicht zum geplanten Push-Flow, veraltete Semgrep-Action) werden gerade in einer gebündelten Fix-Runde behoben.
+**Finale Whole-Branch-Review:** abgeschlossen (Verdict: "ready to merge with fixes"). Security-Kern bestätigt solide (kein service_role/Secrets im Code, RLS fail-closed auf allen 12 Tabellen, kein Push passiert, Build/Lint/Typecheck grün). 6 Important- und 9 ausgewählte Minor-Findings in EINER gebündelten Fix-Runde behoben (Commits `ec843ef`..`9b2a4c7`): Routing-Remount-Bug (geteilte Layout-Route mit `Outlet`), Signup-Dead-End bei aktivierter E-Mail-Bestätigung, CI-Trigger/Push-Flow-Mismatch (Manual-Verification-Schritt in der Plan-Datei jetzt auf PR-Flow statt Direct-Push-auf-main umgestellt), veraltete Semgrep-Action ersetzt, RLS-Policies gehärtet (Indizes, unique-Constraints, `auth.role()` durch `to authenticated` ersetzt), u.a.
+Scoped Re-Review: alle 15 Findings ADDRESSED, keine neue Critical/Important-Regression. Aktueller Test-Stand: 23/23 Tests grün. Ein Minor-Finding geparkt (LoginPage-Login-Zweig zeigt bei einer theoretischen MFA-Response ohne Session keine Fehlermeldung — in der aktuellen reinen E-Mail/Passwort-Flow unerreichbar, nur relevant falls später MFA dazukommt).
 
-**Nächster Schritt:** Fix-Runde abwarten, dann Re-Review, dann `CLAUDE.md` selbst committen, dann Nutzer über Push/Branch-Umbenennung und Supabase-Toggle informieren.
+**Alle 9 Tasks + finale Review + Fix-Runde sind fertig. Branch ist lokal fertig auf Commit `1e3c90d` (worktree-Branch `worktree-phase-1-grundgeruest`).**
+
+**Nächster Schritt (noch offen):**
+1. SDD-Workspace löschen: `rm -rf .superpowers/sdd/2026-08-18-phase1-grundgeruest-plan` (git-ignored, reine Ablage der Task-Ledger/Reports — git-Historie ist ab jetzt die eigentliche Aufzeichnung)
+2. Skill `superpowers:finishing-a-development-branch` aufrufen, um zu entscheiden, wie der Branch integriert wird
+3. Nutzer anleiten: **nicht direkt auf `main` pushen** (siehe gefixter Manual-Verification-Schritt in der Plan-Datei) — stattdessen Branch pushen und PR nach `main` öffnen, damit CI läuft, dann mergen
+4. Nach dem Merge/Push: Nutzer erinnern, den Supabase "Deploy to production"-Toggle zu aktivieren (siehe unten)
+5. Danach gemeinsam die "Manual Verification"-Checkliste aus der Plan-Datei durchgehen (Signup → Dashboard-Tabs → Logout → `profiles`-Zeile in Supabase prüfen)
 
 **Wichtige offene Punkte für den Nutzer (nicht automatisierbar):**
 - Nach Abschluss aller Tasks: lokalen Branch auf GitHub pushen (Repo ist aktuell leer)
