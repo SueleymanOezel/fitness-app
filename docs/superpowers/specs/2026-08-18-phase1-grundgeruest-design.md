@@ -208,4 +208,6 @@ da ein echtes Supabase-Projekt + Zugangsdaten nötig sind):
 - ~~GitHub-Repo anlegen~~ erledigt: `git@github.com:SueleymanOezel/fitness-app.git`
   ist als lokaler Remote gesetzt, Push erfolgt nach Implementierung
 - Nutzer aktiviert in Supabase unter Settings → Integrations → GitHub den
-  Toggle "Deploy to production" mit Production-Branch `main`
+  Toggle "Deploy to production" mit Production-Branch `main` — **erst
+  möglich, nachdem der erste Push auf `main` erfolgt ist**, da der Branch
+  vorher auf GitHub nicht existiert
