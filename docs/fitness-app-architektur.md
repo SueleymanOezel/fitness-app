@@ -2,7 +2,7 @@
 
 ## 1. Grundidee
 
-PWA (Progressive Web App), kombiniert MyFitnessPal (Ernährung) und Alpha Progression (Training). Läuft über Browser-Link, installierbar als App-Icon auf iOS/Android/Windows, kein App-Store nötig, kein Apple Developer Account nötig.
+PWA (Progressive Web App), kombiniert Ernährungs- und Trainings-Tracking in einer App. Läuft über Browser-Link, installierbar als App-Icon auf iOS/Android/Windows, kein App-Store nötig, kein Apple Developer Account nötig.
 
 Design-Anspruch: modern, clean, simpel, hohe Interaktivität, schnelle Klickwege ohne unnötige Komplexität, übersichtliches Frontend.
 
@@ -104,7 +104,7 @@ Die App gliedert sich in vier Hauptbereiche, jeder mit eigenem Dashboard:
   - Pausenzeit vorher einstellbar (z. B. 90 Sekunden, 1 Minute, 2 Minuten), zählt automatisch runter
 - Nach Abschluss eines Satzes springt die App zum nächsten Satz/zur nächsten Übung
 - Trainingsdaten (Gewicht × Wiederholungen) werden erfasst, daraus wird automatisch der ungefähre Kalorienverbrauch der Einheit berechnet
-- Referenz für UI/UX-Stil: Alpha Progression
+- Referenz für UI/UX-Stil: etablierte Trainings-Tracking-Apps
 
 ### 4.3 Ernährungs-Dashboard
 
@@ -114,7 +114,7 @@ Die App gliedert sich in vier Hauptbereiche, jeder mit eigenem Dashboard:
   - Foto vom Nährwertetikett bei unbekanntem Produkt → Gemini liest Werte per OCR aus, landet in eigener Datenbank
 - Community-Datenbank: von Nutzern erfasste Produkte landen in zentraler Supabase-Tabelle (`created_by`-Feld), Basis für spätere Verifizierung
 - Tagesübersicht: gegessene Kalorien, offene Kalorien, Makros
-- Referenz für UI/UX-Stil: MyFitnessPal
+- Referenz für UI/UX-Stil: etablierte Ernährungs-Tracking-Apps
 
 ### 4.4 Körper-Dashboard
 
@@ -127,12 +127,12 @@ Die App gliedert sich in vier Hauptbereiche, jeder mit eigenem Dashboard:
   - Armumfang
   - Rückenumfang
   - Brustumfang
-- Verlaufsprotokoll/Chart über Zeit, ähnlich MyFitnessPal/Alpha Progression Körperverlauf-Feature
+- Verlaufsprotokoll/Chart über Zeit, wie es vergleichbare Fitness-Apps anbieten
 
 
 ## 4a. UI/UX-Konzept (Vorschlag)
 
-Erkenntnis aus der Recherche zu bestehenden Apps: Ein häufiger Kritikpunkt an etablierten Apps wie MyFitnessPal ist ein überladenes, wenig intuitives Interface. Genau das soll hier vermieden werden – Fokus auf Klarheit statt Informationsdichte.
+Erkenntnis aus der Recherche zu bestehenden Apps: Ein häufiger Kritikpunkt an etablierten Ernährungs-Tracking-Apps ist ein überladenes, wenig intuitives Interface. Genau das soll hier vermieden werden – Fokus auf Klarheit statt Informationsdichte.
 
 ### Navigationsstruktur
 

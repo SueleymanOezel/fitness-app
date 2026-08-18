@@ -2,7 +2,7 @@
 
 ## Kurzbeschreibung
 
-Progressive Web App, die Training und Ernährung kombiniert, angelehnt an MyFitnessPal (Ernährung) und Alpha Progression (Training). Installierbar über Browser-Link auf iOS, Android und Windows, kein App-Store nötig. Vollständige Details siehe docs/architektur.md im selben Verzeichnis.
+Progressive Web App, die Training und Ernährung kombiniert. Installierbar über Browser-Link auf iOS, Android und Windows, kein App-Store nötig. Vollständige Details siehe docs/architektur.md im selben Verzeichnis.
 
 ## Tech-Stack
 
@@ -19,6 +19,10 @@ Progressive Web App, die Training und Ernährung kombiniert, angelehnt an MyFitn
 - Dateinamen: kebab-case (z. B. workout-session.ts)
 - React-Komponenten: PascalCase (z. B. WorkoutSession.tsx)
 - Standard-React-Projektstruktur verwenden
+
+## Wettbewerber-Referenzen
+
+Keine Namen von Drittanbieter-Apps/-Produkten (z. B. konkrete Konkurrenz-Apps aus Fitness/Ernährung) in Dokumentation, Code, Commit-Messages oder dem GitHub-Wiki erwähnen — bleibt intern zwischen Nutzer und Claude. In Docs stattdessen neutral umschreiben (z. B. "etablierte Ernährungs-Tracking-Apps").
 
 ## Secrets-Handling
 
@@ -63,14 +67,13 @@ Das vollständige Architekturkonzept mit Datenbankschema, REST-API-Endpunkten pr
 
 Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer Chat sofort weiß, was gemacht wurde und was als Nächstes ansteht.
 
-**Aktuelle Phase:** Phase 1 – Grundgerüst & Security-Basis
+**Aktuelle Phase:** Phase 1 – Grundgerüst & Security-Basis — **gemerged und deployed, offen ist nur noch die Manual-Verification-Checkliste**
 
 - Spec: `docs/superpowers/specs/2026-08-18-phase1-grundgeruest-design.md`
 - Plan: `docs/superpowers/plans/2026-08-18-phase1-grundgeruest-plan.md`
-- Umsetzung läuft per Subagent-Driven-Development in einem isolierten Worktree: `.claude/worktrees/phase-1-grundgeruest`, Branch `worktree-phase-1-grundgeruest`
-- Ledger/Fortschritt der Task-Ausführung: `.superpowers/sdd/2026-08-18-phase1-grundgeruest-plan/progress.md` (nur im Worktree, git-ignored)
-- GitHub-Remote gesetzt: `git@github.com:SueleymanOezel/fitness-app.git` — noch **nicht gepusht**
-- Supabase-Projekt: `https://zqliubzvzbnaogqcmypg.supabase.co`, mit GitHub-Repo verbunden, "Deploy to production"-Toggle noch **nicht aktiviert** (Branch `main` existiert auf GitHub erst nach dem ersten Push)
+- PR #7 (`worktree-phase-1-grundgeruest` → `master`) gemerged, Merge-Commit `5cd0f69`. Feature-Branch lokal und remote gelöscht, Worktree entfernt.
+- GitHub-Remote: `git@github.com:SueleymanOezel/fitness-app.git`, Default-Branch `master`, **gepusht**.
+- Supabase-Projekt: `https://zqliubzvzbnaogqcmypg.supabase.co`, mit GitHub-Repo verbunden, "Deploy to production"-Toggle **aktiviert**, Production-Branch = `master` — DB-Migration wird ab jetzt bei Merge nach `master` automatisch angewendet.
 
 **Task-Status (Plan hat 9 Tasks):**
 - [x] Task 1: Projekt-Scaffold & Test-Tooling — fertig, Review approved (Commit `74a0257`)
@@ -86,15 +89,6 @@ Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer 
 **Finale Whole-Branch-Review:** abgeschlossen (Verdict: "ready to merge with fixes"). Security-Kern bestätigt solide (kein service_role/Secrets im Code, RLS fail-closed auf allen 12 Tabellen, kein Push passiert, Build/Lint/Typecheck grün). 6 Important- und 9 ausgewählte Minor-Findings in EINER gebündelten Fix-Runde behoben (Commits `ec843ef`..`9b2a4c7`): Routing-Remount-Bug (geteilte Layout-Route mit `Outlet`), Signup-Dead-End bei aktivierter E-Mail-Bestätigung, CI-Trigger/Push-Flow-Mismatch (Manual-Verification-Schritt in der Plan-Datei jetzt auf PR-Flow statt Direct-Push-auf-main umgestellt), veraltete Semgrep-Action ersetzt, RLS-Policies gehärtet (Indizes, unique-Constraints, `auth.role()` durch `to authenticated` ersetzt), u.a.
 Scoped Re-Review: alle 15 Findings ADDRESSED, keine neue Critical/Important-Regression. Aktueller Test-Stand: 23/23 Tests grün. Ein Minor-Finding geparkt (LoginPage-Login-Zweig zeigt bei einer theoretischen MFA-Response ohne Session keine Fehlermeldung — in der aktuellen reinen E-Mail/Passwort-Flow unerreichbar, nur relevant falls später MFA dazukommt).
 
-**Alle 9 Tasks + finale Review + Fix-Runde sind fertig. Branch ist lokal fertig auf Commit `1e3c90d` (worktree-Branch `worktree-phase-1-grundgeruest`).**
+**Phase 1 ist vollständig abgeschlossen**, inklusive Manual-Verification (Signup mit E-Mail-Bestätigung, Login, alle vier Dashboard-Tabs, Logout, `profiles`-Zeile via `handle_new_user`-Trigger — alles bestätigt funktionsfähig gegen die echte Produktions-Supabase-Instanz).
 
-**Nächster Schritt (noch offen):**
-1. SDD-Workspace löschen: `rm -rf .superpowers/sdd/2026-08-18-phase1-grundgeruest-plan` (git-ignored, reine Ablage der Task-Ledger/Reports — git-Historie ist ab jetzt die eigentliche Aufzeichnung)
-2. Skill `superpowers:finishing-a-development-branch` aufrufen, um zu entscheiden, wie der Branch integriert wird
-3. Nutzer anleiten: **nicht direkt auf `main` pushen** (siehe gefixter Manual-Verification-Schritt in der Plan-Datei) — stattdessen Branch pushen und PR nach `main` öffnen, damit CI läuft, dann mergen
-4. Nach dem Merge/Push: Nutzer erinnern, den Supabase "Deploy to production"-Toggle zu aktivieren (siehe unten)
-5. Danach gemeinsam die "Manual Verification"-Checkliste aus der Plan-Datei durchgehen (Signup → Dashboard-Tabs → Logout → `profiles`-Zeile in Supabase prüfen)
-
-**Wichtige offene Punkte für den Nutzer (nicht automatisierbar):**
-- Nach Abschluss aller Tasks: lokalen Branch auf GitHub pushen (Repo ist aktuell leer)
-- **Sobald der Push erfolgt ist und `main` auf GitHub existiert, wird der Nutzer aktiv daran erinnert**, den "Deploy to production"-Toggle in Supabase zu aktivieren (Settings → Integrations → GitHub, Production-Branch = `main`) — erst dann wird die DB-Migration automatisch angewendet
+**Nächster Schritt:** Phase 2 (Ernährungsbereich: Barcode-Scan, manuelle Eingabe, Ernährungs-Dashboard) starten — Spec/Plan dafür noch zu erstellen (`superpowers:brainstorming` → `superpowers:writing-plans`).
