@@ -44,6 +44,16 @@ describe('App routing', () => {
     expect(screen.queryByRole('button', { name: 'Logout' })).not.toBeInTheDocument()
   })
 
+  it('shows the entries page at /nutrition/entries with an active session', async () => {
+    window.history.pushState({}, '', '/nutrition/entries')
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+
+    const { default: App } = await import('./App')
+    render(<App />)
+
+    expect(screen.getByRole('heading', { name: 'Einträge heute' })).toBeInTheDocument()
+  })
+
   it('shows the profile page at /profile with an active session', async () => {
     window.history.pushState({}, '', '/profile')
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })

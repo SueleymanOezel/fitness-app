@@ -4,7 +4,6 @@ import { useProfile } from '../hooks/use-profile'
 import { useFoodEntries } from '../hooks/use-food-entries'
 import { effectiveCalorieGoal } from '../lib/nutrition-goal'
 import DailySummary from '../components/DailySummary'
-import FoodEntryList from '../components/FoodEntryList'
 import AddEntryFlow from '../components/AddEntryFlow'
 
 export default function NutritionPage() {
@@ -25,7 +24,7 @@ export default function NutritionPage() {
 
 function NutritionDashboard({ userId }: { userId: string }) {
   const { profile, loading: profileLoading, error: profileError, reload } = useProfile(userId)
-  const { entries, loading: entriesLoading, addEntry, updateEntryMenge, deleteEntry } = useFoodEntries(userId)
+  const { entries, loading: entriesLoading, addEntry } = useFoodEntries(userId)
 
   if (profileLoading || entriesLoading) {
     return (
@@ -60,8 +59,8 @@ function NutritionDashboard({ userId }: { userId: string }) {
         </p>
       )}
       <Link to="/profile">Ziel im Profil anpassen</Link>
-      <FoodEntryList entries={entries} onUpdateMenge={updateEntryMenge} onDelete={deleteEntry} />
       <AddEntryFlow onAdd={addEntry} />
+      <Link to="/nutrition/entries">Einträge ansehen</Link>
     </div>
   )
 }
