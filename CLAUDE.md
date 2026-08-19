@@ -67,7 +67,9 @@ Das vollständige Architekturkonzept mit Datenbankschema, REST-API-Endpunkten pr
 
 Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer Chat sofort weiß, was gemacht wurde und was als Nächstes ansteht.
 
-**Aktuelle Phase:** Phase 1 – Grundgerüst & Security-Basis — **gemerged und deployed, offen ist nur noch die Manual-Verification-Checkliste**
+**Aktueller Stand:** Phase 1 und Phase 2 sind gemerged und deployed. Offen: Manual-Verification von Phase 2 gegen echte Kamera/Produktionsinstanz. Danach beginnt Phase 3 (Trainingsbereich) — Spec/Plan dafür noch zu erstellen (`superpowers:brainstorming` → `superpowers:writing-plans`).
+
+## Phase 1 – Grundgerüst & Security-Basis (abgeschlossen)
 
 - Spec: `docs/superpowers/specs/2026-08-18-phase1-grundgeruest-design.md`
 - Plan: `docs/superpowers/plans/2026-08-18-phase1-grundgeruest-plan.md`
@@ -91,12 +93,11 @@ Scoped Re-Review: alle 15 Findings ADDRESSED, keine neue Critical/Important-Regr
 
 **Phase 1 ist vollständig abgeschlossen**, inklusive Manual-Verification (Signup mit E-Mail-Bestätigung, Login, alle vier Dashboard-Tabs, Logout, `profiles`-Zeile via `handle_new_user`-Trigger — alles bestätigt funktionsfähig gegen die echte Produktions-Supabase-Instanz).
 
-## Phase 2 – Ernährungsbereich (in Arbeit)
+## Phase 2 – Ernährungsbereich (gemerged, Manual-Verification offen)
 
 - Spec: `docs/superpowers/specs/2026-08-18-phase2-ernaehrungsbereich-design.md`
 - Plan: `docs/superpowers/plans/2026-08-18-phase2-ernaehrungsbereich-plan.md` (14 Tasks)
-- Umsetzung läuft per Subagent-Driven-Development in isoliertem Worktree: `.claude/worktrees/phase-2-ernaehrungsbereich`, Branch `worktree-phase-2-ernaehrungsbereich`
-- Ledger/Fortschritt der Task-Ausführung: `.superpowers/sdd/2026-08-18-phase2-ernaehrungsbereich-plan/progress.md` (nur im Worktree, git-ignored — enthält alle Rulings/Fix-Runden im Detail)
+- Umgesetzt per Subagent-Driven-Development in isoliertem Worktree; PR #8 gemerged (Merge-Commit `2adc284`), Worktree und Branch danach entfernt, SDD-Workspace gelöscht.
 - Neue Dependency: `@zxing/browser` (Kamera-Barcode-Scan)
 
 **Task-Status (14 von 14 Tasks fertig, alle reviewed):**
@@ -126,8 +127,17 @@ Als solide bestätigt: keine Secrets, kein Logging, keine Drittanbieter-Namen, k
 
 **Offener Follow-up (bewusst nicht in Phase 2 gelöst):** Cache-Zeilen aus dem Barcode-Scan tragen jetzt den `created_by` des ersten Scanners. Zusammen mit `products_update_own` (aus Phase 1, ohne `with check`) heißt das: wer einen Barcode zuerst scannt, kann die Nährwerte dieses geteilten Produkts danach für alle ändern. Für Phase 5 (Härtung) vormerken — Policy-Design, kein Bugfix.
 
-**Nächste Schritte (noch offen):**
-1. SDD-Workspace löschen (`.superpowers/sdd/2026-08-18-phase2-ernaehrungsbereich-plan`)
-2. `superpowers:finishing-a-development-branch` aufrufen — Push/PR-Entscheidung analog Phase 1 (nicht direkt auf `master` pushen, Branch pushen + PR öffnen, CI abwarten, mergen)
-3. Nach Merge: Wiki (`fitness-app.wiki`) und `docs/domaenenmodell.md` final synchron halten (siehe Memory `project-wiki-and-domain-model`)
-4. Manual-Verification-Checkliste aus der Plan-Datei mit dem Nutzer durchgehen (echte Kamera, echter Barcode, echte Supabase-Instanz)
+**Abgeschlossen nach dem Merge:** Wiki synchronisiert (`Domain-Model`, `Phase-2-Design-Spec`, `Phase-2-Implementation-Plan`, `Home`, `_Sidebar` — gepusht), Worktree/Branches entfernt, SDD-Workspace gelöscht.
+
+**Noch offen:** Manual-Verification-Checkliste aus der Plan-Datei mit dem Nutzer durchgehen (echte Kamera, echter Barcode, echte Supabase-Instanz).
+
+## CI-Pipeline — war seit Phase 1 wirkungslos (behoben)
+
+Der Workflow filterte auf `pull_request: branches: [main]`, der Default-Branch ist aber `master`. Er hat deshalb **nie** ausgelöst — weder bei PR #7 (Phase 1) noch bei PR #8 (Phase 2). Semgrep, npm audit, ZAP und die Testsuite waren tote Konfiguration; beide Phasen sind ohne CI-Nachweis auf `master` gelandet, Migration `0002` wurde ungeprüft auf Produktion angewendet. Behoben mit PR #9 (Merge-Commit `b2fdef7`).
+
+Der erste echte Lauf deckte sofort drei Dinge auf, die lokal unsichtbar waren:
+- Semgrep: alle Actions hingen an veränderlichen Tags (`@v4`) → jetzt auf 40-stellige Commit-SHAs gepinnt (Version im Trailing-Kommentar, Dependabot aktualisiert die SHAs weiterhin).
+- ZAP: Scan war sauber (`FAIL-NEW: 0, PASS: 60`), der Job scheiterte am Artefakt-Upload — `action-baseline@v0.12.0` nutzt die abgeschaltete Artifact-API v3 → auf v0.15.0 gehoben.
+- Zwei Test-Schwächen: eine synchrone Assertion auf State, der außerhalb von `act()` gesetzt wird (bestand lokal, fiel in CI um), und zwei Mocks ohne Promise, an denen `.catch()` warf (vitest meldete die Tests als bestanden und ließ den Run trotzdem durchfallen).
+
+**Merke:** `.claude/` ist git-ignored, aber vitest globbt Worktree-Kopien trotzdem mit — nach dem Mergen einer Phase den Worktree entfernen, sonst laufen doppelte, veraltete Testdateien mit.
