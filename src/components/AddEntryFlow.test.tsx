@@ -125,4 +125,30 @@ describe('AddEntryFlow', () => {
     )
     expect(screen.getByText('Gefundenes Produkt')).toBeInTheDocument()
   })
+
+  it('looks up a barcode that was typed instead of scanned', async () => {
+    mockFindOrFetch.mockResolvedValue(product)
+
+    const { default: AddEntryFlow } = await import('./AddEntryFlow')
+    render(<AddEntryFlow onAdd={vi.fn().mockResolvedValue(undefined)} />)
+
+    fireEvent.change(screen.getByLabelText('Barcode-Nummer eingeben'), {
+      target: { value: '8076809580144' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Suchen' }))
+
+    await waitFor(() => expect(screen.getByText('Gefundenes Produkt')).toBeInTheDocument())
+    expect(mockFindOrFetch).toHaveBeenCalledWith('8076809580144')
+  })
+
+  it('rejects a typed barcode that is not 8-14 digits without looking it up', async () => {
+    const { default: AddEntryFlow } = await import('./AddEntryFlow')
+    render(<AddEntryFlow onAdd={vi.fn().mockResolvedValue(undefined)} />)
+
+    fireEvent.change(screen.getByLabelText('Barcode-Nummer eingeben'), { target: { value: '123' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Suchen' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent('8–14 Ziffern')
+    expect(mockFindOrFetch).not.toHaveBeenCalled()
+  })
 })
