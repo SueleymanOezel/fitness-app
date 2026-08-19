@@ -18,12 +18,25 @@ export default function FoodEntryEditForm({ entry, userId, onSave, onClose }: Pr
   const [menge, setMenge] = useState(String(entry.menge))
   const [zeitpunkt, setZeitpunkt] = useState(toLocalInputValue(entry.zeitpunkt))
   const [swapped, setSwapped] = useState<Product | null>(null)
+  const [picking, setPicking] = useState(false)
   const [name, setName] = useState(product?.name ?? '')
   const [kalorien, setKalorien] = useState(product?.kalorien?.toString() ?? '')
   const [eiweiss, setEiweiss] = useState(product?.eiweiss?.toString() ?? '')
   const [fett, setFett] = useState(product?.fett?.toString() ?? '')
   const [kohlenhydrate, setKohlenhydrate] = useState(product?.kohlenhydrate?.toString() ?? '')
   const [error, setError] = useState<string | null>(null)
+
+  if (picking) {
+    return (
+      <ProductPicker
+        onPicked={(picked) => {
+          setSwapped(picked)
+          setPicking(false)
+        }}
+        onCancel={() => setPicking(false)}
+      />
+    )
+  }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -87,7 +100,9 @@ export default function FoodEntryEditForm({ entry, userId, onSave, onClose }: Pr
       </label>
 
       <p>{swapped ? swapped.name : (product?.name ?? 'Unbekanntes Produkt')}</p>
-      <ProductPicker onPicked={(picked) => setSwapped(picked)} onCancel={() => {}} />
+      <button type="button" onClick={() => setPicking(true)}>
+        Anderes Produkt wählen
+      </button>
 
       {!swapped && product && (
         <fieldset>

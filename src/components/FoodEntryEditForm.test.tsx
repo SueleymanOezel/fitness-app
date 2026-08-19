@@ -8,10 +8,21 @@ vi.mock('../lib/product-edit', () => ({
 }))
 
 vi.mock('./ProductPicker', () => ({
-  default: ({ onPicked }: { onPicked: (product: unknown) => void }) => (
-    <button type="button" onClick={() => onPicked({ id: 'p2', name: 'Anderes Produkt' })}>
-      Anderes Produkt wählen
-    </button>
+  default: ({
+    onPicked,
+    onCancel,
+  }: {
+    onPicked: (product: unknown) => void
+    onCancel: () => void
+  }) => (
+    <div>
+      <button type="button" onClick={() => onPicked({ id: 'p2', name: 'Anderes Produkt' })}>
+        Produkt übernehmen
+      </button>
+      <button type="button" onClick={onCancel}>
+        Picker abbrechen
+      </button>
+    </div>
   ),
 }))
 
@@ -72,6 +83,7 @@ describe('FoodEntryEditForm', () => {
     render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Anderes Produkt wählen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Produkt übernehmen' }))
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
     await waitFor(() =>
@@ -118,6 +130,38 @@ describe('FoodEntryEditForm', () => {
     await waitFor(() =>
       expect(screen.getByRole('alert')).toHaveTextContent('konnte nicht gespeichert werden'),
     )
+    expect(onClose).not.toHaveBeenCalled()
+  })
+
+  it('remaps the entry when saveProductEdit returns a copy with a different id', async () => {
+    // Correcting the nutrients of someone else's product makes saveProductEdit
+    // insert a copy under a different id — the entry must follow it, without
+    // this counting as a product swap.
+    mockSaveProductEdit.mockImplementation(async (_product, patch) => ({ id: 'p2', ...patch }))
+    const onSave = vi.fn().mockResolvedValue(undefined)
+    const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
+    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith('e1', expect.objectContaining({ product_id: 'p2' })),
+    )
+  })
+
+  it('reports a failed product save instead of closing', async () => {
+    mockSaveProductEdit.mockRejectedValue(new Error('denied'))
+    const onSave = vi.fn().mockResolvedValue(undefined)
+    const onClose = vi.fn()
+    const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
+    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={onClose} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('Produkt konnte nicht gespeichert werden'),
+    )
+    expect(onSave).not.toHaveBeenCalled()
     expect(onClose).not.toHaveBeenCalled()
   })
 })
