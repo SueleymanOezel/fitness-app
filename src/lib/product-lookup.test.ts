@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockFetchProductByBarcode = vi.fn()
-vi.mock('./open-food-facts', () => ({
+vi.mock('./open-food-facts', async (importOriginal) => ({
+  // Only the network call is mocked; barcode validation stays the real one so
+  // the guard here is tested rather than stubbed away.
+  ...(await importOriginal<typeof import('./open-food-facts')>()),
   fetchProductByBarcode: (barcode: string) => mockFetchProductByBarcode(barcode),
 }))
 
@@ -84,6 +87,13 @@ describe('findOrFetchProductByBarcode', () => {
     const { findOrFetchProductByBarcode } = await import('./product-lookup')
 
     expect(await findOrFetchProductByBarcode('5001234567890')).toEqual(cachedProduct)
+  })
+
+  it('rejects a non-barcode payload before touching the database', async () => {
+    const { findOrFetchProductByBarcode } = await import('./product-lookup')
+
+    expect(await findOrFetchProductByBarcode('https://example.com/evil')).toBeNull()
+    expect(mockFrom).not.toHaveBeenCalled()
   })
 
   it('returns null when neither the local DB nor Open Food Facts have the product', async () => {

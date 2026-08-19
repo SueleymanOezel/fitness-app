@@ -19,7 +19,8 @@ type OffApiResponse = {
   }
 }
 
-const MAX_NAME_LENGTH = 200
+/** Shared with the manual form so both writers into `products` cap names alike. */
+export const MAX_NAME_LENGTH = 200
 
 /** The scanner also decodes QR codes, so a "barcode" is attacker-controlled text until this passes. */
 export function isValidBarcode(barcode: string): boolean {

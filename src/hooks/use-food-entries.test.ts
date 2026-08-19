@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 
 function createQueryBuilder(result: { data: unknown; error?: unknown }) {
   const builder: Record<string, unknown> = {
@@ -51,6 +51,46 @@ describe('useFoodEntries', () => {
     await result.current.addEntry('p1', 150)
 
     expect(builder.insert).toHaveBeenCalledWith({ user_id: 'u1', product_id: 'p1', menge: 150 })
+  })
+
+  it('ignores a stale reload that answers after a newer one', async () => {
+    // Two quick deletes: the first reload still carries the entry and resolves
+    // last. Without the guard it would put the deleted entry back on screen.
+    const slowBuilder = createQueryBuilder({ data: [entry] })
+    const fastBuilder = createQueryBuilder({ data: [] })
+    let releaseSlow: () => void = () => {}
+    slowBuilder.order = vi.fn(() => ({
+      then: (resolve: (value: { data: unknown }) => unknown) =>
+        new Promise<void>((r) => {
+          releaseSlow = r
+        }).then(() => resolve({ data: [entry] })),
+    }))
+
+    mockFrom.mockReturnValueOnce(slowBuilder).mockReturnValue(fastBuilder)
+
+    const { useFoodEntries } = await import('./use-food-entries')
+    const { result } = renderHook(() => useFoodEntries('u1'))
+
+    await act(async () => {
+      await result.current.deleteEntry('e1')
+    })
+    expect(result.current.entries).toEqual([])
+
+    await act(async () => {
+      releaseSlow()
+    })
+    expect(result.current.entries).toEqual([])
+  })
+
+  it('rejects instead of reporting success when a write fails', async () => {
+    const builder = createQueryBuilder({ data: [], error: { message: 'rejected' } })
+    mockFrom.mockReturnValue(builder)
+
+    const { useFoodEntries } = await import('./use-food-entries')
+    const { result } = renderHook(() => useFoodEntries('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await expect(result.current.updateEntryMenge('e1', 200)).rejects.toThrow()
   })
 
   it('deletes an entry via deleteEntry', async () => {

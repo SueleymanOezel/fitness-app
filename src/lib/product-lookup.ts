@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { fetchProductByBarcode } from './open-food-facts'
+import { fetchProductByBarcode, isValidBarcode } from './open-food-facts'
 
 export type Product = {
   id: string
@@ -14,6 +14,10 @@ export type Product = {
 const PRODUCT_COLUMNS = 'id, name, barcode, kalorien, eiweiss, fett, kohlenhydrate'
 
 export async function findOrFetchProductByBarcode(barcode: string): Promise<Product | null> {
+  // Self-defending: callers pre-validate today, but this must not become the hole
+  // if it is ever called from somewhere else.
+  if (!isValidBarcode(barcode)) return null
+
   const { data: existing } = await supabase
     .from('products')
     .select(PRODUCT_COLUMNS)

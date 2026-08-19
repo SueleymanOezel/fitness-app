@@ -14,6 +14,7 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
   // Draft, not the persisted value: saving per keystroke fires racing updates
   // ("2500" → 2, 25, 250, 2500) whose responses can land out of order.
   const [draft, setDraft] = useState(String(profile.taegliches_kalorienziel ?? ''))
+  const [failed, setFailed] = useState(false)
 
   const calculated = calculateCalorieGoal(profile)
 
@@ -24,16 +25,30 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
   async function switchToCalculated() {
     setMode('calculated')
     setDraft('')
-    await onUpdate({ taegliches_kalorienziel: null })
+    setFailed(false)
+    try {
+      await onUpdate({ taegliches_kalorienziel: null })
+    } catch {
+      setFailed(true)
+    }
   }
 
   async function commitManual() {
+    setFailed(false)
     const value = Number(draft)
     if (draft.trim() === '' || !Number.isFinite(value) || value <= 0) {
       setDraft(String(profile.taegliches_kalorienziel ?? ''))
       return
     }
-    if (value !== profile.taegliches_kalorienziel) await onUpdate({ taegliches_kalorienziel: value })
+    if (value === profile.taegliches_kalorienziel) return
+
+    // A rejected write must not leave the typed value on screen as if it were stored.
+    try {
+      await onUpdate({ taegliches_kalorienziel: value })
+    } catch {
+      setDraft(String(profile.taegliches_kalorienziel ?? ''))
+      setFailed(true)
+    }
   }
 
   if (mode === 'calculated') {
@@ -44,6 +59,7 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
             ? `Berechnetes Tagesziel: ${calculated} kcal`
             : 'Profil vervollständigen (Gewicht, Größe, Alter, Geschlecht, Aktivitätslevel), um ein Ziel zu berechnen.'}
         </p>
+        {failed && <p role="alert">Ziel konnte nicht gespeichert werden.</p>}
         <button type="button" onClick={switchToManual}>
           Manuell festlegen
         </button>
@@ -62,6 +78,7 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
           onBlur={commitManual}
         />
       </label>
+      {failed && <p role="alert">Ziel konnte nicht gespeichert werden.</p>}
       <button type="button" onClick={switchToCalculated}>
         Berechnen lassen
       </button>

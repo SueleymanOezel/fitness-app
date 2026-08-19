@@ -30,14 +30,22 @@ function FoodEntryRow({
   // Held as a draft so clearing the field to retype it cannot persist an intermediate
   // (or empty, which Number() turns into 0) value on every keystroke.
   const [draft, setDraft] = useState(String(entry.menge))
+  const [failed, setFailed] = useState(false)
 
   function commit() {
+    setFailed(false)
     const value = Number(draft)
     if (draft.trim() === '' || !Number.isFinite(value) || value <= 0) {
       setDraft(String(entry.menge))
       return
     }
-    if (value !== entry.menge) onUpdateMenge(entry.id, value)
+    if (value === entry.menge) return
+
+    // A rejected write must not leave the typed value on screen as if it were stored.
+    onUpdateMenge(entry.id, value).catch(() => {
+      setDraft(String(entry.menge))
+      setFailed(true)
+    })
   }
 
   return (
@@ -51,9 +59,10 @@ function FoodEntryRow({
         onBlur={commit}
       />
       <span>g</span>
-      <button type="button" onClick={() => onDelete(entry.id)}>
+      <button type="button" onClick={() => onDelete(entry.id).catch(() => setFailed(true))}>
         Löschen
       </button>
+      {failed && <span role="alert">Änderung konnte nicht gespeichert werden.</span>}
     </li>
   )
 }

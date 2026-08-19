@@ -22,6 +22,7 @@ export default function AddEntryFlow({ onAdd }: Props) {
     // lookup and worth storing on a product row.
     if (!isValidBarcode(barcode)) {
       setScannedBarcode(undefined)
+      setError('Kein gültiger Produkt-Barcode erkannt. Bitte manuell eintragen.')
       setStep('manual-entry')
       return
     }
@@ -66,6 +67,7 @@ export default function AddEntryFlow({ onAdd }: Props) {
 
   function handleManuallyCreated(created: Product) {
     setProduct(created)
+    setError(null)
     setStep('confirm-quantity')
   }
 
@@ -91,7 +93,12 @@ export default function AddEntryFlow({ onAdd }: Props) {
   }
 
   if (step === 'manual-entry') {
-    return <ManualProductForm barcode={scannedBarcode} onCreated={handleManuallyCreated} onCancel={reset} />
+    return (
+      <>
+        {error && <p role="alert">{error}</p>}
+        <ManualProductForm barcode={scannedBarcode} onCreated={handleManuallyCreated} onCancel={reset} />
+      </>
+    )
   }
 
   if (step === 'confirm-quantity' && product) {

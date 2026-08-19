@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Product } from '../lib/product-lookup'
+import { MAX_NAME_LENGTH } from '../lib/open-food-facts'
 
 type Props = {
   barcode?: string
@@ -57,13 +58,19 @@ export default function ManualProductForm({ barcode, onCreated, onCancel }: Prop
     setSubmitting(true)
     try {
       const { data: userData } = await supabase.auth.getUser()
+      const userId = userData.user?.id
+      if (!userId) {
+        setError('Produkt konnte nicht angelegt werden. Bitte erneut versuchen.')
+        return
+      }
+
       const { data, error: insertError } = await supabase
         .from('products')
         .insert({
-          name: name.trim(),
+          name: name.trim().slice(0, MAX_NAME_LENGTH),
           barcode: barcode ?? null,
           ...nutrients,
-          created_by: userData.user?.id,
+          created_by: userId,
         })
         .select('id, name, barcode, kalorien, eiweiss, fett, kohlenhydrate')
         .single()

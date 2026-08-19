@@ -52,18 +52,25 @@ export function useFoodEntries(userId: string) {
     }
   }, [reload])
 
+  // supabase-js resolves rather than throws on a rejected write, so an unchecked
+  // error would let the UI report success while nothing was stored.
   async function addEntry(productId: string, menge: number) {
-    await supabase.from('food_entries').insert({ user_id: userId, product_id: productId, menge })
+    const { error } = await supabase
+      .from('food_entries')
+      .insert({ user_id: userId, product_id: productId, menge })
+    if (error) throw new Error('insert failed')
     await reload()
   }
 
   async function updateEntryMenge(entryId: string, menge: number) {
-    await supabase.from('food_entries').update({ menge }).eq('id', entryId)
+    const { error } = await supabase.from('food_entries').update({ menge }).eq('id', entryId)
+    if (error) throw new Error('update failed')
     await reload()
   }
 
   async function deleteEntry(entryId: string) {
-    await supabase.from('food_entries').delete().eq('id', entryId)
+    const { error } = await supabase.from('food_entries').delete().eq('id', entryId)
+    if (error) throw new Error('delete failed')
     await reload()
   }
 

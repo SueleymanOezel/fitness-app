@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import FoodEntryList from './FoodEntryList'
 import type { FoodEntry } from '../hooks/use-food-entries'
 
@@ -49,6 +49,19 @@ describe('FoodEntryList', () => {
     fireEvent.blur(input)
 
     expect(onUpdateMenge).not.toHaveBeenCalled()
+    expect(input).toHaveValue(150)
+  })
+
+  it('restores the stored value and warns when the update is rejected', async () => {
+    const onUpdateMenge = vi.fn().mockRejectedValue(new Error('update failed'))
+    render(<FoodEntryList entries={entries} onUpdateMenge={onUpdateMenge} onDelete={vi.fn()} />)
+    const input = screen.getByLabelText('Menge (g) für Testprodukt')
+
+    fireEvent.change(input, { target: { value: '200' } })
+    fireEvent.blur(input)
+
+    // Leaving 200 on screen after a failed write would show a value that is not stored.
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('nicht gespeichert'))
     expect(input).toHaveValue(150)
   })
 
