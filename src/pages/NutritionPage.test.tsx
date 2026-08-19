@@ -65,7 +65,7 @@ describe('NutritionPage', () => {
 
     expect(screen.getByRole('heading', { name: 'Ernährung' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Heute' })).toBeInTheDocument()
-    expect(screen.getByText('Noch keine Einträge heute.')).toBeInTheDocument()
+    
     expect(screen.getByRole('button', { name: 'Barcode scannen' })).toBeInTheDocument()
   })
 
@@ -81,6 +81,23 @@ describe('NutritionPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Profil konnte nicht geladen werden')
     screen.getByRole('button', { name: 'Erneut versuchen' }).click()
     expect(reload).toHaveBeenCalled()
+  })
+
+  it('leaves the entry list to its own page', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue(profileResult({ profile }))
+    mockUseFoodEntries.mockReturnValue(entriesResult())
+
+    const { default: NutritionPage } = await import('./NutritionPage')
+    render(<NutritionPage />, { wrapper: MemoryRouter })
+
+    // The dashboard keeps the balance and the capture flow; the list lives on /nutrition/entries.
+    expect(screen.queryByText('Noch keine Einträge heute.')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Einträge/ })).toHaveAttribute(
+      'href',
+      '/nutrition/entries',
+    )
+    expect(screen.getByRole('button', { name: 'Barcode scannen' })).toBeInTheDocument()
   })
 
   it('leaves goal editing to the profile page', async () => {
