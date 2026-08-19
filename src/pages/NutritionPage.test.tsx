@@ -37,7 +37,7 @@ function entriesResult(overrides: Record<string, unknown> = {}) {
     entries: [],
     loading: false,
     addEntry: vi.fn(),
-    updateEntryMenge: vi.fn(),
+    updateEntry: vi.fn(),
     deleteEntry: vi.fn(),
     ...overrides,
   }
