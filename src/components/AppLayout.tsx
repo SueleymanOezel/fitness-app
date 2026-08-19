@@ -1,21 +1,15 @@
 import type { ReactNode } from 'react'
-import { supabase } from '../lib/supabase'
+import { Link } from 'react-router-dom'
 import BottomNav from './BottomNav'
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div>
       <header>
-        <button
-          type="button"
-          onClick={() => {
-            supabase.auth.signOut().catch(() => {
-              /* signOut failed network-side; ProtectedRoute will re-check session on next render regardless */
-            })
-          }}
-        >
-          Logout
-        </button>
+        {/* Profile is a setting, not a fifth area — it stays out of the bottom nav. */}
+        <Link to="/profile" aria-label="Profil">
+          👤
+        </Link>
       </header>
       <main>{children}</main>
       <BottomNav />
