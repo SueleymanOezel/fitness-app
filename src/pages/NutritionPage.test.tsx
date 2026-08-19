@@ -24,6 +24,12 @@ const profile = {
   ziel: 'halten' as const,
   ziel_delta_kcal: 500,
   taegliches_kalorienziel: 2000,
+  mahlzeit_1_name: 'Frühstück',
+  mahlzeit_2_name: 'Mittagessen',
+  mahlzeit_3_name: 'Abendessen',
+  mahlzeit_4_name: 'Snacks',
+  mahlzeit_5_name: null,
+  mahlzeit_6_name: null,
 }
 
 // Mirrors the real hook's return shape so a page branch cannot pass against a

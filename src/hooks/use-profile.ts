@@ -12,6 +12,12 @@ export type Profile = {
   ziel: 'abnehmen' | 'halten' | 'zunehmen' | null
   ziel_delta_kcal: number
   taegliches_kalorienziel: number | null
+  mahlzeit_1_name: string
+  mahlzeit_2_name: string
+  mahlzeit_3_name: string
+  mahlzeit_4_name: string
+  mahlzeit_5_name: string | null
+  mahlzeit_6_name: string | null
 }
 
 export function useProfile(userId: string) {
