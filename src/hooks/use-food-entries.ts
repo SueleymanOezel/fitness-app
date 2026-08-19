@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 export type FoodEntry = {
@@ -14,36 +14,42 @@ export type FoodEntry = {
   } | null
 }
 
+/** Local calendar day, half-open — an entry at 23:59:59.4 still belongs to today. */
 export function todayRange() {
   const now = new Date()
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
-  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
   return { start: start.toISOString(), end: end.toISOString() }
 }
 
 export function useFoodEntries(userId: string) {
   const [entries, setEntries] = useState<FoodEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const requestId = useRef(0)
 
   const reload = useCallback(async () => {
+    // Two quick deletes can have their reloads answered out of order; only the
+    // newest request may write state (and none may write after unmount).
+    const current = ++requestId.current
     const { start, end } = todayRange()
     const { data } = await supabase
       .from('food_entries')
       .select('id, menge, zeitpunkt, products(name, kalorien, eiweiss, fett, kohlenhydrate)')
       .eq('user_id', userId)
       .gte('zeitpunkt', start)
-      .lte('zeitpunkt', end)
+      .lt('zeitpunkt', end)
       .order('zeitpunkt', { ascending: true })
+    if (current !== requestId.current) return
     setEntries((data ?? []) as unknown as FoodEntry[])
     setLoading(false)
   }, [userId])
 
   useEffect(() => {
-    // reload() only sets state after its internal `await`, never synchronously
-    // during this effect's call stack; the compiler's static check cannot see
-    // the await boundary through the named function call, so it conservatively
-    // flags it.
-    reload() // eslint-disable-line react-hooks/set-state-in-effect
+    const tracker = requestId
+    reload()
+    return () => {
+      tracker.current++ // invalidate the in-flight request on unmount
+    }
   }, [reload])
 
   async function addEntry(productId: string, menge: number) {

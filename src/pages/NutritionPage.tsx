@@ -11,20 +11,39 @@ export default function NutritionPage() {
   const { session } = useSession()
   const userId = session?.user.id
 
-  if (!userId) return null
+  if (!userId) {
+    return (
+      <div>
+        <h1>Ernährung</h1>
+        <p>Lädt…</p>
+      </div>
+    )
+  }
 
   return <NutritionDashboard userId={userId} />
 }
 
 function NutritionDashboard({ userId }: { userId: string }) {
-  const { profile, loading: profileLoading, updateProfile } = useProfile(userId)
+  const { profile, loading: profileLoading, error: profileError, reload, updateProfile } = useProfile(userId)
   const { entries, loading: entriesLoading, addEntry, updateEntryMenge, deleteEntry } = useFoodEntries(userId)
 
-  if (profileLoading || entriesLoading || !profile) {
+  if (profileLoading || entriesLoading) {
     return (
       <div>
         <h1>Ernährung</h1>
         <p>Lädt…</p>
+      </div>
+    )
+  }
+
+  if (profileError || !profile) {
+    return (
+      <div>
+        <h1>Ernährung</h1>
+        <p role="alert">Profil konnte nicht geladen werden.</p>
+        <button type="button" onClick={() => reload()}>
+          Erneut versuchen
+        </button>
       </div>
     )
   }

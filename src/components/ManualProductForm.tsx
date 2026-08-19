@@ -8,6 +8,28 @@ type Props = {
   onCancel: () => void
 }
 
+/**
+ * products is a shared community table — a typo'd -300 or 1e21 would poison everyone's
+ * totals, so implausible values never reach the insert. Empty macros stay null.
+ */
+function parseNutrients(raw: Record<'kalorien' | 'eiweiss' | 'fett' | 'kohlenhydrate', string>) {
+  const parse = (value: string, max: number) => {
+    if (value.trim() === '') return null
+    const parsed = Number(value)
+    return Number.isFinite(parsed) && parsed >= 0 && parsed <= max ? parsed : undefined
+  }
+
+  const kalorien = parse(raw.kalorien, 900)
+  const eiweiss = parse(raw.eiweiss, 100)
+  const fett = parse(raw.fett, 100)
+  const kohlenhydrate = parse(raw.kohlenhydrate, 100)
+
+  if (kalorien == null || eiweiss === undefined || fett === undefined || kohlenhydrate === undefined) {
+    return null
+  }
+  return { kalorien, eiweiss, fett, kohlenhydrate }
+}
+
 export default function ManualProductForm({ barcode, onCreated, onCancel }: Props) {
   const [name, setName] = useState('')
   const [kalorien, setKalorien] = useState('')
@@ -26,6 +48,12 @@ export default function ManualProductForm({ barcode, onCreated, onCancel }: Prop
       return
     }
 
+    const nutrients = parseNutrients({ kalorien, eiweiss, fett, kohlenhydrate })
+    if (!nutrients) {
+      setError('Bitte plausible Werte pro 100 g eingeben (Kalorien 0–900 kcal, Makros 0–100 g).')
+      return
+    }
+
     setSubmitting(true)
     try {
       const { data: userData } = await supabase.auth.getUser()
@@ -34,17 +62,15 @@ export default function ManualProductForm({ barcode, onCreated, onCancel }: Prop
         .insert({
           name: name.trim(),
           barcode: barcode ?? null,
-          kalorien: Number(kalorien),
-          eiweiss: eiweiss.trim() === '' ? null : Number(eiweiss),
-          fett: fett.trim() === '' ? null : Number(fett),
-          kohlenhydrate: kohlenhydrate.trim() === '' ? null : Number(kohlenhydrate),
+          ...nutrients,
           created_by: userData.user?.id,
         })
         .select('id, name, barcode, kalorien, eiweiss, fett, kohlenhydrate')
         .single()
 
       if (insertError || !data) {
-        setError(insertError?.message ?? 'Produkt konnte nicht angelegt werden.')
+        // Raw Postgres/RLS messages stay out of the UI.
+        setError('Produkt konnte nicht angelegt werden. Bitte erneut versuchen.')
         return
       }
 

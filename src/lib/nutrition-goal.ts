@@ -29,7 +29,8 @@ export function calculateCalorieGoal(input: CalorieGoalInput): number | null {
 
   const tdee = bmr * ACTIVITY_FACTORS[aktivitaetslevel]
 
-  if (ziel === 'abnehmen') return Math.round(tdee - ziel_delta_kcal)
+  // A delta larger than the TDEE would otherwise yield a negative goal.
+  if (ziel === 'abnehmen') return Math.max(0, Math.round(tdee - ziel_delta_kcal))
   if (ziel === 'zunehmen') return Math.round(tdee + ziel_delta_kcal)
   return Math.round(tdee)
 }

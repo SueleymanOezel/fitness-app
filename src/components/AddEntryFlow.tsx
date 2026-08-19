@@ -2,6 +2,7 @@ import { useCallback, useState, type FormEvent } from 'react'
 import BarcodeScanner from './BarcodeScanner'
 import ManualProductForm from './ManualProductForm'
 import { findOrFetchProductByBarcode, type Product } from '../lib/product-lookup'
+import { isValidBarcode } from '../lib/open-food-facts'
 
 type Step = 'idle' | 'scanning' | 'looking-up' | 'confirm-quantity' | 'manual-entry'
 
@@ -17,6 +18,14 @@ export default function AddEntryFlow({ onAdd }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   const handleDetected = useCallback(async (barcode: string) => {
+    // The scanner also decodes QR codes; only a real product barcode is worth a
+    // lookup and worth storing on a product row.
+    if (!isValidBarcode(barcode)) {
+      setScannedBarcode(undefined)
+      setStep('manual-entry')
+      return
+    }
+
     setStep('looking-up')
     const found = await findOrFetchProductByBarcode(barcode).catch(() => null)
     if (found) {
@@ -40,8 +49,15 @@ export default function AddEntryFlow({ onAdd }: Props) {
     event.preventDefault()
     if (!product) return
     setError(null)
+
+    const value = Number(menge)
+    if (menge.trim() === '' || !Number.isFinite(value) || value <= 0) {
+      setError('Bitte eine Menge größer als 0 g angeben.')
+      return
+    }
+
     try {
-      await onAdd(product.id, Number(menge))
+      await onAdd(product.id, value)
       reset()
     } catch {
       setError('Eintrag konnte nicht gespeichert werden. Bitte erneut versuchen.')

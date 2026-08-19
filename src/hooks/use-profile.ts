@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 export type Profile = {
@@ -17,19 +17,29 @@ export type Profile = {
 export function useProfile(userId: string) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const requestId = useRef(0)
 
   const reload = useCallback(async () => {
-    const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
+    const current = ++requestId.current
+    // maybeSingle: a missing profile row is an empty result to report, not an exception.
+    const { data, error: loadError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle()
+    if (current !== requestId.current) return
     setProfile(data as Profile | null)
+    setError(Boolean(loadError) || data == null)
     setLoading(false)
   }, [userId])
 
   useEffect(() => {
-    // reload() only sets state after its internal `await`, never synchronously
-    // during this effect's call stack; the compiler's static check cannot see
-    // the await boundary through the named function call, so it conservatively
-    // flags it.
-    reload() // eslint-disable-line react-hooks/set-state-in-effect
+    const tracker = requestId
+    reload()
+    return () => {
+      tracker.current++ // invalidate the in-flight request on unmount
+    }
   }, [reload])
 
   async function updateProfile(patch: Partial<Profile>) {
@@ -38,9 +48,9 @@ export function useProfile(userId: string) {
       .update(patch)
       .eq('id', userId)
       .select('*')
-      .single()
+      .maybeSingle()
     if (data) setProfile(data as Profile)
   }
 
-  return { profile, loading, updateProfile }
+  return { profile, loading, error, reload, updateProfile }
 }

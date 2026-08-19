@@ -9,7 +9,7 @@ function createQueryBuilder(result: { data: unknown; error?: unknown }) {
     delete: vi.fn(() => builder),
     eq: vi.fn(() => builder),
     gte: vi.fn(() => builder),
-    lte: vi.fn(() => builder),
+    lt: vi.fn(() => builder),
     order: vi.fn(() => builder),
     then: (resolve: (value: typeof result) => unknown) => resolve(result),
   }
@@ -101,6 +101,8 @@ describe('todayRange', () => {
     const { start, end } = todayRange()
 
     expect(start).toBe('2026-08-18T22:00:00.000Z')
-    expect(end).toBe('2026-08-19T21:59:59.000Z')
+    // Half-open upper bound (local midnight of the next day, queried with `.lt`),
+    // so an entry at 23:59:59.4 local time still counts towards today.
+    expect(end).toBe('2026-08-19T22:00:00.000Z')
   })
 })

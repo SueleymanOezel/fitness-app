@@ -11,6 +11,9 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
   const [mode, setMode] = useState<'manual' | 'calculated'>(
     profile.taegliches_kalorienziel != null ? 'manual' : 'calculated',
   )
+  // Draft, not the persisted value: saving per keystroke fires racing updates
+  // ("2500" → 2, 25, 250, 2500) whose responses can land out of order.
+  const [draft, setDraft] = useState(String(profile.taegliches_kalorienziel ?? ''))
 
   const calculated = calculateCalorieGoal(profile)
 
@@ -20,12 +23,17 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
 
   async function switchToCalculated() {
     setMode('calculated')
+    setDraft('')
     await onUpdate({ taegliches_kalorienziel: null })
   }
 
-  async function handleManualChange(value: string) {
-    const parsed = value === '' ? null : Number(value)
-    await onUpdate({ taegliches_kalorienziel: parsed })
+  async function commitManual() {
+    const value = Number(draft)
+    if (draft.trim() === '' || !Number.isFinite(value) || value <= 0) {
+      setDraft(String(profile.taegliches_kalorienziel ?? ''))
+      return
+    }
+    if (value !== profile.taegliches_kalorienziel) await onUpdate({ taegliches_kalorienziel: value })
   }
 
   if (mode === 'calculated') {
@@ -49,8 +57,9 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
         Tagesziel (kcal)
         <input
           type="number"
-          value={profile.taegliches_kalorienziel ?? ''}
-          onChange={(event) => handleManualChange(event.target.value)}
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={commitManual}
         />
       </label>
       <button type="button" onClick={switchToCalculated}>

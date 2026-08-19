@@ -40,6 +40,40 @@ describe('BarcodeScanner', () => {
     )
   })
 
+  it('stops the camera when unmounted before it finished starting', async () => {
+    // The scanner is unmounted the moment a barcode is detected; if the start
+    // promise resolves after that, nothing would ever release the camera.
+    let resolveStart: (controls: { stop: () => void }) => void = () => {}
+    mockDecodeFromVideoDevice.mockReturnValue(
+      new Promise<{ stop: () => void }>((resolve) => {
+        resolveStart = resolve
+      }),
+    )
+
+    const { default: BarcodeScanner } = await import('./BarcodeScanner')
+    const { unmount } = render(<BarcodeScanner onDetected={vi.fn()} onClose={vi.fn()} />)
+
+    unmount()
+    resolveStart({ stop: mockStop })
+
+    await waitFor(() => expect(mockStop).toHaveBeenCalled())
+  })
+
+  it('reports only the first decode, not every callback tick', async () => {
+    mockDecodeFromVideoDevice.mockImplementation((_deviceId, _video, callback) => {
+      callback({ getText: () => '4001234567890' })
+      callback({ getText: () => '4001234567890' })
+      callback({ getText: () => '4001234567890' })
+      return Promise.resolve({ stop: mockStop })
+    })
+
+    const { default: BarcodeScanner } = await import('./BarcodeScanner')
+    const onDetected = vi.fn()
+    render(<BarcodeScanner onDetected={onDetected} onClose={vi.fn()} />)
+
+    await waitFor(() => expect(onDetected).toHaveBeenCalledTimes(1))
+  })
+
   it('calls onClose when the cancel button is clicked', async () => {
     mockDecodeFromVideoDevice.mockResolvedValue({ stop: mockStop })
 

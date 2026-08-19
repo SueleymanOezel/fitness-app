@@ -20,19 +20,31 @@ export default function BarcodeScanner({ onDetected, onClose }: Props) {
   useEffect(() => {
     const reader = new BrowserMultiFormatReader()
     let controls: ScannerControls | undefined
+    let cancelled = false
+    let detected = false
 
     reader
       .decodeFromVideoDevice(undefined, videoRef.current ?? undefined, (result) => {
-        if (result) onDetectedRef.current(result.getText())
+        // The decode callback keeps firing after a hit; only the first one counts.
+        if (!result || detected) return
+        detected = true
+        onDetectedRef.current(result.getText())
       })
       .then((startedControls) => {
-        controls = startedControls
+        // Unmounting before the camera finished starting would otherwise leave it running.
+        if (cancelled) startedControls.stop()
+        else controls = startedControls
       })
       .catch(() => {
-        setError('Kamera konnte nicht gestartet werden. Bitte Berechtigung prüfen oder manuell eintragen.')
+        if (!cancelled) {
+          setError('Kamera konnte nicht gestartet werden. Bitte Berechtigung prüfen oder manuell eintragen.')
+        }
       })
 
-    return () => controls?.stop()
+    return () => {
+      cancelled = true
+      controls?.stop()
+    }
   }, [])
 
   return (

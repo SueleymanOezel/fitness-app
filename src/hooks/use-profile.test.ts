@@ -6,7 +6,7 @@ function createQueryBuilder(result: { data: unknown; error?: unknown }) {
     select: vi.fn(() => builder),
     update: vi.fn(() => builder),
     eq: vi.fn(() => builder),
-    single: vi.fn(() => Promise.resolve(result)),
+    maybeSingle: vi.fn(() => Promise.resolve(result)),
   }
   return builder
 }
@@ -55,5 +55,16 @@ describe('useProfile', () => {
 
     expect(updateBuilder.update).toHaveBeenCalledWith({ taegliches_kalorienziel: 1800 })
     await waitFor(() => expect(result.current.profile).toEqual(updated))
+  })
+
+  it('reports an error instead of loading forever when the profile row is missing', async () => {
+    mockFrom.mockReturnValue(createQueryBuilder({ data: null }))
+
+    const { useProfile } = await import('./use-profile')
+    const { result } = renderHook(() => useProfile('u1'))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.error).toBe(true)
+    expect(result.current.profile).toBeNull()
   })
 })

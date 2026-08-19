@@ -21,8 +21,9 @@ function sumMakro(entries: FoodEntry[], makro: 'eiweiss' | 'fett' | 'kohlenhydra
 }
 
 export default function DailySummary({ entries, goal }: Props) {
-  const consumed = Math.round(sumKalorien(entries))
-  const remaining = goal != null ? Math.round(goal - consumed) : null
+  const consumedExact = sumKalorien(entries)
+  const consumed = Math.round(consumedExact)
+  const remaining = goal != null ? Math.round(goal - consumedExact) : null
 
   return (
     <div>

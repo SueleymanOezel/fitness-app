@@ -25,22 +25,34 @@ export async function findOrFetchProductByBarcode(barcode: string): Promise<Prod
   const offProduct = await fetchProductByBarcode(barcode)
   if (!offProduct) return null
 
-  const { data: inserted, error } = await supabase
-    .from('products')
-    .upsert(
-      {
-        barcode,
-        name: offProduct.name,
-        kalorien: offProduct.kalorien,
-        eiweiss: offProduct.eiweiss,
-        fett: offProduct.fett,
-        kohlenhydrate: offProduct.kohlenhydrate,
-      },
-      { onConflict: 'barcode' },
-    )
-    .select(PRODUCT_COLUMNS)
-    .single()
+  // The only INSERT policy on products is `created_by = auth.uid()`, so a cached
+  // row must carry the scanning user's id — a null created_by is rejected by RLS.
+  const { data: userData } = await supabase.auth.getUser()
+  const userId = userData.user?.id
+  if (!userId) return null
 
-  if (error || !inserted) return null
-  return inserted as Product
+  const { data: inserted } = await supabase
+    .from('products')
+    .insert({
+      barcode,
+      created_by: userId,
+      name: offProduct.name,
+      kalorien: offProduct.kalorien,
+      eiweiss: offProduct.eiweiss,
+      fett: offProduct.fett,
+      kohlenhydrate: offProduct.kohlenhydrate,
+    })
+    .select(PRODUCT_COLUMNS)
+    .maybeSingle()
+
+  if (inserted) return inserted as Product
+
+  // ponytail: insert lost the race against products_barcode_unique — read the winner's row
+  const { data: raced } = await supabase
+    .from('products')
+    .select(PRODUCT_COLUMNS)
+    .eq('barcode', barcode)
+    .maybeSingle()
+
+  return (raced as Product | null) ?? null
 }

@@ -8,7 +8,7 @@ vi.mock('./open-food-facts', () => ({
 function createQueryBuilder(result: { data: unknown; error?: unknown }) {
   const builder = {
     select: vi.fn(() => builder),
-    upsert: vi.fn(() => builder),
+    insert: vi.fn(() => builder),
     eq: vi.fn(() => builder),
     maybeSingle: vi.fn(() => Promise.resolve(result)),
     single: vi.fn(() => Promise.resolve(result)),
@@ -18,7 +18,10 @@ function createQueryBuilder(result: { data: unknown; error?: unknown }) {
 
 const mockFrom = vi.fn()
 vi.mock('./supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: {
+    from: (table: string) => mockFrom(table),
+    auth: { getUser: () => Promise.resolve({ data: { user: { id: 'u1' } } }) },
+  },
 }))
 
 const existingProduct = {
@@ -47,35 +50,40 @@ describe('findOrFetchProductByBarcode', () => {
     expect(mockFetchProductByBarcode).not.toHaveBeenCalled()
   })
 
+  const offProduct = { name: 'OFF Produkt', kalorien: 200, eiweiss: 5, fett: 6, kohlenhydrate: 7 }
+  const cachedProduct = { id: 'p2', barcode: '5001234567890', ...offProduct }
+
   it('falls back to Open Food Facts and caches the result when not found locally', async () => {
     const selectBuilder = createQueryBuilder({ data: null })
-    const upsertedProduct = {
-      id: 'p2',
-      name: 'OFF Produkt',
-      barcode: '5001234567890',
-      kalorien: 200,
-      eiweiss: 5,
-      fett: 6,
-      kohlenhydrate: 7,
-    }
-    const upsertBuilder = createQueryBuilder({ data: upsertedProduct })
-    mockFrom.mockReturnValueOnce(selectBuilder).mockReturnValueOnce(upsertBuilder)
-    mockFetchProductByBarcode.mockResolvedValue({
-      name: 'OFF Produkt',
-      kalorien: 200,
-      eiweiss: 5,
-      fett: 6,
-      kohlenhydrate: 7,
-    })
+    const insertBuilder = createQueryBuilder({ data: cachedProduct })
+    mockFrom.mockReturnValueOnce(selectBuilder).mockReturnValueOnce(insertBuilder)
+    mockFetchProductByBarcode.mockResolvedValue(offProduct)
 
     const { findOrFetchProductByBarcode } = await import('./product-lookup')
     const result = await findOrFetchProductByBarcode('5001234567890')
 
-    expect(result).toEqual(upsertedProduct)
-    expect(upsertBuilder.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ barcode: '5001234567890', name: 'OFF Produkt' }),
-      { onConflict: 'barcode' },
+    expect(result).toEqual(cachedProduct)
+    // created_by must carry the scanning user's id — the only INSERT policy on
+    // products is `created_by = auth.uid()`, so a null here is rejected by RLS
+    // and the whole barcode path dead-ends into the manual form.
+    expect(insertBuilder.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ barcode: '5001234567890', name: 'OFF Produkt', created_by: 'u1' }),
     )
+  })
+
+  it('returns the row that won the race when the cache insert is rejected', async () => {
+    const selectBuilder = createQueryBuilder({ data: null })
+    const insertBuilder = createQueryBuilder({ data: null, error: { code: '23505' } })
+    const racedBuilder = createQueryBuilder({ data: cachedProduct })
+    mockFrom
+      .mockReturnValueOnce(selectBuilder)
+      .mockReturnValueOnce(insertBuilder)
+      .mockReturnValueOnce(racedBuilder)
+    mockFetchProductByBarcode.mockResolvedValue(offProduct)
+
+    const { findOrFetchProductByBarcode } = await import('./product-lookup')
+
+    expect(await findOrFetchProductByBarcode('5001234567890')).toEqual(cachedProduct)
   })
 
   it('returns null when neither the local DB nor Open Food Facts have the product', async () => {

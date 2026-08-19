@@ -28,13 +28,23 @@ describe('CalorieGoalEditor', () => {
     expect(screen.getByText(/Profil vervollständigen/)).toBeInTheDocument()
   })
 
-  it('switches to manual mode and calls onUpdate with the entered value', () => {
+  it('switches to manual mode and saves the entered value once, on blur', () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined)
     render(<CalorieGoalEditor profile={calculableProfile} onUpdate={onUpdate} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Manuell festlegen' }))
-    fireEvent.change(screen.getByLabelText('Tagesziel (kcal)'), { target: { value: '1800' } })
+    const input = screen.getByLabelText('Tagesziel (kcal)')
 
+    // Typing "1800" must not fire four racing updates (1, 18, 180, 1800) whose
+    // responses can land out of order and leave 180 kcal persisted.
+    fireEvent.change(input, { target: { value: '1' } })
+    fireEvent.change(input, { target: { value: '18' } })
+    fireEvent.change(input, { target: { value: '180' } })
+    fireEvent.change(input, { target: { value: '1800' } })
+    expect(onUpdate).not.toHaveBeenCalled()
+
+    fireEvent.blur(input)
+    expect(onUpdate).toHaveBeenCalledTimes(1)
     expect(onUpdate).toHaveBeenCalledWith({ taegliches_kalorienziel: 1800 })
   })
 

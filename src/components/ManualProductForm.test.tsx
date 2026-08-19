@@ -65,6 +65,34 @@ describe('ManualProductForm', () => {
     )
   })
 
+  it('rejects implausible values instead of writing them to the shared table', async () => {
+    const { default: ManualProductForm } = await import('./ManualProductForm')
+    render(<ManualProductForm onCreated={vi.fn()} onCancel={vi.fn()} />)
+
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Kaputt' } })
+    fireEvent.change(screen.getByLabelText('Kalorien (kcal)'), { target: { value: '-300' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Produkt speichern' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent('plausible Werte')
+    expect(mockFrom).not.toHaveBeenCalled()
+  })
+
+  it('keeps raw database error messages out of the UI', async () => {
+    mockFrom.mockReturnValue(
+      createQueryBuilder({ data: null, error: { message: 'new row violates row-level security policy' } }),
+    )
+
+    const { default: ManualProductForm } = await import('./ManualProductForm')
+    render(<ManualProductForm onCreated={vi.fn()} onCancel={vi.fn()} />)
+
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Neues Produkt' } })
+    fireEvent.change(screen.getByLabelText('Kalorien (kcal)'), { target: { value: '250' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Produkt speichern' }))
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('konnte nicht angelegt werden'))
+    expect(screen.getByRole('alert')).not.toHaveTextContent('row-level security')
+  })
+
   it('calls onCancel when the cancel button is clicked', async () => {
     const onCancel = vi.fn()
     const { default: ManualProductForm } = await import('./ManualProductForm')

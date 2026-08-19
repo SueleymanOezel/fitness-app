@@ -24,13 +24,32 @@ describe('FoodEntryList', () => {
     expect(screen.getByLabelText('Menge (g) für Testprodukt')).toHaveValue(150)
   })
 
-  it('calls onUpdateMenge when the menge input changes', () => {
+  it('calls onUpdateMenge with the edited value once the input is left', () => {
     const onUpdateMenge = vi.fn()
     render(<FoodEntryList entries={entries} onUpdateMenge={onUpdateMenge} onDelete={vi.fn()} />)
+    const input = screen.getByLabelText('Menge (g) für Testprodukt')
 
-    fireEvent.change(screen.getByLabelText('Menge (g) für Testprodukt'), { target: { value: '200' } })
+    fireEvent.change(input, { target: { value: '200' } })
+    expect(onUpdateMenge).not.toHaveBeenCalled()
 
+    fireEvent.blur(input)
     expect(onUpdateMenge).toHaveBeenCalledWith('e1', 200)
+  })
+
+  it('never persists an intermediate or empty value while retyping the menge', () => {
+    const onUpdateMenge = vi.fn()
+    render(<FoodEntryList entries={entries} onUpdateMenge={onUpdateMenge} onDelete={vi.fn()} />)
+    const input = screen.getByLabelText('Menge (g) für Testprodukt')
+
+    // Clearing the field character by character: Number('') is 0, not NaN, so a
+    // per-keystroke save would write menge = 0 and lose the entry's real value.
+    fireEvent.change(input, { target: { value: '15' } })
+    fireEvent.change(input, { target: { value: '1' } })
+    fireEvent.change(input, { target: { value: '' } })
+    fireEvent.blur(input)
+
+    expect(onUpdateMenge).not.toHaveBeenCalled()
+    expect(input).toHaveValue(150)
   })
 
   it('calls onDelete when the delete button is clicked', () => {
