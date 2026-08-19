@@ -72,7 +72,7 @@ function FoodEntryRow({
       >
         Löschen
       </button>
-      {failed && <span role="alert">Änderung konnte nicht gespeichert werden.</span>}
+      {failed && <span role="alert">Eintrag konnte nicht gelöscht werden.</span>}
     </li>
   )
 }

@@ -100,7 +100,7 @@ describe('FoodEntryList', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
 
     await waitFor(() =>
-      expect(screen.getByRole('alert')).toHaveTextContent('nicht gespeichert'),
+      expect(screen.getByRole('alert')).toHaveTextContent('nicht gelöscht'),
     )
   })
 })
