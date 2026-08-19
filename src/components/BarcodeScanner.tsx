@@ -1,7 +1,36 @@
 import { useEffect, useRef, useState } from 'react'
 import { BrowserMultiFormatReader } from '@zxing/browser'
+import { BarcodeFormat, DecodeHintType } from '@zxing/library'
 
 type ScannerControls = { stop: () => void }
+
+/**
+ * Only the product barcodes `isValidBarcode` accepts anyway — this keeps the
+ * decoder from spending every frame ruling out QR and Micro QR.
+ *
+ * Deliberately no TRY_HARDER: it makes the 1D readers retry each frame rotated,
+ * and that path throws "Could not create a Canvas element." in @zxing/browser
+ * 0.2.1, killing every frame before it is decoded at all.
+ */
+const HINTS = new Map<DecodeHintType, unknown>([
+  [
+    DecodeHintType.POSSIBLE_FORMATS,
+    [BarcodeFormat.EAN_13, BarcodeFormat.EAN_8, BarcodeFormat.UPC_A, BarcodeFormat.UPC_E],
+  ],
+])
+
+/**
+ * A default-resolution stream (often 640x480) leaves an EAN-13 with too few
+ * pixels to pass its checksum — the decoder finds the pattern and then rejects
+ * it. Ask for the rear camera and as much resolution as the device offers.
+ */
+const CAMERA: MediaStreamConstraints = {
+  video: {
+    facingMode: { ideal: 'environment' },
+    width: { ideal: 1920 },
+    height: { ideal: 1080 },
+  },
+}
 
 type Props = {
   onDetected: (barcode: string) => void
@@ -29,8 +58,8 @@ export default function BarcodeScanner({ onDetected, onClose }: Props) {
     // session tears the element down under the new stream — camera on, no picture.
     const start = session.current.then(async () => {
       if (cancelled) return
-      const reader = new BrowserMultiFormatReader()
-      controls = await reader.decodeFromVideoDevice(undefined, videoRef.current ?? undefined, (result) => {
+      const reader = new BrowserMultiFormatReader(HINTS as Map<DecodeHintType, unknown>)
+      controls = await reader.decodeFromConstraints(CAMERA, videoRef.current ?? undefined, (result) => {
         // The decode callback keeps firing after a hit; only the first one counts.
         if (!result || detected) return
         detected = true

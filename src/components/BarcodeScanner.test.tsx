@@ -2,23 +2,23 @@ import { StrictMode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 
-const mockDecodeFromVideoDevice = vi.fn()
+const mockDecodeFromConstraints = vi.fn()
 const mockStop = vi.fn()
 
 vi.mock('@zxing/browser', () => ({
   BrowserMultiFormatReader: vi.fn().mockImplementation(function () {
-    return { decodeFromVideoDevice: mockDecodeFromVideoDevice }
+    return { decodeFromConstraints: mockDecodeFromConstraints }
   }),
 }))
 
 describe('BarcodeScanner', () => {
   beforeEach(() => {
-    mockDecodeFromVideoDevice.mockReset()
+    mockDecodeFromConstraints.mockReset()
     mockStop.mockReset()
   })
 
   it('calls onDetected when a barcode is decoded', async () => {
-    mockDecodeFromVideoDevice.mockImplementation((_deviceId, _video, callback) => {
+    mockDecodeFromConstraints.mockImplementation((_deviceId, _video, callback) => {
       callback({ getText: () => '4001234567890' })
       return Promise.resolve({ stop: mockStop })
     })
@@ -31,7 +31,7 @@ describe('BarcodeScanner', () => {
   })
 
   it('shows an error message when the camera fails to start', async () => {
-    mockDecodeFromVideoDevice.mockRejectedValue(new Error('permission denied'))
+    mockDecodeFromConstraints.mockRejectedValue(new Error('permission denied'))
 
     const { default: BarcodeScanner } = await import('./BarcodeScanner')
     render(<BarcodeScanner onDetected={vi.fn()} onClose={vi.fn()} />)
@@ -45,7 +45,7 @@ describe('BarcodeScanner', () => {
     // The scanner is unmounted the moment a barcode is detected; if the start
     // promise resolves after that, nothing would ever release the camera.
     let resolveStart: (controls: { stop: () => void }) => void = () => {}
-    mockDecodeFromVideoDevice.mockReturnValue(
+    mockDecodeFromConstraints.mockReturnValue(
       new Promise<{ stop: () => void }>((resolve) => {
         resolveStart = resolve
       }),
@@ -56,7 +56,7 @@ describe('BarcodeScanner', () => {
 
     // Wait until the start is genuinely in flight — unmounting before that never
     // opens the camera at all, which is a different (also fine) outcome.
-    await waitFor(() => expect(mockDecodeFromVideoDevice).toHaveBeenCalled())
+    await waitFor(() => expect(mockDecodeFromConstraints).toHaveBeenCalled())
     unmount()
     resolveStart({ stop: mockStop })
 
@@ -64,7 +64,7 @@ describe('BarcodeScanner', () => {
   })
 
   it('reports only the first decode, not every callback tick', async () => {
-    mockDecodeFromVideoDevice.mockImplementation((_deviceId, _video, callback) => {
+    mockDecodeFromConstraints.mockImplementation((_deviceId, _video, callback) => {
       callback({ getText: () => '4001234567890' })
       callback({ getText: () => '4001234567890' })
       callback({ getText: () => '4001234567890' })
@@ -85,7 +85,7 @@ describe('BarcodeScanner', () => {
     // under the second one's stream. Camera on, no picture.
     let live = 0
     let peak = 0
-    mockDecodeFromVideoDevice.mockImplementation(async () => {
+    mockDecodeFromConstraints.mockImplementation(async () => {
       await Promise.resolve() // the real start is async; make the overlap observable
       live++
       peak = Math.max(peak, live)
@@ -109,7 +109,7 @@ describe('BarcodeScanner', () => {
   })
 
   it('calls onClose when the cancel button is clicked', async () => {
-    mockDecodeFromVideoDevice.mockResolvedValue({ stop: mockStop })
+    mockDecodeFromConstraints.mockResolvedValue({ stop: mockStop })
 
     const { default: BarcodeScanner } = await import('./BarcodeScanner')
     const onClose = vi.fn()

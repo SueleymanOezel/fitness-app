@@ -15,6 +15,7 @@ export default function AddEntryFlow({ onAdd }: Props) {
   const [product, setProduct] = useState<Product | null>(null)
   const [scannedBarcode, setScannedBarcode] = useState<string | undefined>(undefined)
   const [menge, setMenge] = useState('100')
+  const [typedBarcode, setTypedBarcode] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const handleDetected = useCallback(async (barcode: string) => {
@@ -38,10 +39,25 @@ export default function AddEntryFlow({ onAdd }: Props) {
     }
   }, [])
 
+  // Typed instead of scanned: laptop webcams and worn packaging often never
+  // resolve a code, and the digits are printed right under it.
+  function handleTypedBarcode(event: FormEvent) {
+    event.preventDefault()
+    const entered = typedBarcode.replace(/\s/g, '')
+    if (!isValidBarcode(entered)) {
+      setError('Bitte die Ziffern unter dem Strichcode eingeben (8–14 Ziffern).')
+      return
+    }
+    setError(null)
+    setTypedBarcode('')
+    handleDetected(entered)
+  }
+
   function reset() {
     setStep('idle')
     setProduct(null)
     setScannedBarcode(undefined)
+    setTypedBarcode('')
     setMenge('100')
     setError(null)
   }
@@ -80,6 +96,19 @@ export default function AddEntryFlow({ onAdd }: Props) {
         <button type="button" onClick={() => setStep('manual-entry')}>
           Manuell hinzufügen
         </button>
+        <form onSubmit={handleTypedBarcode}>
+          <label>
+            Barcode-Nummer eingeben
+            <input
+              inputMode="numeric"
+              value={typedBarcode}
+              onChange={(event) => setTypedBarcode(event.target.value)}
+              placeholder="z. B. 8076809580144"
+            />
+          </label>
+          <button type="submit">Suchen</button>
+        </form>
+        {error && <p role="alert">{error}</p>}
       </div>
     )
   }
