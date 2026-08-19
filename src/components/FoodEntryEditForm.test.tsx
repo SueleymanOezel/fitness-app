@@ -1,6 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { FoodEntry } from '../hooks/use-food-entries'
+
+// Minimal ambient type for the Node `process` global (to pin the timezone in
+// the zeitpunkt-conversion test below). The project's browser-only tsconfig
+// has no @types/node.
+declare const process: { env: Record<string, string | undefined> }
 
 const mockSaveProductEdit = vi.fn()
 vi.mock('../lib/product-edit', () => ({
@@ -198,5 +203,114 @@ describe('FoodEntryEditForm', () => {
     )
     expect(onSave).not.toHaveBeenCalled()
     expect(onClose).not.toHaveBeenCalled()
+  })
+
+  // I1: an emptied datetime-local field must not throw a TypeError deep inside
+  // fromLocalInputValue — it has to surface as the same kind of user-facing
+  // error as an invalid amount.
+  it('rejects an emptied zeitpunkt without throwing', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined)
+    const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
+    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+
+    fireEvent.change(screen.getByLabelText('Zeitpunkt'), { target: { value: '' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Zeitpunkt')
+    expect(onSave).not.toHaveBeenCalled()
+  })
+
+  // I2: the name field has no maxLength, so a pasted block of text must still
+  // be truncated before it reaches saveProductEdit — same limit as
+  // ManualProductForm and open-food-facts.ts.
+  it('truncates an overlong product name before saving', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined)
+    const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
+    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+
+    const longName = 'x'.repeat(250)
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: longName } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() => expect(mockSaveProductEdit).toHaveBeenCalled())
+    const patchArg = mockSaveProductEdit.mock.calls[0][1] as { name: string }
+    expect(patchArg.name).toHaveLength(200)
+  })
+
+  // I3: a retry after a failed onSave must not write a second copy of a
+  // foreign product — the first saveProductEdit result has to be reused.
+  it('does not call saveProductEdit again when retrying after a failed onSave', async () => {
+    mockSaveProductEdit.mockResolvedValue({
+      id: 'p2',
+      name: 'Testprodukt',
+      kalorien: 120,
+      eiweiss: 1,
+      fett: 2,
+      kohlenhydrate: 3,
+    })
+    const onSave = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValueOnce(undefined)
+    const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
+    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+
+    fireEvent.change(screen.getByLabelText('Kalorien (kcal)'), { target: { value: '120' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(2))
+
+    expect(mockSaveProductEdit).toHaveBeenCalledTimes(1)
+    expect(onSave.mock.calls[0][1]).toMatchObject({ product_id: 'p2' })
+    expect(onSave.mock.calls[1][1]).toMatchObject({ product_id: 'p2' })
+  })
+
+  // M1: datetime-local has minute resolution — writing zeitpunkt on every
+  // save would silently zero out seconds/milliseconds even when the user
+  // never touched the field.
+  it('omits zeitpunkt from the patch when only the amount changed', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined)
+    const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
+    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+
+    fireEvent.change(screen.getByLabelText('Menge (g)'), { target: { value: '200' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(onSave.mock.calls[0][1]).not.toHaveProperty('zeitpunkt')
+  })
+})
+
+// I5: the field → fromLocalInputValue → patch.zeitpunkt chain had no test at
+// all. Pin a non-UTC zone so a naive UTC implementation would fail here.
+describe('FoodEntryEditForm zeitpunkt timezone handling', () => {
+  const originalTz = process.env.TZ
+
+  beforeEach(() => {
+    mockSaveProductEdit.mockReset()
+    mockSaveProductEdit.mockImplementation(async (_product, patch) => ({ id: 'p1', ...patch }))
+    process.env.TZ = 'Europe/Berlin'
+  })
+
+  afterEach(() => {
+    process.env.TZ = originalTz
+  })
+
+  it('stores a changed zeitpunkt as UTC in the patch', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined)
+    const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
+    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+
+    // entry.zeitpunkt = '2026-08-19T06:30:00.000Z' = 08:30 Berlin summer time.
+    fireEvent.change(screen.getByLabelText('Zeitpunkt'), { target: { value: '2026-08-19T09:15' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(onSave).toHaveBeenCalledWith(
+      'e1',
+      expect.objectContaining({ zeitpunkt: '2026-08-19T07:15:00.000Z' }),
+    )
   })
 })

@@ -3,6 +3,7 @@ import ProductPicker from './ProductPicker'
 import { parseNutrients } from '../lib/nutrients'
 import { saveProductEdit } from '../lib/product-edit'
 import { fromLocalInputValue, toLocalInputValue } from '../lib/local-time'
+import { MAX_NAME_LENGTH } from '../lib/open-food-facts'
 import type { Product } from '../lib/product-lookup'
 import type { EntryPatch, FoodEntry } from '../hooks/use-food-entries'
 
@@ -13,10 +14,16 @@ type Props = {
   onClose: () => void
 }
 
+// Cache of the last saveProductEdit result, keyed by the exact input it was
+// produced from. A retry after a failed onSave (e.g. a network drop) must
+// reuse this instead of writing another copy of a foreign product — see I3.
+type ProductSaveCache = { key: string; result: Product }
+
 export default function FoodEntryEditForm({ entry, userId, onSave, onClose }: Props) {
   const product = entry.products
+  const initialZeitpunkt = toLocalInputValue(entry.zeitpunkt)
   const [menge, setMenge] = useState(String(entry.menge))
-  const [zeitpunkt, setZeitpunkt] = useState(toLocalInputValue(entry.zeitpunkt))
+  const [zeitpunkt, setZeitpunkt] = useState(initialZeitpunkt)
   const [swapped, setSwapped] = useState<Product | null>(null)
   const [picking, setPicking] = useState(false)
   const [name, setName] = useState(product?.name ?? '')
@@ -25,6 +32,7 @@ export default function FoodEntryEditForm({ entry, userId, onSave, onClose }: Pr
   const [fett, setFett] = useState(product?.fett?.toString() ?? '')
   const [kohlenhydrate, setKohlenhydrate] = useState(product?.kohlenhydrate?.toString() ?? '')
   const [error, setError] = useState<string | null>(null)
+  const [productSaveCache, setProductSaveCache] = useState<ProductSaveCache | null>(null)
 
   if (picking) {
     return (
@@ -48,7 +56,19 @@ export default function FoodEntryEditForm({ entry, userId, onSave, onClose }: Pr
       return
     }
 
-    const patch: EntryPatch = { menge: value, zeitpunkt: fromLocalInputValue(zeitpunkt) }
+    const patch: EntryPatch = { menge: value }
+
+    // datetime-local has minute resolution; only touch zeitpunkt when the
+    // field actually changed, otherwise a plain amount edit would silently
+    // zero out seconds/milliseconds on every save (M1).
+    if (zeitpunkt !== initialZeitpunkt) {
+      const zeitpunktIso = fromLocalInputValue(zeitpunkt)
+      if (!zeitpunktIso) {
+        setError('Bitte einen gültigen Zeitpunkt angeben.')
+        return
+      }
+      patch.zeitpunkt = zeitpunktIso
+    }
 
     if (swapped) {
       // The nutrients on screen belong to the product being replaced, so they
@@ -61,7 +81,10 @@ export default function FoodEntryEditForm({ entry, userId, onSave, onClose }: Pr
         return
       }
 
-      const trimmedName = name.trim() || product.name
+      // Truncated the same way as ManualProductForm/open-food-facts.ts: the
+      // field has no maxLength, and products.name has no length constraint,
+      // so an untrimmed value would reach the shared table unbounded (I2).
+      const trimmedName = name.trim().slice(0, MAX_NAME_LENGTH) || product.name
       const nutrientsChanged =
         trimmedName !== product.name ||
         nutrients.kalorien !== product.kalorien ||
@@ -74,19 +97,30 @@ export default function FoodEntryEditForm({ entry, userId, onSave, onClose }: Pr
       // saveProductEdit and create a duplicate row every time the amount is
       // edited. Skip the product write entirely when nothing about it changed.
       if (nutrientsChanged) {
-        try {
-          const saved = await saveProductEdit(
-            { id: product.id, created_by: product.created_by },
-            { ...nutrients, name: trimmedName },
-            userId,
-          )
-          // saveProductEdit returns a copy when the product belonged to someone
-          // else; the entry has to follow it.
-          if (saved.id !== product.id) patch.product_id = saved.id
-        } catch {
-          setError('Produkt konnte nicht gespeichert werden. Bitte erneut versuchen.')
-          return
+        const cacheKey = JSON.stringify({ trimmedName, ...nutrients })
+        let saved: Product
+
+        if (productSaveCache && productSaveCache.key === cacheKey) {
+          // Retrying after a failed onSave with the same field values: reuse
+          // the earlier result instead of writing another copy (I3).
+          saved = productSaveCache.result
+        } else {
+          try {
+            saved = await saveProductEdit(
+              { id: product.id, created_by: product.created_by },
+              { ...nutrients, name: trimmedName },
+              userId,
+            )
+            setProductSaveCache({ key: cacheKey, result: saved })
+          } catch {
+            setError('Produkt konnte nicht gespeichert werden. Bitte erneut versuchen.')
+            return
+          }
         }
+
+        // saveProductEdit returns a copy when the product belonged to someone
+        // else; the entry has to follow it.
+        if (saved.id !== product.id) patch.product_id = saved.id
       }
     }
 
