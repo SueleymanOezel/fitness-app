@@ -115,9 +115,19 @@ Scoped Re-Review: alle 15 Findings ADDRESSED, keine neue Critical/Important-Regr
 - [x] Task 13: `pages/NutritionPage.tsx` (Dashboard zusammengesetzt) — Commit `3df68f3`, alle 8 Cross-Task-Interfaces vom Reviewer unabhängig verifiziert
 - [x] Task 14: Finale lokale Verifikation — fertig. `npm test` 76/76 grün (19 Dateien), `npm run lint` ohne Fehler, `npm run build` (tsc -b + vite build) erfolgreich. `docs/domaenenmodell.md` um die fünf neuen `profiles`-Spalten und den `products_barcode_unique`-Index ergänzt, Quellenzeile auf Stand Phase 2 gesetzt, nach `../fitness-app.wiki/Domain-Model.md` gespiegelt (Wiki noch **nicht** committet/gepusht).
 
+**Finale Whole-Branch-Review:** abgeschlossen. Verdict zunächst "not ready" wegen **eines Critical**: `product-lookup.ts` setzte beim Cachen eines Open-Food-Facts-Treffers kein `created_by`, und die einzige INSERT-Policy auf `products` ist `created_by = auth.uid()` — jeder Scan eines noch nicht gecachten Produkts wäre von RLS abgelehnt worden und hätte den Nutzer ins manuelle Formular geworfen, obwohl die Nährwerte gerade abgerufen waren. Alle 76 Tests waren grün, weil die Mocks jeden Insert gelingen ließen. Dazu 8 Important (Barcode ungeprüft in die OFF-URL — der Scanner dekodiert auch QR-Codes; OFF-Nährwerte ungeprüft; Menge- und Kalorienziel-Feld schrieben pro Tastendruck in die DB, `Number('')` = 0 → Datenverlust; Kamera-Leak beim Unmount vor dem Start-Promise; ewiges "Lädt…" bei fehlender `profiles`-Zeile; fehlende Plausibilitätsprüfung vor dem Insert in die geteilte `products`-Tabelle) und 10 Minor.
+Als solide bestätigt: keine Secrets, kein Logging, keine Drittanbieter-Namen, kein XSS/SQLi, Migration 0002 fail-closed, Mifflin-St-Jeor korrekt, Cross-File-Typen konsistent.
+
+- Fix-Runde 1 (Commit `cd09414`): alle 15 Findings behoben, 10 neue Tests genau für die Pfade, die die Lücken verdeckt hatten.
+- Scoped Re-Review: **15/15 ADDRESSED**, keine Regression durch die Fixes (Draft-States und requestId-Guards explizit gegengeprüft, `maybeSingle()`-Semantik gegen die installierte postgrest-Version verifiziert). Zwei Important-Residuen gefunden.
+- Fix-Runde 2 (Commit `afb0d06`): beide Residuen behoben — supabase-js *resolved* statt zu werfen, dadurch wurden alle Schreibfehler stumm geschluckt (`AddEntryFlow`s Fehlerzweig war toter Code, ein fehlgeschlagenes Menge-Update ließ den getippten Wert stehen); Profil-Updates sind jetzt serialisiert (Blur + Klick auf "Berechnen lassen" feuerten zwei ungeordnete PATCHes).
+
+**Stand:** 94/94 Tests grün, Lint ohne Fehler und ohne Warnungen, Build sauber.
+
+**Offener Follow-up (bewusst nicht in Phase 2 gelöst):** Cache-Zeilen aus dem Barcode-Scan tragen jetzt den `created_by` des ersten Scanners. Zusammen mit `products_update_own` (aus Phase 1, ohne `with check`) heißt das: wer einen Barcode zuerst scannt, kann die Nährwerte dieses geteilten Produkts danach für alle ändern. Für Phase 5 (Härtung) vormerken — Policy-Design, kein Bugfix.
+
 **Nächste Schritte (noch offen):**
-1. Finale Whole-Branch-Review (stärkstes Modell) über den gesamten Phase-2-Diff, Findings ggf. in EINER gebündelten Fix-Runde beheben
-2. SDD-Workspace löschen (`.superpowers/sdd/2026-08-18-phase2-ernaehrungsbereich-plan`)
-3. `superpowers:finishing-a-development-branch` aufrufen — Push/PR-Entscheidung analog Phase 1 (nicht direkt auf `master` pushen, Branch pushen + PR öffnen, CI abwarten, mergen)
-4. Nach Merge: Wiki (`fitness-app.wiki`) und `docs/domaenenmodell.md` final synchron halten (siehe Memory `project-wiki-and-domain-model`)
-5. Manual-Verification-Checkliste aus der Plan-Datei mit dem Nutzer durchgehen (echte Kamera, echter Barcode, echte Supabase-Instanz)
+1. SDD-Workspace löschen (`.superpowers/sdd/2026-08-18-phase2-ernaehrungsbereich-plan`)
+2. `superpowers:finishing-a-development-branch` aufrufen — Push/PR-Entscheidung analog Phase 1 (nicht direkt auf `master` pushen, Branch pushen + PR öffnen, CI abwarten, mergen)
+3. Nach Merge: Wiki (`fitness-app.wiki`) und `docs/domaenenmodell.md` final synchron halten (siehe Memory `project-wiki-and-domain-model`)
+4. Manual-Verification-Checkliste aus der Plan-Datei mit dem Nutzer durchgehen (echte Kamera, echter Barcode, echte Supabase-Instanz)
