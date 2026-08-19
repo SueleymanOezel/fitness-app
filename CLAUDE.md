@@ -99,7 +99,7 @@ Scoped Re-Review: alle 15 Findings ADDRESSED, keine neue Critical/Important-Regr
 - Ledger/Fortschritt der Task-Ausführung: `.superpowers/sdd/2026-08-18-phase2-ernaehrungsbereich-plan/progress.md` (nur im Worktree, git-ignored — enthält alle Rulings/Fix-Runden im Detail)
 - Neue Dependency: `@zxing/browser` (Kamera-Barcode-Scan)
 
-**Task-Status (12 von 14 Tasks fertig, alle reviewed):**
+**Task-Status (14 von 14 Tasks fertig, alle reviewed):**
 - [x] Task 1: Migration `0002` (Kalorienziel-Felder + Barcode-Unique-Index) — Commit `55b7387`
 - [x] Task 2: `lib/nutrition-goal.ts` (Mifflin-St-Jeor-Berechnung) — Commit `8f16c8f`
 - [x] Task 3: `lib/open-food-facts.ts` (Barcode-Lookup) — Commit `61b0ce7` (1 Minor geparkt)
@@ -113,9 +113,9 @@ Scoped Re-Review: alle 15 Findings ADDRESSED, keine neue Critical/Important-Regr
 - [x] Task 11: `components/BarcodeScanner.tsx` (+ `@zxing/browser`) — Commits `ddef760..c0c7eb4` (2 Fix-Runden: Vitest-Mock-Inkompatibilität sauber im Test statt mit Production-Workaround gelöst, unnötige Typ-Abweichung zurückgenommen)
 - [x] Task 12: `components/AddEntryFlow.tsx` — Commits `c0c7eb4..ffde50a` (1 Fix-Runde: echter Dead-End-Bug behoben — `looking-up`-Status blieb bei Netzwerkfehler beim Barcode-Lookup hängen, kein Cancel möglich)
 - [x] Task 13: `pages/NutritionPage.tsx` (Dashboard zusammengesetzt) — Commit `3df68f3`, alle 8 Cross-Task-Interfaces vom Reviewer unabhängig verifiziert
-- [ ] **Task 14 (offen): Finale lokale Verifikation** — volle Suite (Test/Lint/Build) laufen lassen, `docs/domaenenmodell.md` um die neuen `profiles`-Spalten + `products_barcode_unique`-Index ergänzen (und nach `../fitness-app.wiki/Domain-Model.md` spiegeln, noch nicht pushen), `CLAUDE.md`-Status-Sektion mit Commit-Hashes committen
+- [x] Task 14: Finale lokale Verifikation — fertig. `npm test` 76/76 grün (19 Dateien), `npm run lint` ohne Fehler, `npm run build` (tsc -b + vite build) erfolgreich. `docs/domaenenmodell.md` um die fünf neuen `profiles`-Spalten und den `products_barcode_unique`-Index ergänzt, Quellenzeile auf Stand Phase 2 gesetzt, nach `../fitness-app.wiki/Domain-Model.md` gespiegelt (Wiki noch **nicht** committet/gepusht).
 
-**Nächste Schritte danach (noch offen):**
+**Nächste Schritte (noch offen):**
 1. Finale Whole-Branch-Review (stärkstes Modell) über den gesamten Phase-2-Diff, Findings ggf. in EINER gebündelten Fix-Runde beheben
 2. SDD-Workspace löschen (`.superpowers/sdd/2026-08-18-phase2-ernaehrungsbereich-plan`)
 3. `superpowers:finishing-a-development-branch` aufrufen — Push/PR-Entscheidung analog Phase 1 (nicht direkt auf `master` pushen, Branch pushen + PR öffnen, CI abwarten, mergen)

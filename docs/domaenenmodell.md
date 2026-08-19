@@ -43,6 +43,11 @@ erDiagram
         int alter
         numeric groesse
         numeric aktuelles_gewicht
+        string geschlecht
+        string aktivitaetslevel
+        string ziel
+        numeric ziel_delta_kcal
+        numeric taegliches_kalorienziel
     }
 
     products {
@@ -151,4 +156,5 @@ erDiagram
 - `products` und `exercises` sind geteilte Community-Tabellen (kein `user_id`-Owner-Filter beim Lesen), `created_by` markiert nur, wer den Eintrag ursprünglich angelegt hat.
 - `day_status` (geplanter Status) und `workout_sessions` (tatsächlich durchgeführtes Training) sind bewusst getrennt — das Home-Dashboard gleicht Plan gegen Realität ab.
 - `body_metrics` und `day_status` haben je einen `unique (user_id, datum)`-Constraint — pro Nutzer und Tag genau ein Eintrag.
-- Quelle: `supabase/migrations/0001_initial_schema.sql` (Stand Phase 1).
+- `profiles.geschlecht/aktivitaetslevel/ziel/ziel_delta_kcal` speisen die Mifflin-St-Jeor-Berechnung des Kalorienziels (`src/lib/nutrition-goal.ts`); `taegliches_kalorienziel` überschreibt die Berechnung, wenn gesetzt. `products.barcode` hat seit Phase 2 einen Unique-Index für nicht-null-Werte (`products_barcode_unique`).
+- Quelle: `supabase/migrations/0001_initial_schema.sql` (Stand Phase 2, inkl. `0002_nutrition_profile_fields.sql`).
