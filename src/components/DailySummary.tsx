@@ -1,15 +1,9 @@
+import { sumKalorien } from '../lib/entry-calories'
 import type { FoodEntry } from '../hooks/use-food-entries'
 
 type Props = {
   entries: FoodEntry[]
   goal: number | null
-}
-
-function sumKalorien(entries: FoodEntry[]): number {
-  return entries.reduce((total, entry) => {
-    if (!entry.products) return total
-    return total + (entry.products.kalorien * entry.menge) / 100
-  }, 0)
 }
 
 function sumMakro(entries: FoodEntry[], makro: 'eiweiss' | 'fett' | 'kohlenhydrate'): number {
