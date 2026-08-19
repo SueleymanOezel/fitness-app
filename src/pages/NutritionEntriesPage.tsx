@@ -1,7 +1,11 @@
 import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
-import { useFoodEntries } from '../hooks/use-food-entries'
+import { useProfile } from '../hooks/use-profile'
+import { useFoodEntries, type FoodEntry } from '../hooks/use-food-entries'
+import { visibleSections } from '../lib/meal-sections'
+import { sumKalorien } from '../lib/entry-calories'
 import FoodEntryList from '../components/FoodEntryList'
+import AddEntryFlow from '../components/AddEntryFlow'
 
 export default function NutritionEntriesPage() {
   const { session } = useSession()
@@ -16,28 +20,51 @@ export default function NutritionEntriesPage() {
     )
   }
 
-  return <EntriesList userId={userId} />
+  return <EntriesBySection userId={userId} />
 }
 
-function EntriesList({ userId }: { userId: string }) {
-  // Loads independently of the dashboard: both query the same day, and one small
-  // query per page is cheaper than sharing state neither page owns.
-  const { entries, loading, updateEntry, deleteEntry } = useFoodEntries(userId)
+function EntriesBySection({ userId }: { userId: string }) {
+  const { profile, loading: profileLoading } = useProfile(userId)
+  const { entries, loading, addEntry, updateEntry, deleteEntry } = useFoodEntries(userId)
+
+  if (loading || profileLoading || !profile) {
+    return (
+      <div>
+        <h1>Einträge heute</h1>
+        <p>Lädt…</p>
+      </div>
+    )
+  }
+
+  const sections = visibleSections(profile, entries)
 
   return (
     <div>
       <h1>Einträge heute</h1>
-      {loading ? (
-        <p>Lädt…</p>
-      ) : (
-        <FoodEntryList
-          entries={entries}
-          userId={userId}
-          onUpdateEntry={updateEntry}
-          onDelete={deleteEntry}
-        />
-      )}
+      {sections.map((section) => {
+        // Bound to a const so the narrowing survives into the callback below —
+        // TypeScript does not keep a property narrowing across a closure.
+        const slot = section.slot
+        const sectionEntries = entries.filter((entry) => entry.mahlzeit === slot)
+        return (
+          <section key={slot ?? 'unassigned'}>
+            <h2>{`${section.name} — ${Math.round(sumKalorien(sectionEntries))} kcal`}</h2>
+            <FoodEntryList
+              entries={sectionEntries}
+              userId={userId}
+              onUpdateEntry={updateEntry}
+              onDelete={deleteEntry}
+            />
+            {/* No add button for the unassigned group — nothing new belongs there. */}
+            {slot !== null && (
+              <AddEntryFlow onAdd={(productId, menge) => addEntry(productId, menge, slot)} />
+            )}
+          </section>
+        )
+      })}
       <Link to="/nutrition">Zurück zur Ernährung</Link>
     </div>
   )
 }
+
+export type { FoodEntry }
