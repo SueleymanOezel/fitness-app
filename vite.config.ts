@@ -8,7 +8,9 @@ import basicSsl from '@vitejs/plugin-basic-ssl'
 // http on localhost, which counts as secure and needs no certificate prompt.
 export default defineConfig(({ mode }) => ({
   plugins: [react(), ...(mode === 'mobile' ? [basicSsl()] : [])],
-  server: mode === 'mobile' ? { host: true } : {},
+  // '0.0.0.0', not `true`: the latter binds to '::' and this machine's dual-stack
+  // does not accept IPv4 through it, so phones on the LAN could not connect.
+  server: mode === 'mobile' ? { host: '0.0.0.0' } : {},
   test: {
     environment: 'jsdom',
     setupFiles: './src/test-setup.ts',
