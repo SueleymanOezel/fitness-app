@@ -77,6 +77,37 @@ describe('FoodEntryEditForm', () => {
     expect(onSave).toHaveBeenCalledWith('e1', expect.objectContaining({ menge: 200 }))
   })
 
+  it('does not write the product when only the amount changes on a foreign product', async () => {
+    const foreignEntry: FoodEntry = {
+      ...entry,
+      products: { ...entry.products!, created_by: 'someone-else' },
+    }
+    const onSave = vi.fn().mockResolvedValue(undefined)
+    const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
+    render(<FoodEntryEditForm entry={foreignEntry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+
+    fireEvent.change(screen.getByLabelText('Menge (g)'), { target: { value: '200' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(mockSaveProductEdit).not.toHaveBeenCalled()
+    expect(onSave).toHaveBeenCalledWith('e1', expect.objectContaining({ menge: 200 }))
+    expect(onSave.mock.calls[0][1]).not.toHaveProperty('product_id')
+  })
+
+  it('does not write the product when only the amount changes on an own product', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined)
+    const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
+    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+
+    fireEvent.change(screen.getByLabelText('Menge (g)'), { target: { value: '200' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(mockSaveProductEdit).not.toHaveBeenCalled()
+    expect(onSave).toHaveBeenCalledWith('e1', expect.objectContaining({ menge: 200 }))
+  })
+
   it('remaps the entry when the product is swapped', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined)
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
@@ -142,6 +173,8 @@ describe('FoodEntryEditForm', () => {
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
     render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
 
+    // Only an actual nutrient correction takes the saveProductEdit path.
+    fireEvent.change(screen.getByLabelText('Kalorien (kcal)'), { target: { value: '120' } })
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
     await waitFor(() =>
@@ -156,6 +189,8 @@ describe('FoodEntryEditForm', () => {
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
     render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={onClose} />)
 
+    // Only an actual nutrient correction takes the saveProductEdit path.
+    fireEvent.change(screen.getByLabelText('Kalorien (kcal)'), { target: { value: '120' } })
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
     await waitFor(() =>

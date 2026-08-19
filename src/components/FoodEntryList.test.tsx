@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import FoodEntryList from './FoodEntryList'
 import type { FoodEntry } from '../hooks/use-food-entries'
 
@@ -47,6 +47,8 @@ describe('FoodEntryList', () => {
 
     expect(screen.getByText('Testprodukt')).toBeInTheDocument()
     expect(screen.getByText(/150 g/)).toBeInTheDocument()
+    // 100 kcal/100 g × 150 g = 150 kcal.
+    expect(screen.getByText(/150 kcal/)).toBeInTheDocument()
     // The amount was silently editable before and nobody found it.
     expect(screen.queryByLabelText('Menge (g) für Testprodukt')).not.toBeInTheDocument()
   })
@@ -82,5 +84,23 @@ describe('FoodEntryList', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
 
     expect(onDelete).toHaveBeenCalledWith('e1')
+  })
+
+  it('shows a visible warning when the delete is rejected', async () => {
+    const onDelete = vi.fn().mockRejectedValue(new Error('delete failed'))
+    render(
+      <FoodEntryList
+        entries={entries}
+        userId="u1"
+        onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
+        onDelete={onDelete}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('nicht gespeichert'),
+    )
   })
 })

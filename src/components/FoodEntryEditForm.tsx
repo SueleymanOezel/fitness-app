@@ -61,18 +61,32 @@ export default function FoodEntryEditForm({ entry, userId, onSave, onClose }: Pr
         return
       }
 
-      try {
-        const saved = await saveProductEdit(
-          { id: product.id, created_by: product.created_by },
-          { ...nutrients, name: name.trim() || product.name },
-          userId,
-        )
-        // saveProductEdit returns a copy when the product belonged to someone
-        // else; the entry has to follow it.
-        if (saved.id !== product.id) patch.product_id = saved.id
-      } catch {
-        setError('Produkt konnte nicht gespeichert werden. Bitte erneut versuchen.')
-        return
+      const trimmedName = name.trim() || product.name
+      const nutrientsChanged =
+        trimmedName !== product.name ||
+        nutrients.kalorien !== product.kalorien ||
+        nutrients.eiweiss !== product.eiweiss ||
+        nutrients.fett !== product.fett ||
+        nutrients.kohlenhydrate !== product.kohlenhydrate
+
+      // Only amount/time changed: writing the product here would, for a
+      // product owned by someone else, always take the insert branch of
+      // saveProductEdit and create a duplicate row every time the amount is
+      // edited. Skip the product write entirely when nothing about it changed.
+      if (nutrientsChanged) {
+        try {
+          const saved = await saveProductEdit(
+            { id: product.id, created_by: product.created_by },
+            { ...nutrients, name: trimmedName },
+            userId,
+          )
+          // saveProductEdit returns a copy when the product belonged to someone
+          // else; the entry has to follow it.
+          if (saved.id !== product.id) patch.product_id = saved.id
+        } catch {
+          setError('Produkt konnte nicht gespeichert werden. Bitte erneut versuchen.')
+          return
+        }
       }
     }
 
