@@ -67,7 +67,13 @@ Das vollständige Architekturkonzept mit Datenbankschema, REST-API-Endpunkten pr
 
 Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer Chat sofort weiß, was gemacht wurde und was als Nächstes ansteht.
 
-**Aktueller Stand:** Phase 1 und Phase 2 sind gemerged und deployed. Offen: Manual-Verification von Phase 2 gegen echte Kamera/Produktionsinstanz. Danach beginnt Phase 3 (Trainingsbereich) — Spec/Plan dafür noch zu erstellen (`superpowers:brainstorming` → `superpowers:writing-plans`).
+**Aktueller Stand:** Phase 1 und Phase 2 sind gemerged, deployed und manuell verifiziert. Nächster Schritt: Phase 3 (Trainingsbereich) — Spec/Plan dafür noch zu erstellen (`superpowers:brainstorming` → `superpowers:writing-plans`). Vorher bzw. dabei zu berücksichtigen: der Ernährungsbereich soll in Dashboard + eigene Unterseiten aufgeteilt werden (siehe „UI-Struktur" unten).
+
+## UI-Struktur (gilt ab Phase 3)
+
+Die vier Dashboards zeigen **nur das Wichtigste**. Detaillisten — Produkte, Übungen, Verlauf — gehören auf eigene Unterseiten je Bereich, nicht aufs Dashboard. Neue Bereiche von Anfang an so planen, statt später aufzubrechen.
+
+Nachzuholen: `NutritionPage` zeigt aktuell Tagesübersicht, Ziel-Editor, Eintragsliste und Hinzufügen-Flow auf einer Seite; die Produkt-/Eintragsliste gehört auf eine eigene Seite.
 
 ## Phase 1 – Grundgerüst & Security-Basis (abgeschlossen)
 
@@ -93,7 +99,7 @@ Scoped Re-Review: alle 15 Findings ADDRESSED, keine neue Critical/Important-Regr
 
 **Phase 1 ist vollständig abgeschlossen**, inklusive Manual-Verification (Signup mit E-Mail-Bestätigung, Login, alle vier Dashboard-Tabs, Logout, `profiles`-Zeile via `handle_new_user`-Trigger — alles bestätigt funktionsfähig gegen die echte Produktions-Supabase-Instanz).
 
-## Phase 2 – Ernährungsbereich (gemerged, Manual-Verification offen)
+## Phase 2 – Ernährungsbereich (abgeschlossen)
 
 - Spec: `docs/superpowers/specs/2026-08-18-phase2-ernaehrungsbereich-design.md`
 - Plan: `docs/superpowers/plans/2026-08-18-phase2-ernaehrungsbereich-plan.md` (14 Tasks)
@@ -129,7 +135,15 @@ Als solide bestätigt: keine Secrets, kein Logging, keine Drittanbieter-Namen, k
 
 **Abgeschlossen nach dem Merge:** Wiki synchronisiert (`Domain-Model`, `Phase-2-Design-Spec`, `Phase-2-Implementation-Plan`, `Home`, `_Sidebar` — gepusht), Worktree/Branches entfernt, SDD-Workspace gelöscht.
 
-**Noch offen:** Manual-Verification-Checkliste aus der Plan-Datei mit dem Nutzer durchgehen (echte Kamera, echter Barcode, echte Supabase-Instanz).
+**Manual-Verification abgeschlossen** (gegen die echte Produktionsinstanz): Kalorienziel berechnet sich korrekt aus dem Profil; Barcode-Lookup legt Produkt und Eintrag an; zweiter Lookup derselben Nummer kommt aus dem lokalen Cache; unbekannte Nummer führt ins manuelle Formular; implausible Werte (`-300` kcal) werden abgelehnt, ohne zu schreiben; Menge ändern und Eintrag löschen funktionieren; Summen stimmen (`kcal × Menge / 100`).
+
+**Damit ist Phase 2 vollständig abgeschlossen.**
+
+Dabei gefunden und in PR #11 behoben:
+- Kamera-Vorschau blieb schwarz — StrictMode führt den Effect zweimal auf derselben Instanz aus, und zxing bindet jeden Reader an dasselbe `<video>`; die erste Session löste auf, nachdem die zweite das Element übernommen hatte, und riss es mit ihrem `stop()` ab. Sessions sind jetzt verkettet.
+- Barcode-Nummer lässt sich eintippen (gleicher Lookup-Pfad wie der Scan) — genau damit wurde Phase 2 dann verifiziert.
+
+**Bekannte Einschränkung:** Der Kamera-Scan liest auf Laptop-Webcams unzuverlässig (Fixfokus, zu wenig Pixel für einen EAN-13 → `ChecksumException`). Optik-, kein Code-Problem; ein belastbarer Test braucht die Handykamera mit Autofokus und dafür HTTPS im Dev-Setup. `TRY_HARDER` **nicht** wieder aktivieren — es lässt die 1D-Reader jeden Frame rotiert erneut lesen und wirft dabei in `@zxing/browser` 0.2.1 „Could not create a Canvas element.", was jeden Frame vor dem Dekodieren killt.
 
 ## CI-Pipeline — war seit Phase 1 wirkungslos (behoben)
 
