@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 
@@ -53,6 +54,9 @@ describe('BarcodeScanner', () => {
     const { default: BarcodeScanner } = await import('./BarcodeScanner')
     const { unmount } = render(<BarcodeScanner onDetected={vi.fn()} onClose={vi.fn()} />)
 
+    // Wait until the start is genuinely in flight — unmounting before that never
+    // opens the camera at all, which is a different (also fine) outcome.
+    await waitFor(() => expect(mockDecodeFromVideoDevice).toHaveBeenCalled())
     unmount()
     resolveStart({ stop: mockStop })
 
@@ -72,6 +76,36 @@ describe('BarcodeScanner', () => {
     render(<BarcodeScanner onDetected={onDetected} onClose={vi.fn()} />)
 
     await waitFor(() => expect(onDetected).toHaveBeenCalledTimes(1))
+  })
+
+  it('never runs two camera sessions at once under StrictMode', async () => {
+    // StrictMode runs the effect, its cleanup, then the effect again on the same
+    // instance. Both readers bind to the same <video>, so overlapping sessions
+    // leave the preview blank: the first one's stop() tears the element down
+    // under the second one's stream. Camera on, no picture.
+    let live = 0
+    let peak = 0
+    mockDecodeFromVideoDevice.mockImplementation(async () => {
+      await Promise.resolve() // the real start is async; make the overlap observable
+      live++
+      peak = Math.max(peak, live)
+      return {
+        stop: () => {
+          live--
+          mockStop()
+        },
+      }
+    })
+
+    const { default: BarcodeScanner } = await import('./BarcodeScanner')
+    render(
+      <StrictMode>
+        <BarcodeScanner onDetected={vi.fn()} onClose={vi.fn()} />
+      </StrictMode>,
+    )
+
+    await waitFor(() => expect(live).toBe(1))
+    expect(peak).toBe(1)
   })
 
   it('calls onClose when the cancel button is clicked', async () => {
