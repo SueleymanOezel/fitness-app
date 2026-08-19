@@ -7,70 +7,100 @@ const entries: FoodEntry[] = [
   {
     id: 'e1',
     menge: 150,
-    zeitpunkt: '2026-08-18T12:00:00Z',
-    products: { name: 'Testprodukt', kalorien: 100, eiweiss: 1, fett: 2, kohlenhydrate: 3 },
+    zeitpunkt: '2026-08-19T06:30:00.000Z',
+    product_id: 'p1',
+    products: {
+      id: 'p1',
+      name: 'Testprodukt',
+      barcode: null,
+      created_by: 'u1',
+      kalorien: 100,
+      eiweiss: 1,
+      fett: 2,
+      kohlenhydrate: 3,
+    },
   },
 ]
 
 describe('FoodEntryList', () => {
   it('shows a placeholder when there are no entries', () => {
-    render(<FoodEntryList entries={[]} onUpdateMenge={vi.fn().mockResolvedValue(undefined)} onDelete={vi.fn().mockResolvedValue(undefined)} />)
+    render(
+      <FoodEntryList
+        entries={[]}
+        userId="u1"
+        onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
+        onDelete={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
     expect(screen.getByText('Noch keine Einträge heute.')).toBeInTheDocument()
   })
 
-  it('renders each entry with its product name and menge', () => {
-    render(<FoodEntryList entries={entries} onUpdateMenge={vi.fn().mockResolvedValue(undefined)} onDelete={vi.fn().mockResolvedValue(undefined)} />)
+  it('shows the stored values without an input field', () => {
+    render(
+      <FoodEntryList
+        entries={entries}
+        userId="u1"
+        onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
+        onDelete={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
+
     expect(screen.getByText('Testprodukt')).toBeInTheDocument()
-    expect(screen.getByLabelText('Menge (g) für Testprodukt')).toHaveValue(150)
+    expect(screen.getByText(/150 g/)).toBeInTheDocument()
+    // 100 kcal/100 g × 150 g = 150 kcal.
+    expect(screen.getByText(/150 kcal/)).toBeInTheDocument()
+    // The amount was silently editable before and nobody found it.
+    expect(screen.queryByLabelText('Menge (g) für Testprodukt')).not.toBeInTheDocument()
   })
 
-  it('calls onUpdateMenge with the edited value once the input is left', () => {
-    const onUpdateMenge = vi.fn().mockResolvedValue(undefined)
-    render(<FoodEntryList entries={entries} onUpdateMenge={onUpdateMenge} onDelete={vi.fn().mockResolvedValue(undefined)} />)
-    const input = screen.getByLabelText('Menge (g) für Testprodukt')
+  it('opens the edit form on request and closes it again', () => {
+    render(
+      <FoodEntryList
+        entries={entries}
+        userId="u1"
+        onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
+        onDelete={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
 
-    fireEvent.change(input, { target: { value: '200' } })
-    expect(onUpdateMenge).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Bearbeiten' }))
+    expect(screen.getByLabelText('Menge (g)')).toHaveValue(150)
 
-    fireEvent.blur(input)
-    expect(onUpdateMenge).toHaveBeenCalledWith('e1', 200)
-  })
-
-  it('never persists an intermediate or empty value while retyping the menge', () => {
-    const onUpdateMenge = vi.fn().mockResolvedValue(undefined)
-    render(<FoodEntryList entries={entries} onUpdateMenge={onUpdateMenge} onDelete={vi.fn().mockResolvedValue(undefined)} />)
-    const input = screen.getByLabelText('Menge (g) für Testprodukt')
-
-    // Clearing the field character by character: Number('') is 0, not NaN, so a
-    // per-keystroke save would write menge = 0 and lose the entry's real value.
-    fireEvent.change(input, { target: { value: '15' } })
-    fireEvent.change(input, { target: { value: '1' } })
-    fireEvent.change(input, { target: { value: '' } })
-    fireEvent.blur(input)
-
-    expect(onUpdateMenge).not.toHaveBeenCalled()
-    expect(input).toHaveValue(150)
-  })
-
-  it('restores the stored value and warns when the update is rejected', async () => {
-    const onUpdateMenge = vi.fn().mockRejectedValue(new Error('update failed'))
-    render(<FoodEntryList entries={entries} onUpdateMenge={onUpdateMenge} onDelete={vi.fn().mockResolvedValue(undefined)} />)
-    const input = screen.getByLabelText('Menge (g) für Testprodukt')
-
-    fireEvent.change(input, { target: { value: '200' } })
-    fireEvent.blur(input)
-
-    // Leaving 200 on screen after a failed write would show a value that is not stored.
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('nicht gespeichert'))
-    expect(input).toHaveValue(150)
+    fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }))
+    expect(screen.queryByLabelText('Menge (g)')).not.toBeInTheDocument()
   })
 
   it('calls onDelete when the delete button is clicked', () => {
     const onDelete = vi.fn().mockResolvedValue(undefined)
-    render(<FoodEntryList entries={entries} onUpdateMenge={vi.fn().mockResolvedValue(undefined)} onDelete={onDelete} />)
+    render(
+      <FoodEntryList
+        entries={entries}
+        userId="u1"
+        onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
+        onDelete={onDelete}
+      />,
+    )
 
     fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
 
     expect(onDelete).toHaveBeenCalledWith('e1')
+  })
+
+  it('shows a visible warning when the delete is rejected', async () => {
+    const onDelete = vi.fn().mockRejectedValue(new Error('delete failed'))
+    render(
+      <FoodEntryList
+        entries={entries}
+        userId="u1"
+        onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
+        onDelete={onDelete}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('nicht gelöscht'),
+    )
   })
 })

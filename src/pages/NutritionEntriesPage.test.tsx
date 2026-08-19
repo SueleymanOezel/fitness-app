@@ -11,11 +11,28 @@ vi.mock('../hooks/use-food-entries', () => ({
   useFoodEntries: (userId: string) => mockUseFoodEntries(userId),
 }))
 
+// The edit form saves the product's nutrients before saving the entry itself;
+// this page's test only cares about the entry-level save, so the product save
+// is stubbed to succeed without hitting the real Supabase client.
+vi.mock('../lib/product-edit', () => ({
+  saveProductEdit: vi.fn().mockResolvedValue({ id: 'p1' }),
+}))
+
 const entry: FoodEntry = {
   id: 'e1',
   menge: 150,
   zeitpunkt: '2026-08-19T12:00:00Z',
-  products: { name: 'Testprodukt', kalorien: 100, eiweiss: 1, fett: 2, kohlenhydrate: 3 },
+  product_id: 'p1',
+  products: {
+    id: 'p1',
+    name: 'Testprodukt',
+    barcode: null,
+    created_by: 'u1',
+    kalorien: 100,
+    eiweiss: 1,
+    fett: 2,
+    kohlenhydrate: 3,
+  },
 }
 
 function entriesResult(overrides: Record<string, unknown> = {}) {
@@ -23,7 +40,7 @@ function entriesResult(overrides: Record<string, unknown> = {}) {
     entries: [entry],
     loading: false,
     addEntry: vi.fn().mockResolvedValue(undefined),
-    updateEntryMenge: vi.fn().mockResolvedValue(undefined),
+    updateEntry: vi.fn().mockResolvedValue(undefined),
     deleteEntry: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   }
@@ -42,17 +59,19 @@ describe('NutritionEntriesPage', () => {
     await renderPage()
 
     expect(screen.getByText('Testprodukt')).toBeInTheDocument()
-    expect(screen.getByLabelText('Menge (g) für Testprodukt')).toHaveValue(150)
+    expect(screen.getByText(/150 g/)).toBeInTheDocument()
   })
 
-  it('changes an entry amount', async () => {
+  it('changes an entry amount through the edit form', async () => {
     const result = await renderPage()
 
-    const input = screen.getByLabelText('Menge (g) für Testprodukt')
-    fireEvent.change(input, { target: { value: '200' } })
-    fireEvent.blur(input)
+    fireEvent.click(screen.getByRole('button', { name: 'Bearbeiten' }))
+    fireEvent.change(screen.getByLabelText('Menge (g)'), { target: { value: '200' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
-    await waitFor(() => expect(result.updateEntryMenge).toHaveBeenCalledWith('e1', 200))
+    await waitFor(() =>
+      expect(result.updateEntry).toHaveBeenCalledWith('e1', expect.objectContaining({ menge: 200 })),
+    )
   })
 
   it('deletes an entry', async () => {

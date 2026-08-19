@@ -2,35 +2,13 @@ import { useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Product } from '../lib/product-lookup'
 import { MAX_NAME_LENGTH } from '../lib/open-food-facts'
+import { parseNutrients } from '../lib/nutrients'
 
 type Props = {
   barcode?: string
   onCreated: (product: Product) => void
   onCancel: () => void
 }
-
-/**
- * products is a shared community table — a typo'd -300 or 1e21 would poison everyone's
- * totals, so implausible values never reach the insert. Empty macros stay null.
- */
-function parseNutrients(raw: Record<'kalorien' | 'eiweiss' | 'fett' | 'kohlenhydrate', string>) {
-  const parse = (value: string, max: number) => {
-    if (value.trim() === '') return null
-    const parsed = Number(value)
-    return Number.isFinite(parsed) && parsed >= 0 && parsed <= max ? parsed : undefined
-  }
-
-  const kalorien = parse(raw.kalorien, 900)
-  const eiweiss = parse(raw.eiweiss, 100)
-  const fett = parse(raw.fett, 100)
-  const kohlenhydrate = parse(raw.kohlenhydrate, 100)
-
-  if (kalorien == null || eiweiss === undefined || fett === undefined || kohlenhydrate === undefined) {
-    return null
-  }
-  return { kalorien, eiweiss, fett, kohlenhydrate }
-}
-
 export default function ManualProductForm({ barcode, onCreated, onCancel }: Props) {
   const [name, setName] = useState('')
   const [kalorien, setKalorien] = useState('')

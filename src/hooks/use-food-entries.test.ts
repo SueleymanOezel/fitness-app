@@ -90,7 +90,44 @@ describe('useFoodEntries', () => {
     const { result } = renderHook(() => useFoodEntries('u1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    await expect(result.current.updateEntryMenge('e1', 200)).rejects.toThrow()
+    await expect(result.current.updateEntry('e1', { menge: 200 })).rejects.toThrow()
+  })
+
+  it('updates several fields of an entry in one write', async () => {
+    const builder = createQueryBuilder({ data: [entry] })
+    mockFrom.mockReturnValue(builder)
+
+    const { useFoodEntries } = await import('./use-food-entries')
+    const { result } = renderHook(() => useFoodEntries('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await result.current.updateEntry('e1', {
+      menge: 200,
+      zeitpunkt: '2026-08-19T06:30:00.000Z',
+      product_id: 'p2',
+    })
+
+    expect(builder.update).toHaveBeenCalledWith({
+      menge: 200,
+      zeitpunkt: '2026-08-19T06:30:00.000Z',
+      product_id: 'p2',
+    })
+    expect(builder.eq).toHaveBeenCalledWith('id', 'e1')
+  })
+
+  it('loads the fields the edit form needs', async () => {
+    const builder = createQueryBuilder({ data: [entry] })
+    mockFrom.mockReturnValue(builder)
+
+    const { useFoodEntries } = await import('./use-food-entries')
+    const { result } = renderHook(() => useFoodEntries('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    // product_id for remapping, created_by to decide update-vs-copy.
+    const select = builder.select as ReturnType<typeof vi.fn>
+    const selected = select.mock.calls[0][0] as string
+    expect(selected).toContain('product_id')
+    expect(selected).toContain('created_by')
   })
 
   it('deletes an entry via deleteEntry', async () => {

@@ -22,7 +22,7 @@ export default function NutritionEntriesPage() {
 function EntriesList({ userId }: { userId: string }) {
   // Loads independently of the dashboard: both query the same day, and one small
   // query per page is cheaper than sharing state neither page owns.
-  const { entries, loading, updateEntryMenge, deleteEntry } = useFoodEntries(userId)
+  const { entries, loading, updateEntry, deleteEntry } = useFoodEntries(userId)
 
   return (
     <div>
@@ -30,7 +30,12 @@ function EntriesList({ userId }: { userId: string }) {
       {loading ? (
         <p>Lädt…</p>
       ) : (
-        <FoodEntryList entries={entries} onUpdateMenge={updateEntryMenge} onDelete={deleteEntry} />
+        <FoodEntryList
+          entries={entries}
+          userId={userId}
+          onUpdateEntry={updateEntry}
+          onDelete={deleteEntry}
+        />
       )}
       <Link to="/nutrition">Zurück zur Ernährung</Link>
     </div>
