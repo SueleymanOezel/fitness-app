@@ -78,7 +78,7 @@ Die Liste zeigt je Eintrag Produktname, Menge und Kalorien sowie die Schaltfläc
 
 ## Fehlerbehandlung
 
-Ein fehlgeschlagenes Speichern zeigt eine Meldung und stellt die gespeicherten Werte wieder her, statt die eingegebenen stehen zu lassen — ein Wert auf dem Bildschirm, der nicht in der Datenbank steht, ist schlimmer als eine Fehlermeldung. Rohe Datenbankmeldungen erscheinen nicht in der Oberfläche.
+Ein fehlgeschlagenes Speichern zeigt eine Meldung und lässt die eingegebenen Werte stehen, das Formular bleibt offen — Eingaben bei einem Netzfehler zu verwerfen wäre schlechter, und da das Formular sichtbar offen bleibt, sieht kein Wert fälschlich gespeichert aus. Rohe Datenbankmeldungen erscheinen nicht in der Oberfläche.
 
 ## Tests
 
@@ -87,7 +87,7 @@ Ein fehlgeschlagenes Speichern zeigt eine Meldung und stellt die gespeicherten W
 - Produkt ohne `created_by` wird wie ein fremdes behandelt.
 - Implausible Nährwerte und eine Menge von 0 werden vor dem Schreiben abgelehnt.
 - Der Zeitpunkt überlebt die Umrechnung zwischen lokaler Zeit und `timestamptz`, geprüft mit fixierter Zeitzone an einer Tagesgrenze.
-- `updateEntry` wirft bei einem abgelehnten Update; das Formular zeigt den Fehler und stellt die alten Werte wieder her.
+- `updateEntry` wirft bei einem abgelehnten Update; das Formular zeigt den Fehler, bleibt offen und lässt die eingegebenen Werte stehen.
 - Die Liste zeigt „Bearbeiten" und klappt das Formular auf.
 
 ## Folgevorhaben
