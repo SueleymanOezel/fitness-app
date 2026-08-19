@@ -9,9 +9,16 @@ vi.mock('../lib/product-lookup', () => ({
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- placeholder matches BarcodeScanner's onDetected signature until the mock overwrites it
 const mockOnDetected = { current: (_barcode: string) => {} }
 vi.mock('./BarcodeScanner', () => ({
-  default: ({ onDetected }: { onDetected: (barcode: string) => void }) => {
+  default: ({ onDetected, onClose }: { onDetected: (barcode: string) => void; onClose: () => void }) => {
     mockOnDetected.current = onDetected
-    return <div>Scanner</div>
+    return (
+      <div>
+        Scanner
+        <button type="button" onClick={onClose}>
+          Abbrechen
+        </button>
+      </div>
+    )
   },
 }))
 
@@ -82,5 +89,19 @@ describe('ProductPicker', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Produkt speichern' })).toBeInTheDocument(),
     )
+  })
+
+  it('clears a stale error message when returning to idle via the scanner close button', async () => {
+    const { default: ProductPicker } = await import('./ProductPicker')
+    render(<ProductPicker onPicked={vi.fn()} onCancel={vi.fn()} />)
+
+    fireEvent.change(screen.getByLabelText('Barcode-Nummer eingeben'), { target: { value: '123' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Suchen' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('8–14 Ziffern')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Barcode scannen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }))
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 })

@@ -17,6 +17,16 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
   const [typedBarcode, setTypedBarcode] = useState('')
   const [error, setError] = useState<string | null>(null)
 
+  // Returning to idle from the scanner or the manual form must clear everything
+  // that led here — a stale error or leftover barcode from the previous attempt
+  // must not resurface on the next idle screen.
+  function resetToIdle() {
+    setStep('idle')
+    setScannedBarcode(undefined)
+    setTypedBarcode('')
+    setError(null)
+  }
+
   const handleDetected = useCallback(
     async (barcode: string) => {
       // The scanner also decodes QR codes; only a real product barcode is worth
@@ -55,7 +65,7 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
   }
 
   if (step === 'scanning') {
-    return <BarcodeScanner onDetected={handleDetected} onClose={() => setStep('idle')} />
+    return <BarcodeScanner onDetected={handleDetected} onClose={resetToIdle} />
   }
 
   if (step === 'looking-up') {
@@ -69,7 +79,7 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
         <ManualProductForm
           barcode={scannedBarcode}
           onCreated={onPicked}
-          onCancel={() => setStep('idle')}
+          onCancel={resetToIdle}
         />
       </>
     )
