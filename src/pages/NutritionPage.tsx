@@ -59,7 +59,7 @@ function NutritionDashboard({ userId }: { userId: string }) {
         </p>
       )}
       <Link to="/profile">Ziel im Profil anpassen</Link>
-      <AddEntryFlow onAdd={addEntry} />
+      <AddEntryFlow onAdd={(productId, menge) => addEntry(productId, menge, null)} />
       <Link to="/nutrition/entries">Einträge ansehen</Link>
     </div>
   )

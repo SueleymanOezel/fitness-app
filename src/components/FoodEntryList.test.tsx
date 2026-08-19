@@ -9,6 +9,7 @@ const entries: FoodEntry[] = [
     menge: 150,
     zeitpunkt: '2026-08-19T06:30:00.000Z',
     product_id: 'p1',
+    mahlzeit: null,
     products: {
       id: 'p1',
       name: 'Testprodukt',

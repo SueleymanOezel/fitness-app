@@ -48,9 +48,14 @@ describe('useFoodEntries', () => {
     const { result } = renderHook(() => useFoodEntries('u1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    await result.current.addEntry('p1', 150)
+    await result.current.addEntry('p1', 150, null)
 
-    expect(builder.insert).toHaveBeenCalledWith({ user_id: 'u1', product_id: 'p1', menge: 150 })
+    expect(builder.insert).toHaveBeenCalledWith({
+      user_id: 'u1',
+      product_id: 'p1',
+      menge: 150,
+      mahlzeit: null,
+    })
   })
 
   it('ignores a stale reload that answers after a newer one', async () => {
@@ -128,6 +133,49 @@ describe('useFoodEntries', () => {
     const selected = select.mock.calls[0][0] as string
     expect(selected).toContain('product_id')
     expect(selected).toContain('created_by')
+  })
+
+  it('files a new entry under the given section', async () => {
+    const builder = createQueryBuilder({ data: [entry] })
+    mockFrom.mockReturnValue(builder)
+
+    const { useFoodEntries } = await import('./use-food-entries')
+    const { result } = renderHook(() => useFoodEntries('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await result.current.addEntry('p1', 150, 2)
+
+    expect(builder.insert).toHaveBeenCalledWith({
+      user_id: 'u1',
+      product_id: 'p1',
+      menge: 150,
+      mahlzeit: 2,
+    })
+  })
+
+  it('loads the section of each entry', async () => {
+    const builder = createQueryBuilder({ data: [entry] })
+    mockFrom.mockReturnValue(builder)
+
+    const { useFoodEntries } = await import('./use-food-entries')
+    const { result } = renderHook(() => useFoodEntries('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    const select = builder.select as ReturnType<typeof vi.fn>
+    expect(select.mock.calls[0][0] as string).toContain('mahlzeit')
+  })
+
+  it('moves an entry to another section', async () => {
+    const builder = createQueryBuilder({ data: [entry] })
+    mockFrom.mockReturnValue(builder)
+
+    const { useFoodEntries } = await import('./use-food-entries')
+    const { result } = renderHook(() => useFoodEntries('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await result.current.updateEntry('e1', { mahlzeit: 3 })
+
+    expect(builder.update).toHaveBeenCalledWith({ mahlzeit: 3 })
   })
 
   it('deletes an entry via deleteEntry', async () => {

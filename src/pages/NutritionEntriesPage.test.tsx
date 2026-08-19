@@ -23,6 +23,7 @@ const entry: FoodEntry = {
   menge: 150,
   zeitpunkt: '2026-08-19T12:00:00Z',
   product_id: 'p1',
+  mahlzeit: null,
   products: {
     id: 'p1',
     name: 'Testprodukt',
