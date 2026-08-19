@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage'
 import TrainingPage from './pages/TrainingPage'
 import NutritionPage from './pages/NutritionPage'
 import BodyPage from './pages/BodyPage'
+import ProfilePage from './pages/ProfilePage'
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/training" element={<TrainingPage />} />
           <Route path="/nutrition" element={<NutritionPage />} />
           <Route path="/body" element={<BodyPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Routes>
     </BrowserRouter>

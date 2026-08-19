@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -49,7 +50,7 @@ describe('NutritionPage', () => {
     mockUseFoodEntries.mockReturnValue(entriesResult({ loading: true }))
 
     const { default: NutritionPage } = await import('./NutritionPage')
-    render(<NutritionPage />)
+    render(<NutritionPage />, { wrapper: MemoryRouter })
 
     expect(screen.getByText('Lädt…')).toBeInTheDocument()
   })
@@ -60,7 +61,7 @@ describe('NutritionPage', () => {
     mockUseFoodEntries.mockReturnValue(entriesResult())
 
     const { default: NutritionPage } = await import('./NutritionPage')
-    render(<NutritionPage />)
+    render(<NutritionPage />, { wrapper: MemoryRouter })
 
     expect(screen.getByRole('heading', { name: 'Ernährung' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Heute' })).toBeInTheDocument()
@@ -75,11 +76,25 @@ describe('NutritionPage', () => {
     mockUseFoodEntries.mockReturnValue(entriesResult())
 
     const { default: NutritionPage } = await import('./NutritionPage')
-    render(<NutritionPage />)
+    render(<NutritionPage />, { wrapper: MemoryRouter })
 
     expect(screen.getByRole('alert')).toHaveTextContent('Profil konnte nicht geladen werden')
     screen.getByRole('button', { name: 'Erneut versuchen' }).click()
     expect(reload).toHaveBeenCalled()
+  })
+
+  it('leaves goal editing to the profile page', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue(profileResult({ profile }))
+    mockUseFoodEntries.mockReturnValue(entriesResult())
+
+    const { default: NutritionPage } = await import('./NutritionPage')
+    render(<NutritionPage />, { wrapper: MemoryRouter })
+
+    // The dashboard shows the goal, it does not edit it — editing lives on /profile.
+    expect(screen.queryByRole('button', { name: 'Manuell festlegen' })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Tagesziel (kcal)')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Profil/ })).toBeInTheDocument()
   })
 
   it('passes the manual calorie goal through to the daily summary', async () => {
@@ -88,7 +103,7 @@ describe('NutritionPage', () => {
     mockUseFoodEntries.mockReturnValue(entriesResult())
 
     const { default: NutritionPage } = await import('./NutritionPage')
-    render(<NutritionPage />)
+    render(<NutritionPage />, { wrapper: MemoryRouter })
 
     // 2000 is the manual override, not the Mifflin-St-Jeor value (2759) for this profile.
     expect(screen.getByText(/Ziel 2000 kcal/)).toBeInTheDocument()

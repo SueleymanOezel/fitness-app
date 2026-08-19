@@ -1,9 +1,9 @@
+import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
 import { useFoodEntries } from '../hooks/use-food-entries'
 import { effectiveCalorieGoal } from '../lib/nutrition-goal'
 import DailySummary from '../components/DailySummary'
-import CalorieGoalEditor from '../components/CalorieGoalEditor'
 import FoodEntryList from '../components/FoodEntryList'
 import AddEntryFlow from '../components/AddEntryFlow'
 
@@ -24,7 +24,7 @@ export default function NutritionPage() {
 }
 
 function NutritionDashboard({ userId }: { userId: string }) {
-  const { profile, loading: profileLoading, error: profileError, reload, updateProfile } = useProfile(userId)
+  const { profile, loading: profileLoading, error: profileError, reload } = useProfile(userId)
   const { entries, loading: entriesLoading, addEntry, updateEntryMenge, deleteEntry } = useFoodEntries(userId)
 
   if (profileLoading || entriesLoading) {
@@ -54,7 +54,12 @@ function NutritionDashboard({ userId }: { userId: string }) {
     <div>
       <h1>Ernährung</h1>
       <DailySummary entries={entries} goal={goal} />
-      <CalorieGoalEditor profile={profile} onUpdate={updateProfile} />
+      {goal == null && (
+        <p>
+          Für ein Tagesziel <Link to="/profile">Profil vervollständigen</Link>.
+        </p>
+      )}
+      <Link to="/profile">Ziel im Profil anpassen</Link>
       <FoodEntryList entries={entries} onUpdateMenge={updateEntryMenge} onDelete={deleteEntry} />
       <AddEntryFlow onAdd={addEntry} />
     </div>

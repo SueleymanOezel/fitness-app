@@ -31,7 +31,7 @@ describe('App routing', () => {
     expect(screen.getByRole('heading', { name: 'Login' })).toBeInTheDocument()
   })
 
-  it('shows the home dashboard with logout button at / with an active session', async () => {
+  it('shows the home dashboard with a link to the profile at / with an active session', async () => {
     window.history.pushState({}, '', '/')
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
 
@@ -39,7 +39,19 @@ describe('App routing', () => {
     render(<App />)
 
     expect(screen.getByRole('heading', { name: 'Home' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Logout' })).toBeInTheDocument()
+    // Logout moved onto the profile page, so the header is not where it lives now.
+    expect(screen.getByRole('link', { name: 'Profil' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Logout' })).not.toBeInTheDocument()
+  })
+
+  it('shows the profile page at /profile with an active session', async () => {
+    window.history.pushState({}, '', '/profile')
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+
+    const { default: App } = await import('./App')
+    render(<App />)
+
+    expect(screen.getByRole('heading', { name: 'Profil' })).toBeInTheDocument()
   })
 
   it('shows the training placeholder at /training with an active session', async () => {
