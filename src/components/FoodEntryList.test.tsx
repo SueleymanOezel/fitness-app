@@ -29,6 +29,7 @@ describe('FoodEntryList', () => {
       <FoodEntryList
         entries={[]}
         userId="u1"
+        sections={[{ slot: 1, name: 'Frühstück' }]}
         onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
         onDelete={vi.fn().mockResolvedValue(undefined)}
       />,
@@ -41,6 +42,7 @@ describe('FoodEntryList', () => {
       <FoodEntryList
         entries={entries}
         userId="u1"
+        sections={[{ slot: 1, name: 'Frühstück' }]}
         onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
         onDelete={vi.fn().mockResolvedValue(undefined)}
       />,
@@ -59,6 +61,7 @@ describe('FoodEntryList', () => {
       <FoodEntryList
         entries={entries}
         userId="u1"
+        sections={[{ slot: 1, name: 'Frühstück' }]}
         onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
         onDelete={vi.fn().mockResolvedValue(undefined)}
       />,
@@ -77,6 +80,7 @@ describe('FoodEntryList', () => {
       <FoodEntryList
         entries={entries}
         userId="u1"
+        sections={[{ slot: 1, name: 'Frühstück' }]}
         onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
         onDelete={onDelete}
       />,
@@ -93,6 +97,7 @@ describe('FoodEntryList', () => {
       <FoodEntryList
         entries={entries}
         userId="u1"
+        sections={[{ slot: 1, name: 'Frühstück' }]}
         onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
         onDelete={onDelete}
       />,

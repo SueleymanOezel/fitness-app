@@ -49,6 +49,11 @@ const entry: FoodEntry = {
   },
 }
 
+const sections = [
+  { slot: 1, name: 'Frühstück' },
+  { slot: 2, name: 'Mittagessen' },
+]
+
 describe('FoodEntryEditForm', () => {
   beforeEach(() => {
     mockSaveProductEdit.mockReset()
@@ -58,7 +63,7 @@ describe('FoodEntryEditForm', () => {
   it('fills the form with the stored values', async () => {
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
     render(
-      <FoodEntryEditForm entry={entry} userId="u1" onSave={vi.fn()} onClose={vi.fn()} />,
+      <FoodEntryEditForm entry={entry} userId="u1" sections={sections} onSave={vi.fn()} onClose={vi.fn()} />,
     )
 
     expect(screen.getByLabelText('Menge (g)')).toHaveValue(150)
@@ -68,7 +73,7 @@ describe('FoodEntryEditForm', () => {
   it('saves amount and nutrients together', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined)
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
-    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+    render(<FoodEntryEditForm entry={entry} userId="u1" sections={sections} onSave={onSave} onClose={vi.fn()} />)
 
     fireEvent.change(screen.getByLabelText('Menge (g)'), { target: { value: '200' } })
     fireEvent.change(screen.getByLabelText('Kalorien (kcal)'), { target: { value: '120' } })
@@ -90,7 +95,7 @@ describe('FoodEntryEditForm', () => {
     }
     const onSave = vi.fn().mockResolvedValue(undefined)
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
-    render(<FoodEntryEditForm entry={foreignEntry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+    render(<FoodEntryEditForm entry={foreignEntry} userId="u1" sections={sections} onSave={onSave} onClose={vi.fn()} />)
 
     fireEvent.change(screen.getByLabelText('Menge (g)'), { target: { value: '200' } })
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
@@ -104,7 +109,7 @@ describe('FoodEntryEditForm', () => {
   it('does not write the product when only the amount changes on an own product', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined)
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
-    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+    render(<FoodEntryEditForm entry={entry} userId="u1" sections={sections} onSave={onSave} onClose={vi.fn()} />)
 
     fireEvent.change(screen.getByLabelText('Menge (g)'), { target: { value: '200' } })
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
@@ -117,7 +122,7 @@ describe('FoodEntryEditForm', () => {
   it('remaps the entry when the product is swapped', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined)
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
-    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+    render(<FoodEntryEditForm entry={entry} userId="u1" sections={sections} onSave={onSave} onClose={vi.fn()} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Anderes Produkt wählen' }))
     fireEvent.click(screen.getByRole('button', { name: 'Produkt übernehmen' }))
@@ -133,7 +138,7 @@ describe('FoodEntryEditForm', () => {
   it('rejects an amount of zero without writing', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined)
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
-    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+    render(<FoodEntryEditForm entry={entry} userId="u1" sections={sections} onSave={onSave} onClose={vi.fn()} />)
 
     // Number('') is 0, not NaN — the guard has to catch it.
     fireEvent.change(screen.getByLabelText('Menge (g)'), { target: { value: '' } })
@@ -146,7 +151,7 @@ describe('FoodEntryEditForm', () => {
   it('rejects implausible nutrients without writing', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined)
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
-    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+    render(<FoodEntryEditForm entry={entry} userId="u1" sections={sections} onSave={onSave} onClose={vi.fn()} />)
 
     fireEvent.change(screen.getByLabelText('Kalorien (kcal)'), { target: { value: '-300' } })
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
@@ -160,7 +165,7 @@ describe('FoodEntryEditForm', () => {
     const onSave = vi.fn().mockRejectedValue(new Error('denied'))
     const onClose = vi.fn()
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
-    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={onClose} />)
+    render(<FoodEntryEditForm entry={entry} userId="u1" sections={sections} onSave={onSave} onClose={onClose} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
@@ -177,7 +182,7 @@ describe('FoodEntryEditForm', () => {
     mockSaveProductEdit.mockImplementation(async (_product, patch) => ({ id: 'p2', ...patch }))
     const onSave = vi.fn().mockResolvedValue(undefined)
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
-    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+    render(<FoodEntryEditForm entry={entry} userId="u1" sections={sections} onSave={onSave} onClose={vi.fn()} />)
 
     // Only an actual nutrient correction takes the saveProductEdit path.
     fireEvent.change(screen.getByLabelText('Kalorien (kcal)'), { target: { value: '120' } })
@@ -193,7 +198,7 @@ describe('FoodEntryEditForm', () => {
     const onSave = vi.fn().mockResolvedValue(undefined)
     const onClose = vi.fn()
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
-    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={onClose} />)
+    render(<FoodEntryEditForm entry={entry} userId="u1" sections={sections} onSave={onSave} onClose={onClose} />)
 
     // Only an actual nutrient correction takes the saveProductEdit path.
     fireEvent.change(screen.getByLabelText('Kalorien (kcal)'), { target: { value: '120' } })
@@ -212,7 +217,7 @@ describe('FoodEntryEditForm', () => {
   it('rejects an emptied zeitpunkt without throwing', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined)
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
-    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+    render(<FoodEntryEditForm entry={entry} userId="u1" sections={sections} onSave={onSave} onClose={vi.fn()} />)
 
     fireEvent.change(screen.getByLabelText('Zeitpunkt'), { target: { value: '' } })
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
@@ -227,7 +232,7 @@ describe('FoodEntryEditForm', () => {
   it('truncates an overlong product name before saving', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined)
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
-    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+    render(<FoodEntryEditForm entry={entry} userId="u1" sections={sections} onSave={onSave} onClose={vi.fn()} />)
 
     const longName = 'x'.repeat(250)
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: longName } })
@@ -254,7 +259,7 @@ describe('FoodEntryEditForm', () => {
       .mockRejectedValueOnce(new Error('network'))
       .mockResolvedValueOnce(undefined)
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
-    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+    render(<FoodEntryEditForm entry={entry} userId="u1" sections={sections} onSave={onSave} onClose={vi.fn()} />)
 
     fireEvent.change(screen.getByLabelText('Kalorien (kcal)'), { target: { value: '120' } })
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
@@ -274,13 +279,76 @@ describe('FoodEntryEditForm', () => {
   it('omits zeitpunkt from the patch when only the amount changed', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined)
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
-    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+    render(<FoodEntryEditForm entry={entry} userId="u1" sections={sections} onSave={onSave} onClose={vi.fn()} />)
 
     fireEvent.change(screen.getByLabelText('Menge (g)'), { target: { value: '200' } })
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
     await waitFor(() => expect(onSave).toHaveBeenCalled())
     expect(onSave.mock.calls[0][1]).not.toHaveProperty('zeitpunkt')
+  })
+
+  it('moves the entry to another section', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined)
+    const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
+    render(
+      <FoodEntryEditForm
+        entry={{ ...entry, mahlzeit: 1 }}
+        userId="u1"
+        sections={sections}
+        onSave={onSave}
+        onClose={vi.fn()}
+      />,
+    )
+
+    fireEvent.change(screen.getByLabelText('Mahlzeit'), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith('e1', expect.objectContaining({ mahlzeit: 2 })),
+    )
+  })
+
+  it('files an unassigned entry into a section', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined)
+    const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
+    render(
+      <FoodEntryEditForm
+        entry={{ ...entry, mahlzeit: null }}
+        userId="u1"
+        sections={sections}
+        onSave={onSave}
+        onClose={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByLabelText('Mahlzeit')).toHaveValue('')
+    fireEvent.change(screen.getByLabelText('Mahlzeit'), { target: { value: '1' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith('e1', expect.objectContaining({ mahlzeit: 1 })),
+    )
+  })
+
+  it('leaves the section out of the patch when it did not change', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined)
+    const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
+    render(
+      <FoodEntryEditForm
+        entry={{ ...entry, mahlzeit: 1 }}
+        userId="u1"
+        sections={sections}
+        onSave={onSave}
+        onClose={vi.fn()}
+      />,
+    )
+
+    fireEvent.change(screen.getByLabelText('Menge (g)'), { target: { value: '200' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(onSave.mock.calls[0][1]).not.toHaveProperty('mahlzeit')
   })
 })
 
@@ -302,7 +370,7 @@ describe('FoodEntryEditForm zeitpunkt timezone handling', () => {
   it('stores a changed zeitpunkt as UTC in the patch', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined)
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
-    render(<FoodEntryEditForm entry={entry} userId="u1" onSave={onSave} onClose={vi.fn()} />)
+    render(<FoodEntryEditForm entry={entry} userId="u1" sections={sections} onSave={onSave} onClose={vi.fn()} />)
 
     // entry.zeitpunkt = '2026-08-19T06:30:00.000Z' = 08:30 Berlin summer time.
     fireEvent.change(screen.getByLabelText('Zeitpunkt'), { target: { value: '2026-08-19T09:15' } })

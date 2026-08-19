@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
 import { useFoodEntries, type FoodEntry } from '../hooks/use-food-entries'
-import { visibleSections } from '../lib/meal-sections'
+import { mealSections, visibleSections } from '../lib/meal-sections'
 import { sumKalorien } from '../lib/entry-calories'
 import FoodEntryList from '../components/FoodEntryList'
 import AddEntryFlow from '../components/AddEntryFlow'
@@ -37,6 +37,7 @@ function EntriesBySection({ userId }: { userId: string }) {
   }
 
   const sections = visibleSections(profile, entries)
+  const assignable = mealSections(profile)
 
   return (
     <div>
@@ -52,6 +53,7 @@ function EntriesBySection({ userId }: { userId: string }) {
             <FoodEntryList
               entries={sectionEntries}
               userId={userId}
+              sections={assignable}
               onUpdateEntry={updateEntry}
               onDelete={deleteEntry}
             />
