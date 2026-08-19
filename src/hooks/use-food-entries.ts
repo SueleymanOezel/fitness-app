@@ -5,14 +5,20 @@ export type FoodEntry = {
   id: string
   menge: number
   zeitpunkt: string
+  product_id: string | null
   products: {
+    id: string
     name: string
+    barcode: string | null
+    created_by: string | null
     kalorien: number
     eiweiss: number | null
     fett: number | null
     kohlenhydrate: number | null
   } | null
 }
+
+export type EntryPatch = { menge?: number; zeitpunkt?: string; product_id?: string }
 
 /** Local calendar day, half-open — an entry at 23:59:59.4 still belongs to today. */
 export function todayRange() {
@@ -34,7 +40,9 @@ export function useFoodEntries(userId: string) {
     const { start, end } = todayRange()
     const { data } = await supabase
       .from('food_entries')
-      .select('id, menge, zeitpunkt, products(name, kalorien, eiweiss, fett, kohlenhydrate)')
+      .select(
+        'id, menge, zeitpunkt, product_id, products(id, name, barcode, created_by, kalorien, eiweiss, fett, kohlenhydrate)',
+      )
       .eq('user_id', userId)
       .gte('zeitpunkt', start)
       .lt('zeitpunkt', end)
@@ -62,8 +70,8 @@ export function useFoodEntries(userId: string) {
     await reload()
   }
 
-  async function updateEntryMenge(entryId: string, menge: number) {
-    const { error } = await supabase.from('food_entries').update({ menge }).eq('id', entryId)
+  async function updateEntry(entryId: string, patch: EntryPatch) {
+    const { error } = await supabase.from('food_entries').update(patch).eq('id', entryId)
     if (error) throw new Error('update failed')
     await reload()
   }
@@ -74,5 +82,5 @@ export function useFoodEntries(userId: string) {
     await reload()
   }
 
-  return { entries, loading, addEntry, updateEntryMenge, deleteEntry }
+  return { entries, loading, addEntry, updateEntry, deleteEntry }
 }
