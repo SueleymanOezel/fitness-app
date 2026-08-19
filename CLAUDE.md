@@ -67,7 +67,7 @@ Das vollständige Architekturkonzept mit Datenbankschema, REST-API-Endpunkten pr
 
 Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer Chat sofort weiß, was gemacht wurde und was als Nächstes ansteht.
 
-**Aktueller Stand:** Phase 1 und Phase 2 sind gemerged, deployed und manuell verifiziert. Nächster Schritt: Phase 3 (Trainingsbereich) — Spec/Plan dafür noch zu erstellen (`superpowers:brainstorming` → `superpowers:writing-plans`). Vorher bzw. dabei zu berücksichtigen: der Ernährungsbereich soll in Dashboard + eigene Unterseiten aufgeteilt werden (siehe „UI-Struktur" unten).
+**Aktueller Stand:** Phase 1 und Phase 2 sind gemerged, deployed und vollständig manuell verifiziert (inklusive Kamera-Scan am Handy). Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header — die Profildaten mussten vorher von Hand im Supabase-Table-Editor gepflegt werden. Nächster Schritt: Phase 3 (Trainingsbereich) — Spec/Plan dafür noch zu erstellen (`superpowers:brainstorming` → `superpowers:writing-plans`). Vorher bzw. dabei zu berücksichtigen: der Ernährungsbereich soll in Dashboard + eigene Unterseiten aufgeteilt werden (siehe „UI-Struktur" unten).
 
 ## UI-Struktur (gilt ab Phase 3)
 
@@ -143,7 +143,18 @@ Dabei gefunden und in PR #11 behoben:
 - Kamera-Vorschau blieb schwarz — StrictMode führt den Effect zweimal auf derselben Instanz aus, und zxing bindet jeden Reader an dasselbe `<video>`; die erste Session löste auf, nachdem die zweite das Element übernommen hatte, und riss es mit ihrem `stop()` ab. Sessions sind jetzt verkettet.
 - Barcode-Nummer lässt sich eintippen (gleicher Lookup-Pfad wie der Scan) — genau damit wurde Phase 2 dann verifiziert.
 
-**Bekannte Einschränkung:** Der Kamera-Scan liest auf Laptop-Webcams unzuverlässig (Fixfokus, zu wenig Pixel für einen EAN-13 → `ChecksumException`). Optik-, kein Code-Problem; ein belastbarer Test braucht die Handykamera mit Autofokus und dafür HTTPS im Dev-Setup. `TRY_HARDER` **nicht** wieder aktivieren — es lässt die 1D-Reader jeden Frame rotiert erneut lesen und wirft dabei in `@zxing/browser` 0.2.1 „Could not create a Canvas element.", was jeden Frame vor dem Dekodieren killt.
+**Kamera-Scan am Handy verifiziert:** Scan erkennt den Barcode und findet das Produkt. Auf Laptop-Webcams bleibt er unzuverlässig (Fixfokus, zu wenig Pixel für einen EAN-13 → `ChecksumException`) — Optik-, kein Code-Problem. `TRY_HARDER` **nicht** aktivieren: es lässt die 1D-Reader jeden Frame rotiert erneut lesen und wirft dabei in `@zxing/browser` 0.2.1 „Could not create a Canvas element.", was jeden Frame vor dem Dekodieren killt.
+
+## Dev-Server am Handy testen
+
+`npm run dev:mobile` — HTTPS mit selbstsigniertem Zertifikat, gebunden an `0.0.0.0` (nicht `host: true`, das bindet nur auf `::` und ist per IPv4 nicht erreichbar). `npm run dev` bleibt http auf localhost.
+
+Voraussetzungen und typische Stolpersteine, alle real aufgetreten:
+- **Nur einen Dev-Server gleichzeitig starten.** Zwei Vite-Instanzen teilen sich `node_modules/.vite`, die zweite optimiert die Dependencies neu und entwertet die gehashten URLs der ersten → im Browser MIME-Fehler („expected JavaScript, got text/html").
+- **Firewall:** einmalig als Admin `New-NetFirewallRule -DisplayName "Vite dev 5173 (LAN)" -Direction Inbound -Protocol TCP -LocalPort 5173 -Action Allow -Profile Private -RemoteAddress LocalSubnet`, und das WLAN-Profil muss `Private` sein.
+- **VPN aus.** Das Uni-VPN pusht eine Route für `192.168.2.0/24` über sein eigenes Gateway mit Top-Metrik — Antwortpakete ans Handy verschwinden dann im VPN-Netz (Timeout). Die Adresskollision besteht, weil Uni- und Heimnetz denselben privaten Bereich nutzen.
+- **Aktive Adresse prüfen:** `Get-NetIPAddress` — eine `Deprecated`-Adresse gehört zu einem getrennten Adapter und ist tot. PC am Kabel und Handy im WLAN ist kein Problem, solange beide im selben Subnetz hängen.
+- Im Browser die URL mit `https://` eintippen; ohne Schema versucht er http, worauf der Mobile-Server nicht antwortet.
 
 ## CI-Pipeline — war seit Phase 1 wirkungslos (behoben)
 
