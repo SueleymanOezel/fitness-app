@@ -94,7 +94,9 @@ describe('useProfile', () => {
     ])
 
     expect(order).toEqual([{ taegliches_kalorienziel: 2500 }, { taegliches_kalorienziel: null }])
-    expect(result.current.profile).toEqual(profile)
+    // waitFor, not a bare assertion: both setProfile calls land outside act(), so
+    // the intermediate 2500 render can still be the current one at this point.
+    await waitFor(() => expect(result.current.profile).toEqual(profile))
   })
 
   it('rejects instead of reporting success when the update fails', async () => {

@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 .env
+
+# Claude Code worktrees live here; vitest would otherwise glob their test copies too
+.claude/
