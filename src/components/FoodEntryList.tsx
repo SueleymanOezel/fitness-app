@@ -1,13 +1,15 @@
 import { useState } from 'react'
+import FoodEntryEditForm from './FoodEntryEditForm'
 import type { EntryPatch, FoodEntry } from '../hooks/use-food-entries'
 
 type Props = {
   entries: FoodEntry[]
+  userId: string
   onUpdateEntry: (entryId: string, patch: EntryPatch) => Promise<void>
   onDelete: (entryId: string) => Promise<void>
 }
 
-export default function FoodEntryList({ entries, onUpdateEntry, onDelete }: Props) {
+export default function FoodEntryList({ entries, userId, onUpdateEntry, onDelete }: Props) {
   if (entries.length === 0) {
     return <p>Noch keine Einträge heute.</p>
   }
@@ -15,7 +17,13 @@ export default function FoodEntryList({ entries, onUpdateEntry, onDelete }: Prop
   return (
     <ul>
       {entries.map((entry) => (
-        <FoodEntryRow key={entry.id} entry={entry} onUpdateEntry={onUpdateEntry} onDelete={onDelete} />
+        <FoodEntryRow
+          key={entry.id}
+          entry={entry}
+          userId={userId}
+          onUpdateEntry={onUpdateEntry}
+          onDelete={onDelete}
+        />
       ))}
     </ul>
   )
@@ -23,43 +31,45 @@ export default function FoodEntryList({ entries, onUpdateEntry, onDelete }: Prop
 
 function FoodEntryRow({
   entry,
+  userId,
   onUpdateEntry,
   onDelete,
-}: { entry: FoodEntry } & Pick<Props, 'onUpdateEntry' | 'onDelete'>) {
-  const label = entry.products?.name ?? 'Unbekanntes Produkt'
-  // Held as a draft so clearing the field to retype it cannot persist an intermediate
-  // (or empty, which Number() turns into 0) value on every keystroke.
-  const [draft, setDraft] = useState(String(entry.menge))
+}: { entry: FoodEntry } & Pick<Props, 'userId' | 'onUpdateEntry' | 'onDelete'>) {
+  const [editing, setEditing] = useState(false)
   const [failed, setFailed] = useState(false)
+  const label = entry.products?.name ?? 'Unbekanntes Produkt'
+  const kalorien = entry.products ? Math.round((entry.products.kalorien * entry.menge) / 100) : null
 
-  function commit() {
-    setFailed(false)
-    const value = Number(draft)
-    if (draft.trim() === '' || !Number.isFinite(value) || value <= 0) {
-      setDraft(String(entry.menge))
-      return
-    }
-    if (value === entry.menge) return
-
-    // A rejected write must not leave the typed value on screen as if it were stored.
-    onUpdateEntry(entry.id, { menge: value }).catch(() => {
-      setDraft(String(entry.menge))
-      setFailed(true)
-    })
+  if (editing) {
+    return (
+      <li>
+        <FoodEntryEditForm
+          entry={entry}
+          userId={userId}
+          onSave={onUpdateEntry}
+          onClose={() => setEditing(false)}
+        />
+      </li>
+    )
   }
 
   return (
     <li>
       <span>{label}</span>
-      <input
-        type="number"
-        aria-label={`Menge (g) für ${label}`}
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        onBlur={commit}
-      />
-      <span>g</span>
-      <button type="button" onClick={() => onDelete(entry.id).catch(() => setFailed(true))}>
+      {/* One template string per span: `{value} g` renders two text nodes and
+          getByText(/150 g/) would not match across them. */}
+      <span>{`${entry.menge} g`}</span>
+      {kalorien != null && <span>{`${kalorien} kcal`}</span>}
+      <button type="button" onClick={() => setEditing(true)}>
+        Bearbeiten
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          setFailed(false)
+          onDelete(entry.id).catch(() => setFailed(true))
+        }}
+      >
         Löschen
       </button>
       {failed && <span role="alert">Änderung konnte nicht gespeichert werden.</span>}

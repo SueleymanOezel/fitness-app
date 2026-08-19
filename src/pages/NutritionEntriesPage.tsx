@@ -30,7 +30,12 @@ function EntriesList({ userId }: { userId: string }) {
       {loading ? (
         <p>Lädt…</p>
       ) : (
-        <FoodEntryList entries={entries} onUpdateEntry={updateEntry} onDelete={deleteEntry} />
+        <FoodEntryList
+          entries={entries}
+          userId={userId}
+          onUpdateEntry={updateEntry}
+          onDelete={deleteEntry}
+        />
       )}
       <Link to="/nutrition">Zurück zur Ernährung</Link>
     </div>
