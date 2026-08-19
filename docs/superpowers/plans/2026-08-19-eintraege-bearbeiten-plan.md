@@ -1324,8 +1324,10 @@ function FoodEntryRow({
   return (
     <li>
       <span>{label}</span>
-      <span>{entry.menge} g</span>
-      {kalorien != null && <span>{kalorien} kcal</span>}
+      {/* One template string per span: `{value} g` renders two text nodes and
+          getByText(/150 g/) would not match across them. */}
+      <span>{`${entry.menge} g`}</span>
+      {kalorien != null && <span>{`${kalorien} kcal`}</span>}
       <button type="button" onClick={() => setEditing(true)}>
         Bearbeiten
       </button>
