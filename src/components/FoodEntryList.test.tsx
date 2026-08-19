@@ -14,19 +14,19 @@ const entries: FoodEntry[] = [
 
 describe('FoodEntryList', () => {
   it('shows a placeholder when there are no entries', () => {
-    render(<FoodEntryList entries={[]} onUpdateMenge={vi.fn()} onDelete={vi.fn()} />)
+    render(<FoodEntryList entries={[]} onUpdateMenge={vi.fn().mockResolvedValue(undefined)} onDelete={vi.fn().mockResolvedValue(undefined)} />)
     expect(screen.getByText('Noch keine Einträge heute.')).toBeInTheDocument()
   })
 
   it('renders each entry with its product name and menge', () => {
-    render(<FoodEntryList entries={entries} onUpdateMenge={vi.fn()} onDelete={vi.fn()} />)
+    render(<FoodEntryList entries={entries} onUpdateMenge={vi.fn().mockResolvedValue(undefined)} onDelete={vi.fn().mockResolvedValue(undefined)} />)
     expect(screen.getByText('Testprodukt')).toBeInTheDocument()
     expect(screen.getByLabelText('Menge (g) für Testprodukt')).toHaveValue(150)
   })
 
   it('calls onUpdateMenge with the edited value once the input is left', () => {
-    const onUpdateMenge = vi.fn()
-    render(<FoodEntryList entries={entries} onUpdateMenge={onUpdateMenge} onDelete={vi.fn()} />)
+    const onUpdateMenge = vi.fn().mockResolvedValue(undefined)
+    render(<FoodEntryList entries={entries} onUpdateMenge={onUpdateMenge} onDelete={vi.fn().mockResolvedValue(undefined)} />)
     const input = screen.getByLabelText('Menge (g) für Testprodukt')
 
     fireEvent.change(input, { target: { value: '200' } })
@@ -37,8 +37,8 @@ describe('FoodEntryList', () => {
   })
 
   it('never persists an intermediate or empty value while retyping the menge', () => {
-    const onUpdateMenge = vi.fn()
-    render(<FoodEntryList entries={entries} onUpdateMenge={onUpdateMenge} onDelete={vi.fn()} />)
+    const onUpdateMenge = vi.fn().mockResolvedValue(undefined)
+    render(<FoodEntryList entries={entries} onUpdateMenge={onUpdateMenge} onDelete={vi.fn().mockResolvedValue(undefined)} />)
     const input = screen.getByLabelText('Menge (g) für Testprodukt')
 
     // Clearing the field character by character: Number('') is 0, not NaN, so a
@@ -54,7 +54,7 @@ describe('FoodEntryList', () => {
 
   it('restores the stored value and warns when the update is rejected', async () => {
     const onUpdateMenge = vi.fn().mockRejectedValue(new Error('update failed'))
-    render(<FoodEntryList entries={entries} onUpdateMenge={onUpdateMenge} onDelete={vi.fn()} />)
+    render(<FoodEntryList entries={entries} onUpdateMenge={onUpdateMenge} onDelete={vi.fn().mockResolvedValue(undefined)} />)
     const input = screen.getByLabelText('Menge (g) für Testprodukt')
 
     fireEvent.change(input, { target: { value: '200' } })
@@ -66,8 +66,8 @@ describe('FoodEntryList', () => {
   })
 
   it('calls onDelete when the delete button is clicked', () => {
-    const onDelete = vi.fn()
-    render(<FoodEntryList entries={entries} onUpdateMenge={vi.fn()} onDelete={onDelete} />)
+    const onDelete = vi.fn().mockResolvedValue(undefined)
+    render(<FoodEntryList entries={entries} onUpdateMenge={vi.fn().mockResolvedValue(undefined)} onDelete={onDelete} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
 
