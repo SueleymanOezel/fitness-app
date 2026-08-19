@@ -31,6 +31,15 @@ describe('local time conversion', () => {
     // todayRange() in Phase 2.
     const iso = fromLocalInputValue('2026-08-19T00:30')
     expect(iso).toBe('2026-08-18T22:30:00.000Z')
-    expect(toLocalInputValue(iso)).toBe('2026-08-19T00:30')
+    expect(toLocalInputValue(iso as string)).toBe('2026-08-19T00:30')
+  })
+
+  it('returns null for an empty value instead of throwing', () => {
+    expect(fromLocalInputValue('')).toBeNull()
+  })
+
+  it('returns null for a malformed value instead of throwing', () => {
+    expect(fromLocalInputValue('not-a-date')).toBeNull()
+    expect(fromLocalInputValue('2026-08-19T')).toBeNull()
   })
 })
