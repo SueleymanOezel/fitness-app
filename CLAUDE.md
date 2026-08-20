@@ -69,6 +69,16 @@ Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer 
 
 **Aktueller Stand:** Phase 1 und Phase 2 sind gemerged, deployed und vollständig manuell verifiziert (inklusive Kamera-Scan am Handy). Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header — die Profildaten mussten vorher von Hand im Supabase-Table-Editor gepflegt werden. Der Ernährungsbereich wurde außerdem um eine eigene Eintragsliste unter `/nutrition/entries` erweitert.
 
+## ⚠️ Angefangene Arbeit: Mahlzeiten-Abschnitte (Branch `feat-meal-sections`)
+
+Nicht gemerged, nicht gepusht. Wiedereinstieg mit `superpowers:subagent-driven-development`:
+
+- Plan: `docs/superpowers/plans/2026-08-20-mahlzeiten-abschnitte-plan.md` (9 Tasks)
+- Spec: `docs/superpowers/specs/2026-08-20-mahlzeiten-abschnitte-design.md`
+- **Ledger mit dem genauen Stand: `.superpowers/sdd/2026-08-20-mahlzeiten-abschnitte-plan/progress.md`** (git-ignored, liegt nur lokal) — dort stehen alle Rulings, zurückgestellten Minors und Task-Abschlüsse.
+- Stand: Tasks 1–7 fertig und reviewed, 183/183 Tests grün. Offen: Task 8 (Dashboard zeigt Abschnitte mit Kalorien), Task 9 (Verifikation, `docs/domaenenmodell.md` inkl. Wiki-Spiegelung, Status hier), danach Whole-Branch-Review und PR.
+- Enthält Migration `0003_meal_sections.sql` — wird beim Merge automatisch auf die Produktionsinstanz angewendet. Sie fügt nur Spalten hinzu; bestehende Einträge bekommen `mahlzeit = null` und erscheinen unter „Ohne Zuordnung".
+
 **Einträge und Produkte bearbeiten (Branch `feat-entry-editing`, Task 8 von 8 fertig):** Über einen „Bearbeiten"-Button in der Eintragsliste unter `/nutrition/entries` lassen sich bei einem Eintrag Menge, Zeitpunkt, das verknüpfte Produkt und dessen Nährwerte ändern. Eigentümerregel in einem Satz: Ein Produkt, das dem Nutzer gehört, wird direkt aktualisiert und behält seinen Barcode; ein fremdes Produkt wird kopiert (Kopie ohne Barcode) und der Eintrag auf die Kopie umgehängt — geschrieben wird nur, wenn sich Name oder Nährwerte tatsächlich geändert haben. Spec: `docs/superpowers/specs/2026-08-19-eintraege-bearbeiten-design.md`, Plan: `docs/superpowers/plans/2026-08-19-eintraege-bearbeiten-plan.md`.
 
 Offene Folgevorhaben (noch nicht umgesetzt):
