@@ -48,6 +48,12 @@ erDiagram
         string ziel
         numeric ziel_delta_kcal
         numeric taegliches_kalorienziel
+        string mahlzeit_1_name
+        string mahlzeit_2_name
+        string mahlzeit_3_name
+        string mahlzeit_4_name
+        string mahlzeit_5_name
+        string mahlzeit_6_name
     }
 
     products {
@@ -67,6 +73,7 @@ erDiagram
         uuid product_id FK
         numeric menge
         timestamptz zeitpunkt
+        int mahlzeit
     }
 
     exercises {
@@ -157,4 +164,5 @@ erDiagram
 - `day_status` (geplanter Status) und `workout_sessions` (tatsächlich durchgeführtes Training) sind bewusst getrennt — das Home-Dashboard gleicht Plan gegen Realität ab.
 - `body_metrics` und `day_status` haben je einen `unique (user_id, datum)`-Constraint — pro Nutzer und Tag genau ein Eintrag.
 - `profiles.geschlecht/aktivitaetslevel/ziel/ziel_delta_kcal` speisen die Mifflin-St-Jeor-Berechnung des Kalorienziels (`src/lib/nutrition-goal.ts`); `taegliches_kalorienziel` überschreibt die Berechnung, wenn gesetzt. `products.barcode` hat seit Phase 2 einen Unique-Index für nicht-null-Werte (`products_barcode_unique`).
-- Quelle: `supabase/migrations/0001_initial_schema.sql` (Stand Phase 2, inkl. `0002_nutrition_profile_fields.sql`).
+- `profiles.mahlzeit_1_name` bis `_6_name` benennen sechs feste Mahlzeiten-Slots; `food_entries.mahlzeit` verweist als stabile Nummer 1–6 darauf und ist `null`, solange ein Eintrag keinem Abschnitt zugeordnet ist. Bewusst keine Array-Positionen: Beim Entfernen eines Abschnitts würden sonst alle nachfolgenden Einträge still auf den falschen Abschnitt zeigen.
+- Quelle: `supabase/migrations/0001_initial_schema.sql` (Stand Phase 2 + Mahlzeiten-Abschnitte, inkl. `0003_meal_sections.sql`).
