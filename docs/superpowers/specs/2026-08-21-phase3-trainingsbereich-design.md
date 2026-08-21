@@ -109,7 +109,7 @@ sessionKalorien(sets: { exercise: { met_wert: number } }[], gewichtKg: number, d
 
 - `dauerStunden` = `beendet_am − gestartet_am` in Stunden (ganze Session, keine Pausenzeit herausgerechnet — deckt sich mit der bewusst gewählten „gesamte Session"-Vereinfachung statt Berechnung je Übung)
 - MET = arithmetisches Mittel der `met_wert`-Werte aller abgeschlossenen Sätze (jeder Satz zählt einmal, eine Übung mit vielen Sätzen wiegt entsprechend stärker mit)
-- `gewichtKg` kommt aus `profiles.gewicht` — die einzige im System vorhandene Gewichtsquelle, dasselbe Feld, das schon das Ernährungs-Kalorienziel speist. `sessionKalorien` selbst verlangt ein gesetztes Gewicht (Parametertyp `number`, keine Sonderfälle in der reinen Funktion); die aufrufende Seite (`WorkoutSessionPage`, „Training abschließen") prüft vorher, ob `profiles.gewicht` gesetzt ist, ruft die Funktion nur dann auf und zeigt sonst „—" statt eines falschen oder erfundenen Werts.
+- `gewichtKg` kommt aus `profiles.aktuelles_gewicht` — die einzige im System vorhandene Gewichtsquelle, dasselbe Feld, das schon das Ernährungs-Kalorienziel speist. `sessionKalorien` selbst verlangt ein gesetztes Gewicht (Parametertyp `number`, keine Sonderfälle in der reinen Funktion); die aufrufende Seite (`WorkoutSessionPage`, „Training abschließen") prüft vorher, ob `profiles.aktuelles_gewicht` gesetzt ist, ruft die Funktion nur dann auf und zeigt sonst „—" statt eines falschen oder erfundenen Werts.
 - Formel: `gesamt_kalorien = MET × gewichtKg × dauerStunden`
 
 Dieselbe Funktion beliefert Dashboard-Anzeige und Trainingshistorie — eine Berechnung, kein zweiter Ort, an dem sie abweichen könnte (gleiches Prinzip wie `entry-calories.ts` in der Ernährung).
@@ -145,7 +145,7 @@ Dieselbe Funktion beliefert Dashboard-Anzeige und Trainingshistorie — eine Ber
 
 ## Fehlerbehandlung
 
-Wie im übrigen Projekt: Schreibfehler werfen, werden sichtbar gemeldet, das Formular bleibt offen und der eingegebene Wert steht. `Number('')` wird vor jeder Zahlkonvertierung auf `null`/„nicht gesetzt" gemappt, nie direkt als 0 interpretiert (Gewicht, Wiederholungen, Pausenzeit, Ziel-Sätze). Fehlt `profiles.gewicht` bei Session-Abschluss, wird das als erwarteter Zustand behandelt (keine Kalorienzahl statt eines falschen Werts), kein Fehler.
+Wie im übrigen Projekt: Schreibfehler werfen, werden sichtbar gemeldet, das Formular bleibt offen und der eingegebene Wert steht. `Number('')` wird vor jeder Zahlkonvertierung auf `null`/„nicht gesetzt" gemappt, nie direkt als 0 interpretiert (Gewicht, Wiederholungen, Pausenzeit, Ziel-Sätze). Fehlt `profiles.aktuelles_gewicht` bei Session-Abschluss, wird das als erwarteter Zustand behandelt (keine Kalorienzahl statt eines falschen Werts), kein Fehler.
 
 ## Tests
 
