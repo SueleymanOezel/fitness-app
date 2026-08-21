@@ -127,7 +127,7 @@ Dieselbe Funktion beliefert Dashboard-Anzeige und Trainingshistorie — eine Ber
 | `supabase/migrations/0004_training_days.sql` | neu — Tage-Ebene, Umbenennungen, RLS |
 | `scripts/free-exercise-db.json` | neu — vendorte Fixture |
 | `scripts/import-exercises.mjs` | neu — einmaliger Import, nutzt `metForCategory` |
-| `src/lib/met-categories.ts` | neu — `metForCategory(category): number`, von Import und `ExercisesPage`-Formular genutzt |
+| `src/lib/met-categories.ts` | neu — `metForCategory(category): number`, nur vom Import genutzt (das `ExercisesPage`-Formular nimmt den MET-Wert als Freitext entgegen wie die Kategorie selbst — eine Zuordnungstabelle für ein Freitextfeld wäre unzuverlässig, da nichts eine Übereinstimmung mit den bekannten Kategorien-Strings erzwingt) |
 | `src/lib/next-training-day.ts` | neu — Rotationslogik |
 | `src/lib/workout-calories.ts` | neu — `sessionKalorien` |
 | `src/hooks/use-exercises.ts` | neu — Übungen suchen/listen, eigene Übung anlegen |
