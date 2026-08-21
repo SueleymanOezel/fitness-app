@@ -18,6 +18,12 @@ const profile = {
   ziel: 'halten' as const,
   ziel_delta_kcal: 500,
   taegliches_kalorienziel: null,
+  mahlzeit_1_name: 'Frühstück',
+  mahlzeit_2_name: 'Mittagessen',
+  mahlzeit_3_name: 'Abendessen',
+  mahlzeit_4_name: 'Snacks',
+  mahlzeit_5_name: null,
+  mahlzeit_6_name: null,
 }
 
 function profileResult(overrides: Record<string, unknown> = {}) {
@@ -70,6 +76,12 @@ describe('ProfilePage', () => {
       aktivitaetslevel: 'moderat',
       ziel: 'abnehmen',
       ziel_delta_kcal: 500,
+      mahlzeit_1_name: 'Frühstück',
+      mahlzeit_2_name: 'Mittagessen',
+      mahlzeit_3_name: 'Abendessen',
+      mahlzeit_4_name: 'Snacks',
+      mahlzeit_5_name: null,
+      mahlzeit_6_name: null,
     })
   })
 
@@ -133,5 +145,54 @@ describe('ProfilePage', () => {
     await renderPage()
 
     expect(screen.getByText(/Berechnetes Tagesziel/)).toBeInTheDocument()
+  })
+
+  it('shows the meal section names', async () => {
+    await renderPage()
+
+    expect(screen.getByLabelText('Mahlzeit 1')).toHaveValue('Frühstück')
+    expect(screen.getByLabelText('Mahlzeit 4')).toHaveValue('Snacks')
+    expect(screen.getByLabelText('Mahlzeit 5')).toHaveValue('')
+  })
+
+  it('saves renamed and newly added sections', async () => {
+    const result = await renderPage()
+
+    fireEvent.change(screen.getByLabelText('Mahlzeit 4'), { target: { value: 'Zwischenmahlzeit' } })
+    fireEvent.change(screen.getByLabelText('Mahlzeit 5'), { target: { value: 'Spätmahlzeit' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() => expect(result.updateProfile).toHaveBeenCalled())
+    expect(result.updateProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mahlzeit_4_name: 'Zwischenmahlzeit',
+        mahlzeit_5_name: 'Spätmahlzeit',
+        mahlzeit_6_name: null,
+      }),
+    )
+  })
+
+  it('restores the default when a preset section name is cleared', async () => {
+    const result = await renderPage()
+
+    // The column is NOT NULL — an empty title would be rejected by the database,
+    // and a rejected save is a worse answer than putting the default back.
+    fireEvent.change(screen.getByLabelText('Mahlzeit 1'), { target: { value: '   ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() => expect(result.updateProfile).toHaveBeenCalled())
+    expect(result.updateProfile).toHaveBeenCalledWith(
+      expect.objectContaining({ mahlzeit_1_name: 'Frühstück' }),
+    )
+  })
+
+  it('caps a section name at 40 characters', async () => {
+    const result = await renderPage()
+
+    fireEvent.change(screen.getByLabelText('Mahlzeit 5'), { target: { value: 'x'.repeat(60) } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() => expect(result.updateProfile).toHaveBeenCalled())
+    expect(result.updateProfile.mock.calls[0][0].mahlzeit_5_name).toHaveLength(40)
   })
 })

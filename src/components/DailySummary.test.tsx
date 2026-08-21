@@ -9,6 +9,7 @@ const entries: FoodEntry[] = [
     menge: 200,
     zeitpunkt: '2026-08-18T12:00:00Z',
     product_id: 'p1',
+    mahlzeit: null,
     products: {
       id: 'p1',
       name: 'A',
@@ -25,6 +26,7 @@ const entries: FoodEntry[] = [
     menge: 50,
     zeitpunkt: '2026-08-18T13:00:00Z',
     product_id: 'p2',
+    mahlzeit: null,
     products: {
       id: 'p2',
       name: 'B',
@@ -61,7 +63,14 @@ describe('DailySummary', () => {
   it('ignores entries whose product was deleted', () => {
     const withMissing: FoodEntry[] = [
       ...entries,
-      { id: 'e3', menge: 100, zeitpunkt: '2026-08-18T14:00:00Z', product_id: null, products: null },
+      {
+        id: 'e3',
+        menge: 100,
+        zeitpunkt: '2026-08-18T14:00:00Z',
+        product_id: null,
+        mahlzeit: null,
+        products: null,
+      },
     ]
     render(<DailySummary entries={withMissing} goal={null} />)
     expect(screen.getByText(/400 kcal verbraucht/)).toBeInTheDocument()

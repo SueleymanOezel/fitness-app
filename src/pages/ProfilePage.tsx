@@ -13,7 +13,17 @@ type Draft = {
   aktivitaetslevel: string
   ziel: string
   ziel_delta_kcal: string
+  mahlzeit_1_name: string
+  mahlzeit_2_name: string
+  mahlzeit_3_name: string
+  mahlzeit_4_name: string
+  mahlzeit_5_name: string
+  mahlzeit_6_name: string
 }
+
+export const MAX_SECTION_NAME_LENGTH = 40
+
+const PRESET_SECTION_NAMES = ['Frühstück', 'Mittagessen', 'Abendessen', 'Snacks'] as const
 
 /**
  * These bounds are not cosmetic: the calorie goal is computed from these values,
@@ -55,7 +65,21 @@ function toDraft(profile: Profile): Draft {
     aktivitaetslevel: profile.aktivitaetslevel ?? '',
     ziel: profile.ziel ?? '',
     ziel_delta_kcal: profile.ziel_delta_kcal?.toString() ?? '',
+    mahlzeit_1_name: profile.mahlzeit_1_name,
+    mahlzeit_2_name: profile.mahlzeit_2_name,
+    mahlzeit_3_name: profile.mahlzeit_3_name,
+    mahlzeit_4_name: profile.mahlzeit_4_name,
+    mahlzeit_5_name: profile.mahlzeit_5_name ?? '',
+    mahlzeit_6_name: profile.mahlzeit_6_name ?? '',
   }
+}
+
+// Slots 1-4 are NOT NULL in the database; an emptied field falls back to its
+// default instead of failing the save. Slots 5 and 6 may stay empty.
+function sectionName(value: string, slot: number) {
+  const trimmed = value.trim().slice(0, MAX_SECTION_NAME_LENGTH)
+  if (trimmed) return trimmed
+  return slot <= 4 ? PRESET_SECTION_NAMES[slot - 1] : null
 }
 
 /** Empty stays empty (null); out-of-range is rejected so it never reaches the database. */
@@ -89,6 +113,12 @@ function toPatch(draft: Draft): Partial<Profile> | null {
     aktivitaetslevel: (draft.aktivitaetslevel || null) as Profile['aktivitaetslevel'],
     ziel: (draft.ziel || null) as Profile['ziel'],
     ziel_delta_kcal: ziel_delta_kcal ?? 0,
+    mahlzeit_1_name: sectionName(draft.mahlzeit_1_name, 1) as string,
+    mahlzeit_2_name: sectionName(draft.mahlzeit_2_name, 2) as string,
+    mahlzeit_3_name: sectionName(draft.mahlzeit_3_name, 3) as string,
+    mahlzeit_4_name: sectionName(draft.mahlzeit_4_name, 4) as string,
+    mahlzeit_5_name: sectionName(draft.mahlzeit_5_name, 5),
+    mahlzeit_6_name: sectionName(draft.mahlzeit_6_name, 6),
   }
 }
 
@@ -247,6 +277,33 @@ function LoadedProfileForm({
             onChange={(event) => set('ziel_delta_kcal', event.target.value)}
           />
         </label>
+
+        <fieldset>
+          <legend>Mahlzeiten</legend>
+          <p>
+            Leere Felder werden nicht angezeigt. Die ersten vier Mahlzeiten lassen sich
+            umbenennen, aber nicht entfernen.
+          </p>
+          {(
+            [
+              [1, 'mahlzeit_1_name'],
+              [2, 'mahlzeit_2_name'],
+              [3, 'mahlzeit_3_name'],
+              [4, 'mahlzeit_4_name'],
+              [5, 'mahlzeit_5_name'],
+              [6, 'mahlzeit_6_name'],
+            ] as const
+          ).map(([slot, field]) => (
+            <label key={slot}>
+              {`Mahlzeit ${slot}`}
+              <input
+                maxLength={MAX_SECTION_NAME_LENGTH}
+                value={draft[field]}
+                onChange={(event) => set(field, event.target.value)}
+              />
+            </label>
+          ))}
+        </fieldset>
 
         {status === 'invalid' && (
           <p role="alert">

@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import FoodEntryEditForm from './FoodEntryEditForm'
+import type { MealSection } from '../lib/meal-sections'
 import type { EntryPatch, FoodEntry } from '../hooks/use-food-entries'
 
 type Props = {
   entries: FoodEntry[]
   userId: string
+  sections: MealSection[]
   onUpdateEntry: (entryId: string, patch: EntryPatch) => Promise<void>
   onDelete: (entryId: string) => Promise<void>
 }
 
-export default function FoodEntryList({ entries, userId, onUpdateEntry, onDelete }: Props) {
+export default function FoodEntryList({ entries, userId, sections, onUpdateEntry, onDelete }: Props) {
   if (entries.length === 0) {
     return <p>Noch keine Einträge heute.</p>
   }
@@ -21,6 +23,7 @@ export default function FoodEntryList({ entries, userId, onUpdateEntry, onDelete
           key={entry.id}
           entry={entry}
           userId={userId}
+          sections={sections}
           onUpdateEntry={onUpdateEntry}
           onDelete={onDelete}
         />
@@ -32,9 +35,10 @@ export default function FoodEntryList({ entries, userId, onUpdateEntry, onDelete
 function FoodEntryRow({
   entry,
   userId,
+  sections,
   onUpdateEntry,
   onDelete,
-}: { entry: FoodEntry } & Pick<Props, 'userId' | 'onUpdateEntry' | 'onDelete'>) {
+}: { entry: FoodEntry } & Pick<Props, 'userId' | 'sections' | 'onUpdateEntry' | 'onDelete'>) {
   const [editing, setEditing] = useState(false)
   const [failed, setFailed] = useState(false)
   const label = entry.products?.name ?? 'Unbekanntes Produkt'
@@ -46,6 +50,7 @@ function FoodEntryRow({
         <FoodEntryEditForm
           entry={entry}
           userId={userId}
+          sections={sections}
           onSave={onUpdateEntry}
           onClose={() => setEditing(false)}
         />

@@ -6,6 +6,7 @@ export type FoodEntry = {
   menge: number
   zeitpunkt: string
   product_id: string | null
+  mahlzeit: number | null
   products: {
     id: string
     name: string
@@ -18,7 +19,12 @@ export type FoodEntry = {
   } | null
 }
 
-export type EntryPatch = { menge?: number; zeitpunkt?: string; product_id?: string }
+export type EntryPatch = {
+  menge?: number
+  zeitpunkt?: string
+  product_id?: string
+  mahlzeit?: number | null
+}
 
 /** Local calendar day, half-open — an entry at 23:59:59.4 still belongs to today. */
 export function todayRange() {
@@ -41,7 +47,7 @@ export function useFoodEntries(userId: string) {
     const { data } = await supabase
       .from('food_entries')
       .select(
-        'id, menge, zeitpunkt, product_id, products(id, name, barcode, created_by, kalorien, eiweiss, fett, kohlenhydrate)',
+        'id, menge, zeitpunkt, product_id, mahlzeit, products(id, name, barcode, created_by, kalorien, eiweiss, fett, kohlenhydrate)',
       )
       .eq('user_id', userId)
       .gte('zeitpunkt', start)
@@ -62,10 +68,10 @@ export function useFoodEntries(userId: string) {
 
   // supabase-js resolves rather than throws on a rejected write, so an unchecked
   // error would let the UI report success while nothing was stored.
-  async function addEntry(productId: string, menge: number) {
+  async function addEntry(productId: string, menge: number, mahlzeit: number | null) {
     const { error } = await supabase
       .from('food_entries')
-      .insert({ user_id: userId, product_id: productId, menge })
+      .insert({ user_id: userId, product_id: productId, menge, mahlzeit })
     if (error) throw new Error('insert failed')
     await reload()
   }

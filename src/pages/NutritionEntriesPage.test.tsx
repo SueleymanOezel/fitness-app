@@ -1,10 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import type { FoodEntry } from '../hooks/use-food-entries'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
+
+const mockUseProfile = vi.fn()
+vi.mock('../hooks/use-profile', () => ({ useProfile: (userId: string) => mockUseProfile(userId) }))
 
 const mockUseFoodEntries = vi.fn()
 vi.mock('../hooks/use-food-entries', () => ({
@@ -18,11 +21,42 @@ vi.mock('../lib/product-edit', () => ({
   saveProductEdit: vi.fn().mockResolvedValue({ id: 'p1' }),
 }))
 
+vi.mock('../lib/product-lookup', () => ({
+  findOrFetchProductByBarcode: () =>
+    Promise.resolve({ id: 'p1', name: 'Testprodukt', barcode: '8076809580144', kalorien: 100 }),
+}))
+
+const profile = {
+  id: 'u1',
+  name: null,
+  alter: 30,
+  groesse: 180,
+  aktuelles_gewicht: 80,
+  geschlecht: 'maennlich' as const,
+  aktivitaetslevel: 'moderat' as const,
+  ziel: 'halten' as const,
+  ziel_delta_kcal: 500,
+  taegliches_kalorienziel: 2000,
+  mahlzeit_1_name: 'Frühstück',
+  mahlzeit_2_name: 'Mittagessen',
+  mahlzeit_3_name: 'Abendessen',
+  mahlzeit_4_name: 'Snacks',
+  mahlzeit_5_name: null,
+  mahlzeit_6_name: null,
+}
+
+// Mirrors the real hook's return shape so a page branch cannot pass against a
+// mock that no longer matches useProfile.
+function profileResult(overrides: Record<string, unknown> = {}) {
+  return { profile, loading: false, error: false, reload: vi.fn(), updateProfile: vi.fn(), ...overrides }
+}
+
 const entry: FoodEntry = {
   id: 'e1',
   menge: 150,
   zeitpunkt: '2026-08-19T12:00:00Z',
   product_id: 'p1',
+  mahlzeit: null,
   products: {
     id: 'p1',
     name: 'Testprodukt',
@@ -48,6 +82,7 @@ function entriesResult(overrides: Record<string, unknown> = {}) {
 
 async function renderPage(result = entriesResult()) {
   mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+  mockUseProfile.mockReturnValue(profileResult())
   mockUseFoodEntries.mockReturnValue(result)
   const { default: NutritionEntriesPage } = await import('./NutritionEntriesPage')
   render(<NutritionEntriesPage />, { wrapper: MemoryRouter })
@@ -85,7 +120,8 @@ describe('NutritionEntriesPage', () => {
   it('shows the empty state when nothing was logged yet', async () => {
     await renderPage(entriesResult({ entries: [] }))
 
-    expect(screen.getByText('Noch keine Einträge heute.')).toBeInTheDocument()
+    // One per active section — the unassigned group only shows when it holds entries.
+    expect(screen.getAllByText('Noch keine Einträge heute.').length).toBeGreaterThan(0)
   })
 
   it('shows a loading state while entries are loading', async () => {
@@ -94,9 +130,114 @@ describe('NutritionEntriesPage', () => {
     expect(screen.getByText('Lädt…')).toBeInTheDocument()
   })
 
+  it('offers a retry instead of loading forever when the profile cannot be loaded', async () => {
+    const reload = vi.fn()
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue(profileResult({ profile: null, error: true, reload }))
+    mockUseFoodEntries.mockReturnValue(entriesResult())
+    const { default: NutritionEntriesPage } = await import('./NutritionEntriesPage')
+    render(<NutritionEntriesPage />, { wrapper: MemoryRouter })
+
+    expect(screen.queryByText('Lädt…')).not.toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent('Profil konnte nicht geladen werden')
+    fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
+    expect(reload).toHaveBeenCalled()
+  })
+
   it('links back to the nutrition dashboard', async () => {
     await renderPage()
 
     expect(screen.getByRole('link', { name: /Ernährung/ })).toHaveAttribute('href', '/nutrition')
+  })
+
+  it('groups the entries by section and sums each one', async () => {
+    await renderPage(
+      entriesResult({
+        entries: [
+          { ...entry, id: 'e1', mahlzeit: 1, menge: 150 },
+          { ...entry, id: 'e2', mahlzeit: 2, menge: 50 },
+        ],
+      }),
+    )
+
+    const fruehstueck = screen.getByRole('heading', { name: /Frühstück/ })
+    // 100 kcal per 100 g × 150 g
+    expect(fruehstueck).toHaveTextContent('150 kcal')
+    expect(screen.getByRole('heading', { name: /Mittagessen/ })).toHaveTextContent('50 kcal')
+  })
+
+  it('files a new entry under the section it was added from', async () => {
+    const result = await renderPage(entriesResult({ entries: [] }))
+
+    // Target the second section specifically, so a hard-coded slot cannot pass.
+    const mittagessenHeading = screen.getByRole('heading', { name: /Mittagessen/ })
+    const mittagessenSection = mittagessenHeading.closest('section')
+    expect(mittagessenSection).not.toBeNull()
+    const section = within(mittagessenSection as HTMLElement)
+
+    // The capture flow starts collapsed; open this section's own flow only.
+    fireEvent.click(section.getByRole('button', { name: '+ Hinzufügen' }))
+
+    fireEvent.change(section.getByLabelText('Barcode-Nummer eingeben'), {
+      target: { value: '8076809580144' },
+    })
+    fireEvent.click(section.getByRole('button', { name: 'Suchen' }))
+
+    await waitFor(() => expect(section.getByLabelText('Menge (g)')).toBeInTheDocument())
+    fireEvent.click(section.getByRole('button', { name: 'Hinzufügen' }))
+
+    await waitFor(() => expect(result.addEntry).toHaveBeenCalled())
+    expect(result.addEntry).toHaveBeenCalledWith('p1', 100, 2)
+  })
+
+  it('collapses the capture flow behind a button and does not offer one for unassigned entries', async () => {
+    await renderPage(entriesResult({ entries: [{ ...entry, mahlzeit: null }] }))
+
+    // Collapsed by default: no capture form visible until "+ Hinzufügen" is clicked.
+    expect(screen.queryByRole('button', { name: 'Barcode scannen' })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Barcode-Nummer eingeben')).not.toBeInTheDocument()
+
+    const addButtons = screen.getAllByRole('button', { name: '+ Hinzufügen' })
+    // One per named section (Frühstück, Mittagessen, Abendessen, Snacks) — none
+    // for "Ohne Zuordnung", which has no add button at all.
+    expect(addButtons).toHaveLength(4)
+
+    const unassignedHeading = screen.getByRole('heading', { name: /Ohne Zuordnung/ })
+    const unassignedSection = unassignedHeading.closest('section')
+    expect(unassignedSection).not.toBeNull()
+    expect(
+      within(unassignedSection as HTMLElement).queryByRole('button', { name: '+ Hinzufügen' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('collapses the capture flow again after a successful add', async () => {
+    const result = await renderPage(entriesResult({ entries: [] }))
+
+    const fruehstueckHeading = screen.getByRole('heading', { name: /Frühstück/ })
+    const fruehstueckSection = fruehstueckHeading.closest('section')
+    expect(fruehstueckSection).not.toBeNull()
+    const section = within(fruehstueckSection as HTMLElement)
+
+    fireEvent.click(section.getByRole('button', { name: '+ Hinzufügen' }))
+    fireEvent.change(section.getByLabelText('Barcode-Nummer eingeben'), {
+      target: { value: '8076809580144' },
+    })
+    fireEvent.click(section.getByRole('button', { name: 'Suchen' }))
+
+    await waitFor(() => expect(section.getByLabelText('Menge (g)')).toBeInTheDocument())
+    fireEvent.click(section.getByRole('button', { name: 'Hinzufügen' }))
+
+    await waitFor(() => expect(result.addEntry).toHaveBeenCalled())
+    await waitFor(() =>
+      expect(section.getByRole('button', { name: '+ Hinzufügen' })).toBeInTheDocument(),
+    )
+    expect(section.queryByLabelText('Barcode-Nummer eingeben')).not.toBeInTheDocument()
+  })
+
+  it('shows unassigned entries in their own group at the end', async () => {
+    await renderPage(entriesResult({ entries: [{ ...entry, mahlzeit: null }] }))
+
+    const headings = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent ?? '')
+    expect(headings[headings.length - 1]).toContain('Ohne Zuordnung')
   })
 })

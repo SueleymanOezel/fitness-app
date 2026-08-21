@@ -4,12 +4,14 @@ import { parseNutrients } from '../lib/nutrients'
 import { saveProductEdit } from '../lib/product-edit'
 import { fromLocalInputValue, toLocalInputValue } from '../lib/local-time'
 import { MAX_NAME_LENGTH } from '../lib/open-food-facts'
+import { UNASSIGNED_LABEL, type MealSection } from '../lib/meal-sections'
 import type { Product } from '../lib/product-lookup'
 import type { EntryPatch, FoodEntry } from '../hooks/use-food-entries'
 
 type Props = {
   entry: FoodEntry
   userId: string
+  sections: MealSection[]
   onSave: (entryId: string, patch: EntryPatch) => Promise<void>
   onClose: () => void
 }
@@ -19,11 +21,12 @@ type Props = {
 // reuse this instead of writing another copy of a foreign product — see I3.
 type ProductSaveCache = { key: string; result: Product }
 
-export default function FoodEntryEditForm({ entry, userId, onSave, onClose }: Props) {
+export default function FoodEntryEditForm({ entry, userId, sections, onSave, onClose }: Props) {
   const product = entry.products
   const initialZeitpunkt = toLocalInputValue(entry.zeitpunkt)
   const [menge, setMenge] = useState(String(entry.menge))
   const [zeitpunkt, setZeitpunkt] = useState(initialZeitpunkt)
+  const [mahlzeit, setMahlzeit] = useState(entry.mahlzeit === null ? '' : String(entry.mahlzeit))
   const [swapped, setSwapped] = useState<Product | null>(null)
   const [picking, setPicking] = useState(false)
   const [name, setName] = useState(product?.name ?? '')
@@ -57,6 +60,10 @@ export default function FoodEntryEditForm({ entry, userId, onSave, onClose }: Pr
     }
 
     const patch: EntryPatch = { menge: value }
+
+    // Only when it actually changed — an unchanged section has no business in the patch.
+    const selectedMahlzeit = mahlzeit === '' ? null : Number(mahlzeit)
+    if (selectedMahlzeit !== entry.mahlzeit) patch.mahlzeit = selectedMahlzeit
 
     // datetime-local has minute resolution; only touch zeitpunkt when the
     // field actually changed, otherwise a plain amount edit would silently
@@ -145,6 +152,17 @@ export default function FoodEntryEditForm({ entry, userId, onSave, onClose }: Pr
           value={zeitpunkt}
           onChange={(event) => setZeitpunkt(event.target.value)}
         />
+      </label>
+      <label>
+        Mahlzeit
+        <select value={mahlzeit} onChange={(event) => setMahlzeit(event.target.value)}>
+          <option value="">{UNASSIGNED_LABEL}</option>
+          {sections.map((section) => (
+            <option key={section.slot} value={String(section.slot)}>
+              {section.name}
+            </option>
+          ))}
+        </select>
       </label>
 
       <p>{swapped ? swapped.name : (product?.name ?? 'Unbekanntes Produkt')}</p>
