@@ -167,6 +167,81 @@ describe('NutritionPage', () => {
     expect(screen.getByRole('link', { name: /Abendessen/ })).toHaveTextContent('0 kcal')
   })
 
+  it('shows an "Ohne Zuordnung" row for entries with no section, matching the daily total', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue(profileResult({ profile }))
+    mockUseFoodEntries.mockReturnValue(
+      entriesResult({
+        entries: [
+          {
+            id: 'e1',
+            menge: 150,
+            zeitpunkt: '2026-08-20T06:30:00.000Z',
+            product_id: 'p1',
+            mahlzeit: null,
+            products: {
+              id: 'p1',
+              name: 'Testprodukt',
+              barcode: null,
+              created_by: 'u1',
+              kalorien: 100,
+              eiweiss: null,
+              fett: null,
+              kohlenhydrate: null,
+            },
+          },
+        ],
+      }),
+    )
+
+    const { default: NutritionPage } = await import('./NutritionPage')
+    render(<NutritionPage />, { wrapper: MemoryRouter })
+
+    // Every pre-existing entry has mahlzeit = null; without this row the section
+    // list would read "0 kcal" everywhere while the daily total (which sums ALL
+    // entries) shows 150 — an inconsistency that must not exist right after merge.
+    const ohneZuordnung = screen.getByRole('link', { name: /Ohne Zuordnung/ })
+    expect(ohneZuordnung).toHaveTextContent('150 kcal')
+    expect(ohneZuordnung).toHaveAttribute('href', '/nutrition/entries')
+  })
+
+  it('shows an occupied but unnamed slot as "Abschnitt <N>" with its calories', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue(profileResult({ profile }))
+    mockUseFoodEntries.mockReturnValue(
+      entriesResult({
+        entries: [
+          {
+            id: 'e1',
+            menge: 50,
+            zeitpunkt: '2026-08-20T06:30:00.000Z',
+            product_id: 'p1',
+            mahlzeit: 5,
+            products: {
+              id: 'p1',
+              name: 'Testprodukt',
+              barcode: null,
+              created_by: 'u1',
+              kalorien: 200,
+              eiweiss: null,
+              fett: null,
+              kohlenhydrate: null,
+            },
+          },
+        ],
+      }),
+    )
+
+    const { default: NutritionPage } = await import('./NutritionPage')
+    render(<NutritionPage />, { wrapper: MemoryRouter })
+
+    // Slot 5 has entries but profile.mahlzeit_5_name is null — it must stay
+    // visible as "Abschnitt 5" instead of disappearing with its calories intact.
+    const abschnitt5 = screen.getByRole('link', { name: /Abschnitt 5/ })
+    expect(abschnitt5).toHaveTextContent('100 kcal')
+    expect(abschnitt5).toHaveAttribute('href', '/nutrition/entries')
+  })
+
   it('no longer captures entries on the dashboard', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseProfile.mockReturnValue(profileResult({ profile }))

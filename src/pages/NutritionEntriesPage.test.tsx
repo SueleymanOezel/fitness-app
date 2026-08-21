@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import type { FoodEntry } from '../hooks/use-food-entries'
 
@@ -130,6 +130,20 @@ describe('NutritionEntriesPage', () => {
     expect(screen.getByText('Lädt…')).toBeInTheDocument()
   })
 
+  it('offers a retry instead of loading forever when the profile cannot be loaded', async () => {
+    const reload = vi.fn()
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue(profileResult({ profile: null, error: true, reload }))
+    mockUseFoodEntries.mockReturnValue(entriesResult())
+    const { default: NutritionEntriesPage } = await import('./NutritionEntriesPage')
+    render(<NutritionEntriesPage />, { wrapper: MemoryRouter })
+
+    expect(screen.queryByText('Lädt…')).not.toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent('Profil konnte nicht geladen werden')
+    fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
+    expect(reload).toHaveBeenCalled()
+  })
+
   it('links back to the nutrition dashboard', async () => {
     await renderPage()
 
@@ -155,20 +169,69 @@ describe('NutritionEntriesPage', () => {
   it('files a new entry under the section it was added from', async () => {
     const result = await renderPage(entriesResult({ entries: [] }))
 
-    // Two sections, so a hard-coded slot cannot pass.
-    const addButtons = screen.getAllByRole('button', { name: 'Barcode scannen' })
-    expect(addButtons.length).toBeGreaterThan(1)
+    // Target the second section specifically, so a hard-coded slot cannot pass.
+    const mittagessenHeading = screen.getByRole('heading', { name: /Mittagessen/ })
+    const mittagessenSection = mittagessenHeading.closest('section')
+    expect(mittagessenSection).not.toBeNull()
+    const section = within(mittagessenSection as HTMLElement)
 
-    fireEvent.change(screen.getAllByLabelText('Barcode-Nummer eingeben')[1], {
+    // The capture flow starts collapsed; open this section's own flow only.
+    fireEvent.click(section.getByRole('button', { name: '+ Hinzufügen' }))
+
+    fireEvent.change(section.getByLabelText('Barcode-Nummer eingeben'), {
       target: { value: '8076809580144' },
     })
-    fireEvent.click(screen.getAllByRole('button', { name: 'Suchen' })[1])
+    fireEvent.click(section.getByRole('button', { name: 'Suchen' }))
 
-    await waitFor(() => expect(screen.getAllByLabelText('Menge (g)').length).toBeGreaterThan(0))
-    fireEvent.click(screen.getAllByRole('button', { name: 'Hinzufügen' })[0])
+    await waitFor(() => expect(section.getByLabelText('Menge (g)')).toBeInTheDocument())
+    fireEvent.click(section.getByRole('button', { name: 'Hinzufügen' }))
 
     await waitFor(() => expect(result.addEntry).toHaveBeenCalled())
     expect(result.addEntry).toHaveBeenCalledWith('p1', 100, 2)
+  })
+
+  it('collapses the capture flow behind a button and does not offer one for unassigned entries', async () => {
+    await renderPage(entriesResult({ entries: [{ ...entry, mahlzeit: null }] }))
+
+    // Collapsed by default: no capture form visible until "+ Hinzufügen" is clicked.
+    expect(screen.queryByRole('button', { name: 'Barcode scannen' })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Barcode-Nummer eingeben')).not.toBeInTheDocument()
+
+    const addButtons = screen.getAllByRole('button', { name: '+ Hinzufügen' })
+    // One per named section (Frühstück, Mittagessen, Abendessen, Snacks) — none
+    // for "Ohne Zuordnung", which has no add button at all.
+    expect(addButtons).toHaveLength(4)
+
+    const unassignedHeading = screen.getByRole('heading', { name: /Ohne Zuordnung/ })
+    const unassignedSection = unassignedHeading.closest('section')
+    expect(unassignedSection).not.toBeNull()
+    expect(
+      within(unassignedSection as HTMLElement).queryByRole('button', { name: '+ Hinzufügen' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('collapses the capture flow again after a successful add', async () => {
+    const result = await renderPage(entriesResult({ entries: [] }))
+
+    const fruehstueckHeading = screen.getByRole('heading', { name: /Frühstück/ })
+    const fruehstueckSection = fruehstueckHeading.closest('section')
+    expect(fruehstueckSection).not.toBeNull()
+    const section = within(fruehstueckSection as HTMLElement)
+
+    fireEvent.click(section.getByRole('button', { name: '+ Hinzufügen' }))
+    fireEvent.change(section.getByLabelText('Barcode-Nummer eingeben'), {
+      target: { value: '8076809580144' },
+    })
+    fireEvent.click(section.getByRole('button', { name: 'Suchen' }))
+
+    await waitFor(() => expect(section.getByLabelText('Menge (g)')).toBeInTheDocument())
+    fireEvent.click(section.getByRole('button', { name: 'Hinzufügen' }))
+
+    await waitFor(() => expect(result.addEntry).toHaveBeenCalled())
+    await waitFor(() =>
+      expect(section.getByRole('button', { name: '+ Hinzufügen' })).toBeInTheDocument(),
+    )
+    expect(section.queryByLabelText('Barcode-Nummer eingeben')).not.toBeInTheDocument()
   })
 
   it('shows unassigned entries in their own group at the end', async () => {

@@ -3,7 +3,7 @@ import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
 import { useFoodEntries } from '../hooks/use-food-entries'
 import { effectiveCalorieGoal } from '../lib/nutrition-goal'
-import { mealSections } from '../lib/meal-sections'
+import { visibleSections } from '../lib/meal-sections'
 import { sumKalorien } from '../lib/entry-calories'
 import DailySummary from '../components/DailySummary'
 
@@ -61,10 +61,10 @@ function NutritionDashboard({ userId }: { userId: string }) {
       )}
       <Link to="/profile">Ziel im Profil anpassen</Link>
       <ul>
-        {mealSections(profile).map((section) => {
+        {visibleSections(profile, entries).map((section) => {
           const sectionEntries = entries.filter((entry) => entry.mahlzeit === section.slot)
           return (
-            <li key={section.slot}>
+            <li key={section.slot ?? 'unassigned'}>
               <Link to="/nutrition/entries">
                 {`${section.name} — ${Math.round(sumKalorien(sectionEntries))} kcal`}
               </Link>
