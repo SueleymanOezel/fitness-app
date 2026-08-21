@@ -103,7 +103,7 @@ describe('visibleSections', () => {
     ])
   })
 
-  it('shows only unassigned entries when no named sections are used', () => {
+  it('still shows the named sections when every entry is unassigned', () => {
     expect(visibleSections(names, [{ mahlzeit: null }, { mahlzeit: null }])).toEqual([
       { slot: 1, name: 'Frühstück' },
       { slot: 2, name: 'Mittagessen' },
@@ -113,7 +113,7 @@ describe('visibleSections', () => {
     ])
   })
 
-  it('returns empty array when no entries exist', () => {
+  it('returns the named sections when there are no entries at all', () => {
     expect(visibleSections(names, [])).toEqual([
       { slot: 1, name: 'Frühstück' },
       { slot: 2, name: 'Mittagessen' },

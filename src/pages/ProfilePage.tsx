@@ -280,7 +280,10 @@ function LoadedProfileForm({
 
         <fieldset>
           <legend>Mahlzeiten</legend>
-          <p>Leere Felder werden nicht angezeigt. Die ersten vier lassen sich nur umbenennen.</p>
+          <p>
+            Leere Felder werden nicht angezeigt. Die ersten vier Mahlzeiten lassen sich
+            umbenennen, aber nicht entfernen.
+          </p>
           {(
             [
               [1, 'mahlzeit_1_name'],

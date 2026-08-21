@@ -62,8 +62,8 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
     const patch: EntryPatch = { menge: value }
 
     // Only when it actually changed — an unchanged section has no business in the patch.
-    const gewaehlt = mahlzeit === '' ? null : Number(mahlzeit)
-    if (gewaehlt !== entry.mahlzeit) patch.mahlzeit = gewaehlt
+    const selectedMahlzeit = mahlzeit === '' ? null : Number(mahlzeit)
+    if (selectedMahlzeit !== entry.mahlzeit) patch.mahlzeit = selectedMahlzeit
 
     // datetime-local has minute resolution; only touch zeitpunkt when the
     // field actually changed, otherwise a plain amount edit would silently
