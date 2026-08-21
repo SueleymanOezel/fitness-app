@@ -3,8 +3,9 @@ import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
 import { useFoodEntries } from '../hooks/use-food-entries'
 import { effectiveCalorieGoal } from '../lib/nutrition-goal'
+import { mealSections } from '../lib/meal-sections'
+import { sumKalorien } from '../lib/entry-calories'
 import DailySummary from '../components/DailySummary'
-import AddEntryFlow from '../components/AddEntryFlow'
 
 export default function NutritionPage() {
   const { session } = useSession()
@@ -24,7 +25,7 @@ export default function NutritionPage() {
 
 function NutritionDashboard({ userId }: { userId: string }) {
   const { profile, loading: profileLoading, error: profileError, reload } = useProfile(userId)
-  const { entries, loading: entriesLoading, addEntry } = useFoodEntries(userId)
+  const { entries, loading: entriesLoading } = useFoodEntries(userId)
 
   if (profileLoading || entriesLoading) {
     return (
@@ -59,7 +60,18 @@ function NutritionDashboard({ userId }: { userId: string }) {
         </p>
       )}
       <Link to="/profile">Ziel im Profil anpassen</Link>
-      <AddEntryFlow onAdd={(productId, menge) => addEntry(productId, menge, null)} />
+      <ul>
+        {mealSections(profile).map((section) => {
+          const sectionEntries = entries.filter((entry) => entry.mahlzeit === section.slot)
+          return (
+            <li key={section.slot}>
+              <Link to="/nutrition/entries">
+                {`${section.name} — ${Math.round(sumKalorien(sectionEntries))} kcal`}
+              </Link>
+            </li>
+          )
+        })}
+      </ul>
       <Link to="/nutrition/entries">Einträge ansehen</Link>
     </div>
   )

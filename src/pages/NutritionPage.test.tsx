@@ -71,8 +71,8 @@ describe('NutritionPage', () => {
 
     expect(screen.getByRole('heading', { name: 'Ernährung' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Heute' })).toBeInTheDocument()
-    
-    expect(screen.getByRole('button', { name: 'Barcode scannen' })).toBeInTheDocument()
+
+    expect(screen.getByRole('link', { name: /Einträge/ })).toBeInTheDocument()
   })
 
   it('offers a retry instead of loading forever when the profile cannot be loaded', async () => {
@@ -97,13 +97,12 @@ describe('NutritionPage', () => {
     const { default: NutritionPage } = await import('./NutritionPage')
     render(<NutritionPage />, { wrapper: MemoryRouter })
 
-    // The dashboard keeps the balance and the capture flow; the list lives on /nutrition/entries.
+    // The dashboard shows the sections; the entry list lives on /nutrition/entries.
     expect(screen.queryByText('Noch keine Einträge heute.')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Einträge/ })).toHaveAttribute(
       'href',
       '/nutrition/entries',
     )
-    expect(screen.getByRole('button', { name: 'Barcode scannen' })).toBeInTheDocument()
   })
 
   it('leaves goal editing to the profile page', async () => {
@@ -130,5 +129,53 @@ describe('NutritionPage', () => {
 
     // 2000 is the manual override, not the Mifflin-St-Jeor value (2759) for this profile.
     expect(screen.getByText(/Ziel 2000 kcal/)).toBeInTheDocument()
+  })
+
+  it('lists the sections with their calories and links to the entries page', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue(profileResult({ profile }))
+    mockUseFoodEntries.mockReturnValue(
+      entriesResult({
+        entries: [
+          {
+            id: 'e1',
+            menge: 150,
+            zeitpunkt: '2026-08-20T06:30:00.000Z',
+            product_id: 'p1',
+            mahlzeit: 1,
+            products: {
+              id: 'p1',
+              name: 'Testprodukt',
+              barcode: null,
+              created_by: 'u1',
+              kalorien: 100,
+              eiweiss: null,
+              fett: null,
+              kohlenhydrate: null,
+            },
+          },
+        ],
+      }),
+    )
+
+    const { default: NutritionPage } = await import('./NutritionPage')
+    render(<NutritionPage />, { wrapper: MemoryRouter })
+
+    const fruehstueck = screen.getByRole('link', { name: /Frühstück/ })
+    expect(fruehstueck).toHaveTextContent('150 kcal')
+    expect(fruehstueck).toHaveAttribute('href', '/nutrition/entries')
+    expect(screen.getByRole('link', { name: /Abendessen/ })).toHaveTextContent('0 kcal')
+  })
+
+  it('no longer captures entries on the dashboard', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue(profileResult({ profile }))
+    mockUseFoodEntries.mockReturnValue(entriesResult())
+
+    const { default: NutritionPage } = await import('./NutritionPage')
+    render(<NutritionPage />, { wrapper: MemoryRouter })
+
+    // Capturing needs a section, and the sections live on the entries page.
+    expect(screen.queryByRole('button', { name: 'Barcode scannen' })).not.toBeInTheDocument()
   })
 })
