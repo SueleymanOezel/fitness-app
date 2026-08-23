@@ -67,7 +67,7 @@ Das vollständige Architekturkonzept mit Datenbankschema, REST-API-Endpunkten pr
 
 Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer Chat sofort weiß, was gemacht wurde und was als Nächstes ansteht.
 
-**Aktueller Stand:** Phase 1, Phase 2 und Phase 3 sind gemerged. Phase 1 und 2 sind zusätzlich vollständig manuell verifiziert (inklusive Kamera-Scan am Handy); für Phase 3 stehen der einmalige Übungsimport und die Manual-Verification noch aus. Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header — die Profildaten mussten vorher von Hand im Supabase-Table-Editor gepflegt werden. Der Ernährungsbereich wurde außerdem um eine eigene Eintragsliste unter `/nutrition/entries` erweitert, die jetzt nach Mahlzeiten-Abschnitten gegliedert ist. Der Mahlzeiten-Abschnitte-Branch (`feat-meal-sections`) ist **gemerged** (PR #20, Merge-Commit `752587c`), Phase 3 ebenfalls (PR #21, Merge-Commit `7420145`) — siehe eigenen Abschnitt weiter unten.
+**Aktueller Stand:** Phase 1, Phase 2 und Phase 3 sind gemerged, deployed und vollständig manuell gegen die Produktionsinstanz verifiziert. Nächster Schritt: Phase 4 (Körperbereich & Health-Integration) — Spec und Plan dafür noch zu erstellen (`superpowers:brainstorming` → `superpowers:writing-plans`). Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header — die Profildaten mussten vorher von Hand im Supabase-Table-Editor gepflegt werden. Der Ernährungsbereich wurde außerdem um eine eigene Eintragsliste unter `/nutrition/entries` erweitert, die jetzt nach Mahlzeiten-Abschnitten gegliedert ist. Der Mahlzeiten-Abschnitte-Branch (`feat-meal-sections`) ist **gemerged** (PR #20, Merge-Commit `752587c`), Phase 3 ebenfalls (PR #21, Merge-Commit `7420145`) — siehe eigenen Abschnitt weiter unten.
 
 **Mahlzeiten-Abschnitte (gemerged, alle 9 Tasks fertig):** Einträge auf `/nutrition/entries` sind nach Mahlzeiten gegliedert — sechs feste Slots, vier davon vorbelegt (Frühstück, Mittagessen, Abendessen, Snacks), die restlichen zwei optional und nur sichtbar, sobald sie einen Namen oder Einträge haben. Die Namen stehen im Profil unter „Mahlzeiten"; welchem Abschnitt ein Eintrag zugeordnet ist, ergibt sich daraus, in welchem Abschnitt er erfasst wurde. Alt-Einträge von vor der Migration stehen unter „Ohne Zuordnung" und lassen sich über „Bearbeiten" nachträglich einsortieren. Das Ernährungs-Dashboard zeigt die Kalorien je Abschnitt als Link zur Eintragsliste. Enthält Migration `0003_meal_sections.sql` (fügt nur Spalten hinzu; bestehende Zeilen bekommen `mahlzeit = null`). Spec: `docs/superpowers/specs/2026-08-20-mahlzeiten-abschnitte-design.md`, Plan: `docs/superpowers/plans/2026-08-20-mahlzeiten-abschnitte-plan.md`. Noch offen: Whole-Branch-Review und PR, danach Manual-Verification gegen die echte Produktionsinstanz (Schritte dafür im Plan unter Task 9, Step 5).
 
@@ -79,7 +79,7 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 3. **Kalorienberechnung je Übung mit eigener Dauer** statt eines MET-Durchschnitts über die ganze Session.
 4. **Schwierigkeitsgrad-Import** aus free-exercise-db (`level`-Feld wird beim Import derzeit verworfen).
 
-## Phase 3 – Trainingsbereich (gemerged, Manual-Verification offen)
+## Phase 3 – Trainingsbereich (abgeschlossen)
 
 - Spec: `docs/superpowers/specs/2026-08-21-phase3-trainingsbereich-design.md`
 - Plan: `docs/superpowers/plans/2026-08-21-phase3-trainingsbereich-plan.md` (16 Tasks)
@@ -101,13 +101,19 @@ Migration `0004_training_days.sql`: legt `workout_plan_days` an, benennt `workou
 
 **Erledigt nach dem Merge:** Wiki synchronisiert (`Domain-Model`, `Phase-3-Design-Spec`, `Phase-3-Implementation-Plan`, `Home`, `_Sidebar` — gepusht, Commit `9c69ef3`), Branch `feat-phase3-trainingsbereich` lokal und remote entfernt.
 
-**Noch offen — hier geht es in einem neuen Chat weiter:**
+**Übungsimport erledigt:** 873 Zeilen in `exercises`, alle mit gesetztem `met_wert`, `created_by = null`. Erneuter Import (falls der Datensatz je aktualisiert wird) über `npm run import-exercises` mit `SUPABASE_SERVICE_ROLE_KEY` und `VITE_SUPABASE_URL` in der Umgebung — der Key gehört **nicht** in den Chat, bewährt hat sich eine gitignorierte Datei (`.env.import.local`, greift über das `*.local`-Muster) plus `node --env-file=.env.import.local scripts/import-exercises.ts`, danach löschen.
 
-1. **Einmaliger Übungsimport gegen die Produktionsinstanz.** Muss der Nutzer selbst ausführen, der Service-Role-Key darf nicht in den Chat:
-   `SUPABASE_SERVICE_ROLE_KEY=<key> VITE_SUPABASE_URL=https://zqliubzvzbnaogqcmypg.supabase.co npm run import-exercises`
-   Erwartete Ausgabe: `imported 873 exercises`. **Ohne diesen Schritt ist die Übungssuche leer und es lässt sich kein Trainingsplan befüllen** — die App wirkt dann kaputt, ist es aber nicht.
-2. **Prüfen, ob Migration `0004` angewendet wurde** (läuft bei Merge nach `master` automatisch): `workout_plan_days` existiert, `workout_plan_exercises` heißt jetzt `workout_plan_day_exercises`, `workout_sessions` hat `workout_plan_day_id`, und es gibt die Funktion `activate_workout_plan`.
-3. **Manual-Verification**, neun Schritte im Plan unter Task 16, Step 5: Plan mit zwei Tagen anlegen → je Tag eine Übung mit Zielwerten → Plan aktivieren → `/training` schlägt Tag 1 vor → Session starten, Satz erfassen, Pausen-Timer läuft → abschließen → erneut starten schlägt Tag 2 vor → Historie prüfen, Satz korrigieren, Session löschen → Gewicht im Profil leeren und prüfen, dass „—" statt einer Kalorienzahl erscheint.
+**Migration `0004` ist auf Produktion angewendet** (automatisch beim Merge): `workout_plan_days` existiert, `workout_plan_exercises` ist weg (umbenannt), `workout_plan_day_exercises.workout_plan_day_id` vorhanden, `workout_sessions.workout_plan_day_id` vorhanden, Funktion `activate_workout_plan` vorhanden.
+
+**Manual-Verification abgeschlossen, 9 von 9 Schritten grün** (Dev-Server gegen die Produktions-Supabase, per Browser durchgeklickt): Plan anlegen → zwei Tage → Übungen aus der importierten Bibliothek zuordnen → Zielwerte setzen (nach vollem Reload persistent) → aktivieren („aktiv"-Marker, läuft über `activate_workout_plan`) → `/training` schlägt Tag 1 vor → Session mit zwei Sätzen, Pausen-Timer zählt herunter, nach Ablauf automatischer Sprung → abschließen mit rechnerisch exakten 9 kcal (MET 5 × 135 kg × ~48 s) → Rotation springt auf Tag 2 → Historie zeigt Plan/Tag/Datum/kcal, Sätze mit Dezimalgewicht korrekt, Korrektur nach Reload persistent → Session löschen, Rotation fällt auf Tag 1 zurück → Gewicht im Profil geleert: „—" und deaktivierter Abschluss-Button. Konsole ohne Fehler und Warnungen. Testdaten (Plan und beide Sessions) danach wieder gelöscht.
+
+**Dabei bestätigt, dass die Fixes aus den Review-Runden im echten Betrieb greifen:** Zielwerte schreiben erst beim Verlassen des Feldes, „nicht beendet" statt „0 kcal" bei unbeendeter Session, vollständige Übungsliste durch die Paginierung (letzter Eintrag alphabetisch vorhanden), Aktivierung als ein Statement.
+
+**Kosmetische Funde aus der Verifikation (offen, keine Blocker):**
+- Nach dem letzten Zielsatz zeigt das Formular während der Pause „Satz 3 von 2" — bei 90 Sekunden Pause anderthalb Minuten lang sichtbar. Besser wäre „alle Sätze erfasst" oder ein ausgeblendetes Formular.
+- Die Trainingsseiten haben kein Styling: Links kleben aneinander, der Start-Button sitzt mitten in der Linkzeile. Am Handy schwer zu treffen.
+
+**Merke für die Bedienung:** Die Profilseite speichert über den „Speichern"-Button, **nicht** bei `blur` — anders als die Zielwert- und Satzfelder im Trainingsbereich.
 
 **Whole-Branch-Review und zwei Fix-Runden abgeschlossen** (Commits `799bc23`, `1e212d0`, `59c7449`): 12 Findings aus der Review behoben, danach hat der Scoped Re-Review **zwei High-Regressionen in den Fixes selbst** gefunden — beide behoben:
 - Das Wiederaufnehmen einer offenen Session hatte keine Zeitgrenze und hebelte die Dauer-Korrektur wieder aus (Session von Montag am Freitag fortgesetzt → ~96 h, ~38 000 kcal). Jetzt 6-Stunden-Fenster.
