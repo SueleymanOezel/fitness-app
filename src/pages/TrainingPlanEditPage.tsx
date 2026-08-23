@@ -235,7 +235,9 @@ function TargetField({
 
   function commit() {
     const value = draft.trim() === '' ? null : Number(draft)
-    if (value !== null && (!Number.isFinite(value) || value < 0)) {
+    // ziel_saetze, ziel_wiederholungen and pausenzeit_sekunden are all integer
+    // columns: Postgres would round 2.6 to 3 and store a target nobody set.
+    if (value !== null && (!Number.isInteger(value) || value < 0)) {
       setDraft(String(stored ?? ''))
       return
     }

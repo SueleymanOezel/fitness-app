@@ -103,6 +103,32 @@ describe('TrainingHistoryDetailPage', () => {
     expect(result.updateSet).not.toHaveBeenCalled()
   })
 
+  it('rejects fractional reps, which the integer column would round away', () => {
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    const field = screen.getByLabelText('Wiederholungen')
+    fireEvent.change(field, { target: { value: '10.5' } })
+    fireEvent.blur(field)
+
+    expect(result.updateSet).not.toHaveBeenCalled()
+  })
+
+  it('still accepts a fractional weight, which is a numeric column', () => {
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    const field = screen.getByLabelText('Gewicht (kg)')
+    fireEvent.change(field, { target: { value: '62.5' } })
+    fireEvent.blur(field)
+
+    expect(result.updateSet).toHaveBeenCalledWith('set1', { gewicht: 62.5 })
+  })
+
   it('rejects a fractional RIR instead of letting Postgres round it', async () => {
     // rir is a smallint: 2.6 would be stored as 3, a value the user never typed
     // and one the 0-5 check constraint would never complain about.

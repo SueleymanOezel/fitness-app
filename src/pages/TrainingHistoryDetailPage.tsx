@@ -67,6 +67,7 @@ function Detail({ sessionId }: { sessionId: string }) {
             <SetField
               label="Wiederholungen"
               stored={set.wiederholungen}
+              integer
               onCommit={(value) =>
                 run(() => updateSet(set.id, { wiederholungen: value }), 'Speichern fehlgeschlagen.')
               }
@@ -133,7 +134,8 @@ function SetField({
   stored: number | null
   /** Rejected client-side too, so an out-of-range RIR never becomes a failed write. */
   max?: number
-  /** rir is a smallint: Postgres would round 2.6 to 3 and store a value nobody typed. */
+  /** rir and wiederholungen are integer columns: Postgres would round 2.6 to 3
+   *  and store a value nobody typed. Gewicht is numeric and stays fractional. */
   integer?: boolean
   onCommit: (value: number | null) => void
 }) {

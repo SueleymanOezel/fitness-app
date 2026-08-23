@@ -127,6 +127,24 @@ describe('TrainingPlanEditPage', () => {
     expect(result.updateDayExercise).toHaveBeenCalledWith('de1', { ziel_saetze: 12 })
   })
 
+  it('rejects a fractional target, which the integer column would round away', async () => {
+    // ziel_saetze, ziel_wiederholungen and pausenzeit_sekunden are all integer
+    // columns: 2.6 would come back from the reload as 3.
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const result = planResult()
+    mockUseWorkoutPlan.mockReturnValue(result)
+    mockUseExercises.mockReturnValue({ exercises: [exercise], loading: false, createExercise: vi.fn() })
+
+    renderPage()
+    await screen.findByText('Tag A')
+
+    const field = screen.getByLabelText('Sätze')
+    fireEvent.change(field, { target: { value: '2.6' } })
+    fireEvent.blur(field)
+
+    expect(result.updateDayExercise).not.toHaveBeenCalled()
+  })
+
   it('clears a target value instead of storing zero when the field is emptied', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     const result = planResult()
