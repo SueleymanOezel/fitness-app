@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import type { BodyMetricValues } from '../lib/body-metrics'
+import { ProfileWeightSyncError } from './use-body-metrics'
 
 function createQueryBuilder(result: { data: unknown; error?: unknown }) {
   const builder: Record<string, unknown> = {
@@ -135,5 +136,36 @@ describe('useBodyMetrics', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     await expect(result.current.deleteEntry('c')).rejects.toThrow()
+  })
+
+  it('rejects with ProfileWeightSyncError when the entry saved but the profile mirror failed, and reloads anyway', async () => {
+    // The body_metrics write succeeds; only the profiles update fails. The
+    // caller must be able to tell this apart from "nothing was saved," and the
+    // list must reflect the successful write regardless.
+    const metrics = createQueryBuilder({ data: rows })
+    const profiles = createQueryBuilder({ data: null, error: { message: 'boom' } })
+    mockTables({ body_metrics: metrics, profiles })
+
+    const { useBodyMetrics } = await import('./use-body-metrics')
+    const { result } = renderHook(() => useBodyMetrics('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await expect(result.current.saveEntry('2026-08-24', values)).rejects.toBeInstanceOf(
+      ProfileWeightSyncError,
+    )
+    expect(result.current.rows).toEqual(rows)
+  })
+
+  it('rejects with ProfileWeightSyncError when the delete succeeded but the profile mirror failed, and reloads anyway', async () => {
+    const metrics = createQueryBuilder({ data: rows })
+    const profiles = createQueryBuilder({ data: null, error: { message: 'boom' } })
+    mockTables({ body_metrics: metrics, profiles })
+
+    const { useBodyMetrics } = await import('./use-body-metrics')
+    const { result } = renderHook(() => useBodyMetrics('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await expect(result.current.deleteEntry('c')).rejects.toBeInstanceOf(ProfileWeightSyncError)
+    expect(result.current.rows).toEqual(rows)
   })
 })

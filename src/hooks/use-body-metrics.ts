@@ -4,6 +4,14 @@ import { MEASUREMENT_FIELDS, type BodyMetricRow, type BodyMetricValues } from '.
 
 const COLUMNS = `id, datum, ${MEASUREMENT_FIELDS.join(', ')}`
 
+/** The entry itself was stored; only the profile mirror is stale. */
+export class ProfileWeightSyncError extends Error {
+  constructor() {
+    super('profile weight sync failed')
+    this.name = 'ProfileWeightSyncError'
+  }
+}
+
 export function useBodyMetrics(userId: string) {
   const [rows, setRows] = useState<BodyMetricRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -53,7 +61,7 @@ export function useBodyMetrics(userId: string) {
       .from('profiles')
       .update({ aktuelles_gewicht: gewicht })
       .eq('id', userId)
-    if (profileError) throw new Error('profile weight sync failed')
+    if (profileError) throw new ProfileWeightSyncError()
   }
 
   // supabase-js resolves rather than throws on a rejected write, so an unchecked
@@ -63,15 +71,18 @@ export function useBodyMetrics(userId: string) {
       .from('body_metrics')
       .upsert({ user_id: userId, datum, ...values }, { onConflict: 'user_id,datum' })
     if (saveError) throw new Error('body metric save failed')
-    await syncProfileWeight()
+    // The entry is stored at this point: reload before the profile mirror runs
+    // so a later ProfileWeightSyncError doesn't leave the list stale too.
     await reload()
+    await syncProfileWeight()
   }
 
   async function deleteEntry(id: string) {
     const { error: deleteError } = await supabase.from('body_metrics').delete().eq('id', id)
     if (deleteError) throw new Error('body metric delete failed')
-    await syncProfileWeight()
+    // Same reasoning as saveEntry: the delete already happened.
     await reload()
+    await syncProfileWeight()
   }
 
   return { rows, loading, error, saveEntry, deleteEntry, reload }
