@@ -8,6 +8,12 @@ import NutritionPage from './pages/NutritionPage'
 import BodyPage from './pages/BodyPage'
 import NutritionEntriesPage from './pages/NutritionEntriesPage'
 import ProfilePage from './pages/ProfilePage'
+import TrainingPlansPage from './pages/TrainingPlansPage'
+import TrainingPlanEditPage from './pages/TrainingPlanEditPage'
+import ExercisesPage from './pages/ExercisesPage'
+import WorkoutSessionPage from './pages/WorkoutSessionPage'
+import TrainingHistoryPage from './pages/TrainingHistoryPage'
+import TrainingHistoryDetailPage from './pages/TrainingHistoryDetailPage'
 
 export default function App() {
   return (
@@ -25,6 +31,12 @@ export default function App() {
         >
           <Route path="/" element={<HomePage />} />
           <Route path="/training" element={<TrainingPage />} />
+          <Route path="/training/plans" element={<TrainingPlansPage />} />
+          <Route path="/training/plans/:planId" element={<TrainingPlanEditPage />} />
+          <Route path="/training/exercises" element={<ExercisesPage />} />
+          <Route path="/training/session/:sessionId" element={<WorkoutSessionPage />} />
+          <Route path="/training/history" element={<TrainingHistoryPage />} />
+          <Route path="/training/history/:sessionId" element={<TrainingHistoryDetailPage />} />
           <Route path="/nutrition" element={<NutritionPage />} />
           <Route path="/nutrition/entries" element={<NutritionEntriesPage />} />
           <Route path="/body" element={<BodyPage />} />
