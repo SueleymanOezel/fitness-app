@@ -24,26 +24,76 @@ describe('0006_body_photos_bucket.sql', () => {
     expect(statements).toContain('on conflict (id) do nothing')
   })
 
-  it('restricts every policy to the folder named after the user', () => {
-    const guard = "(storage.foldername(name))[1] = auth.uid()::text"
-    for (const action of ['select', 'insert', 'delete']) {
-      expect(statements).toContain(`for ${action}`)
-    }
-    // Three policies, each carrying the ownership guard.
-    expect(statements.split(guard).length - 1).toBeGreaterThanOrEqual(3)
-  })
-
   it('grants no update policy', () => {
     // A photo is replaced by deleting and uploading again.
     expect(statements).not.toMatch(/for update/)
   })
 
-  it('binds the policies to authenticated users only', () => {
-    expect(statements.split('to authenticated').length - 1).toBeGreaterThanOrEqual(3)
-  })
-
   it('touches no application table', () => {
     expect(statements).not.toMatch(/alter table public\./)
     expect(statements).not.toMatch(/create table/i)
+  })
+
+  describe('per-policy assertions', () => {
+    // Split on `create policy` to get individual policy blocks.
+    const policyBlocks = statements.split(/create policy/i).slice(1)
+
+    it('defines exactly three policies', () => {
+      expect(policyBlocks).toHaveLength(3)
+    })
+
+    it('insert policy uses `with check` and not bare `using`', () => {
+      const insertBlock = policyBlocks.find((block) =>
+        /for\s+insert/i.test(block),
+      )
+      expect(insertBlock).toBeDefined()
+      expect(insertBlock).toMatch(/with\s+check/i)
+      // Bare `using (` without `with check` is not allowed for INSERT
+      expect(insertBlock).not.toMatch(/^[^w]*using\s*\(/i)
+    })
+
+    it('select policy uses `using` and not `with check`', () => {
+      const selectBlock = policyBlocks.find((block) =>
+        /for\s+select/i.test(block),
+      )
+      expect(selectBlock).toBeDefined()
+      expect(selectBlock).toMatch(/using\s*\(/)
+      expect(selectBlock).not.toMatch(/with\s+check/i)
+    })
+
+    it('delete policy uses `using` and not `with check`', () => {
+      const deleteBlock = policyBlocks.find((block) =>
+        /for\s+delete/i.test(block),
+      )
+      expect(deleteBlock).toBeDefined()
+      expect(deleteBlock).toMatch(/using\s*\(/)
+      expect(deleteBlock).not.toMatch(/with\s+check/i)
+    })
+
+    it('every policy contains bucket_id = body-photos', () => {
+      for (const block of policyBlocks) {
+        expect(block).toContain("bucket_id = 'body-photos'")
+      }
+    })
+
+    it('every policy contains the ownership guard', () => {
+      const guard = "(storage.foldername(name))[1] = auth.uid()::text"
+      for (const block of policyBlocks) {
+        expect(block).toContain(guard)
+      }
+    })
+
+    it('no policy contains permissive OR patterns', () => {
+      for (const block of policyBlocks) {
+        expect(block).not.toMatch(/or\s*\(\s*true\s*\)/i)
+        expect(block).not.toMatch(/or\s+true/i)
+      }
+    })
+
+    it('every policy binds to authenticated users', () => {
+      for (const block of policyBlocks) {
+        expect(block).toContain('to authenticated')
+      }
+    })
   })
 })
