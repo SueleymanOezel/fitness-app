@@ -35,6 +35,66 @@ describe('fetchProductByBarcode', () => {
       eiweiss: 10,
       fett: 5,
       kohlenhydrate: 30,
+      ballaststoffe: null,
+      zucker: null,
+      salz: null,
+    })
+  })
+
+  it('takes fibre, sugar and salt from the nutriments', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            status: 1,
+            product: {
+              product_name: 'Testprodukt',
+              nutriments: {
+                'energy-kcal_100g': 250,
+                fiber_100g: 9.5,
+                sugars_100g: 1.2,
+                // sodium_100g is served alongside salt_100g and is 2.5x smaller;
+                // reading the wrong one would disagree with the packet.
+                salt_100g: 0.8,
+                sodium_100g: 0.32,
+              },
+            },
+          }),
+      }),
+    )
+
+    const result = await fetchProductByBarcode('4001234567890')
+
+    expect(result).toMatchObject({ ballaststoffe: 9.5, zucker: 1.2, salz: 0.8 })
+  })
+
+  it('drops an implausible fibre, sugar or salt value instead of storing it', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            status: 1,
+            product: {
+              product_name: 'Testprodukt',
+              nutriments: {
+                'energy-kcal_100g': 250,
+                fiber_100g: 150,
+                sugars_100g: -3,
+                salt_100g: 'keine Ahnung',
+              },
+            },
+          }),
+      }),
+    )
+
+    expect(await fetchProductByBarcode('4001234567890')).toMatchObject({
+      ballaststoffe: null,
+      zucker: null,
+      salz: null,
     })
   })
 
@@ -112,6 +172,9 @@ describe('fetchProductByBarcode', () => {
       eiweiss: null,
       fett: null,
       kohlenhydrate: null,
+      ballaststoffe: null,
+      zucker: null,
+      salz: null,
     })
   })
 

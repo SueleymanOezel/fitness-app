@@ -19,6 +19,9 @@ const entries: FoodEntry[] = [
       eiweiss: 10,
       fett: 5,
       kohlenhydrate: 20,
+      ballaststoffe: null,
+      zucker: null,
+      salz: null,
     },
   },
   {
@@ -36,6 +39,9 @@ const entries: FoodEntry[] = [
       eiweiss: 4,
       fett: 40,
       kohlenhydrate: 0,
+      ballaststoffe: null,
+      zucker: null,
+      salz: null,
     },
   },
 ]

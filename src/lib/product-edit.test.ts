@@ -14,7 +14,16 @@ function createQueryBuilder(result: { data: unknown; error?: unknown }) {
 const mockFrom = vi.fn()
 vi.mock('./supabase', () => ({ supabase: { from: (table: string) => mockFrom(table) } }))
 
-const patch = { name: 'Haferflocken', kalorien: 350, eiweiss: 13, fett: 7, kohlenhydrate: 59 }
+const patch = {
+  name: 'Haferflocken',
+  kalorien: 350,
+  eiweiss: 13,
+  fett: 7,
+  kohlenhydrate: 59,
+  ballaststoffe: 10,
+  zucker: 1,
+  salz: 0,
+}
 
 describe('saveProductEdit', () => {
   beforeEach(() => {

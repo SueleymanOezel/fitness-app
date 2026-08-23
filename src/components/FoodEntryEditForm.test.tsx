@@ -46,6 +46,9 @@ const entry: FoodEntry = {
     eiweiss: 1,
     fett: 2,
     kohlenhydrate: 3,
+    ballaststoffe: null,
+    zucker: null,
+    salz: null,
   },
 }
 
@@ -253,6 +256,9 @@ describe('FoodEntryEditForm', () => {
       eiweiss: 1,
       fett: 2,
       kohlenhydrate: 3,
+      ballaststoffe: null,
+      zucker: null,
+      salz: null,
     })
     const onSave = vi
       .fn()

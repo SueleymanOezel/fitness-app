@@ -98,7 +98,15 @@ Nach Phase 4 geplant, vom Nutzer beauftragt und in den Eckpunkten entschieden. R
 - Körper: K1 Gewichtsverlauf mit geglätteter Trendlinie (exponentiell gewichteter Mittelwert — Tagesgewicht schwankt durch Wasser um 1–2 kg, ungeglättet liest man Rauschen als Fortschritt) · K2 Umfänge im Verlauf · K3 Änderungsrate kg/Woche · K4 Gewicht über Kalorien · K5 Fortschrittsfotos als Zeitleiste
 - Home: H1 Aktivitätsraster aus `day_status` · H2 Wochen-Kurzform · H3 zwei Sparklines
 
-**Neue Datenfelder, alle vier vom Nutzer bestätigt** — gehören erfasst, *bevor* die abhängigen Graphen gebaut werden, sonst haben sie keine Historie:
+**Die neuen Datenfelder sind umgesetzt** (Branch `feat-analysefelder`, Migration `0005_analysis_fields.sql`) — bewusst vor Phase 4, damit ab sofort Historie entsteht. Entschieden und gebaut:
+- RIR-Skala **0–5** („wie viele hättest du noch geschafft", 0 = keine), nicht RPE — direkt beantwortbar ohne Umrechnen. Sechs Knöpfe im Live-Modus, nichts vorausgewählt, erneuter Tipp auf denselben Wert löscht ihn wieder.
+- **Aufwärmsätze zählen nicht auf das Satzziel.** `satz_nummer` bleibt eine reine Reihenfolge-Nummer über alle Sätze; die Zählung „Satz 1 von 3" wird in der Oberfläche aus den Arbeitssätzen abgeleitet. Die Datenbank nummeriert nichts um.
+- Nach einem gespeicherten Satz springt der Aufwärm-Schalter zurück auf „aus" — ein vergessener Schalter würde echte Sätze still als Aufwärmen ablegen, der teurere der beiden Fehler.
+- Ballaststoffe, Zucker und **Salz (nicht Natrium)** aus Open Food Facts, dazu von Hand eingebbar in beiden Produktformularen.
+- `koerperfettanteil` ist nur die Spalte; die Eingabe entsteht in Phase 4 mit dem Körperbereich.
+- Nebenbei aufgeräumt: die Spaltenliste für `products` stand an drei Stellen und wird jetzt aus `product-lookup.ts` geteilt; der Nährwert-Vergleich in der Produktbearbeitung läuft über die geparsten Schlüssel statt Feld für Feld, damit ein später ergänzter Nährwert nicht still aus der Prüfung fällt.
+
+**Ursprüngliche Festlegung, alle vier vom Nutzer bestätigt** — gehören erfasst, *bevor* die abhängigen Graphen gebaut werden, sonst haben sie keine Historie:
 - `workout_session_sets.rir` (Anstrengungsgrad je Satz, Feld im Live-Modus)
 - `workout_session_sets.ist_aufwaermsatz` — **ohne diesen Schalter sind alle Volumen-Graphen systematisch zu hoch**, weil Aufwärmsätze mitzählen
 - `body_metrics.koerperfettanteil`

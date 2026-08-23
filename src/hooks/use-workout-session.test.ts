@@ -179,7 +179,12 @@ describe('useWorkoutSession', () => {
     const { result } = renderHook(() => useWorkoutSession('s1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    await result.current.logSet('ex1', 1, 60, 10)
+    await result.current.logSet('ex1', 1, {
+      gewicht: 60,
+      wiederholungen: 10,
+      rir: 2,
+      ist_aufwaermsatz: false,
+    })
 
     expect(setsBuilder.insert).toHaveBeenCalledWith({
       workout_session_id: 's1',
@@ -187,8 +192,32 @@ describe('useWorkoutSession', () => {
       satz_nummer: 1,
       gewicht: 60,
       wiederholungen: 10,
+      rir: 2,
+      ist_aufwaermsatz: false,
       abgeschlossen_am: expect.any(String),
     })
+  })
+
+  it('stores a warm-up set under its own running number', async () => {
+    // satz_nummer keeps counting every set; the flag is the only difference,
+    // so nothing has to be renumbered when a warm-up is logged in between.
+    const setsBuilder = createQueryBuilder({ data: [setRow] })
+    mockTables({ workout_session_sets: setsBuilder })
+
+    const { useWorkoutSession } = await import('./use-workout-session')
+    const { result } = renderHook(() => useWorkoutSession('s1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await result.current.logSet('ex1', 3, {
+      gewicht: 40,
+      wiederholungen: 12,
+      rir: null,
+      ist_aufwaermsatz: true,
+    })
+
+    expect(setsBuilder.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ satz_nummer: 3, ist_aufwaermsatz: true, rir: null }),
+    )
   })
 
   it('rejects instead of reporting success when logging a set fails', async () => {
@@ -198,7 +227,14 @@ describe('useWorkoutSession', () => {
     const { result } = renderHook(() => useWorkoutSession('s1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    await expect(result.current.logSet('ex1', 1, 60, 10)).rejects.toThrow()
+    await expect(
+      result.current.logSet('ex1', 1, {
+        gewicht: 60,
+        wiederholungen: 10,
+        rir: null,
+        ist_aufwaermsatz: false,
+      }),
+    ).rejects.toThrow()
   })
 
   it('completes the session with the given calories', async () => {

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Product } from '../lib/product-lookup'
+import { PRODUCT_COLUMNS, type Product } from '../lib/product-lookup'
 import { MAX_NAME_LENGTH } from '../lib/open-food-facts'
 import { parseNutrients } from '../lib/nutrients'
 
@@ -15,6 +15,9 @@ export default function ManualProductForm({ barcode, onCreated, onCancel }: Prop
   const [eiweiss, setEiweiss] = useState('')
   const [fett, setFett] = useState('')
   const [kohlenhydrate, setKohlenhydrate] = useState('')
+  const [ballaststoffe, setBallaststoffe] = useState('')
+  const [zucker, setZucker] = useState('')
+  const [salz, setSalz] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -27,7 +30,7 @@ export default function ManualProductForm({ barcode, onCreated, onCancel }: Prop
       return
     }
 
-    const nutrients = parseNutrients({ kalorien, eiweiss, fett, kohlenhydrate })
+    const nutrients = parseNutrients({ kalorien, eiweiss, fett, kohlenhydrate, ballaststoffe, zucker, salz })
     if (!nutrients) {
       setError('Bitte plausible Werte pro 100 g eingeben (Kalorien 0–900 kcal, Makros 0–100 g).')
       return
@@ -50,7 +53,7 @@ export default function ManualProductForm({ barcode, onCreated, onCancel }: Prop
           ...nutrients,
           created_by: userId,
         })
-        .select('id, name, barcode, kalorien, eiweiss, fett, kohlenhydrate')
+        .select(PRODUCT_COLUMNS)
         .single()
 
       if (insertError || !data) {
@@ -88,6 +91,23 @@ export default function ManualProductForm({ barcode, onCreated, onCancel }: Prop
         Kohlenhydrate (g)
         <input type="number" value={kohlenhydrate} onChange={(event) => setKohlenhydrate(event.target.value)} />
       </label>
+      <label>
+        Ballaststoffe (g)
+        <input
+          type="number"
+          value={ballaststoffe}
+          onChange={(event) => setBallaststoffe(event.target.value)}
+        />
+      </label>
+      <label>
+        Zucker (g)
+        <input type="number" value={zucker} onChange={(event) => setZucker(event.target.value)} />
+      </label>
+      <label>
+        Salz (g)
+        <input type="number" value={salz} onChange={(event) => setSalz(event.target.value)} />
+      </label>
+
       {error && <p role="alert">{error}</p>}
       <button type="submit" disabled={submitting}>
         Produkt speichern
