@@ -80,6 +80,26 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 3. **Kalorienberechnung je Übung mit eigener Dauer** statt eines MET-Durchschnitts über die ganze Session.
 4. **Schwierigkeitsgrad-Import** aus free-exercise-db (`level`-Feld wird beim Import derzeit verworfen).
 
+## Phase 4 – Körperbereich (LAUFEND, hier weitermachen)
+
+**Sofort-Einstieg für einen neuen Chat:** Branch `feat-phase4-koerperbereich` (gepusht, letzter Commit `b7b3718`), `master` unberührt. Spec und Plan liegen in `docs/superpowers/`. Umgesetzt wird mit `superpowers:subagent-driven-development`.
+
+**Das Fortschritts-Ledger ist die Wahrheit:** `.superpowers/sdd/2026-08-24-phase4-koerperbereich-plan/progress.md` — git-ignoriert, liegt nur lokal. Es enthält den Preflight-Scan, jede getroffene Entscheidung mit Begründung und den Stand je Task. Dort zuerst hineinschauen, nicht in diese Zusammenfassung. Im selben Verzeichnis liegen die Task-Briefs (`task-N-brief.md`) und die Berichte der Implementer.
+
+**Stand:** Tasks 1–4 abgeschlossen und reviewt. Task 5 implementiert und zwei Fix-Runden durch. **380 Tests grün**, Lint sauber, `tsc -b --noEmit` sauber.
+
+**Als Nächstes, in dieser Reihenfolge:**
+1. Scoped Re-Review der Fix-Runde 2 von Task 5 (base `66dbef4`, head `b7b3718`) — steht noch aus, danach Task 5 im Ledger als `complete` eintragen.
+2. Tasks 6–11: Formular, Dashboard, Verlaufsliste, Foto-Hook, Foto-Seite, Routen. Briefs liegen alle bereit.
+3. Whole-Branch-Review auf dem stärksten Modell, dann PR.
+4. Manuelle Verifikation gegen Produktion — die Liste steht am Ende des Plans.
+
+**Zwei Entscheidungen, die beim Weiterbauen gelten:**
+- **Task 6 muss den Teilausfall trennen.** `useBodyMetrics` wirft seit Task 5 einen eigenen `ProfileWeightSyncError`, wenn der Eintrag gespeichert wurde, aber `profiles.aktuelles_gewicht` nicht nachgezogen werden konnte. Das Formular darf in dem Fall **nicht** „Eintrag konnte nicht gespeichert werden" melden und muss sich schließen — gespeichert ist gespeichert. Vorher meldete es das Gegenteil und ließ zusätzlich die Liste veraltet stehen.
+- **Der Migrationstest wurde gegen den Plantext verschärft.** `0006_body_photos_bucket.test.ts` prüft jetzt je Policy-Block statt die Datei als Ganzes. Grund: die Migration läuft beim Merge automatisch auf Produktion, es gibt keine lokale Supabase-Instanz, also ist dieser Textvergleich die einzige Prüfung, die es je gibt. Der alte Test hätte eine Insert-Policy mit `using` statt `with check` durchgelassen — das Hochladen wäre ungeschützt gewesen.
+
+**Migration `0006` ist noch NICHT auf Produktion** — sie läuft erst beim Merge. Legt den privaten Bucket `body-photos` an.
+
 ## Phase 5 – Analysebereich (beschlossen, noch keine Spec)
 
 Nach Phase 4 geplant, vom Nutzer beauftragt und in den Eckpunkten entschieden. Rückt die bisherige Phase „Härtung & Feinschliff" nach hinten.
