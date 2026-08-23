@@ -158,7 +158,7 @@ function DayBlock({
           Tag nach unten
         </button>
       )}
-      <ul>
+      <ul role="list">
         {day.exercises.map((row, index) => (
           <li key={row.id}>
             {row.exercise?.name}
@@ -197,7 +197,7 @@ function DayBlock({
         Übung suchen
         <input value={query} onChange={(event) => setQuery(event.target.value)} />
       </label>
-      <ul>
+      <ul role="list">
         {matches.map((exercise) => (
           <li key={exercise.id}>
             {exercise.name}

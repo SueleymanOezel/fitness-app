@@ -55,7 +55,7 @@ function Detail({ sessionId }: { sessionId: string }) {
       <h1>Trainingseinheit</h1>
       {/* An unfinished session has no calorie result; "0 kcal" would read as a measurement. */}
       <p>{session.gesamt_kalorien == null ? 'nicht beendet' : `${Math.round(session.gesamt_kalorien)} kcal`}</p>
-      <ul>
+      <ul role="list">
         {sets.map((set) => (
           <li key={set.id}>
             {set.exercise?.name}

@@ -165,6 +165,20 @@ describe('WorkoutSessionPage', () => {
     expect(screen.queryByText('Satz 2 von 1')).not.toBeInTheDocument()
   })
 
+  it('keeps counting when the target is zero, which means no target was set', () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({ exercises: [{ ...exercise, ziel_saetze: 0 }] }),
+    )
+
+    renderPage()
+
+    fireEvent.click(screen.getByText('Bankdrücken'))
+
+    expect(screen.getByText('Satz 1 von 0')).toBeInTheDocument()
+    expect(screen.queryByText('Alle Sätze erfasst')).not.toBeInTheDocument()
+  })
+
   it('completes the session using the profile weight', async () => {
     signedIn()
     const result = sessionResult()

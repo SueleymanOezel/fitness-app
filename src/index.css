@@ -134,6 +134,9 @@ main {
 nav {
   position: sticky;
   bottom: 0;
+  /* Keeps the tabs clear of the home indicator, which otherwise covers their
+     lower third and wins the touch. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   display: flex;
   background: var(--bg);
   border-top: 1px solid var(--border);
@@ -149,13 +152,15 @@ a {
   align-items: center;
   justify-content: center;
   min-height: 44px;
+  min-width: 44px;
   padding: 0 8px;
 }
 
-/* A link that is not part of a row gets a row of its own, so navigation links
-   stop running together and the whole width stays tappable. */
-main > div > a,
-main > div > section > a {
+/* A link that is not part of a list row gets a row of its own, so navigation
+   links stop running together and the whole width stays tappable. Matched by
+   what the link is next to rather than by nesting depth: an extra wrapper
+   element must not silently bring the glued-together links back. */
+main a:not(li a) {
   display: flex;
 }
 
@@ -181,6 +186,8 @@ button:disabled {
   cursor: default;
 }
 
+/* The components carry role="list": Safari drops list semantics from a ul
+   whose marker is removed, and VoiceOver would stop announcing "list, N items". */
 ul {
   list-style: none;
   margin: 16px 0;

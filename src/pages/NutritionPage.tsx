@@ -60,7 +60,7 @@ function NutritionDashboard({ userId }: { userId: string }) {
         </p>
       )}
       <Link to="/profile">Ziel im Profil anpassen</Link>
-      <ul>
+      <ul role="list">
         {visibleSections(profile, entries).map((section) => {
           const sectionEntries = entries.filter((entry) => entry.mahlzeit === section.slot)
           return (

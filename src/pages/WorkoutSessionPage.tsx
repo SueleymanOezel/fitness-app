@@ -95,7 +95,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     <div>
       <h1>Training</h1>
       {pause !== null && <PauseTimer until={pause.until} sekunden={pause.sekunden} onDone={pauseOver} />}
-      <ul>
+      <ul role="list">
         {exercises.map((entry) => (
           <li key={entry.exercise_id}>
             <button type="button" onClick={() => setOpenExerciseId(entry.exercise_id)}>
@@ -165,7 +165,9 @@ function SetForm({
       }}
     >
       <p>
-        {exercise.ziel_saetze != null && completedCount >= exercise.ziel_saetze
+        {exercise.ziel_saetze != null &&
+        exercise.ziel_saetze > 0 &&
+        completedCount >= exercise.ziel_saetze
           ? 'Alle Sätze erfasst'
           : `Satz ${completedCount + 1}${exercise.ziel_saetze == null ? '' : ` von ${exercise.ziel_saetze}`}`}
       </p>
