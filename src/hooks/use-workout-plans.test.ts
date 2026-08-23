@@ -17,8 +17,13 @@ function createQueryBuilder(result: { data: unknown; error?: unknown }) {
 }
 
 const mockFrom = vi.fn()
+type RpcResult = Promise<{ error: { message: string } | null }>
+const mockRpc = vi.fn((): RpcResult => Promise.resolve({ error: null }))
 vi.mock('../lib/supabase', () => ({
-  supabase: { from: (table: string) => mockFrom(table) },
+  supabase: {
+    from: (table: string) => mockFrom(table),
+    rpc: (...args: unknown[]) => mockRpc(...(args as [])),
+  },
 }))
 
 const plan = { id: 'p1', name: 'Ganzkörper', aktiv: true }
@@ -62,9 +67,10 @@ describe('useWorkoutPlans', () => {
     expect(builder.eq).toHaveBeenCalledWith('id', 'p1')
   })
 
-  it('activates a plan by deactivating the others first', async () => {
+  it('activates a plan in one database statement instead of two writes', async () => {
     const builder = createQueryBuilder({ data: [plan] })
     mockFrom.mockReturnValue(builder)
+    mockRpc.mockResolvedValue({ error: null })
 
     const { useWorkoutPlans } = await import('./use-workout-plans')
     const { result } = renderHook(() => useWorkoutPlans('u1'))
@@ -72,8 +78,21 @@ describe('useWorkoutPlans', () => {
 
     await result.current.activatePlan('p1')
 
-    expect(builder.update).toHaveBeenNthCalledWith(1, { aktiv: false })
-    expect(builder.update).toHaveBeenNthCalledWith(2, { aktiv: true })
+    expect(mockRpc).toHaveBeenCalledWith('activate_workout_plan', { plan_id: 'p1' })
+    // No half-applied state: the hook never clears the flag on its own.
+    expect(builder.update).not.toHaveBeenCalled()
+  })
+
+  it('rejects instead of reporting success when activating fails', async () => {
+    mockFrom.mockReturnValue(createQueryBuilder({ data: [plan] }))
+    mockRpc.mockResolvedValue({ error: { message: 'boom' } })
+
+    const { useWorkoutPlans } = await import('./use-workout-plans')
+    const { result } = renderHook(() => useWorkoutPlans('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await expect(result.current.activatePlan('p1')).rejects.toThrow()
+    mockRpc.mockResolvedValue({ error: null })
   })
 })
 

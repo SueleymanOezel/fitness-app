@@ -76,3 +76,35 @@ alter table public.workout_sessions
     foreign key (workout_plan_day_id) references public.workout_plan_days (id) on delete set null;
 
 create index on public.workout_sessions (workout_plan_day_id);
+
+-- One row per exercise and day. The client filters an already-added exercise
+-- out of the picker, but only the constraint makes the duplicate impossible —
+-- two tabs reading the same state would otherwise both pass that check, and a
+-- duplicate breaks the live session (shared exercise_id: one React key, one
+-- set count, wrong satz_nummer).
+create unique index workout_plan_day_exercises_day_exercise_unique
+  on public.workout_plan_day_exercises (workout_plan_day_id, exercise_id);
+
+-- Exactly one active plan per user, as a single statement. Doing it from the
+-- client took two requests (clear all, then set one); a failure between them
+-- left the user with no active plan at all, which is worse than the state they
+-- started in. security invoker keeps RLS in force for the caller.
+create function public.activate_workout_plan(plan_id uuid)
+returns void
+language sql
+security invoker
+set search_path = ''
+as $$
+  update public.workout_plans
+     set aktiv = (id = plan_id)
+   where user_id = auth.uid()
+     -- Without this, an id belonging to somebody else would simply deactivate
+     -- every plan the caller owns.
+     and exists (
+       select 1 from public.workout_plans owned
+       where owned.id = plan_id and owned.user_id = auth.uid()
+     );
+$$;
+
+revoke all on function public.activate_workout_plan(uuid) from public;
+grant execute on function public.activate_workout_plan(uuid) to authenticated;

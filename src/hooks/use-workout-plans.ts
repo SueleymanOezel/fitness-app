@@ -48,17 +48,14 @@ export function useWorkoutPlans(userId: string) {
     await reload()
   }
 
-  /** Exactly one plan is active: clear the flag on all of the user's plans, then set it on this one. */
+  /**
+   * Exactly one plan is active. Done in the database as one statement: two
+   * requests from here (clear all, then set one) could fail in between and
+   * leave the user with no active plan at all.
+   */
   async function activatePlan(planId: string) {
-    const { error: deactivateError } = await supabase
-      .from('workout_plans')
-      .update({ aktiv: false })
-      .eq('user_id', userId)
-    if (deactivateError) throw new Error('activate plan failed')
-
-    const { error: activateError } = await supabase.from('workout_plans').update({ aktiv: true }).eq('id', planId)
-    if (activateError) throw new Error('activate plan failed')
-
+    const { error } = await supabase.rpc('activate_workout_plan', { plan_id: planId })
+    if (error) throw new Error('activate plan failed')
     await reload()
   }
 

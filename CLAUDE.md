@@ -84,7 +84,7 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 - Spec: `docs/superpowers/specs/2026-08-21-phase3-trainingsbereich-design.md`
 - Plan: `docs/superpowers/plans/2026-08-21-phase3-trainingsbereich-plan.md` (16 Tasks)
 - Branch `feat-phase3-trainingsbereich`, alle 16 Tasks fertig, jeder Task ein Commit (`4961729`..`0098f65`).
-- Stand: **287/287 Tests grün**, Lint ohne Fehler und Warnungen, `tsc -b --noEmit` sauber, `npm run build` erfolgreich.
+- Stand: **311/311 Tests grün**, Lint ohne Fehler und Warnungen, `tsc -b --noEmit` sauber, `npm run build` erfolgreich.
 
 Umgesetzt: Übungsdatenbank importierbar (free-exercise-db, 873 Übungen, MET-Wert je Kategorie); Trainingspläne mit mehreren benannten Tagen (z. B. Push/Pull/Legs) samt Plan-Editor mit Umsortieren; automatische Tag-Rotation aus der zuletzt abgeschlossenen Session; Live-Trainingsmodus mit sofort gespeicherten Sätzen, Pausen-Timer über Zielzeitpunkt und automatischem Sprung zur nächsten Übung; Kalorienberechnung über die MET-Formel beim Abschließen; Trainingshistorie mit Detailansicht, nachträglicher Satz-Korrektur und Löschen. Routen: `/training`, `/training/plans`, `/training/plans/:planId`, `/training/exercises`, `/training/session/:sessionId`, `/training/history`, `/training/history/:sessionId`.
 
@@ -101,12 +101,16 @@ Migration `0004_training_days.sql`: legt `workout_plan_days` an, benennt `workou
 
 **Noch offen:** Whole-Branch-Review, PR und Merge; danach der einmalige Übungsimport mit dem Service-Role-Key (Task 2, Step 11) und die Manual-Verification gegen die Produktionsinstanz (Schritte im Plan unter Task 16, Step 5).
 
-**Für die Review vorgemerkt (bewusst nicht eigenmächtig geändert):**
-- `completeSession` rechnet die Dauer als `beendet_am − gestartet_am` — eine vergessene, erst am Folgetag beendete Session ergibt eine absurde Kalorienzahl.
-- `activatePlan` sind zwei Writes ohne Transaktion; bricht der zweite ab, ist gar kein Plan mehr aktiv.
-- `workout_sessions.workout_plan_day_id` hat kein `on delete set null` — das Löschen eines Plans scheitert, solange Sessions daran hängen.
+**Whole-Branch-Review und zwei Fix-Runden abgeschlossen** (Commits `799bc23`, `1e212d0`, `<letzter>`): 12 Findings aus der Review behoben, danach hat der Scoped Re-Review **zwei High-Regressionen in den Fixes selbst** gefunden — beide behoben:
+- Das Wiederaufnehmen einer offenen Session hatte keine Zeitgrenze und hebelte die Dauer-Korrektur wieder aus (Session von Montag am Freitag fortgesetzt → ~96 h, ~38 000 kcal). Jetzt 6-Stunden-Fenster.
+- Das Löschen des alten Import-Satzes per ID-Liste hätte ~32 KB Query-String erzeugt (Gateway lehnt ab) — da der Insert vorher committet, wäre die Bibliothek dauerhaft **verdoppelt** worden. Jetzt 100er-Chunks, das ID-Lesen zusätzlich paginiert.
+
+Ebenfalls erledigt: `on delete set null` auf `workout_sessions.workout_plan_day_id`, Unique-Index `(workout_plan_day_id, exercise_id)`, `activate_workout_plan()` als Postgres-Funktion (ein Statement statt zwei Writes), Paginierung mit Fehlerzustand in `useExercises`, kompensierende Writes mit eigener Fehlermeldung, ISO-Zeitstempel als geparste Instants statt als Strings.
+
+**Weiterhin offen (bewusst):**
 - Kein Rückfragen-Dialog vor dem Löschen von Plan oder Session.
 - Bundle bei 968 kB (264 kB gzip), über Vites Warnschwelle — Code-Splitting gehört in Phase 5.
+- Die Dauer einer Session läuft bis zum letzten Satz; eine Session ohne jeden Satz schreibt `0` statt `null` und erscheint in der Historie als „0 kcal" statt „nicht beendet".
 
 ## UI-Struktur (gilt ab Phase 3)
 

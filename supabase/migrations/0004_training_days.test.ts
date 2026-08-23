@@ -53,4 +53,22 @@ describe('0004_training_days.sql', () => {
     expect(sql).not.toMatch(/alter table public\.exercises/)
     expect(sql).not.toMatch(/alter table public\.workout_session_sets/)
   })
+  it('makes the same exercise twice in one day impossible', () => {
+    expect(sql).toMatch(
+      /create unique index workout_plan_day_exercises_day_exercise_unique\s+on public\.workout_plan_day_exercises \(workout_plan_day_id, exercise_id\)/,
+    )
+  })
+
+  it('activates a plan in a single statement that cannot leave none active', () => {
+    expect(sql).toMatch(/create function public\.activate_workout_plan\(plan_id uuid\)/)
+    expect(sql).toMatch(/security invoker/)
+    expect(sql).toMatch(/set aktiv = \(id = plan_id\)/)
+    expect(sql).toMatch(/where user_id = auth\.uid\(\)/)
+  })
+
+  it('lets the function be called only by authenticated users, and only for their own plan', () => {
+    expect(sql).toMatch(/revoke all on function public\.activate_workout_plan\(uuid\) from public/)
+    expect(sql).toMatch(/grant execute on function public\.activate_workout_plan\(uuid\) to authenticated/)
+    expect(sql).toMatch(/where owned\.id = plan_id and owned\.user_id = auth\.uid\(\)/)
+  })
 })
