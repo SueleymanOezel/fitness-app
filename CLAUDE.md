@@ -48,7 +48,8 @@ Das Projekt wird in klar getrennten Phasen entwickelt, nicht alles auf einmal:
 2. Ernährungsbereich (Barcode-Scan, manuelle Eingabe, Ernährungs-Dashboard)
 3. Trainingsbereich (Trainingspläne, Live-Modus, Kalorienberechnung über MET-Werte)
 4. Körperbereich & Health-Integration (Körper-Dashboard, Apple-Shortcuts-Sync)
-5. Härtung & Feinschliff (vollständiger OWASP-Durchlauf, Penetration-Tests, PWA-Feinschliff)
+5. Analysebereich (interaktive Graphen über alle Bereiche, konfigurierbare Dashboards) — nachträglich eingeschoben, siehe eigenen Abschnitt
+6. Härtung & Feinschliff (vollständiger OWASP-Durchlauf, Penetration-Tests, PWA-Feinschliff)
 
 Wichtig: Nach jeder Phase soll eine Zusammenfassung gegeben und Tests durchgeführt werden (statisch und dynamisch), bevor die nächste Phase begonnen wird. Nicht mehrere Phasen gleichzeitig anfangen.
 
@@ -67,7 +68,7 @@ Das vollständige Architekturkonzept mit Datenbankschema, REST-API-Endpunkten pr
 
 Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer Chat sofort weiß, was gemacht wurde und was als Nächstes ansteht.
 
-**Aktueller Stand:** Phase 1, Phase 2 und Phase 3 sind gemerged, deployed und vollständig manuell gegen die Produktionsinstanz verifiziert. Nächster Schritt: Phase 4 (Körperbereich & Health-Integration) — Spec und Plan dafür noch zu erstellen (`superpowers:brainstorming` → `superpowers:writing-plans`). Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header — die Profildaten mussten vorher von Hand im Supabase-Table-Editor gepflegt werden. Der Ernährungsbereich wurde außerdem um eine eigene Eintragsliste unter `/nutrition/entries` erweitert, die jetzt nach Mahlzeiten-Abschnitten gegliedert ist. Der Mahlzeiten-Abschnitte-Branch (`feat-meal-sections`) ist **gemerged** (PR #20, Merge-Commit `752587c`), Phase 3 ebenfalls (PR #21, Merge-Commit `7420145`) — siehe eigenen Abschnitt weiter unten.
+**Aktueller Stand:** Phase 1, Phase 2 und Phase 3 sind gemerged, deployed und vollständig manuell gegen die Produktionsinstanz verifiziert; die kosmetischen Nacharbeiten am Layout ebenfalls (PR #22 und #23, Merge-Commit `5b79651`). Danach ist ein **Analysebereich als neue Phase 5** beschlossen, Härtung rückt auf 6 — Eckpunkte im eigenen Abschnitt weiter unten. Nächster Schritt bleibt Phase 4 (Körperbereich & Health-Integration) — Spec und Plan dafür noch zu erstellen (`superpowers:brainstorming` → `superpowers:writing-plans`). Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header — die Profildaten mussten vorher von Hand im Supabase-Table-Editor gepflegt werden. Der Ernährungsbereich wurde außerdem um eine eigene Eintragsliste unter `/nutrition/entries` erweitert, die jetzt nach Mahlzeiten-Abschnitten gegliedert ist. Der Mahlzeiten-Abschnitte-Branch (`feat-meal-sections`) ist **gemerged** (PR #20, Merge-Commit `752587c`), Phase 3 ebenfalls (PR #21, Merge-Commit `7420145`) — siehe eigenen Abschnitt weiter unten.
 
 **Mahlzeiten-Abschnitte (gemerged, alle 9 Tasks fertig):** Einträge auf `/nutrition/entries` sind nach Mahlzeiten gegliedert — sechs feste Slots, vier davon vorbelegt (Frühstück, Mittagessen, Abendessen, Snacks), die restlichen zwei optional und nur sichtbar, sobald sie einen Namen oder Einträge haben. Die Namen stehen im Profil unter „Mahlzeiten"; welchem Abschnitt ein Eintrag zugeordnet ist, ergibt sich daraus, in welchem Abschnitt er erfasst wurde. Alt-Einträge von vor der Migration stehen unter „Ohne Zuordnung" und lassen sich über „Bearbeiten" nachträglich einsortieren. Das Ernährungs-Dashboard zeigt die Kalorien je Abschnitt als Link zur Eintragsliste. Enthält Migration `0003_meal_sections.sql` (fügt nur Spalten hinzu; bestehende Zeilen bekommen `mahlzeit = null`). Spec: `docs/superpowers/specs/2026-08-20-mahlzeiten-abschnitte-design.md`, Plan: `docs/superpowers/plans/2026-08-20-mahlzeiten-abschnitte-plan.md`. Noch offen: Whole-Branch-Review und PR, danach Manual-Verification gegen die echte Produktionsinstanz (Schritte dafür im Plan unter Task 9, Step 5).
 
@@ -78,6 +79,30 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 2. **Trainingstag/Restday-Kalender** (Integration ins Home-Dashboard).
 3. **Kalorienberechnung je Übung mit eigener Dauer** statt eines MET-Durchschnitts über die ganze Session.
 4. **Schwierigkeitsgrad-Import** aus free-exercise-db (`level`-Feld wird beim Import derzeit verworfen).
+
+## Phase 5 – Analysebereich (beschlossen, noch keine Spec)
+
+Nach Phase 4 geplant, vom Nutzer beauftragt und in den Eckpunkten entschieden. Rückt die bisherige Phase „Härtung & Feinschliff" nach hinten.
+
+**Ziel:** Interaktive Graphen über alle vier Bereiche, damit sich Fortschritt und Schwachstellen ablesen lassen.
+
+**Entschieden:**
+- **Bibliothek: Recharts.** Ausschlaggebend ist SVG-Rendering, nicht die Größe: unsere Tests laufen in jsdom, ein SVG-Chart lässt sich auf Achsen, Datenpunkte und Beschriftung prüfen, ein Canvas-Chart (Chart.js, ECharts) wäre dort eine leere Box und nur mockbar. ~136 kB gzip obendrauf, deshalb **Analyse-Seiten per `React.lazy`** nachladen — zieht das für die Härtungsphase vorgemerkte Code-Splitting vor.
+- **Alle Graphen werden gebaut, keine Vorauswahl.** Je Bereich eine Unterseite `/analyse`, die alle Graphen dieses Bereichs zeigt. Das Dashboard zeigt nur die vom Nutzer angehakten — der Picker steuert die Startansicht, nicht die Verfügbarkeit. Passt zur Regel „Dashboards nur das Wichtigste".
+- **Technik:** Registry, in der sich jeder Graph mit ID, Bereich, Titel und Komponente anmeldet. Die Auswahl des Nutzers ist eine Liste von IDs in einer `jsonb`-Spalte auf `profiles`. Keine neue Tabelle, kein Drag-and-drop-Framework.
+- Umfang realistisch zwei Pläne, nicht einer.
+
+**Geplante Graphen** (Nummern aus der Vorauswahl, für die Spec):
+- Training: T1 Trainingsfrequenz · T2 Kraftverlauf je Übung (geschätztes 1RM, Epley) · T3 Volumen je Übung · T4 bestes Satzgewicht · T5 Wiederholungsverlauf je Satz · T6 Volumen je Muskelgruppe · T7 Dauer und Kalorien je Session · T8 persönliche Rekorde
+- Ernährung: E1 Kalorien pro Tag gegen Ziel · E2 Makro-Verteilung heute · E3 Makro-Verlauf · E4 Kalorien je Mahlzeiten-Abschnitt · E5 Wochenschnitt · E6 Kalorienbilanz inkl. Trainingsverbrauch
+- Körper: K1 Gewichtsverlauf mit geglätteter Trendlinie (exponentiell gewichteter Mittelwert — Tagesgewicht schwankt durch Wasser um 1–2 kg, ungeglättet liest man Rauschen als Fortschritt) · K2 Umfänge im Verlauf · K3 Änderungsrate kg/Woche · K4 Gewicht über Kalorien · K5 Fortschrittsfotos als Zeitleiste
+- Home: H1 Aktivitätsraster aus `day_status` · H2 Wochen-Kurzform · H3 zwei Sparklines
+
+**Neue Datenfelder, alle vier vom Nutzer bestätigt** — gehören erfasst, *bevor* die abhängigen Graphen gebaut werden, sonst haben sie keine Historie:
+- `workout_session_sets.rir` (Anstrengungsgrad je Satz, Feld im Live-Modus)
+- `workout_session_sets.ist_aufwaermsatz` — **ohne diesen Schalter sind alle Volumen-Graphen systematisch zu hoch**, weil Aufwärmsätze mitzählen
+- `body_metrics.koerperfettanteil`
+- `products`: Ballaststoffe, Zucker, Salz, samt Übernahme aus Open Food Facts
 
 ## Phase 3 – Trainingsbereich (abgeschlossen)
 
