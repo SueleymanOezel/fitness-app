@@ -91,7 +91,7 @@ Umgesetzt: Übungsdatenbank importierbar (free-exercise-db, 873 Übungen, MET-We
 Migration `0004_training_days.sql`: legt `workout_plan_days` an, benennt `workout_plan_exercises` in `workout_plan_day_exercises` um (mit `workout_plan_day_id` statt `workout_plan_id`) und hängt `workout_sessions` ebenfalls an den Tag. Die Tabellen waren leer, deshalb keine Datenmigration — **vor dem Merge in Supabase gegenprüfen**, da die Migration bei Merge nach `master` automatisch auf Produktion läuft.
 
 **Beim Umsetzen gefunden und abweichend vom Plan gelöst** (der Plan-Code hätte an mehreren Stellen nicht funktioniert):
-- `upsert(..., { onConflict: 'name' })` im Import-Skript wäre gescheitert — `exercises.name` hat keinen Unique-Constraint. Stattdessen ersetzt das Skript den Import-Satz (`delete where created_by is null` + `insert`); ein Unique-Index auf `name` würde verhindern, dass zwei Nutzer dieselbe Übung anlegen.
+- `upsert(..., { onConflict: 'name' })` im Import-Skript wäre gescheitert — `exercises.name` hat keinen Unique-Constraint. Stattdessen ersetzt das Skript den Import-Satz (erst `insert`, dann Löschen der alten Zeilen per ID in Chunks); ein Unique-Index auf `name` würde verhindern, dass zwei Nutzer dieselbe Übung anlegen.
 - `import.meta.url === \`file://${process.argv[1]}\`` ist unter Windows immer falsch — `main()` wäre nie gelaufen.
 - Rotation: die Abfrage nach der letzten Session filterte nicht auf beendete Sessions; Postgres sortiert `null` bei `desc` zuerst, eine abgebrochene Session hätte die Rotation dauerhaft verstellt. Jetzt `.not('beendet_am', 'is', null)`.
 - Drei Seiten schrieben Zahlenfelder pro Tastendruck in die DB (Plan-Editor, Satz-Korrektur) — jetzt Draft mit Commit auf `blur`, wie im `CalorieGoalEditor`.
@@ -99,9 +99,9 @@ Migration `0004_training_days.sql`: legt `workout_plan_days` an, benennt `workou
 - Fehlgeschlagene Writes wurden auf allen Seiten stumm geschluckt (unbehandelte Rejections) — jetzt überall sichtbare Meldung; ein fehlgeschlagener Satz startet keine Pause, ein fehlgeschlagenes Löschen navigiert nicht weg.
 - Der Test-Helper des Plans (`async function PageUnderTest`) ist in React 19 nicht renderbar (3×), die Timer-Tests hingen unter eingefrorenen Fake-Timern, und der `PauseTimer` verstieß mit `Date.now()` im Render und Ref-Zuweisung im Render gegen zwei Lint-Regeln.
 
-**Noch offen:** Whole-Branch-Review, PR und Merge; danach der einmalige Übungsimport mit dem Service-Role-Key (Task 2, Step 11) und die Manual-Verification gegen die Produktionsinstanz (Schritte im Plan unter Task 16, Step 5).
+**Noch offen:** PR und Merge; danach der einmalige Übungsimport mit dem Service-Role-Key (`npm run import-exercises`, siehe Task 2, Step 11) und die Manual-Verification gegen die Produktionsinstanz (Schritte im Plan unter Task 16, Step 5).
 
-**Whole-Branch-Review und zwei Fix-Runden abgeschlossen** (Commits `799bc23`, `1e212d0`, `<letzter>`): 12 Findings aus der Review behoben, danach hat der Scoped Re-Review **zwei High-Regressionen in den Fixes selbst** gefunden — beide behoben:
+**Whole-Branch-Review und zwei Fix-Runden abgeschlossen** (Commits `799bc23`, `1e212d0`, `59c7449`): 12 Findings aus der Review behoben, danach hat der Scoped Re-Review **zwei High-Regressionen in den Fixes selbst** gefunden — beide behoben:
 - Das Wiederaufnehmen einer offenen Session hatte keine Zeitgrenze und hebelte die Dauer-Korrektur wieder aus (Session von Montag am Freitag fortgesetzt → ~96 h, ~38 000 kcal). Jetzt 6-Stunden-Fenster.
 - Das Löschen des alten Import-Satzes per ID-Liste hätte ~32 KB Query-String erzeugt (Gateway lehnt ab) — da der Insert vorher committet, wäre die Bibliothek dauerhaft **verdoppelt** worden. Jetzt 100er-Chunks, das ID-Lesen zusätzlich paginiert.
 
