@@ -189,4 +189,51 @@ describe('WorkoutSessionPage', () => {
 
     expect(await screen.findByRole('alert')).toBeInTheDocument()
   })
+
+  it('refuses to run a session that is already finished', async () => {
+    signedIn()
+    const result = sessionResult({
+      session: {
+        id: 's1',
+        workout_plan_day_id: 'd1',
+        gestartet_am: '2026-08-20T10:00:00.000Z',
+        beendet_am: '2026-08-20T11:00:00.000Z',
+        gesamt_kalorien: 400,
+      },
+    })
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('bereits abgeschlossen')
+    expect(screen.queryByRole('button', { name: 'Training abschließen' })).not.toBeInTheDocument()
+  })
+
+  it('waits for the profile instead of claiming there is no weight', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue({ profile: null, loading: true, error: false })
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+
+    expect(screen.getByText('Lädt…')).toBeInTheDocument()
+    expect(screen.queryByText(/Ohne Gewicht im Profil/)).not.toBeInTheDocument()
+  })
+
+  it('keeps the typed values when the set could not be stored', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult({ logSet: vi.fn().mockRejectedValue(new Error('boom')) }))
+
+    renderPage()
+    await screen.findByText('Bankdrücken')
+
+    fireEvent.click(screen.getByText('Bankdrücken'))
+    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '60' } })
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
+    expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue('60')
+    expect(screen.getByLabelText('Wiederholungen')).toHaveValue('10')
+  })
 })

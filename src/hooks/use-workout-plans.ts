@@ -206,12 +206,21 @@ export function useWorkoutPlan(planId: string) {
       .from('workout_plan_days')
       .update({ reihenfolge: current.reihenfolge })
       .eq('id', neighbor.id)
-    if (secondError) throw new Error('move day failed')
+    if (secondError) {
+      // Half a swap leaves two days sharing one reihenfolge, which makes the
+      // rotation order undefined — put the first row back before giving up.
+      await supabase.from('workout_plan_days').update({ reihenfolge: current.reihenfolge }).eq('id', current.id)
+      await reload()
+      throw new Error('move day failed')
+    }
     await reload()
   }
 
   async function addExerciseToDay(dayId: string, exerciseId: string) {
     const day = days.find((candidate) => candidate.id === dayId)
+    // The same exercise twice in one day would collide on exercise_id in the
+    // live session (shared React key, shared set count, wrong satz_nummer).
+    if (day?.exercises.some((row) => row.exercise_id === exerciseId)) return
     const nextReihenfolge =
       !day || day.exercises.length === 0 ? 1 : Math.max(...day.exercises.map((row) => row.reihenfolge)) + 1
     const { error } = await supabase
@@ -252,7 +261,15 @@ export function useWorkoutPlan(planId: string) {
       .from('workout_plan_day_exercises')
       .update({ reihenfolge: current.reihenfolge })
       .eq('id', neighbor.id)
-    if (secondError) throw new Error('move exercise failed')
+    if (secondError) {
+      // Same half-swap hazard as moveDay.
+      await supabase
+        .from('workout_plan_day_exercises')
+        .update({ reihenfolge: current.reihenfolge })
+        .eq('id', current.id)
+      await reload()
+      throw new Error('move exercise failed')
+    }
     await reload()
   }
 

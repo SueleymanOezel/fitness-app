@@ -62,6 +62,10 @@ create policy "workout_plan_day_exercises_all_own" on public.workout_plan_day_ex
   );
 
 -- A session belongs to a concrete day; the plan follows from the day.
+-- on delete set null, not cascade: a finished session is a record of what was
+-- actually trained and must survive the plan being reorganised or deleted. It
+-- also has to be nullable here, otherwise deleting a plan would cascade into
+-- its days and be blocked by this constraint forever.
 alter table public.workout_sessions
   drop constraint workout_sessions_workout_plan_id_fkey;
 
@@ -69,6 +73,6 @@ alter table public.workout_sessions rename column workout_plan_id to workout_pla
 
 alter table public.workout_sessions
   add constraint workout_sessions_workout_plan_day_id_fkey
-    foreign key (workout_plan_day_id) references public.workout_plan_days (id);
+    foreign key (workout_plan_day_id) references public.workout_plan_days (id) on delete set null;
 
 create index on public.workout_sessions (workout_plan_day_id);

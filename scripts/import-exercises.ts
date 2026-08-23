@@ -28,6 +28,39 @@ export function toExerciseRow(raw: RawExercise) {
   }
 }
 
+type ExerciseRow = ReturnType<typeof toExerciseRow>
+
+type ImportClient = {
+  from: (table: string) => {
+    select: (columns: string) => { is: (column: string, value: null) => PromiseLike<{ data: { id: string }[] | null; error: { message: string } | null }> }
+    insert: (rows: ExerciseRow[]) => PromiseLike<{ error: { message: string } | null }>
+    delete: () => { in: (column: string, values: string[]) => PromiseLike<{ error: { message: string } | null }> }
+  }
+}
+
+/**
+ * Insert first, then drop the previously imported rows by id. Deleting first
+ * would leave the library empty if the insert then failed, and there is no
+ * transaction across two PostgREST requests. The overlap is visible only as
+ * duplicates for the moment between the two calls.
+ *
+ * Not an upsert on `name`: exercises.name has no unique constraint, and adding
+ * one would stop two users from each creating an exercise with the same name.
+ */
+export async function replaceImportedExercises(client: ImportClient, rows: ExerciseRow[]) {
+  const { data: existing, error: readError } = await client.from('exercises').select('id').is('created_by', null)
+  if (readError) throw new Error(`import failed while reading the old set: ${readError.message}`)
+
+  const { error: insertError } = await client.from('exercises').insert(rows)
+  if (insertError) throw new Error(`import failed: ${insertError.message}`)
+
+  const oldIds = (existing ?? []).map((row) => row.id)
+  if (oldIds.length > 0) {
+    const { error: deleteError } = await client.from('exercises').delete().in('id', oldIds)
+    if (deleteError) throw new Error(`import inserted the new set but could not remove the old one: ${deleteError.message}`)
+  }
+}
+
 async function main() {
   const url = process.env.VITE_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -40,18 +73,10 @@ async function main() {
   const raw = JSON.parse(readFileSync(fixturePath, 'utf-8')) as RawExercise[]
   const rows = raw.map(toExerciseRow)
 
-  // Replace the whole imported set (created_by is null); user-created
-  // exercises are never touched. Not an upsert on `name`: there is no unique
-  // constraint on exercises.name, and adding one would stop two users from
-  // each creating an exercise with the same name.
   // ponytail: re-running after users built plans on imported exercises fails
   // on the foreign key from workout_plan_day_exercises — fine for a one-off
   // seed; make it a name-keyed diff if the dataset ever needs refreshing.
-  const { error: deleteError } = await supabase.from('exercises').delete().is('created_by', null)
-  if (deleteError) throw new Error(`import failed while clearing the old set: ${deleteError.message}`)
-
-  const { error } = await supabase.from('exercises').insert(rows)
-  if (error) throw new Error(`import failed: ${error.message}`)
+  await replaceImportedExercises(supabase as unknown as ImportClient, rows)
 
   console.log(`imported ${rows.length} exercises`)
 }

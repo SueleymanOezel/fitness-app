@@ -41,6 +41,20 @@ type RawDayExercise = {
 type RawSessionSet = Omit<SessionSet, 'exercise'> & { exercises: SessionSet['exercise'] }
 
 export async function startWorkoutSession(userId: string, dayId: string): Promise<string> {
+  // Leaving the live page without finishing (back button, closed tab) must not
+  // strand a session: resume the open one for this day instead of opening a
+  // second one that stays unfinished forever.
+  const { data: open } = await supabase
+    .from('workout_sessions')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('workout_plan_day_id', dayId)
+    .is('beendet_am', null)
+    .order('gestartet_am', { ascending: false })
+    .limit(1)
+  const openId = ((open ?? []) as { id: string }[])[0]?.id
+  if (openId) return openId
+
   const { data, error } = await supabase
     .from('workout_sessions')
     .insert({ user_id: userId, workout_plan_day_id: dayId, gestartet_am: new Date().toISOString() })
@@ -139,8 +153,19 @@ export function useWorkoutSession(sessionId: string) {
 
   async function completeSession(gewichtKg: number) {
     const beendetAm = new Date().toISOString()
-    const dauerStunden =
-      (new Date(beendetAm).getTime() - new Date(session?.gestartet_am ?? beendetAm).getTime()) / 1000 / 60 / 60
+    // Trained time runs to the last completed set, not to whenever the user
+    // remembers to press the button — a session finished the next morning
+    // would otherwise be billed as many hours of exercise.
+    const lastSetAt = sets.reduce<string | null>(
+      (latest, set) =>
+        set.abgeschlossen_am != null && (latest == null || set.abgeschlossen_am > latest)
+          ? set.abgeschlossen_am
+          : latest,
+      null,
+    )
+    const startedAt = new Date(session?.gestartet_am ?? beendetAm).getTime()
+    const endedAt = new Date(lastSetAt ?? beendetAm).getTime()
+    const dauerStunden = Math.max(0, endedAt - startedAt) / 1000 / 60 / 60
     const kalorienSets = sets.flatMap((set) =>
       set.exercise?.met_wert == null ? [] : [{ exercise: { met_wert: set.exercise.met_wert } }],
     )

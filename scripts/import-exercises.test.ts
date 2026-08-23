@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { toExerciseRow } from './import-exercises.ts'
+import { describe, expect, it, vi } from 'vitest'
+import { replaceImportedExercises, toExerciseRow } from './import-exercises.ts'
 
 describe('toExerciseRow', () => {
   it('maps a raw free-exercise-db entry to an exercises row', () => {
@@ -48,5 +48,56 @@ describe('toExerciseRow', () => {
     }
 
     expect(toExerciseRow(raw).bild_url).toBeNull()
+  })
+})
+
+function createClient({ insertFails = false } = {}) {
+  const calls: string[] = []
+  const insert = vi.fn(async () => {
+    calls.push('insert')
+    return { error: insertFails ? { message: 'boom' } : null }
+  })
+  const deleteIn = vi.fn(async () => {
+    calls.push('delete')
+    return { error: null }
+  })
+  return {
+    calls,
+    insert,
+    deleteIn,
+    from: () => ({
+      select: () => ({ is: async () => ({ data: [{ id: 'old1' }], error: null }) }),
+      insert,
+      delete: () => ({ in: deleteIn }),
+    }),
+  }
+}
+
+const row = {
+  name: 'X',
+  kategorie: 'strength',
+  equipment: null,
+  muskelgruppen_primaer: [],
+  muskelgruppen_sekundaer: [],
+  bild_url: null,
+  met_wert: 5,
+  created_by: null,
+}
+
+describe('replaceImportedExercises', () => {
+  it('inserts the new set before removing the old one', async () => {
+    const client = createClient()
+
+    await replaceImportedExercises(client, [row])
+
+    expect(client.calls).toEqual(['insert', 'delete'])
+    expect(client.deleteIn).toHaveBeenCalledWith('id', ['old1'])
+  })
+
+  it('leaves the old set in place when the insert fails', async () => {
+    const client = createClient({ insertFails: true })
+
+    await expect(replaceImportedExercises(client, [row])).rejects.toThrow()
+    expect(client.deleteIn).not.toHaveBeenCalled()
   })
 })

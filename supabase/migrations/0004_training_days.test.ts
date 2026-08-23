@@ -38,6 +38,12 @@ describe('0004_training_days.sql', () => {
     expect(sql).toMatch(/references public\.workout_plan_days \(id\)/)
   })
 
+  it('keeps a session when its day is deleted instead of blocking the delete', () => {
+    expect(sql).toMatch(
+      /foreign key \(workout_plan_day_id\) references public\.workout_plan_days \(id\) on delete set null/,
+    )
+  })
+
   it('adds indexes on the new and renamed foreign key columns', () => {
     expect(sql).toMatch(/create index on public\.workout_plan_days \(workout_plan_id\)/)
     expect(sql).toMatch(/create index on public\.workout_sessions \(workout_plan_day_id\)/)

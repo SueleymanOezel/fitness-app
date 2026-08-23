@@ -9,6 +9,8 @@ function createQueryBuilder(result: { data: unknown; error?: unknown }) {
     delete: vi.fn(() => builder),
     eq: vi.fn(() => builder),
     order: vi.fn(() => builder),
+    is: vi.fn(() => builder),
+    limit: vi.fn(() => builder),
     single: vi.fn(() => Promise.resolve(result)),
     maybeSingle: vi.fn(() => Promise.resolve(result)),
     then: (resolve: (value: typeof result) => unknown) => resolve(result),
@@ -70,6 +72,18 @@ describe('startWorkoutSession', () => {
       expect.objectContaining({ user_id: 'u1', workout_plan_day_id: 'd1' }),
     )
     expect(id).toBe('s1')
+  })
+
+  it('resumes an unfinished session for the day instead of opening a second one', async () => {
+    const builder = createQueryBuilder({ data: [{ id: 'open1' }] })
+    mockFrom.mockReturnValue(builder)
+
+    const { startWorkoutSession } = await import('./use-workout-session')
+    const id = await startWorkoutSession('u1', 'd1')
+
+    expect(id).toBe('open1')
+    expect(builder.insert).not.toHaveBeenCalled()
+    expect(builder.is).toHaveBeenCalledWith('beendet_am', null)
   })
 
   it('rejects instead of returning an id when the insert fails', async () => {
@@ -181,5 +195,25 @@ describe('useWorkoutSession', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.session).toBeNull()
     expect(result.current.exercises).toEqual([])
+  })
+
+  it('measures the session up to the last completed set, not up to the button press', async () => {
+    const sessionBuilder = createQueryBuilder({ data: sessionRow })
+    // Session started at 10:00, last set at 10:05, "completed" much later.
+    mockTables({ workout_sessions: sessionBuilder })
+    vi.setSystemTime(new Date('2026-08-22T08:00:00.000Z'))
+
+    const { useWorkoutSession } = await import('./use-workout-session')
+    const { result } = renderHook(() => useWorkoutSession('s1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await result.current.completeSession(80)
+
+    // 5 minutes at MET 5 and 80 kg, not 22 hours.
+    const patch = (sessionBuilder.update as unknown as { mock: { calls: [{ gesamt_kalorien: number }][] } }).mock
+      .calls[0][0]
+    expect(patch.gesamt_kalorien).toBeCloseTo((5 * 80 * 5) / 60, 5)
+
+    vi.useRealTimers()
   })
 })

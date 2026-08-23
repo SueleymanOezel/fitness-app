@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
+    "import-exercises": "node scripts/import-exercises.ts",
     "dev:mobile": "vite --mode mobile"
   },
   "dependencies": {

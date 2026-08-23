@@ -22,6 +22,8 @@ export type NewExercise = {
   muskelgruppen_sekundaer?: string[]
 }
 
+const PAGE_SIZE = 500
+
 export function useExercises(userId: string) {
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,9 +33,25 @@ export function useExercises(userId: string) {
     // A create-triggered reload can be answered before the initial one; only
     // the newest request may write state (and none may write after unmount).
     const current = ++requestId.current
-    const { data } = await supabase.from('exercises').select('*').order('name', { ascending: true })
+
+    // Paged: the imported library alone is ~873 rows and PostgREST caps a
+    // response at db-max-rows (1000 by default) without reporting it — an
+    // unpaged read would silently drop everything past the cut-off.
+    const all: Exercise[] = []
+    for (let from = 0; ; from += PAGE_SIZE) {
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('*')
+        .order('name', { ascending: true })
+        .range(from, from + PAGE_SIZE - 1)
+      if (error) break
+      const page = (data ?? []) as Exercise[]
+      all.push(...page)
+      if (page.length < PAGE_SIZE) break
+    }
+
     if (current !== requestId.current) return
-    setExercises((data ?? []) as Exercise[])
+    setExercises(all)
     setLoading(false)
   }, [])
 

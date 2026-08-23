@@ -22,14 +22,16 @@ export default function WorkoutSessionPage() {
 }
 
 function LiveSession({ userId, sessionId }: { userId: string; sessionId: string }) {
-  const { profile } = useProfile(userId)
+  const { profile, loading: profileLoading } = useProfile(userId)
   const { session, exercises, sets, loading, logSet, completeSession } = useWorkoutSession(sessionId)
   const [openExerciseId, setOpenExerciseId] = useState<string | null>(null)
   const [pause, setPause] = useState<{ until: number; sekunden: number } | null>(null)
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  if (loading) {
+  // Both queries are independent: without waiting for the profile too, a user
+  // who has a weight stored is told for a moment that they have none.
+  if (loading || profileLoading) {
     return (
       <div>
         <h1>Training</h1>
@@ -43,6 +45,20 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
       <div>
         <h1>Training</h1>
         <p role="alert">Dieses Training gibt es nicht mehr.</p>
+        <Link to="/training">Zurück zum Training</Link>
+      </div>
+    )
+  }
+
+  if (session.beendet_am !== null) {
+    // Reopening a finished session (back button, bookmark) and completing it
+    // again would recompute the duration from its original start and overwrite
+    // the stored calories with a wildly inflated number.
+    return (
+      <div>
+        <h1>Training</h1>
+        <p role="alert">Dieses Training ist bereits abgeschlossen.</p>
+        <Link to={`/training/history/${session.id}`}>Zur Trainingseinheit</Link>
         <Link to="/training">Zurück zum Training</Link>
       </div>
     )
@@ -96,7 +112,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                   } catch {
                     // No pause on a set that was never stored — it would suggest it counted.
                     setError('Satz konnte nicht gespeichert werden.')
-                    return
+                    return false
                   }
                   if (entry.pausenzeit_sekunden) {
                     setPause({
@@ -104,6 +120,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                       sekunden: entry.pausenzeit_sekunden,
                     })
                   }
+                  return true
                 }}
               />
             )}
@@ -127,7 +144,7 @@ function SetForm({
 }: {
   exercise: SessionExercise
   completedCount: number
-  onLog: (satzNummer: number, gewicht: number | null, wiederholungen: number | null) => Promise<void>
+  onLog: (satzNummer: number, gewicht: number | null, wiederholungen: number | null) => Promise<boolean>
 }) {
   const [gewicht, setGewicht] = useState('')
   const [wiederholungen, setWiederholungen] = useState('')
@@ -139,7 +156,10 @@ function SetForm({
         // Number('') is 0, not "unset" — an empty field must stay null, not become a fake 0.
         const gewichtValue = gewicht === '' ? null : Number(gewicht)
         const wiederholungenValue = wiederholungen === '' ? null : Number(wiederholungen)
-        await onLog(completedCount + 1, gewichtValue, wiederholungenValue)
+        // Only clear on a stored set: wiping the fields after a failed save
+        // would force the user to type everything again.
+        const stored = await onLog(completedCount + 1, gewichtValue, wiederholungenValue)
+        if (!stored) return
         setGewicht('')
         setWiederholungen('')
       }}

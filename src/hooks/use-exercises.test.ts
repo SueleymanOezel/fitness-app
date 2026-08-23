@@ -6,6 +6,7 @@ function createQueryBuilder(result: { data: unknown; error?: unknown }) {
     select: vi.fn(() => builder),
     insert: vi.fn(() => builder),
     order: vi.fn(() => builder),
+    range: vi.fn(() => builder),
     then: (resolve: (value: typeof result) => unknown) => resolve(result),
   }
   return builder
@@ -69,5 +70,28 @@ describe('useExercises', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     await expect(result.current.createExercise({ name: 'X', kategorie: 'strength', met_wert: 1 })).rejects.toThrow()
+  })
+
+  it('keeps paging until a short page arrives, so nothing is cut off at the row cap', async () => {
+    const firstPage = Array.from({ length: 500 }, (_, index) => ({ ...exercise, id: `ex${index}` }))
+    const pages = [firstPage, [exercise]]
+    let call = 0
+    const builder: Record<string, unknown> = {
+      select: vi.fn(() => builder),
+      insert: vi.fn(() => builder),
+      order: vi.fn(() => builder),
+      range: vi.fn(() => builder),
+      then: (resolve: (value: { data: unknown; error: null }) => unknown) =>
+        resolve({ data: pages[call++] ?? [], error: null }),
+    }
+    mockFrom.mockReturnValue(builder)
+
+    const { useExercises } = await import('./use-exercises')
+    const { result } = renderHook(() => useExercises('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    expect(result.current.exercises).toHaveLength(501)
+    expect(builder.range).toHaveBeenNthCalledWith(1, 0, 499)
+    expect(builder.range).toHaveBeenNthCalledWith(2, 500, 999)
   })
 })
