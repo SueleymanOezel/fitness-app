@@ -160,7 +160,7 @@ a {
    links stop running together and the whole width stays tappable. Matched by
    what the link is next to rather than by nesting depth: an extra wrapper
    element must not silently bring the glued-together links back. */
-main a:not(li a) {
+main a:not(li a):not(p a) {
   display: flex;
 }
 
