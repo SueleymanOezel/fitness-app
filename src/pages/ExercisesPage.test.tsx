@@ -23,7 +23,13 @@ const exercise = {
 }
 
 function exercisesResult(overrides: Partial<ReturnType<typeof mockUseExercises>> = {}) {
-  return { exercises: [exercise], loading: false, createExercise: vi.fn().mockResolvedValue(undefined), ...overrides }
+  return {
+    exercises: [exercise],
+    loading: false,
+    error: false,
+    createExercise: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
+  }
 }
 
 describe('ExercisesPage', () => {
@@ -102,5 +108,16 @@ describe('ExercisesPage', () => {
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
     expect(screen.getByLabelText('Name')).toBeInTheDocument()
+  })
+
+  it('reports a failed load instead of presenting a partial library as complete', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(exercisesResult({ exercises: [], error: true }))
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    render(<ExercisesPage />, { wrapper: MemoryRouter })
+
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Suche')).not.toBeInTheDocument()
   })
 })

@@ -23,10 +23,13 @@ export type NewExercise = {
 }
 
 const PAGE_SIZE = 500
+/** Stops a misconfigured db-max-rows from turning the loop into an endless one. */
+const MAX_PAGES = 40
 
 export function useExercises(userId: string) {
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const requestId = useRef(0)
 
   const reload = useCallback(async () => {
@@ -38,20 +41,30 @@ export function useExercises(userId: string) {
     // response at db-max-rows (1000 by default) without reporting it — an
     // unpaged read would silently drop everything past the cut-off.
     const all: Exercise[] = []
-    for (let from = 0; ; from += PAGE_SIZE) {
-      const { data, error } = await supabase
+    let failed = false
+    for (let page = 0; page < MAX_PAGES; page += 1) {
+      const from = page * PAGE_SIZE
+      const { data, error: pageError } = await supabase
         .from('exercises')
         .select('*')
+        // id as a tiebreaker: names are not unique, and without a total order
+        // a row on a page boundary can come back twice or not at all.
         .order('name', { ascending: true })
+        .order('id', { ascending: true })
         .range(from, from + PAGE_SIZE - 1)
-      if (error) break
-      const page = (data ?? []) as Exercise[]
-      all.push(...page)
-      if (page.length < PAGE_SIZE) break
+      // A failed page must be reported, not served as a complete library.
+      if (pageError) {
+        failed = true
+        break
+      }
+      const rows = (data ?? []) as Exercise[]
+      all.push(...rows)
+      if (rows.length < PAGE_SIZE) break
     }
 
     if (current !== requestId.current) return
-    setExercises(all)
+    setExercises(failed ? [] : all)
+    setError(failed)
     setLoading(false)
   }, [])
 
@@ -71,5 +84,5 @@ export function useExercises(userId: string) {
     await reload()
   }
 
-  return { exercises, loading, createExercise }
+  return { exercises, loading, error, createExercise }
 }

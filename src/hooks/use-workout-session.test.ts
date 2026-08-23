@@ -1,5 +1,10 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
+
+afterEach(() => {
+  // A failed assertion must not leak a faked clock into the next test.
+  vi.useRealTimers()
+})
 
 function createQueryBuilder(result: { data: unknown; error?: unknown }) {
   const builder: Record<string, unknown> = {
@@ -10,6 +15,7 @@ function createQueryBuilder(result: { data: unknown; error?: unknown }) {
     eq: vi.fn(() => builder),
     order: vi.fn(() => builder),
     is: vi.fn(() => builder),
+    gte: vi.fn(() => builder),
     limit: vi.fn(() => builder),
     single: vi.fn(() => Promise.resolve(result)),
     maybeSingle: vi.fn(() => Promise.resolve(result)),
@@ -62,12 +68,28 @@ function mockTables(overrides: Record<string, ReturnType<typeof createQueryBuild
 
 describe('startWorkoutSession', () => {
   it('inserts a session for the given day and returns its id', async () => {
-    const builder = createQueryBuilder({ data: { id: 's1' } })
+    // The open-session lookup answers with an empty array, the insert with a row.
+    let lookedUp = false
+    const builder: Record<string, unknown> = {
+      select: vi.fn(() => builder),
+      insert: vi.fn(() => builder),
+      eq: vi.fn(() => builder),
+      is: vi.fn(() => builder),
+      gte: vi.fn(() => builder),
+      order: vi.fn(() => builder),
+      limit: vi.fn(() => builder),
+      single: vi.fn(() => Promise.resolve({ data: { id: 's1' }, error: null })),
+      then: (resolve: (value: { data: unknown; error: null }) => unknown) => {
+        lookedUp = true
+        return resolve({ data: [], error: null })
+      },
+    }
     mockFrom.mockReturnValue(builder)
 
     const { startWorkoutSession } = await import('./use-workout-session')
     const id = await startWorkoutSession('u1', 'd1')
 
+    expect(lookedUp).toBe(true)
     expect(builder.insert).toHaveBeenCalledWith(
       expect.objectContaining({ user_id: 'u1', workout_plan_day_id: 'd1' }),
     )
@@ -84,6 +106,27 @@ describe('startWorkoutSession', () => {
     expect(id).toBe('open1')
     expect(builder.insert).not.toHaveBeenCalled()
     expect(builder.is).toHaveBeenCalledWith('beendet_am', null)
+  })
+
+  it("only resumes a recent session, so an old one cannot swallow today's sets", async () => {
+    const builder = createQueryBuilder({ data: [] })
+    mockFrom.mockReturnValue(builder)
+    vi.setSystemTime(new Date('2026-08-21T12:00:00.000Z'))
+
+    const { startWorkoutSession } = await import('./use-workout-session')
+    await startWorkoutSession('u1', 'd1')
+
+    expect(builder.gte).toHaveBeenCalledWith('gestartet_am', '2026-08-21T06:00:00.000Z')
+  })
+
+  it('rejects instead of quietly opening a second session when the lookup fails', async () => {
+    const builder = createQueryBuilder({ data: null, error: { message: 'boom' } })
+    mockFrom.mockReturnValue(builder)
+
+    const { startWorkoutSession } = await import('./use-workout-session')
+
+    await expect(startWorkoutSession('u1', 'd1')).rejects.toThrow()
+    expect(builder.insert).not.toHaveBeenCalled()
   })
 
   it('rejects instead of returning an id when the insert fails', async () => {

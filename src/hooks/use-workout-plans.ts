@@ -209,9 +209,14 @@ export function useWorkoutPlan(planId: string) {
     if (secondError) {
       // Half a swap leaves two days sharing one reihenfolge, which makes the
       // rotation order undefined — put the first row back before giving up.
-      await supabase.from('workout_plan_days').update({ reihenfolge: current.reihenfolge }).eq('id', current.id)
+      const { error: restoreError } = await supabase
+        .from('workout_plan_days')
+        .update({ reihenfolge: current.reihenfolge })
+        .eq('id', current.id)
       await reload()
-      throw new Error('move day failed')
+      // Distinct message: a failed rollback leaves the order actually broken,
+      // which the user has to know to repair by hand.
+      throw new Error(restoreError ? 'move day failed and left the order broken' : 'move day failed')
     }
     await reload()
   }
@@ -263,12 +268,12 @@ export function useWorkoutPlan(planId: string) {
       .eq('id', neighbor.id)
     if (secondError) {
       // Same half-swap hazard as moveDay.
-      await supabase
+      const { error: restoreError } = await supabase
         .from('workout_plan_day_exercises')
         .update({ reihenfolge: current.reihenfolge })
         .eq('id', current.id)
       await reload()
-      throw new Error('move exercise failed')
+      throw new Error(restoreError ? 'move exercise failed and left the order broken' : 'move exercise failed')
     }
     await reload()
   }

@@ -30,13 +30,28 @@ export function toExerciseRow(raw: RawExercise) {
 
 type ExerciseRow = ReturnType<typeof toExerciseRow>
 
+type ReadResult = PromiseLike<{ data: { id: string }[] | null; error: { message: string } | null }>
+
 type ImportClient = {
   from: (table: string) => {
-    select: (columns: string) => { is: (column: string, value: null) => PromiseLike<{ data: { id: string }[] | null; error: { message: string } | null }> }
+    select: (columns: string) => {
+      is: (column: string, value: null) => { range: (from: number, to: number) => ReadResult }
+    }
     insert: (rows: ExerciseRow[]) => PromiseLike<{ error: { message: string } | null }>
     delete: () => { in: (column: string, values: string[]) => PromiseLike<{ error: { message: string } | null }> }
   }
 }
+
+/** Same db-max-rows cap as the app: an unpaged read would silently stop at 1000 ids. */
+const READ_PAGE_SIZE = 500
+
+/**
+ * `in.(...)` travels in the query string, and 873 uuids are ~32 KB of URI —
+ * far past what the gateway accepts. Deleting in chunks keeps every request
+ * small; a chunk that fails leaves the rest of the old set behind rather than
+ * killing the whole run.
+ */
+const DELETE_CHUNK_SIZE = 100
 
 /**
  * Insert first, then drop the previously imported rows by id. Deleting first
@@ -48,16 +63,30 @@ type ImportClient = {
  * one would stop two users from each creating an exercise with the same name.
  */
 export async function replaceImportedExercises(client: ImportClient, rows: ExerciseRow[]) {
-  const { data: existing, error: readError } = await client.from('exercises').select('id').is('created_by', null)
-  if (readError) throw new Error(`import failed while reading the old set: ${readError.message}`)
+  const oldIds: string[] = []
+  for (let from = 0; ; from += READ_PAGE_SIZE) {
+    const { data, error } = await client
+      .from('exercises')
+      .select('id')
+      .is('created_by', null)
+      .range(from, from + READ_PAGE_SIZE - 1)
+    if (error) throw new Error(`import failed while reading the old set: ${error.message}`)
+    const page = data ?? []
+    oldIds.push(...page.map((row) => row.id))
+    if (page.length < READ_PAGE_SIZE) break
+  }
 
   const { error: insertError } = await client.from('exercises').insert(rows)
   if (insertError) throw new Error(`import failed: ${insertError.message}`)
 
-  const oldIds = (existing ?? []).map((row) => row.id)
-  if (oldIds.length > 0) {
-    const { error: deleteError } = await client.from('exercises').delete().in('id', oldIds)
-    if (deleteError) throw new Error(`import inserted the new set but could not remove the old one: ${deleteError.message}`)
+  for (let from = 0; from < oldIds.length; from += DELETE_CHUNK_SIZE) {
+    const chunk = oldIds.slice(from, from + DELETE_CHUNK_SIZE)
+    const { error } = await client.from('exercises').delete().in('id', chunk)
+    if (error) {
+      throw new Error(
+        `import inserted the new set but could not remove all of the old one (${from} of ${oldIds.length} removed): ${error.message}`,
+      )
+    }
   }
 }
 

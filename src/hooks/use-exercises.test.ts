@@ -94,4 +94,39 @@ describe('useExercises', () => {
     expect(builder.range).toHaveBeenNthCalledWith(1, 0, 499)
     expect(builder.range).toHaveBeenNthCalledWith(2, 500, 999)
   })
+
+  it('reports an error instead of serving a half-loaded library as complete', async () => {
+    const firstPage = Array.from({ length: 500 }, (_, index) => ({ ...exercise, id: `ex${index}` }))
+    const results = [
+      { data: firstPage, error: null },
+      { data: null, error: { message: 'boom' } },
+    ]
+    let call = 0
+    const builder: Record<string, unknown> = {
+      select: vi.fn(() => builder),
+      insert: vi.fn(() => builder),
+      order: vi.fn(() => builder),
+      range: vi.fn(() => builder),
+      then: (resolve: (value: unknown) => unknown) => resolve(results[call++] ?? { data: [], error: null }),
+    }
+    mockFrom.mockReturnValue(builder)
+
+    const { useExercises } = await import('./use-exercises')
+    const { result } = renderHook(() => useExercises('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    expect(result.current.error).toBe(true)
+    expect(result.current.exercises).toEqual([])
+  })
+
+  it('orders by id as well, so a page boundary cannot drop or repeat a row', async () => {
+    const builder = createQueryBuilder({ data: [exercise] })
+    mockFrom.mockReturnValue(builder)
+
+    const { useExercises } = await import('./use-exercises')
+    const { result } = renderHook(() => useExercises('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    expect(builder.order).toHaveBeenCalledWith('id', { ascending: true })
+  })
 })

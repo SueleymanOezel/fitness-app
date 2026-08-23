@@ -134,8 +134,16 @@ function DayBlock({
   onMoveExercise: (exerciseRowId: string, direction: 'up' | 'down') => void
 }) {
   const [query, setQuery] = useState('')
+  // Already-added exercises are filtered out rather than silently rejected by
+  // the hook's duplicate guard, which would look like a dead button.
   const matches =
-    query === '' ? [] : exercises.filter((exercise) => exercise.name.toLowerCase().includes(query.toLowerCase()))
+    query === ''
+      ? []
+      : exercises.filter(
+          (exercise) =>
+            exercise.name.toLowerCase().includes(query.toLowerCase()) &&
+            !day.exercises.some((row) => row.exercise_id === exercise.id),
+        )
 
   return (
     <section>

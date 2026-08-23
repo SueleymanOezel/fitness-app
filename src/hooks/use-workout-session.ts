@@ -40,18 +40,29 @@ type RawDayExercise = {
 
 type RawSessionSet = Omit<SessionSet, 'exercise'> & { exercises: SessionSet['exercise'] }
 
+/**
+ * How long an unfinished session stays resumable. Leaving the live page without
+ * finishing (back button, closed tab) must not strand a session — but resuming
+ * one from days ago would append today's sets to it and bill the whole span
+ * between as trained time. Past the window a fresh session is started and the
+ * old one stays visible in the history as "nicht beendet".
+ */
+const RESUME_WINDOW_HOURS = 6
+
 export async function startWorkoutSession(userId: string, dayId: string): Promise<string> {
-  // Leaving the live page without finishing (back button, closed tab) must not
-  // strand a session: resume the open one for this day instead of opening a
-  // second one that stays unfinished forever.
-  const { data: open } = await supabase
+  const resumableFrom = new Date(Date.now() - RESUME_WINDOW_HOURS * 60 * 60 * 1000).toISOString()
+  const { data: open, error: openError } = await supabase
     .from('workout_sessions')
     .select('id')
     .eq('user_id', userId)
     .eq('workout_plan_day_id', dayId)
     .is('beendet_am', null)
+    .gte('gestartet_am', resumableFrom)
     .order('gestartet_am', { ascending: false })
     .limit(1)
+  // Without this the resume degrades silently back into opening a second
+  // session on any transient failure.
+  if (openError) throw new Error('start session failed')
   const openId = ((open ?? []) as { id: string }[])[0]?.id
   if (openId) return openId
 
@@ -156,15 +167,15 @@ export function useWorkoutSession(sessionId: string) {
     // Trained time runs to the last completed set, not to whenever the user
     // remembers to press the button — a session finished the next morning
     // would otherwise be billed as many hours of exercise.
-    const lastSetAt = sets.reduce<string | null>(
-      (latest, set) =>
-        set.abgeschlossen_am != null && (latest == null || set.abgeschlossen_am > latest)
-          ? set.abgeschlossen_am
-          : latest,
-      null,
-    )
+    // Compared as parsed instants, not as strings: two timestamps with
+    // different UTC offsets sort wrongly in lexicographic order.
+    const lastSetAt = sets.reduce<number | null>((latest, set) => {
+      if (set.abgeschlossen_am == null) return latest
+      const at = Date.parse(set.abgeschlossen_am)
+      return Number.isNaN(at) || (latest != null && at <= latest) ? latest : at
+    }, null)
     const startedAt = new Date(session?.gestartet_am ?? beendetAm).getTime()
-    const endedAt = new Date(lastSetAt ?? beendetAm).getTime()
+    const endedAt = lastSetAt ?? new Date(beendetAm).getTime()
     const dauerStunden = Math.max(0, endedAt - startedAt) / 1000 / 60 / 60
     const kalorienSets = sets.flatMap((set) =>
       set.exercise?.met_wert == null ? [] : [{ exercise: { met_wert: set.exercise.met_wert } }],

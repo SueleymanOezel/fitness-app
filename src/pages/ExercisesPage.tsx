@@ -20,7 +20,7 @@ export default function ExercisesPage() {
 }
 
 function ExercisesList({ userId }: { userId: string }) {
-  const { exercises, loading, createExercise } = useExercises(userId)
+  const { exercises, loading, error: loadError, createExercise } = useExercises(userId)
   const [query, setQuery] = useState('')
   const [showForm, setShowForm] = useState(false)
 
@@ -29,6 +29,17 @@ function ExercisesList({ userId }: { userId: string }) {
       <div>
         <h1>Übungen</h1>
         <p>Lädt…</p>
+      </div>
+    )
+  }
+
+  if (loadError) {
+    // A partly loaded library would look complete and quietly hide exercises.
+    return (
+      <div>
+        <h1>Übungen</h1>
+        <p role="alert">Übungen konnten nicht geladen werden.</p>
+        <Link to="/training">Zurück zum Training</Link>
       </div>
     )
   }

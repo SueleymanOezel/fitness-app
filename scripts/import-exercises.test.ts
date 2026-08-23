@@ -51,14 +51,14 @@ describe('toExerciseRow', () => {
   })
 })
 
-function createClient({ insertFails = false } = {}) {
+function createClient({ insertFails = false, existingIds = [{ id: 'old1' }] } = {}) {
   const calls: string[] = []
   const insert = vi.fn(async () => {
     calls.push('insert')
     return { error: insertFails ? { message: 'boom' } : null }
   })
-  const deleteIn = vi.fn(async () => {
-    calls.push('delete')
+  const deleteIn = vi.fn(async (column: string, ids: string[]) => {
+    calls.push(`delete ${column} ${ids.length}`)
     return { error: null }
   })
   return {
@@ -66,7 +66,11 @@ function createClient({ insertFails = false } = {}) {
     insert,
     deleteIn,
     from: () => ({
-      select: () => ({ is: async () => ({ data: [{ id: 'old1' }], error: null }) }),
+      select: () => ({
+        is: () => ({
+          range: async (from: number, to: number) => ({ data: existingIds.slice(from, to + 1), error: null }),
+        }),
+      }),
       insert,
       delete: () => ({ in: deleteIn }),
     }),
@@ -90,7 +94,7 @@ describe('replaceImportedExercises', () => {
 
     await replaceImportedExercises(client, [row])
 
-    expect(client.calls).toEqual(['insert', 'delete'])
+    expect(client.calls).toEqual(['insert', 'delete id 1'])
     expect(client.deleteIn).toHaveBeenCalledWith('id', ['old1'])
   })
 
@@ -99,5 +103,28 @@ describe('replaceImportedExercises', () => {
 
     await expect(replaceImportedExercises(client, [row])).rejects.toThrow()
     expect(client.deleteIn).not.toHaveBeenCalled()
+  })
+
+  it('deletes in chunks so the request URI stays within limits', async () => {
+    const existingIds = Array.from({ length: 873 }, (_, index) => ({ id: `old${index}` }))
+    const client = createClient({ existingIds })
+
+    await replaceImportedExercises(client, [row])
+
+    // 873 ids in one in.(...) would be ~32 KB of query string.
+    expect(client.deleteIn).toHaveBeenCalledTimes(9)
+    for (const call of client.deleteIn.mock.calls) {
+      expect(call[1].length).toBeLessThanOrEqual(100)
+    }
+    expect(client.deleteIn.mock.calls.flatMap((call) => call[1])).toHaveLength(873)
+  })
+
+  it('pages the read of the old set instead of stopping at the row cap', async () => {
+    const existingIds = Array.from({ length: 700 }, (_, index) => ({ id: `old${index}` }))
+    const client = createClient({ existingIds })
+
+    await replaceImportedExercises(client, [row])
+
+    expect(client.deleteIn.mock.calls.flatMap((call) => call[1])).toHaveLength(700)
   })
 })
