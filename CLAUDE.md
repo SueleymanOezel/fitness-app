@@ -109,9 +109,10 @@ Migration `0004_training_days.sql`: legt `workout_plan_days` an, benennt `workou
 
 **Dabei bestätigt, dass die Fixes aus den Review-Runden im echten Betrieb greifen:** Zielwerte schreiben erst beim Verlassen des Feldes, „nicht beendet" statt „0 kcal" bei unbeendeter Session, vollständige Übungsliste durch die Paginierung (letzter Eintrag alphabetisch vorhanden), Aktivierung als ein Statement.
 
-**Kosmetische Funde aus der Verifikation (offen, keine Blocker):**
-- Nach dem letzten Zielsatz zeigt das Formular während der Pause „Satz 3 von 2" — bei 90 Sekunden Pause anderthalb Minuten lang sichtbar. Besser wäre „alle Sätze erfasst" oder ein ausgeblendetes Formular.
-- Die Trainingsseiten haben kein Styling: Links kleben aneinander, der Start-Button sitzt mitten in der Linkzeile. Am Handy schwer zu treffen.
+**Kosmetische Funde aus der Verifikation (behoben, Branch `fix-training-layout`, PR #22 offen):**
+- Nach dem letzten Zielsatz zeigt das Formular jetzt „Alle Sätze erfasst" statt „Satz 3 von 2"; weitere Sätze bleiben erfassbar (`SetForm` in `src/pages/WorkoutSessionPage.tsx`, ein Test dazu).
+- Basis-Layout in `src/index.css` ergänzt. Die App hat nirgends `className`, deshalb rein elementbasiert: Buttons, Eingaben und Links mindestens 44 px hoch, alleinstehende Links als eigene Zeile über die volle Breite, Listen ohne Bullets mit Trennlinie und Abstand, Bottom-Nav als sticky Leiste, `main` mit Innenabstand. Wirkt app-weit, nicht nur im Trainingsbereich. **Optisch noch nicht im Browser gegengeprüft.**
+- Stand danach: 312/312 Tests grün, Lint sauber, Build erfolgreich.
 
 **Merke für die Bedienung:** Die Profilseite speichert über den „Speichern"-Button, **nicht** bei `blur` — anders als die Zielwert- und Satzfelder im Trainingsbereich.
 
