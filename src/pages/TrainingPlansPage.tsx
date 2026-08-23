@@ -47,7 +47,7 @@ function PlansList({ userId }: { userId: string }) {
   return (
     <div>
       <h1>Meine Pläne</h1>
-      <ul>
+      <ul role="list">
         {plans.map((plan) => (
           <li key={plan.id}>
             <Link to={`/training/plans/${plan.id}`}>{plan.name}</Link>

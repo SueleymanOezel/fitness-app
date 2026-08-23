@@ -36,7 +36,7 @@ function HistoryList({ userId }: { userId: string }) {
       {sessions.length === 0 ? (
         <p>Noch keine Trainings aufgezeichnet.</p>
       ) : (
-        <ul>
+        <ul role="list">
           {sessions.map((entry) => (
             <li key={entry.id}>
               <Link to={`/training/history/${entry.id}`}>

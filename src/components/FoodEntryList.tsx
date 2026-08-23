@@ -17,7 +17,7 @@ export default function FoodEntryList({ entries, userId, sections, onUpdateEntry
   }
 
   return (
-    <ul>
+    <ul role="list">
       {entries.map((entry) => (
         <FoodEntryRow
           key={entry.id}

@@ -73,7 +73,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     const current = exercises.find((entry) => entry.exercise_id === openExerciseId)
     if (!current) return
     const done = sets.filter((set) => set.exercise_id === current.exercise_id).length
-    if (current.ziel_saetze !== null && done >= current.ziel_saetze) {
+    if (targetReached(current.ziel_saetze, done)) {
       const sorted = [...exercises].sort((a, b) => a.reihenfolge - b.reihenfolge)
       const index = sorted.findIndex((entry) => entry.exercise_id === current.exercise_id)
       setOpenExerciseId(sorted[index + 1]?.exercise_id ?? null)
@@ -95,7 +95,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     <div>
       <h1>Training</h1>
       {pause !== null && <PauseTimer until={pause.until} sekunden={pause.sekunden} onDone={pauseOver} />}
-      <ul>
+      <ul role="list">
         {exercises.map((entry) => (
           <li key={entry.exercise_id}>
             <button type="button" onClick={() => setOpenExerciseId(entry.exercise_id)}>
@@ -137,6 +137,12 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
   )
 }
 
+// ziel_saetze = 0 means "no target", not "already done": the schema has no CHECK
+// on the column and the plan editor only rejects negative values.
+function targetReached(zielSaetze: number | null, done: number) {
+  return zielSaetze != null && zielSaetze > 0 && done >= zielSaetze
+}
+
 function SetForm({
   exercise,
   completedCount,
@@ -165,7 +171,7 @@ function SetForm({
       }}
     >
       <p>
-        {exercise.ziel_saetze != null && completedCount >= exercise.ziel_saetze
+        {targetReached(exercise.ziel_saetze, completedCount)
           ? 'Alle Sätze erfasst'
           : `Satz ${completedCount + 1}${exercise.ziel_saetze == null ? '' : ` von ${exercise.ziel_saetze}`}`}
       </p>
