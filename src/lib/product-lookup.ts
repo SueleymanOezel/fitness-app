@@ -9,9 +9,14 @@ export type Product = {
   eiweiss: number | null
   fett: number | null
   kohlenhydrate: number | null
+  ballaststoffe: number | null
+  zucker: number | null
+  salz: number | null
 }
 
-const PRODUCT_COLUMNS = 'id, name, barcode, kalorien, eiweiss, fett, kohlenhydrate'
+/** One list for every reader of the table, so a new column cannot reach some callers and not others. */
+export const PRODUCT_COLUMNS =
+  'id, name, barcode, kalorien, eiweiss, fett, kohlenhydrate, ballaststoffe, zucker, salz'
 
 export async function findOrFetchProductByBarcode(barcode: string): Promise<Product | null> {
   // Self-defending: callers pre-validate today, but this must not become the hole
@@ -45,6 +50,9 @@ export async function findOrFetchProductByBarcode(barcode: string): Promise<Prod
       eiweiss: offProduct.eiweiss,
       fett: offProduct.fett,
       kohlenhydrate: offProduct.kohlenhydrate,
+      ballaststoffe: offProduct.ballaststoffe,
+      zucker: offProduct.zucker,
+      salz: offProduct.salz,
     })
     .select(PRODUCT_COLUMNS)
     .maybeSingle()

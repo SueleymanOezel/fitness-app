@@ -65,6 +65,9 @@ erDiagram
         numeric eiweiss
         numeric fett
         numeric kohlenhydrate
+        numeric ballaststoffe
+        numeric zucker
+        numeric salz
         uuid created_by FK
     }
 
@@ -128,6 +131,8 @@ erDiagram
         int satz_nummer
         numeric gewicht
         int wiederholungen
+        smallint rir
+        boolean ist_aufwaermsatz
         timestamptz abgeschlossen_am
     }
 
@@ -141,6 +146,7 @@ erDiagram
         numeric armumfang
         numeric ruckenumfang
         numeric brustumfang
+        numeric koerperfettanteil
     }
 
     body_photos {
@@ -179,4 +185,7 @@ erDiagram
 - `workout_plan_day_exercises` hat einen Unique-Index auf `(workout_plan_day_id, exercise_id)` — dieselbe Übung kann in einem Tag nur einmal vorkommen, sonst teilen sich zwei Zeilen im Live-Training eine `exercise_id` (gemeinsame Satzzählung, falsche `satz_nummer`).
 - `workout_sessions.workout_plan_day_id` ist `on delete set null`: eine abgeschlossene Session ist die Aufzeichnung des tatsächlich Trainierten und überlebt das Umbauen oder Löschen des Plans — sie verliert nur ihre Beschriftung.
 - Genau ein Plan je Nutzer ist aktiv. Das Umschalten macht die Funktion `activate_workout_plan(plan_id uuid)` in **einem** Statement (`security invoker`, prüft die Eigentümerschaft selbst); zwei Requests aus dem Client konnten dazwischen scheitern und gar keinen aktiven Plan hinterlassen.
-- Quelle: `supabase/migrations/0001_initial_schema.sql` (Stand Phase 2 + Mahlzeiten-Abschnitte + Phase 3 (Trainingsbereich), inkl. `0002_nutrition_profile_fields.sql`, `0003_meal_sections.sql` und `0004_training_days.sql`).
+- `workout_session_sets.satz_nummer` ist eine reine Reihenfolge-Nummer über **alle** Sätze einer Übung, Aufwärmsätze eingeschlossen. Die Zählung „Satz 1 von 3" wird in der Oberfläche aus den Sätzen mit `ist_aufwaermsatz = false` abgeleitet; die Datenbank nummeriert nichts um, wenn ein Aufwärmsatz dazwischen liegt.
+- `workout_session_sets.rir` (0–5, „wie viele Wiederholungen wären noch gegangen", 0 = keine) und `body_metrics.koerperfettanteil` sind nullable: sie wurden nachträglich eingeführt und für ältere Zeilen ist der Wert schlicht unbekannt. `ist_aufwaermsatz` ist `not null default false` — jeder vor der Einführung erfasste Satz war aus Sicht der Volumen-Auswertung ein Arbeitssatz.
+- `products.ballaststoffe/zucker/salz` liegen wie die übrigen Nährwerte je 100 g vor. **Salz, nicht Natrium** — Open Food Facts liefert beides, deutsche Etiketten drucken Salz.
+- Quelle: `supabase/migrations/0001_initial_schema.sql` (Stand Phase 2 + Mahlzeiten-Abschnitte + Phase 3 (Trainingsbereich) + Analysefelder, inkl. `0002_nutrition_profile_fields.sql`, `0003_meal_sections.sql`, `0004_training_days.sql` und `0005_analysis_fields.sql`).

@@ -71,6 +71,27 @@ function Detail({ sessionId }: { sessionId: string }) {
                 run(() => updateSet(set.id, { wiederholungen: value }), 'Speichern fehlgeschlagen.')
               }
             />
+            <SetField
+              label="RIR"
+              stored={set.rir}
+              max={5}
+              onCommit={(value) => run(() => updateSet(set.id, { rir: value }), 'Speichern fehlgeschlagen.')}
+            />
+            <label>
+              Aufwärmsatz
+              <input
+                type="checkbox"
+                checked={set.ist_aufwaermsatz}
+                // Written straight through: there is nothing to type, so the
+                // blur-commit dance the number fields need buys nothing here.
+                onChange={(event) =>
+                  run(
+                    () => updateSet(set.id, { ist_aufwaermsatz: event.target.checked }),
+                    'Speichern fehlgeschlagen.',
+                  )
+                }
+              />
+            </label>
           </li>
         ))}
       </ul>
@@ -103,17 +124,20 @@ function Detail({ sessionId }: { sessionId: string }) {
 function SetField({
   label,
   stored,
+  max,
   onCommit,
 }: {
   label: string
   stored: number | null
+  /** Rejected client-side too, so an out-of-range RIR never becomes a failed write. */
+  max?: number
   onCommit: (value: number | null) => void
 }) {
   const [draft, setDraft] = useState(String(stored ?? ''))
 
   function commit() {
     const value = draft.trim() === '' ? null : Number(draft)
-    if (value !== null && (!Number.isFinite(value) || value < 0)) {
+    if (value !== null && (!Number.isFinite(value) || value < 0 || (max != null && value > max))) {
       setDraft(String(stored ?? ''))
       return
     }

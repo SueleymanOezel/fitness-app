@@ -21,6 +21,9 @@ function entry(menge: number, kalorien: number | null): FoodEntry {
             eiweiss: null,
             fett: null,
             kohlenhydrate: null,
+            ballaststoffe: null,
+            zucker: null,
+            salz: null,
           },
   }
 }

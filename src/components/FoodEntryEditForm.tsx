@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import ProductPicker from './ProductPicker'
-import { parseNutrients } from '../lib/nutrients'
+import { parseNutrients, type Nutrients } from '../lib/nutrients'
 import { saveProductEdit } from '../lib/product-edit'
 import { fromLocalInputValue, toLocalInputValue } from '../lib/local-time'
 import { MAX_NAME_LENGTH } from '../lib/open-food-facts'
@@ -34,6 +34,9 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
   const [eiweiss, setEiweiss] = useState(product?.eiweiss?.toString() ?? '')
   const [fett, setFett] = useState(product?.fett?.toString() ?? '')
   const [kohlenhydrate, setKohlenhydrate] = useState(product?.kohlenhydrate?.toString() ?? '')
+  const [ballaststoffe, setBallaststoffe] = useState(product?.ballaststoffe?.toString() ?? '')
+  const [zucker, setZucker] = useState(product?.zucker?.toString() ?? '')
+  const [salz, setSalz] = useState(product?.salz?.toString() ?? '')
   const [error, setError] = useState<string | null>(null)
   const [productSaveCache, setProductSaveCache] = useState<ProductSaveCache | null>(null)
 
@@ -82,7 +85,7 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
       // are not saved — the entry simply points at the chosen product now.
       patch.product_id = swapped.id
     } else if (product) {
-      const nutrients = parseNutrients({ kalorien, eiweiss, fett, kohlenhydrate })
+      const nutrients = parseNutrients({ kalorien, eiweiss, fett, kohlenhydrate, ballaststoffe, zucker, salz })
       if (!nutrients) {
         setError('Bitte plausible Werte pro 100 g eingeben (Kalorien 0–900 kcal, Makros 0–100 g).')
         return
@@ -92,12 +95,13 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
       // field has no maxLength, and products.name has no length constraint,
       // so an untrimmed value would reach the shared table unbounded (I2).
       const trimmedName = name.trim().slice(0, MAX_NAME_LENGTH) || product.name
+      // Compared over the parsed keys rather than field by field: a nutrient
+      // added later must not silently drop out of this check and stop saving.
       const nutrientsChanged =
         trimmedName !== product.name ||
-        nutrients.kalorien !== product.kalorien ||
-        nutrients.eiweiss !== product.eiweiss ||
-        nutrients.fett !== product.fett ||
-        nutrients.kohlenhydrate !== product.kohlenhydrate
+        (Object.keys(nutrients) as (keyof Nutrients)[]).some(
+          (field) => nutrients[field] !== product[field],
+        )
 
       // Only amount/time changed: writing the product here would, for a
       // product owned by someone else, always take the insert branch of
@@ -200,6 +204,22 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
               value={kohlenhydrate}
               onChange={(event) => setKohlenhydrate(event.target.value)}
             />
+          </label>
+          <label>
+            Ballaststoffe (g)
+            <input
+              type="number"
+              value={ballaststoffe}
+              onChange={(event) => setBallaststoffe(event.target.value)}
+            />
+          </label>
+          <label>
+            Zucker (g)
+            <input type="number" value={zucker} onChange={(event) => setZucker(event.target.value)} />
+          </label>
+          <label>
+            Salz (g)
+            <input type="number" value={salz} onChange={(event) => setSalz(event.target.value)} />
           </label>
         </fieldset>
       )}

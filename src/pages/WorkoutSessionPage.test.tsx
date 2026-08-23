@@ -28,6 +28,21 @@ const exercise = {
   reihenfolge: 1,
 }
 
+function loggedSet(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'set1',
+    exercise_id: 'ex1',
+    satz_nummer: 1,
+    gewicht: 60,
+    wiederholungen: 10,
+    rir: null,
+    ist_aufwaermsatz: false,
+    abgeschlossen_am: '2026-08-21T10:05:00.000Z',
+    exercise: { id: 'ex1', name: 'Bankdrücken', met_wert: 5 },
+    ...overrides,
+  }
+}
+
 function sessionResult(overrides: Partial<ReturnType<typeof mockUseWorkoutSession>> = {}) {
   return {
     session: {
@@ -88,7 +103,14 @@ describe('WorkoutSessionPage', () => {
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
     fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
 
-    await waitFor(() => expect(result.logSet).toHaveBeenCalledWith('ex1', 1, 60, 10))
+    await waitFor(() =>
+      expect(result.logSet).toHaveBeenCalledWith('ex1', 1, {
+        gewicht: 60,
+        wiederholungen: 10,
+        rir: null,
+        ist_aufwaermsatz: false,
+      }),
+    )
     expect(screen.getByText(/Pause/)).toBeInTheDocument()
   })
 
@@ -177,6 +199,92 @@ describe('WorkoutSessionPage', () => {
 
     expect(screen.getByText('Satz 1 von 0')).toBeInTheDocument()
     expect(screen.queryByText('Alle Sätze erfasst')).not.toBeInTheDocument()
+  })
+
+  it('does not count a warm-up set against the set target', () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({
+        sets: [
+          loggedSet({ id: 'w1', satz_nummer: 1, ist_aufwaermsatz: true }),
+          loggedSet({ id: 'w2', satz_nummer: 2, ist_aufwaermsatz: true }),
+        ],
+      }),
+    )
+
+    renderPage()
+
+    fireEvent.click(screen.getByText('Bankdrücken'))
+
+    // Two warm-ups are done, but the first working set is still ahead.
+    expect(screen.getByText('Satz 1 von 2')).toBeInTheDocument()
+  })
+
+  it('numbers a set after every earlier set, warm-ups included', async () => {
+    signedIn()
+    const result = sessionResult({
+      sets: [
+        loggedSet({ id: 'w1', satz_nummer: 1, ist_aufwaermsatz: true }),
+        loggedSet({ id: 's1', satz_nummer: 2 }),
+      ],
+    })
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    fireEvent.click(screen.getByText('Bankdrücken'))
+    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+
+    // Third row in the table even though it is only the second working set —
+    // satz_nummer is a running order, not the target counting.
+    await waitFor(() =>
+      expect(result.logSet).toHaveBeenCalledWith('ex1', 3, expect.objectContaining({ rir: null })),
+    )
+  })
+
+  it('announces a warm-up instead of a set number while the flag is set', () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+
+    fireEvent.click(screen.getByText('Bankdrücken'))
+    fireEvent.click(screen.getByLabelText('Aufwärmsatz'))
+
+    expect(screen.getByText('Aufwärmsatz — zählt nicht zum Ziel')).toBeInTheDocument()
+    expect(screen.queryByText('Satz 1 von 2')).not.toBeInTheDocument()
+  })
+
+  it('sends the chosen effort rating and clears it after the set', async () => {
+    signedIn()
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    fireEvent.click(screen.getByText('Bankdrücken'))
+    fireEvent.click(screen.getByRole('button', { name: '2' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+
+    await waitFor(() =>
+      expect(result.logSet).toHaveBeenCalledWith('ex1', 1, expect.objectContaining({ rir: 2 })),
+    )
+    // A rating carried over to the next set would be a value the user never gave.
+    expect(screen.getByRole('button', { name: '2' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('clears an effort rating when the same value is tapped again', () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+
+    fireEvent.click(screen.getByText('Bankdrücken'))
+    fireEvent.click(screen.getByRole('button', { name: '3' }))
+    expect(screen.getByRole('button', { name: '3' })).toHaveAttribute('aria-pressed', 'true')
+
+    fireEvent.click(screen.getByRole('button', { name: '3' }))
+    expect(screen.getByRole('button', { name: '3' })).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('completes the session using the profile weight', async () => {

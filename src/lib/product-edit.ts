@@ -1,11 +1,9 @@
 import { supabase } from './supabase'
-import type { Product } from './product-lookup'
+import { PRODUCT_COLUMNS, type Product } from './product-lookup'
 import type { Nutrients } from './nutrients'
 
 export type EditableProduct = { id: string; created_by: string | null }
 export type ProductPatch = Nutrients & { name: string }
-
-const PRODUCT_COLUMNS = 'id, name, barcode, kalorien, eiweiss, fett, kohlenhydrate'
 
 /**
  * products is shared: several users can point at the same row, so a correction

@@ -25,8 +25,19 @@ export type SessionSet = {
   satz_nummer: number
   gewicht: number | null
   wiederholungen: number | null
+  /** Reps in reserve, 0 = nothing left. Null where it was not rated. */
+  rir: number | null
+  ist_aufwaermsatz: boolean
   abgeschlossen_am: string | null
   exercise: { id: string; name: string; met_wert: number | null } | null
+}
+
+/** What the live form collects for one set. satz_nummer is derived, not entered. */
+export type SetValues = {
+  gewicht: number | null
+  wiederholungen: number | null
+  rir: number | null
+  ist_aufwaermsatz: boolean
 }
 
 type RawDayExercise = {
@@ -102,7 +113,9 @@ export function useWorkoutSession(sessionId: string) {
 
     const { data: setRows } = await supabase
       .from('workout_session_sets')
-      .select('id, exercise_id, satz_nummer, gewicht, wiederholungen, abgeschlossen_am, exercises(id, name, met_wert)')
+      .select(
+        'id, exercise_id, satz_nummer, gewicht, wiederholungen, rir, ist_aufwaermsatz, abgeschlossen_am, exercises(id, name, met_wert)',
+      )
       .eq('workout_session_id', sessionId)
       .order('abgeschlossen_am', { ascending: true })
 
@@ -126,6 +139,8 @@ export function useWorkoutSession(sessionId: string) {
         satz_nummer: row.satz_nummer,
         gewicht: row.gewicht,
         wiederholungen: row.wiederholungen,
+        rir: row.rir,
+        ist_aufwaermsatz: row.ist_aufwaermsatz,
         abgeschlossen_am: row.abgeschlossen_am,
         exercise: row.exercises,
       })),
@@ -143,20 +158,24 @@ export function useWorkoutSession(sessionId: string) {
 
   // supabase-js resolves rather than throws on a rejected write, so an unchecked
   // error would let the UI report success while nothing was stored.
-  async function logSet(exerciseId: string, satzNummer: number, gewicht: number | null, wiederholungen: number | null) {
+  async function logSet(exerciseId: string, satzNummer: number, values: SetValues) {
     const { error } = await supabase.from('workout_session_sets').insert({
       workout_session_id: sessionId,
       exercise_id: exerciseId,
+      // Plain running order over every set of this exercise, warm-ups included.
+      // The "set 1 of 3" counting is derived in the UI from working sets alone.
       satz_nummer: satzNummer,
-      gewicht,
-      wiederholungen,
+      ...values,
       abgeschlossen_am: new Date().toISOString(),
     })
     if (error) throw new Error('log set failed')
     await reload()
   }
 
-  async function updateSet(setId: string, patch: Partial<Pick<SessionSet, 'gewicht' | 'wiederholungen'>>) {
+  async function updateSet(
+    setId: string,
+    patch: Partial<Pick<SessionSet, 'gewicht' | 'wiederholungen' | 'rir' | 'ist_aufwaermsatz'>>,
+  ) {
     const { error } = await supabase.from('workout_session_sets').update(patch).eq('id', setId)
     if (error) throw new Error('update set failed')
     await reload()

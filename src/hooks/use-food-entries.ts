@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { PRODUCT_COLUMNS, type Product } from '../lib/product-lookup'
 
 export type FoodEntry = {
   id: string
@@ -7,16 +8,8 @@ export type FoodEntry = {
   zeitpunkt: string
   product_id: string | null
   mahlzeit: number | null
-  products: {
-    id: string
-    name: string
-    barcode: string | null
-    created_by: string | null
-    kalorien: number
-    eiweiss: number | null
-    fett: number | null
-    kohlenhydrate: number | null
-  } | null
+  /** Owner included: correcting a product hinges on whether it belongs to the user. */
+  products: (Product & { created_by: string | null }) | null
 }
 
 export type EntryPatch = {
@@ -47,7 +40,7 @@ export function useFoodEntries(userId: string) {
     const { data } = await supabase
       .from('food_entries')
       .select(
-        'id, menge, zeitpunkt, product_id, mahlzeit, products(id, name, barcode, created_by, kalorien, eiweiss, fett, kohlenhydrate)',
+        `id, menge, zeitpunkt, product_id, mahlzeit, products(${PRODUCT_COLUMNS}, created_by)`,
       )
       .eq('user_id', userId)
       .gte('zeitpunkt', start)

@@ -4,6 +4,9 @@ export type OffProduct = {
   eiweiss: number | null
   fett: number | null
   kohlenhydrate: number | null
+  ballaststoffe: number | null
+  zucker: number | null
+  salz: number | null
 }
 
 type OffApiResponse = {
@@ -15,6 +18,9 @@ type OffApiResponse = {
       proteins_100g?: unknown
       fat_100g?: unknown
       carbohydrates_100g?: unknown
+      fiber_100g?: unknown
+      sugars_100g?: unknown
+      salt_100g?: unknown
     }
   }
 }
@@ -71,5 +77,10 @@ export async function fetchProductByBarcode(barcode: string): Promise<OffProduct
     eiweiss: plausibleNutrient(nutriments?.proteins_100g, 100),
     fett: plausibleNutrient(nutriments?.fat_100g, 100),
     kohlenhydrate: plausibleNutrient(nutriments?.carbohydrates_100g, 100),
+    ballaststoffe: plausibleNutrient(nutriments?.fiber_100g, 100),
+    zucker: plausibleNutrient(nutriments?.sugars_100g, 100),
+    // salt_100g, not sodium_100g: German labels print salt, and converting would
+    // silently disagree with the packet the user is holding.
+    salz: plausibleNutrient(nutriments?.salt_100g, 100),
   }
 }
