@@ -99,11 +99,15 @@ Migration `0004_training_days.sql`: legt `workout_plan_days` an, benennt `workou
 - Fehlgeschlagene Writes wurden auf allen Seiten stumm geschluckt (unbehandelte Rejections) — jetzt überall sichtbare Meldung; ein fehlgeschlagener Satz startet keine Pause, ein fehlgeschlagenes Löschen navigiert nicht weg.
 - Der Test-Helper des Plans (`async function PageUnderTest`) ist in React 19 nicht renderbar (3×), die Timer-Tests hingen unter eingefrorenen Fake-Timern, und der `PauseTimer` verstieß mit `Date.now()` im Render und Ref-Zuweisung im Render gegen zwei Lint-Regeln.
 
-**Noch offen nach dem Merge:**
-1. **Einmaliger Übungsimport** mit dem Service-Role-Key: `SUPABASE_SERVICE_ROLE_KEY=<key> VITE_SUPABASE_URL=https://zqliubzvzbnaogqcmypg.supabase.co npm run import-exercises` — danach sollte `exercises` ~873 Zeilen mit gesetztem `met_wert` haben. Ohne diesen Schritt ist die Übungssuche leer und es lässt sich kein Plan befüllen.
-2. **Manual-Verification** gegen die Produktionsinstanz, neun Schritte im Plan unter Task 16, Step 5.
-3. **Wiki synchronisieren** (`Domain-Model` ist lokal aktualisiert, aber noch nicht committet/gepusht; `Phase-3-Design-Spec`, `Phase-3-Implementation-Plan`, `Home`, `_Sidebar` fehlen noch).
-4. Branch `feat-phase3-trainingsbereich` lokal und remote entfernen.
+**Erledigt nach dem Merge:** Wiki synchronisiert (`Domain-Model`, `Phase-3-Design-Spec`, `Phase-3-Implementation-Plan`, `Home`, `_Sidebar` — gepusht, Commit `9c69ef3`), Branch `feat-phase3-trainingsbereich` lokal und remote entfernt.
+
+**Noch offen — hier geht es in einem neuen Chat weiter:**
+
+1. **Einmaliger Übungsimport gegen die Produktionsinstanz.** Muss der Nutzer selbst ausführen, der Service-Role-Key darf nicht in den Chat:
+   `SUPABASE_SERVICE_ROLE_KEY=<key> VITE_SUPABASE_URL=https://zqliubzvzbnaogqcmypg.supabase.co npm run import-exercises`
+   Erwartete Ausgabe: `imported 873 exercises`. **Ohne diesen Schritt ist die Übungssuche leer und es lässt sich kein Trainingsplan befüllen** — die App wirkt dann kaputt, ist es aber nicht.
+2. **Prüfen, ob Migration `0004` angewendet wurde** (läuft bei Merge nach `master` automatisch): `workout_plan_days` existiert, `workout_plan_exercises` heißt jetzt `workout_plan_day_exercises`, `workout_sessions` hat `workout_plan_day_id`, und es gibt die Funktion `activate_workout_plan`.
+3. **Manual-Verification**, neun Schritte im Plan unter Task 16, Step 5: Plan mit zwei Tagen anlegen → je Tag eine Übung mit Zielwerten → Plan aktivieren → `/training` schlägt Tag 1 vor → Session starten, Satz erfassen, Pausen-Timer läuft → abschließen → erneut starten schlägt Tag 2 vor → Historie prüfen, Satz korrigieren, Session löschen → Gewicht im Profil leeren und prüfen, dass „—" statt einer Kalorienzahl erscheint.
 
 **Whole-Branch-Review und zwei Fix-Runden abgeschlossen** (Commits `799bc23`, `1e212d0`, `59c7449`): 12 Findings aus der Review behoben, danach hat der Scoped Re-Review **zwei High-Regressionen in den Fixes selbst** gefunden — beide behoben:
 - Das Wiederaufnehmen einer offenen Session hatte keine Zeitgrenze und hebelte die Dauer-Korrektur wieder aus (Session von Montag am Freitag fortgesetzt → ~96 h, ~38 000 kcal). Jetzt 6-Stunden-Fenster.
@@ -111,10 +115,13 @@ Migration `0004_training_days.sql`: legt `workout_plan_days` an, benennt `workou
 
 Ebenfalls erledigt: `on delete set null` auf `workout_sessions.workout_plan_day_id`, Unique-Index `(workout_plan_day_id, exercise_id)`, `activate_workout_plan()` als Postgres-Funktion (ein Statement statt zwei Writes), Paginierung mit Fehlerzustand in `useExercises`, kompensierende Writes mit eigener Fehlermeldung, ISO-Zeitstempel als geparste Instants statt als Strings.
 
-**Weiterhin offen (bewusst):**
+**Bewusst offen gelassen (keine Fehler, sondern Entscheidungen):**
 - Kein Rückfragen-Dialog vor dem Löschen von Plan oder Session.
 - Bundle bei 968 kB (264 kB gzip), über Vites Warnschwelle — Code-Splitting gehört in Phase 5.
 - Die Dauer einer Session läuft bis zum letzten Satz; eine Session ohne jeden Satz schreibt `0` statt `null` und erscheint in der Historie als „0 kcal" statt „nicht beendet".
+- Übungen werden beim Wiederaufnehmen einer Session nur innerhalb von 6 Stunden fortgesetzt (`RESUME_WINDOW_HOURS` in `src/hooks/use-workout-session.ts`); danach beginnt eine neue Session, die alte bleibt als „nicht beendet" in der Historie stehen.
+
+**Nach der Manual-Verification:** Phase 4 (Körperbereich & Health-Integration) — Spec und Plan dafür noch zu erstellen (`superpowers:brainstorming` → `superpowers:writing-plans`).
 
 ## UI-Struktur (gilt ab Phase 3)
 
