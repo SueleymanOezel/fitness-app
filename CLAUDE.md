@@ -67,16 +67,46 @@ Das vollständige Architekturkonzept mit Datenbankschema, REST-API-Endpunkten pr
 
 Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer Chat sofort weiß, was gemacht wurde und was als Nächstes ansteht.
 
-**Aktueller Stand:** Phase 1 und Phase 2 sind gemerged, deployed und vollständig manuell verifiziert (inklusive Kamera-Scan am Handy). Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header — die Profildaten mussten vorher von Hand im Supabase-Table-Editor gepflegt werden. Der Ernährungsbereich wurde außerdem um eine eigene Eintragsliste unter `/nutrition/entries` erweitert, die jetzt nach Mahlzeiten-Abschnitten gegliedert ist. Der Mahlzeiten-Abschnitte-Branch (`feat-meal-sections`) ist implementiert und lokal vollständig verifiziert, aber noch nicht gemerged — siehe unten.
+**Aktueller Stand:** Phase 1 und Phase 2 sind gemerged, deployed und vollständig manuell verifiziert (inklusive Kamera-Scan am Handy). Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header — die Profildaten mussten vorher von Hand im Supabase-Table-Editor gepflegt werden. Der Ernährungsbereich wurde außerdem um eine eigene Eintragsliste unter `/nutrition/entries` erweitert, die jetzt nach Mahlzeiten-Abschnitten gegliedert ist. Der Mahlzeiten-Abschnitte-Branch (`feat-meal-sections`) ist inzwischen **gemerged** (PR #20, Merge-Commit `752587c`). Aktuell läuft Phase 3 auf dem Branch `feat-phase3-trainingsbereich` — siehe eigenen Abschnitt weiter unten.
 
-**Mahlzeiten-Abschnitte (Branch `feat-meal-sections`, alle 9 Tasks fertig):** Einträge auf `/nutrition/entries` sind nach Mahlzeiten gegliedert — sechs feste Slots, vier davon vorbelegt (Frühstück, Mittagessen, Abendessen, Snacks), die restlichen zwei optional und nur sichtbar, sobald sie einen Namen oder Einträge haben. Die Namen stehen im Profil unter „Mahlzeiten"; welchem Abschnitt ein Eintrag zugeordnet ist, ergibt sich daraus, in welchem Abschnitt er erfasst wurde. Alt-Einträge von vor der Migration stehen unter „Ohne Zuordnung" und lassen sich über „Bearbeiten" nachträglich einsortieren. Das Ernährungs-Dashboard zeigt die Kalorien je Abschnitt als Link zur Eintragsliste. Enthält Migration `0003_meal_sections.sql` (fügt nur Spalten hinzu; bestehende Zeilen bekommen `mahlzeit = null`). Spec: `docs/superpowers/specs/2026-08-20-mahlzeiten-abschnitte-design.md`, Plan: `docs/superpowers/plans/2026-08-20-mahlzeiten-abschnitte-plan.md`. Noch offen: Whole-Branch-Review und PR, danach Manual-Verification gegen die echte Produktionsinstanz (Schritte dafür im Plan unter Task 9, Step 5).
+**Mahlzeiten-Abschnitte (gemerged, alle 9 Tasks fertig):** Einträge auf `/nutrition/entries` sind nach Mahlzeiten gegliedert — sechs feste Slots, vier davon vorbelegt (Frühstück, Mittagessen, Abendessen, Snacks), die restlichen zwei optional und nur sichtbar, sobald sie einen Namen oder Einträge haben. Die Namen stehen im Profil unter „Mahlzeiten"; welchem Abschnitt ein Eintrag zugeordnet ist, ergibt sich daraus, in welchem Abschnitt er erfasst wurde. Alt-Einträge von vor der Migration stehen unter „Ohne Zuordnung" und lassen sich über „Bearbeiten" nachträglich einsortieren. Das Ernährungs-Dashboard zeigt die Kalorien je Abschnitt als Link zur Eintragsliste. Enthält Migration `0003_meal_sections.sql` (fügt nur Spalten hinzu; bestehende Zeilen bekommen `mahlzeit = null`). Spec: `docs/superpowers/specs/2026-08-20-mahlzeiten-abschnitte-design.md`, Plan: `docs/superpowers/plans/2026-08-20-mahlzeiten-abschnitte-plan.md`. Noch offen: Whole-Branch-Review und PR, danach Manual-Verification gegen die echte Produktionsinstanz (Schritte dafür im Plan unter Task 9, Step 5).
 
 **Einträge und Produkte bearbeiten (Branch `feat-entry-editing`, Task 8 von 8 fertig):** Über einen „Bearbeiten"-Button in der Eintragsliste unter `/nutrition/entries` lassen sich bei einem Eintrag Menge, Zeitpunkt, das verknüpfte Produkt und dessen Nährwerte ändern. Eigentümerregel in einem Satz: Ein Produkt, das dem Nutzer gehört, wird direkt aktualisiert und behält seinen Barcode; ein fremdes Produkt wird kopiert (Kopie ohne Barcode) und der Eintrag auf die Kopie umgehängt — geschrieben wird nur, wenn sich Name oder Nährwerte tatsächlich geändert haben. Spec: `docs/superpowers/specs/2026-08-19-eintraege-bearbeiten-design.md`, Plan: `docs/superpowers/plans/2026-08-19-eintraege-bearbeiten-plan.md`.
 
 Offene Folgevorhaben (noch nicht umgesetzt):
 1. **Portionen statt reiner Gramm-Eingabe.**
+2. **Trainingstag/Restday-Kalender** (Integration ins Home-Dashboard).
+3. **Kalorienberechnung je Übung mit eigener Dauer** statt eines MET-Durchschnitts über die ganze Session.
+4. **Schwierigkeitsgrad-Import** aus free-exercise-db (`level`-Feld wird beim Import derzeit verworfen).
 
-Nächster Schritt danach: Phase 3 (Trainingsbereich) — Spec/Plan dafür noch zu erstellen (`superpowers:brainstorming` → `superpowers:writing-plans`).
+## Phase 3 – Trainingsbereich (implementiert, noch nicht gemerged)
+
+- Spec: `docs/superpowers/specs/2026-08-21-phase3-trainingsbereich-design.md`
+- Plan: `docs/superpowers/plans/2026-08-21-phase3-trainingsbereich-plan.md` (16 Tasks)
+- Branch `feat-phase3-trainingsbereich`, alle 16 Tasks fertig, jeder Task ein Commit (`4961729`..`0098f65`).
+- Stand: **287/287 Tests grün**, Lint ohne Fehler und Warnungen, `tsc -b --noEmit` sauber, `npm run build` erfolgreich.
+
+Umgesetzt: Übungsdatenbank importierbar (free-exercise-db, 873 Übungen, MET-Wert je Kategorie); Trainingspläne mit mehreren benannten Tagen (z. B. Push/Pull/Legs) samt Plan-Editor mit Umsortieren; automatische Tag-Rotation aus der zuletzt abgeschlossenen Session; Live-Trainingsmodus mit sofort gespeicherten Sätzen, Pausen-Timer über Zielzeitpunkt und automatischem Sprung zur nächsten Übung; Kalorienberechnung über die MET-Formel beim Abschließen; Trainingshistorie mit Detailansicht, nachträglicher Satz-Korrektur und Löschen. Routen: `/training`, `/training/plans`, `/training/plans/:planId`, `/training/exercises`, `/training/session/:sessionId`, `/training/history`, `/training/history/:sessionId`.
+
+Migration `0004_training_days.sql`: legt `workout_plan_days` an, benennt `workout_plan_exercises` in `workout_plan_day_exercises` um (mit `workout_plan_day_id` statt `workout_plan_id`) und hängt `workout_sessions` ebenfalls an den Tag. Die Tabellen waren leer, deshalb keine Datenmigration — **vor dem Merge in Supabase gegenprüfen**, da die Migration bei Merge nach `master` automatisch auf Produktion läuft.
+
+**Beim Umsetzen gefunden und abweichend vom Plan gelöst** (der Plan-Code hätte an mehreren Stellen nicht funktioniert):
+- `upsert(..., { onConflict: 'name' })` im Import-Skript wäre gescheitert — `exercises.name` hat keinen Unique-Constraint. Stattdessen ersetzt das Skript den Import-Satz (`delete where created_by is null` + `insert`); ein Unique-Index auf `name` würde verhindern, dass zwei Nutzer dieselbe Übung anlegen.
+- `import.meta.url === \`file://${process.argv[1]}\`` ist unter Windows immer falsch — `main()` wäre nie gelaufen.
+- Rotation: die Abfrage nach der letzten Session filterte nicht auf beendete Sessions; Postgres sortiert `null` bei `desc` zuerst, eine abgebrochene Session hätte die Rotation dauerhaft verstellt. Jetzt `.not('beendet_am', 'is', null)`.
+- Drei Seiten schrieben Zahlenfelder pro Tastendruck in die DB (Plan-Editor, Satz-Korrektur) — jetzt Draft mit Commit auf `blur`, wie im `CalorieGoalEditor`.
+- Alle neuen Hooks haben den `requestId`-Guard (Out-of-order-Reloads, State nach Unmount), im Plan-Code fehlte er durchgängig.
+- Fehlgeschlagene Writes wurden auf allen Seiten stumm geschluckt (unbehandelte Rejections) — jetzt überall sichtbare Meldung; ein fehlgeschlagener Satz startet keine Pause, ein fehlgeschlagenes Löschen navigiert nicht weg.
+- Der Test-Helper des Plans (`async function PageUnderTest`) ist in React 19 nicht renderbar (3×), die Timer-Tests hingen unter eingefrorenen Fake-Timern, und der `PauseTimer` verstieß mit `Date.now()` im Render und Ref-Zuweisung im Render gegen zwei Lint-Regeln.
+
+**Noch offen:** Whole-Branch-Review, PR und Merge; danach der einmalige Übungsimport mit dem Service-Role-Key (Task 2, Step 11) und die Manual-Verification gegen die Produktionsinstanz (Schritte im Plan unter Task 16, Step 5).
+
+**Für die Review vorgemerkt (bewusst nicht eigenmächtig geändert):**
+- `completeSession` rechnet die Dauer als `beendet_am − gestartet_am` — eine vergessene, erst am Folgetag beendete Session ergibt eine absurde Kalorienzahl.
+- `activatePlan` sind zwei Writes ohne Transaktion; bricht der zweite ab, ist gar kein Plan mehr aktiv.
+- `workout_sessions.workout_plan_day_id` hat kein `on delete set null` — das Löschen eines Plans scheitert, solange Sessions daran hängen.
+- Kein Rückfragen-Dialog vor dem Löschen von Plan oder Session.
+- Bundle bei 968 kB (264 kB gzip), über Vites Warnschwelle — Code-Splitting gehört in Phase 5.
 
 ## UI-Struktur (gilt ab Phase 3)
 

@@ -6,7 +6,7 @@ Lebendes Dokument — bei jeder neuen Migration (`supabase/migrations/*.sql`) hi
 
 - **Nutzer & Profil** — `profiles`, 1:1 mit Supabase Auth (`auth.users`)
 - **Ernährung** — `products` (Community-Datenbank), `food_entries`
-- **Training** — `exercises`, `workout_plans`, `workout_plan_exercises`, `workout_sessions`, `workout_session_sets`
+- **Training** — `exercises`, `workout_plans`, `workout_plan_days`, `workout_plan_day_exercises`, `workout_sessions`, `workout_session_sets`
 - **Körper** — `body_metrics`, `body_photos`
 - **Kalender** — `day_status`
 - **Health-Sync** — `health_sync_data`
@@ -29,11 +29,12 @@ erDiagram
 
     products ||--o{ food_entries : "referenziert"
 
-    exercises ||--o{ workout_plan_exercises : "referenziert"
+    exercises ||--o{ workout_plan_day_exercises : "referenziert"
     exercises ||--o{ workout_session_sets : "referenziert"
 
-    workout_plans ||--o{ workout_plan_exercises : "enthält"
-    workout_plans ||--o{ workout_sessions : "wird durchgeführt in"
+    workout_plans ||--o{ workout_plan_days : "gliedert sich in"
+    workout_plan_days ||--o{ workout_plan_day_exercises : "enthält"
+    workout_plan_days ||--o{ workout_sessions : "wird durchgeführt in"
 
     workout_sessions ||--o{ workout_session_sets : "enthält"
 
@@ -94,9 +95,16 @@ erDiagram
         boolean aktiv
     }
 
-    workout_plan_exercises {
+    workout_plan_days {
         uuid id PK
         uuid workout_plan_id FK
+        text name
+        int reihenfolge
+    }
+
+    workout_plan_day_exercises {
+        uuid id PK
+        uuid workout_plan_day_id FK
         uuid exercise_id FK
         int reihenfolge
         int ziel_saetze
@@ -107,7 +115,7 @@ erDiagram
     workout_sessions {
         uuid id PK
         uuid user_id FK
-        uuid workout_plan_id FK
+        uuid workout_plan_day_id FK
         timestamptz gestartet_am
         timestamptz beendet_am
         numeric gesamt_kalorien
@@ -165,4 +173,7 @@ erDiagram
 - `body_metrics` und `day_status` haben je einen `unique (user_id, datum)`-Constraint — pro Nutzer und Tag genau ein Eintrag.
 - `profiles.geschlecht/aktivitaetslevel/ziel/ziel_delta_kcal` speisen die Mifflin-St-Jeor-Berechnung des Kalorienziels (`src/lib/nutrition-goal.ts`); `taegliches_kalorienziel` überschreibt die Berechnung, wenn gesetzt. `products.barcode` hat seit Phase 2 einen Unique-Index für nicht-null-Werte (`products_barcode_unique`).
 - `profiles.mahlzeit_1_name` bis `_6_name` benennen sechs feste Mahlzeiten-Slots; `food_entries.mahlzeit` verweist als stabile Nummer 1–6 darauf und ist `null`, solange ein Eintrag keinem Abschnitt zugeordnet ist. Bewusst keine Array-Positionen: Beim Entfernen eines Abschnitts würden sonst alle nachfolgenden Einträge still auf den falschen Abschnitt zeigen.
-- Quelle: `supabase/migrations/0001_initial_schema.sql` (Stand Phase 2 + Mahlzeiten-Abschnitte, inkl. `0002_nutrition_profile_fields.sql` und `0003_meal_sections.sql`).
+- `workout_plan_days` gibt einem Trainingsplan mehrere benannte Tage (z. B. „Push"/„Pull"/„Legs"); `workout_plan_day_exercises` hängt an einem Tag statt direkt am Plan, `workout_sessions.workout_plan_day_id` verweist auf den konkreten trainierten Tag. Welcher Tag als Nächstes ansteht, ergibt sich zur Laufzeit aus dem zuletzt **abgeschlossenen** Tag desselben Plans (Rotation, keine eigene Spalte) — kein Kalender beteiligt.
+- `gesamt_kalorien` in `workout_sessions` wird einmalig bei „Training abschließen" berechnet (MET-Durchschnitt über alle Sätze × `profiles.aktuelles_gewicht` × Dauer) und danach nicht rückwirkend neu berechnet, auch wenn sich der MET-Wert einer verwendeten Übung später ändert.
+- `exercises.met_wert` stammt beim Import aus einer Zuordnung Kategorie → MET (`src/lib/met-categories.ts`), nicht aus einem Wert je Übung. Importierte Zeilen tragen `created_by = null` und unterscheiden sich dadurch von selbst angelegten Übungen.
+- Quelle: `supabase/migrations/0001_initial_schema.sql` (Stand Phase 2 + Mahlzeiten-Abschnitte + Phase 3 (Trainingsbereich), inkl. `0002_nutrition_profile_fields.sql`, `0003_meal_sections.sql` und `0004_training_days.sql`).
