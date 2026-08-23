@@ -140,8 +140,7 @@ describe('useBodyMetrics', () => {
 
   it('rejects with ProfileWeightSyncError when the entry saved but the profile mirror failed, and reloads anyway', async () => {
     // The body_metrics write succeeds; only the profiles update fails. The
-    // caller must be able to tell this apart from "nothing was saved," and the
-    // list must reflect the successful write regardless.
+    // caller must be able to tell this apart from "nothing was saved."
     const metrics = createQueryBuilder({ data: rows })
     const profiles = createQueryBuilder({ data: null, error: { message: 'boom' } })
     mockTables({ body_metrics: metrics, profiles })
@@ -153,7 +152,14 @@ describe('useBodyMetrics', () => {
     await expect(result.current.saveEntry('2026-08-24', values)).rejects.toBeInstanceOf(
       ProfileWeightSyncError,
     )
-    expect(result.current.rows).toEqual(rows)
+    // reload()'s list-shaped select carries the full column list (it contains
+    // "bauchumfang"), unlike syncProfileWeight's single-column 'gewicht'
+    // select — so counting these tells apart "reloaded once on mount only"
+    // from "reloaded again after the write, before the profile sync failed."
+    const listSelects = (metrics.select as ReturnType<typeof vi.fn>).mock.calls.filter(
+      ([columns]: unknown[]) => typeof columns === 'string' && columns.includes('bauchumfang'),
+    ).length
+    expect(listSelects).toBe(2)
   })
 
   it('rejects with ProfileWeightSyncError when the delete succeeded but the profile mirror failed, and reloads anyway', async () => {
@@ -166,6 +172,11 @@ describe('useBodyMetrics', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     await expect(result.current.deleteEntry('c')).rejects.toBeInstanceOf(ProfileWeightSyncError)
-    expect(result.current.rows).toEqual(rows)
+    // Same reasoning as the saveEntry case above: two list-shaped selects means
+    // reload() ran again after the delete, even though the profile sync then failed.
+    const listSelects = (metrics.select as ReturnType<typeof vi.fn>).mock.calls.filter(
+      ([columns]: unknown[]) => typeof columns === 'string' && columns.includes('bauchumfang'),
+    ).length
+    expect(listSelects).toBe(2)
   })
 })
