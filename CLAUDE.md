@@ -109,10 +109,12 @@ Migration `0004_training_days.sql`: legt `workout_plan_days` an, benennt `workou
 
 **Dabei bestätigt, dass die Fixes aus den Review-Runden im echten Betrieb greifen:** Zielwerte schreiben erst beim Verlassen des Feldes, „nicht beendet" statt „0 kcal" bei unbeendeter Session, vollständige Übungsliste durch die Paginierung (letzter Eintrag alphabetisch vorhanden), Aktivierung als ein Statement.
 
-**Kosmetische Funde aus der Verifikation (behoben, Branch `fix-training-layout`, PR #22 offen):**
+**Kosmetische Funde aus der Verifikation (behoben, Branch `fix-training-layout`, PR #22 offen, Review durch):**
 - Nach dem letzten Zielsatz zeigt das Formular jetzt „Alle Sätze erfasst" statt „Satz 3 von 2"; weitere Sätze bleiben erfassbar (`SetForm` in `src/pages/WorkoutSessionPage.tsx`, ein Test dazu).
 - Basis-Layout in `src/index.css` ergänzt. Die App hat nirgends `className`, deshalb rein elementbasiert: Buttons, Eingaben und Links mindestens 44 px hoch, alleinstehende Links als eigene Zeile über die volle Breite, Listen ohne Bullets mit Trennlinie und Abstand, Bottom-Nav als sticky Leiste, `main` mit Innenabstand. Wirkt app-weit, nicht nur im Trainingsbereich. **Optisch noch nicht im Browser gegengeprüft.**
-- Stand danach: 312/312 Tests grün, Lint sauber, Build erfolgreich.
+- Review fand fünf Findings, keine blockierende Korrektheitslücke (Commit `b637b1c`): 44 px Mindest**breite** für Links (das Profil-Emoji im Header war nur ~36 px breit), `env(safe-area-inset-bottom)` auf der Bottom-Nav (Home-Indicator verdeckte das untere Drittel der Tabs), `ziel_saetze = 0` ist erlaubt und hätte „Alle Sätze erfasst" vor dem ersten Satz gezeigt, `role="list"` auf allen neun `<ul>` (Safari nimmt einer Liste ohne Marker die Listensemantik), Zeilen-Selektor unabhängig von der Verschachtelung.
+- Scoped Re-Review fand **zwei Nachzügler in den Fixes** (Commit `4fecea8`): die Null-Ziel-Prüfung gab es an zwei Stellen, `pauseOver` hatte den Guard nicht und wäre bei `ziel_saetze = 0` nach dem ersten Satz sofort weitergesprungen — jetzt ein `targetReached()` für beide; und `main a:not(li a)` war zu weit gefasst und hat den Link im Satz „Für ein Tagesziel Profil vervollständigen." umbrochen — Absatz-Links jetzt ausgenommen.
+- Stand danach: 313/313 Tests grün, Lint sauber, Build erfolgreich.
 
 **Merke für die Bedienung:** Die Profilseite speichert über den „Speichern"-Button, **nicht** bei `blur` — anders als die Zielwert- und Satzfelder im Trainingsbereich.
 
