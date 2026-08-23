@@ -138,6 +138,33 @@ describe('WorkoutSessionPage', () => {
     )
   })
 
+  it('says all sets are logged instead of counting past the target', () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({
+        exercises: [{ ...exercise, ziel_saetze: 1 }],
+        sets: [
+          {
+            id: 'set1',
+            exercise_id: 'ex1',
+            satz_nummer: 1,
+            gewicht: 60,
+            wiederholungen: 10,
+            abgeschlossen_am: '2026-08-21T10:05:00.000Z',
+            exercise: { id: 'ex1', name: 'Bankdrücken', met_wert: 5 },
+          },
+        ],
+      }),
+    )
+
+    renderPage()
+
+    fireEvent.click(screen.getByText('Bankdrücken'))
+
+    expect(screen.getByText('Alle Sätze erfasst')).toBeInTheDocument()
+    expect(screen.queryByText('Satz 2 von 1')).not.toBeInTheDocument()
+  })
+
   it('completes the session using the profile weight', async () => {
     signedIn()
     const result = sessionResult()

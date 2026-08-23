@@ -164,7 +164,11 @@ function SetForm({
         setWiederholungen('')
       }}
     >
-      <p>{`Satz ${completedCount + 1}${exercise.ziel_saetze == null ? '' : ` von ${exercise.ziel_saetze}`}`}</p>
+      <p>
+        {exercise.ziel_saetze != null && completedCount >= exercise.ziel_saetze
+          ? 'Alle Sätze erfasst'
+          : `Satz ${completedCount + 1}${exercise.ziel_saetze == null ? '' : ` von ${exercise.ziel_saetze}`}`}
+      </p>
       <label>
         Gewicht (kg)
         <input value={gewicht} onChange={(event) => setGewicht(event.target.value)} />
