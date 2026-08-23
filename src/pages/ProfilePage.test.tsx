@@ -94,6 +94,18 @@ describe('ProfilePage', () => {
     expect(result.updateProfile).not.toHaveBeenCalled()
   })
 
+  it('allows a fractional height and weight', async () => {
+    // A body weight of 82.5 kg is the normal case, not an edge case. Without
+    // step="any" the browser rejects it as a stepMismatch and blocks the whole
+    // save — including the fields that were valid.
+    await renderPage()
+
+    expect(screen.getByLabelText('Größe (cm)')).toHaveAttribute('step', 'any')
+    expect(screen.getByLabelText('Gewicht (kg)')).toHaveAttribute('step', 'any')
+    // Age stays whole: step="any" there would invite "30.5 Jahre".
+    expect(screen.getByLabelText('Alter (Jahre)')).not.toHaveAttribute('step')
+  })
+
   it('rejects an implausible weight instead of storing it', async () => {
     const result = await renderPage()
 

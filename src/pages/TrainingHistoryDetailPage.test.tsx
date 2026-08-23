@@ -25,6 +25,8 @@ const set = {
   satz_nummer: 1,
   gewicht: 60,
   wiederholungen: 10,
+  rir: 2,
+  ist_aufwaermsatz: false,
   abgeschlossen_am: '2026-08-20T10:05:00.000Z',
   exercise: { id: 'ex1', name: 'Bankdrücken', met_wert: 5 },
 }
@@ -99,6 +101,61 @@ describe('TrainingHistoryDetailPage', () => {
     fireEvent.blur(screen.getByDisplayValue('60'))
 
     expect(result.updateSet).not.toHaveBeenCalled()
+  })
+
+  it('rejects a fractional RIR instead of letting Postgres round it', async () => {
+    // rir is a smallint: 2.6 would be stored as 3, a value the user never typed
+    // and one the 0-5 check constraint would never complain about.
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    const field = await screen.findByLabelText('RIR')
+    fireEvent.change(field, { target: { value: '2.6' } })
+    fireEvent.blur(field)
+
+    expect(result.updateSet).not.toHaveBeenCalled()
+    expect(field).toHaveValue('2')
+  })
+
+  it('rejects an RIR above the scale', async () => {
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    const field = await screen.findByLabelText('RIR')
+    fireEvent.change(field, { target: { value: '9' } })
+    fireEvent.blur(field)
+
+    expect(result.updateSet).not.toHaveBeenCalled()
+  })
+
+  it('stores a whole-number RIR', async () => {
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    const field = await screen.findByLabelText('RIR')
+    fireEvent.change(field, { target: { value: '4' } })
+    fireEvent.blur(field)
+
+    await waitFor(() => expect(result.updateSet).toHaveBeenCalledWith('set1', { rir: 4 }))
+  })
+
+  it('toggles the warm-up flag straight through without waiting for a blur', async () => {
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    fireEvent.click(await screen.findByLabelText('Aufwärmsatz'))
+
+    await waitFor(() =>
+      expect(result.updateSet).toHaveBeenCalledWith('set1', { ist_aufwaermsatz: true }),
+    )
   })
 
   it('deletes the session and navigates back to the history list', async () => {

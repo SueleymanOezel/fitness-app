@@ -65,6 +65,31 @@ describe('ManualProductForm', () => {
     )
   })
 
+  it('stores fractional gram values', async () => {
+    // Without step="any" the browser assumes step=1, flags 0.8 g of salt as a
+    // stepMismatch and blocks the submit with a native tooltip — handleSubmit
+    // never runs and the user gets no error of ours. jsdom does not enforce
+    // constraint validation, so the attribute itself is what is asserted.
+    mockFrom.mockReturnValue(createQueryBuilder({ data: createdProduct }))
+
+    const { default: ManualProductForm } = await import('./ManualProductForm')
+    render(<ManualProductForm onCreated={vi.fn()} onCancel={vi.fn()} />)
+
+    for (const label of ['Kalorien (kcal)', 'Eiweiß (g)', 'Fett (g)', 'Kohlenhydrate (g)', 'Ballaststoffe (g)', 'Zucker (g)', 'Salz (g)']) {
+      expect(screen.getByLabelText(label)).toHaveAttribute('step', 'any')
+    }
+
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Salzstangen' } })
+    fireEvent.change(screen.getByLabelText('Kalorien (kcal)'), { target: { value: '350' } })
+    fireEvent.change(screen.getByLabelText('Salz (g)'), { target: { value: '0.8' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Produkt speichern' }))
+
+    await waitFor(() => {
+      const builder = mockFrom.mock.results[0].value
+      expect(builder.insert).toHaveBeenCalledWith(expect.objectContaining({ salz: 0.8 }))
+    })
+  })
+
   it('rejects implausible values instead of writing them to the shared table', async () => {
     const { default: ManualProductForm } = await import('./ManualProductForm')
     render(<ManualProductForm onCreated={vi.fn()} onCancel={vi.fn()} />)

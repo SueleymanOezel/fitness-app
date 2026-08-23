@@ -75,6 +75,7 @@ function Detail({ sessionId }: { sessionId: string }) {
               label="RIR"
               stored={set.rir}
               max={5}
+              integer
               onCommit={(value) => run(() => updateSet(set.id, { rir: value }), 'Speichern fehlgeschlagen.')}
             />
             <label>
@@ -125,19 +126,28 @@ function SetField({
   label,
   stored,
   max,
+  integer,
   onCommit,
 }: {
   label: string
   stored: number | null
   /** Rejected client-side too, so an out-of-range RIR never becomes a failed write. */
   max?: number
+  /** rir is a smallint: Postgres would round 2.6 to 3 and store a value nobody typed. */
+  integer?: boolean
   onCommit: (value: number | null) => void
 }) {
   const [draft, setDraft] = useState(String(stored ?? ''))
 
   function commit() {
     const value = draft.trim() === '' ? null : Number(draft)
-    if (value !== null && (!Number.isFinite(value) || value < 0 || (max != null && value > max))) {
+    const rejected =
+      value !== null &&
+      (!Number.isFinite(value) ||
+        value < 0 ||
+        (max != null && value > max) ||
+        (integer === true && !Number.isInteger(value)))
+    if (rejected) {
       setDraft(String(stored ?? ''))
       return
     }

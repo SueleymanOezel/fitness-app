@@ -32,7 +32,7 @@ export default function ManualProductForm({ barcode, onCreated, onCancel }: Prop
 
     const nutrients = parseNutrients({ kalorien, eiweiss, fett, kohlenhydrate, ballaststoffe, zucker, salz })
     if (!nutrients) {
-      setError('Bitte plausible Werte pro 100 g eingeben (Kalorien 0–900 kcal, Makros 0–100 g).')
+      setError('Bitte plausible Werte pro 100 g eingeben (Kalorien 0–900 kcal, alle Gramm-Angaben 0–100 g).')
       return
     }
 
@@ -77,35 +77,36 @@ export default function ManualProductForm({ barcode, onCreated, onCancel }: Prop
       </label>
       <label>
         Kalorien (kcal)
-        <input type="number" value={kalorien} onChange={(event) => setKalorien(event.target.value)} />
+        <input type="number" step="any" value={kalorien} onChange={(event) => setKalorien(event.target.value)} />
       </label>
       <label>
         Eiweiß (g)
-        <input type="number" value={eiweiss} onChange={(event) => setEiweiss(event.target.value)} />
+        <input type="number" step="any" value={eiweiss} onChange={(event) => setEiweiss(event.target.value)} />
       </label>
       <label>
         Fett (g)
-        <input type="number" value={fett} onChange={(event) => setFett(event.target.value)} />
+        <input type="number" step="any" value={fett} onChange={(event) => setFett(event.target.value)} />
       </label>
       <label>
         Kohlenhydrate (g)
-        <input type="number" value={kohlenhydrate} onChange={(event) => setKohlenhydrate(event.target.value)} />
+        <input type="number" step="any" value={kohlenhydrate} onChange={(event) => setKohlenhydrate(event.target.value)} />
       </label>
       <label>
         Ballaststoffe (g)
         <input
           type="number"
+          step="any"
           value={ballaststoffe}
           onChange={(event) => setBallaststoffe(event.target.value)}
         />
       </label>
       <label>
         Zucker (g)
-        <input type="number" value={zucker} onChange={(event) => setZucker(event.target.value)} />
+        <input type="number" step="any" value={zucker} onChange={(event) => setZucker(event.target.value)} />
       </label>
       <label>
         Salz (g)
-        <input type="number" value={salz} onChange={(event) => setSalz(event.target.value)} />
+        <input type="number" step="any" value={salz} onChange={(event) => setSalz(event.target.value)} />
       </label>
 
       {error && <p role="alert">{error}</p>}
