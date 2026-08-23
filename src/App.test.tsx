@@ -64,7 +64,7 @@ describe('App routing', () => {
     expect(screen.getByRole('heading', { name: 'Profil' })).toBeInTheDocument()
   })
 
-  it('shows the training placeholder at /training with an active session', async () => {
+  it('shows the training dashboard at /training with an active session', async () => {
     window.history.pushState({}, '', '/training')
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
 
@@ -72,5 +72,65 @@ describe('App routing', () => {
     render(<App />)
 
     expect(screen.getByRole('heading', { name: 'Training' })).toBeInTheDocument()
+  })
+
+  it('shows the training plans page at /training/plans with an active session', async () => {
+    window.history.pushState({}, '', '/training/plans')
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+
+    const { default: App } = await import('./App')
+    render(<App />)
+
+    expect(screen.getByRole('heading', { name: 'Meine Pläne' })).toBeInTheDocument()
+  })
+
+  it('shows the plan editor at /training/plans/:planId with an active session', async () => {
+    window.history.pushState({}, '', '/training/plans/p1')
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+
+    const { default: App } = await import('./App')
+    render(<App />)
+
+    expect(screen.getByRole('heading', { name: 'Plan bearbeiten' })).toBeInTheDocument()
+  })
+
+  it('shows the exercises page at /training/exercises with an active session', async () => {
+    window.history.pushState({}, '', '/training/exercises')
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+
+    const { default: App } = await import('./App')
+    render(<App />)
+
+    expect(screen.getByRole('heading', { name: 'Übungen' })).toBeInTheDocument()
+  })
+
+  it('shows the live session page at /training/session/:sessionId with an active session', async () => {
+    window.history.pushState({}, '', '/training/session/s1')
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+
+    const { default: App } = await import('./App')
+    render(<App />)
+
+    expect(screen.getByRole('heading', { name: 'Training' })).toBeInTheDocument()
+  })
+
+  it('shows the training history page at /training/history with an active session', async () => {
+    window.history.pushState({}, '', '/training/history')
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+
+    const { default: App } = await import('./App')
+    render(<App />)
+
+    expect(screen.getByRole('heading', { name: 'Trainingshistorie' })).toBeInTheDocument()
+  })
+
+  it('shows a history entry at /training/history/:sessionId with an active session', async () => {
+    window.history.pushState({}, '', '/training/history/s1')
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+
+    const { default: App } = await import('./App')
+    render(<App />)
+
+    expect(screen.getByRole('heading', { name: 'Trainingseinheit' })).toBeInTheDocument()
   })
 })
