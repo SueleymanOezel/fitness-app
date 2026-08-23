@@ -218,6 +218,7 @@ function LoadedProfileForm({
           Größe (cm)
           <input
             type="number"
+            step="any"
             value={draft.groesse}
             onChange={(event) => set('groesse', event.target.value)}
           />
@@ -226,6 +227,7 @@ function LoadedProfileForm({
           Gewicht (kg)
           <input
             type="number"
+            step="any"
             value={draft.aktuelles_gewicht}
             onChange={(event) => set('aktuelles_gewicht', event.target.value)}
           />
@@ -273,6 +275,7 @@ function LoadedProfileForm({
           Ziel-Delta (kcal)
           <input
             type="number"
+            step="any"
             value={draft.ziel_delta_kcal}
             onChange={(event) => set('ziel_delta_kcal', event.target.value)}
           />

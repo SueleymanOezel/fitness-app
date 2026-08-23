@@ -45,7 +45,7 @@ export default function AddEntryFlow({ onAdd }: Props) {
       <p>{product.name}</p>
       <label>
         Menge (g)
-        <input type="number" value={menge} onChange={(event) => setMenge(event.target.value)} />
+        <input type="number" step="any" value={menge} onChange={(event) => setMenge(event.target.value)} />
       </label>
       {error && <p role="alert">{error}</p>}
       <button type="submit">Hinzufügen</button>

@@ -73,6 +73,7 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
         Tagesziel (kcal)
         <input
           type="number"
+          step="any"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           onBlur={commitManual}

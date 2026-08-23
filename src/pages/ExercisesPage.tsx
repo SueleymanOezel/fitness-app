@@ -119,7 +119,7 @@ function NewExerciseForm({
       </label>
       <label>
         MET-Wert
-        <input type="number" value={metWert} onChange={(event) => setMetWert(event.target.value)} />
+        <input type="number" step="any" value={metWert} onChange={(event) => setMetWert(event.target.value)} />
       </label>
       {error !== '' && <p role="alert">{error}</p>}
       <button type="submit" disabled={saving}>
