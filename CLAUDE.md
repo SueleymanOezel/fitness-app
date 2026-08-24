@@ -101,7 +101,15 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 ## Phase 5 – Analysebereich (Spec und Plan 1 fertig, hier weitermachen)
 
-**Sofort-Einstieg:** Spec `docs/superpowers/specs/2026-08-24-phase5-analysebereich-design.md`, Plan 1 `docs/superpowers/plans/2026-08-24-phase5-plan1-fundament.md` (15 Tasks). Umgesetzt wird mit `superpowers:subagent-driven-development`. Noch nichts implementiert, `master` unberührt.
+**Sofort-Einstieg:** Spec `docs/superpowers/specs/2026-08-24-phase5-analysebereich-design.md`, Plan 1 `docs/superpowers/plans/2026-08-24-phase5-plan1-fundament.md` (15 Tasks). Umgesetzt wird mit `superpowers:subagent-driven-development`. Branch `feat-phase5-plan1-fundament`, 14 Commits, **nicht gepusht**, `master` unberührt.
+
+**Das Fortschritts-Ledger ist die Wahrheit:** `.superpowers/sdd/2026-08-24-phase5-plan1-fundament/progress.md` — git-ignoriert, nur lokal. Enthält den Preflight-Scan, neun Rulings mit Begründung und den Stand je Task. Dort zuerst hineinschauen, nicht in diese Zusammenfassung.
+
+**Stand:** Tasks 1–12 abgeschlossen und reviewt. Task 13 implementiert, eine Fix-Runde durch (`d4b5295`), **Scoped Re-Review steht noch aus** — Diff-Paket liegt bereit. 504 Tests grün, Lint und `tsc -b --noEmit` sauber.
+
+**Zwei Erkenntnisse, die beim Weiterbauen gelten:**
+- **Graph-Tests prüfen gezeichnete Marken, nie Achsentexte** (Ruling 7). Recharts' Tick-Skipping ist eine Layout-Heuristik, die in jsdom anders ausfällt. Bei Balken die Anzahl der Rechtecke zählen, bei Linien die `M`/`L`-Befehle im `d`-Attribut der Kurve. Recharts zeichnet für einen Nullwert **gar keine** Marke.
+- **Der `getBoundingClientRect`-Stub in `src/test-setup.ts` muss auf den `recharts-responsive-container` begrenzt bleiben.** Pauschal angewandt belegt eine Legende die gesamte Zeichenfläche und die Linien bleiben ohne Fehlermeldung leer — das ist in Task 8 durch Review und Mutationsprobe gerutscht und erst in Task 9/10 aufgefallen.
 
 **Zuschnitt geändert gegenüber den Eckpunkten unten: der Home-Bereich ist NICHT dabei.** `HomePage.tsx` ist noch ein Platzhalter und `day_status` wird von keiner Stelle im Code beschrieben — H1–H3 hätten weder Dashboard noch Daten. Home-Dashboard und Trainingstag/Restday-Kalender werden ein eigenes Vorhaben. Phase 5 deckt Training, Ernährung und Körper ab: 19 Graphen.
 
