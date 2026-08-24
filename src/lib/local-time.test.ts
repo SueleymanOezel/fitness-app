@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { fromLocalInputValue, toLocalInputValue } from './local-time'
+import { fromLocalInputValue, localDay, toLocalInputValue } from './local-time'
 
 // Minimal ambient type for the Node `process` global this test file relies on
 // (to pin the timezone). The project's browser-only tsconfig has no @types/node.
@@ -41,5 +41,18 @@ describe('local time conversion', () => {
   it('returns null for a malformed value instead of throwing', () => {
     expect(fromLocalInputValue('not-a-date')).toBeNull()
     expect(fromLocalInputValue('2026-08-19T')).toBeNull()
+  })
+})
+
+describe('localDay', () => {
+  it('takes the local calendar day, not the UTC one', () => {
+    // 23:50 local on the 24th is already the 25th in UTC for any positive
+    // offset. An entry logged before bed belongs to that evening.
+    const abends = new Date(2026, 7, 24, 23, 50).toISOString()
+    expect(localDay(abends)).toBe('2026-08-24')
+  })
+
+  it('pads month and day', () => {
+    expect(localDay(new Date(2026, 0, 5, 12, 0).toISOString())).toBe('2026-01-05')
   })
 })
