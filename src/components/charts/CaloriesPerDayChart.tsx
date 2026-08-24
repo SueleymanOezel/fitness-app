@@ -46,7 +46,17 @@ export default function CaloriesPerDayChart({
           <YAxis />
           <Tooltip formatter={(wert?: ValueType) => [`${wert} kcal`, 'Aufnahme']} />
           {ziel != null && (
-            <ReferenceLine y={ziel} stroke="#82ca9d" label={`Ziel ${ziel} kcal`} />
+            // ifOverflow="extendDomain": Recharts defaults to "discard" and
+            // builds the y-axis domain only from reference lines that ask to
+            // extend it. Without this the goal line silently disappears as
+            // soon as the goal sits above the highest logged day — the exact
+            // case this chart exists for.
+            <ReferenceLine
+              y={ziel}
+              stroke="#82ca9d"
+              label={`Ziel ${ziel} kcal`}
+              ifOverflow="extendDomain"
+            />
           )}
           <Line type="monotone" dataKey="kalorien" stroke="#8884d8" dot={false} />
         </LineChart>

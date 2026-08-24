@@ -33,6 +33,18 @@ describe('CaloriesPerDayChart', () => {
     expect(screen.getByText('Ziel 1672 kcal')).toBeInTheDocument()
   })
 
+  it('still draws the goal line when the goal is above every logged day', () => {
+    // The case this chart exists for: someone cutting logs well under the
+    // goal. Recharts defaults ReferenceLine to ifOverflow="discard" and feeds
+    // the y-axis domain only from lines that carry extendDomain, so without
+    // that prop the line and its label vanish silently — exactly for the users
+    // who need to see the gap.
+    render(
+      <CaloriesPerDayChart entries={[eintrag(23, 1400), eintrag(24, 1600)]} ziel={2000} />,
+    )
+    expect(screen.getByText('Ziel 2000 kcal')).toBeInTheDocument()
+  })
+
   it('draws without a reference line when the profile has no goal', () => {
     // An incomplete profile yields no goal. The intake is still worth seeing.
     const { container } = render(

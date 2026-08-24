@@ -33,7 +33,7 @@ vi.mock('../components/charts/ChartPicker', async () => {
 
 const vollstaendigesProfil = {
   geschlecht: 'maennlich' as const,
-  aktivitaetslevel: 'sitzend' as const,
+  aktivitaetslevel: 'moderat' as const,
   ziel: 'halten' as const,
   ziel_delta_kcal: 500,
   aktuelles_gewicht: 82.5,
@@ -91,8 +91,9 @@ describe('NutritionAnalysisPage', () => {
       updateProfile: vi.fn(),
     })
     zeige()
-    // 10*82.5 + 6.25*180 - 5*30 + 5 = 1805 kcal BMR, x 1.2 (sitzend) = 2166.
-    expect(screen.getByText('Ziel 2166 kcal')).toBeInTheDocument()
+    // 10*82.5 + 6.25*180 - 5*30 + 5 = 1805 kcal BMR, x 1.55 (moderat) = 2798 —
+    // above both logged days, which is the normal case for someone cutting.
+    expect(screen.getByText('Ziel 2798 kcal')).toBeInTheDocument()
   })
 
   it('draws without a goal when the profile is incomplete', () => {

@@ -327,21 +327,18 @@ describe('NutritionPage – ausgewaehlte Graphen', () => {
     // for DailySummary; the chart must get that same number, not the raw
     // column, or its reference line silently disappears.
     mockUseProfile.mockReturnValue(
-      profileResult({
-        // sitzend, so the calculated goal lands inside the chart's value range:
-        // Recharts clips a ReferenceLine that sits above the y-axis domain.
-        profile: { ...profile, taegliches_kalorienziel: null, aktivitaetslevel: 'sitzend' as const },
-      }),
+      profileResult({ profile: { ...profile, taegliches_kalorienziel: null } }),
     )
     zeigeDashboard()
     const ueberschrift = await screen.findByRole('heading', { name: 'Kalorien pro Tag' })
     // Scoped to the chart's own section: DailySummary above it names the same
     // goal, so an unscoped query would pass even with no reference line drawn.
     const abschnitt = ueberschrift.closest('section')!
-    // 10*80 + 6.25*180 - 5*30 + 5 = 1780 kcal BMR, x 1.2 (sitzend) = 2136.
+    // 10*80 + 6.25*180 - 5*30 + 5 = 1780 kcal BMR, x 1.55 (moderat) = 2759 —
+    // above both logged days, which is the normal case for someone cutting.
     // findByText: ResponsiveContainer needs one more tick before Recharts
     // draws into the measured box.
-    expect(await within(abschnitt).findByText('Ziel 2136 kcal')).toBeInTheDocument()
+    expect(await within(abschnitt).findByText('Ziel 2759 kcal')).toBeInTheDocument()
   })
 
   it('offers no picker on the dashboard', () => {
