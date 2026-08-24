@@ -3,6 +3,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useActiveTrainingDay } from '../hooks/use-active-training-day'
 import { startWorkoutSession } from '../hooks/use-workout-session'
+import { useChartSelection } from '../components/charts/ChartPicker'
+import TrainingFrequencyChart from '../components/charts/TrainingFrequencyChart'
+import { useTrainingAnalysis } from '../hooks/use-training-analysis'
+import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 
 export default function TrainingPage() {
   const { session } = useSession()
@@ -25,6 +29,7 @@ function Dashboard({ userId }: { userId: string }) {
   const navigate = useNavigate()
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState('')
+  const auswahl = useChartSelection(userId)
 
   if (loading) {
     return (
@@ -72,6 +77,15 @@ function Dashboard({ userId }: { userId: string }) {
       <Link to="/training/plans">Meine Pläne</Link>
       <Link to="/training/exercises">Übungen</Link>
       <Link to="/training/history">Trainingshistorie</Link>
+      {auswahl.istGewaehlt('T1') && <DashboardTrainingFrequency userId={userId} />}
+      <Link to="/training/analyse">Analyse</Link>
     </div>
   )
+}
+
+function DashboardTrainingFrequency({ userId }: { userId: string }) {
+  const { sessions, loading, error } = useTrainingAnalysis(userId, DASHBOARD_ZEITRAUM)
+  if (loading) return <p>Lädt…</p>
+  if (error) return <p role="alert">Graph konnte nicht geladen werden.</p>
+  return <TrainingFrequencyChart sessions={sessions} />
 }

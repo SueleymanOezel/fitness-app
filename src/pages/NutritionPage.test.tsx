@@ -1,6 +1,7 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import NutritionPage from './NutritionPage'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -12,6 +13,14 @@ const mockUseFoodEntries = vi.fn()
 vi.mock('../hooks/use-food-entries', () => ({
   useFoodEntries: (userId: string) => mockUseFoodEntries(userId),
 }))
+
+// clearAllMocks (not reset): call counts must not leak between tests, but a
+// mockReturnValue set by one test may deliberately carry into the next (see
+// the "ausgewaehlte Graphen" describe below, which relies on the session and
+// profile mocks set by the last test above it).
+afterEach(() => {
+  vi.clearAllMocks()
+})
 
 const profile = {
   id: 'u1',
@@ -49,25 +58,27 @@ function entriesResult(overrides: Record<string, unknown> = {}) {
   }
 }
 
+function zeigeDashboard() {
+  return render(<NutritionPage />, { wrapper: MemoryRouter })
+}
+
 describe('NutritionPage', () => {
-  it('shows a loading state while profile or entries are loading', async () => {
+  it('shows a loading state while profile or entries are loading', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseProfile.mockReturnValue(profileResult({ loading: true }))
     mockUseFoodEntries.mockReturnValue(entriesResult({ loading: true }))
 
-    const { default: NutritionPage } = await import('./NutritionPage')
-    render(<NutritionPage />, { wrapper: MemoryRouter })
+    zeigeDashboard()
 
     expect(screen.getByText('Lädt…')).toBeInTheDocument()
   })
 
-  it('renders the dashboard sections once profile and entries are loaded', async () => {
+  it('renders the dashboard sections once profile and entries are loaded', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseProfile.mockReturnValue(profileResult({ profile }))
     mockUseFoodEntries.mockReturnValue(entriesResult())
 
-    const { default: NutritionPage } = await import('./NutritionPage')
-    render(<NutritionPage />, { wrapper: MemoryRouter })
+    zeigeDashboard()
 
     expect(screen.getByRole('heading', { name: 'Ernährung' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Heute' })).toBeInTheDocument()
@@ -75,27 +86,25 @@ describe('NutritionPage', () => {
     expect(screen.getByRole('link', { name: /Einträge/ })).toBeInTheDocument()
   })
 
-  it('offers a retry instead of loading forever when the profile cannot be loaded', async () => {
+  it('offers a retry instead of loading forever when the profile cannot be loaded', () => {
     const reload = vi.fn()
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseProfile.mockReturnValue(profileResult({ error: true, reload }))
     mockUseFoodEntries.mockReturnValue(entriesResult())
 
-    const { default: NutritionPage } = await import('./NutritionPage')
-    render(<NutritionPage />, { wrapper: MemoryRouter })
+    zeigeDashboard()
 
     expect(screen.getByRole('alert')).toHaveTextContent('Profil konnte nicht geladen werden')
     screen.getByRole('button', { name: 'Erneut versuchen' }).click()
     expect(reload).toHaveBeenCalled()
   })
 
-  it('leaves the entry list to its own page', async () => {
+  it('leaves the entry list to its own page', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseProfile.mockReturnValue(profileResult({ profile }))
     mockUseFoodEntries.mockReturnValue(entriesResult())
 
-    const { default: NutritionPage } = await import('./NutritionPage')
-    render(<NutritionPage />, { wrapper: MemoryRouter })
+    zeigeDashboard()
 
     // The dashboard shows the sections; the entry list lives on /nutrition/entries.
     expect(screen.queryByText('Noch keine Einträge heute.')).not.toBeInTheDocument()
@@ -105,13 +114,12 @@ describe('NutritionPage', () => {
     )
   })
 
-  it('leaves goal editing to the profile page', async () => {
+  it('leaves goal editing to the profile page', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseProfile.mockReturnValue(profileResult({ profile }))
     mockUseFoodEntries.mockReturnValue(entriesResult())
 
-    const { default: NutritionPage } = await import('./NutritionPage')
-    render(<NutritionPage />, { wrapper: MemoryRouter })
+    zeigeDashboard()
 
     // The dashboard shows the goal, it does not edit it — editing lives on /profile.
     expect(screen.queryByRole('button', { name: 'Manuell festlegen' })).not.toBeInTheDocument()
@@ -119,19 +127,18 @@ describe('NutritionPage', () => {
     expect(screen.getByRole('link', { name: /Profil/ })).toBeInTheDocument()
   })
 
-  it('passes the manual calorie goal through to the daily summary', async () => {
+  it('passes the manual calorie goal through to the daily summary', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseProfile.mockReturnValue(profileResult({ profile }))
     mockUseFoodEntries.mockReturnValue(entriesResult())
 
-    const { default: NutritionPage } = await import('./NutritionPage')
-    render(<NutritionPage />, { wrapper: MemoryRouter })
+    zeigeDashboard()
 
     // 2000 is the manual override, not the Mifflin-St-Jeor value (2759) for this profile.
     expect(screen.getByText(/Ziel 2000 kcal/)).toBeInTheDocument()
   })
 
-  it('lists the sections with their calories and links to the entries page', async () => {
+  it('lists the sections with their calories and links to the entries page', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseProfile.mockReturnValue(profileResult({ profile }))
     mockUseFoodEntries.mockReturnValue(
@@ -158,8 +165,7 @@ describe('NutritionPage', () => {
       }),
     )
 
-    const { default: NutritionPage } = await import('./NutritionPage')
-    render(<NutritionPage />, { wrapper: MemoryRouter })
+    zeigeDashboard()
 
     const fruehstueck = screen.getByRole('link', { name: /Frühstück/ })
     expect(fruehstueck).toHaveTextContent('150 kcal')
@@ -167,7 +173,7 @@ describe('NutritionPage', () => {
     expect(screen.getByRole('link', { name: /Abendessen/ })).toHaveTextContent('0 kcal')
   })
 
-  it('shows an "Ohne Zuordnung" row for entries with no section, matching the daily total', async () => {
+  it('shows an "Ohne Zuordnung" row for entries with no section, matching the daily total', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseProfile.mockReturnValue(profileResult({ profile }))
     mockUseFoodEntries.mockReturnValue(
@@ -194,8 +200,7 @@ describe('NutritionPage', () => {
       }),
     )
 
-    const { default: NutritionPage } = await import('./NutritionPage')
-    render(<NutritionPage />, { wrapper: MemoryRouter })
+    zeigeDashboard()
 
     // Every pre-existing entry has mahlzeit = null; without this row the section
     // list would read "0 kcal" everywhere while the daily total (which sums ALL
@@ -205,7 +210,7 @@ describe('NutritionPage', () => {
     expect(ohneZuordnung).toHaveAttribute('href', '/nutrition/entries')
   })
 
-  it('shows an occupied but unnamed slot as "Abschnitt <N>" with its calories', async () => {
+  it('shows an occupied but unnamed slot as "Abschnitt <N>" with its calories', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseProfile.mockReturnValue(profileResult({ profile }))
     mockUseFoodEntries.mockReturnValue(
@@ -232,8 +237,7 @@ describe('NutritionPage', () => {
       }),
     )
 
-    const { default: NutritionPage } = await import('./NutritionPage')
-    render(<NutritionPage />, { wrapper: MemoryRouter })
+    zeigeDashboard()
 
     // Slot 5 has entries but profile.mahlzeit_5_name is null — it must stay
     // visible as "Abschnitt 5" instead of disappearing with its calories intact.
@@ -242,15 +246,96 @@ describe('NutritionPage', () => {
     expect(abschnitt5).toHaveAttribute('href', '/nutrition/entries')
   })
 
-  it('no longer captures entries on the dashboard', async () => {
+  it('no longer captures entries on the dashboard', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseProfile.mockReturnValue(profileResult({ profile }))
     mockUseFoodEntries.mockReturnValue(entriesResult())
 
-    const { default: NutritionPage } = await import('./NutritionPage')
-    render(<NutritionPage />, { wrapper: MemoryRouter })
+    zeigeDashboard()
 
     // Capturing needs a section, and the sections live on the entries page.
     expect(screen.queryByRole('button', { name: 'Barcode scannen' })).not.toBeInTheDocument()
+  })
+})
+
+const mockUseNutritionAnalysis = vi.fn()
+vi.mock('../hooks/use-nutrition-analysis', () => ({
+  useNutritionAnalysis: (userId: string, zeitraum: unknown) => mockUseNutritionAnalysis(userId, zeitraum),
+}))
+
+const mockUseChartSelection = vi.fn()
+vi.mock('../components/charts/ChartPicker', async () => {
+  const actual = await vi.importActual<typeof import('../components/charts/ChartPicker')>(
+    '../components/charts/ChartPicker',
+  )
+  return { ...actual, useChartSelection: () => mockUseChartSelection() }
+})
+
+// Default for tests outside the "ausgewaehlte Graphen" describe below, which
+// know nothing about chart selection: no chart pinned, so the dashboard
+// renders exactly as it did before this hook existed.
+beforeEach(() => {
+  mockUseChartSelection.mockReturnValue({
+    auswahl: [],
+    istGewaehlt: () => false,
+    umschalten: vi.fn(),
+    fehler: '',
+  })
+})
+
+describe('NutritionPage – ausgewaehlte Graphen', () => {
+  const eintrag = (tag: number, kalorien: number) => ({
+    zeitpunkt: new Date(2026, 7, tag, 12, 0).toISOString(),
+    menge: 100,
+    mahlzeit: 1,
+    products: { kalorien, eiweiss: 0, fett: 0, kohlenhydrate: 0 },
+  })
+
+  beforeEach(() => {
+    mockUseNutritionAnalysis.mockReturnValue({
+      entries: [eintrag(23, 1800), eintrag(24, 2100)],
+      loading: false,
+      error: false,
+    })
+    mockUseChartSelection.mockReturnValue({
+      auswahl: ['E1'],
+      istGewaehlt: (id: string) => id === 'E1',
+      umschalten: vi.fn(),
+      fehler: '',
+    })
+  })
+
+  it('shows a pinned chart with the fixed 90-day range', () => {
+    zeigeDashboard()
+    expect(screen.getByRole('heading', { name: 'Kalorien pro Tag' })).toBeInTheDocument()
+    expect(mockUseNutritionAnalysis).toHaveBeenCalledWith('u1', 90)
+    expect(screen.queryByRole('button', { name: '30 Tage' })).not.toBeInTheDocument()
+  })
+
+  it('offers no picker on the dashboard', () => {
+    zeigeDashboard()
+    expect(
+      screen.queryByRole('checkbox', { name: 'Auf dem Dashboard zeigen' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows nothing and asks for nothing when no chart is pinned', () => {
+    mockUseChartSelection.mockReturnValue({
+      auswahl: [],
+      istGewaehlt: () => false,
+      umschalten: vi.fn(),
+      fehler: '',
+    })
+    zeigeDashboard()
+    expect(screen.queryByRole('heading', { name: 'Kalorien pro Tag' })).not.toBeInTheDocument()
+    expect(mockUseNutritionAnalysis).not.toHaveBeenCalled()
+  })
+
+  it('links to the analysis page', () => {
+    zeigeDashboard()
+    expect(screen.getByRole('link', { name: 'Analyse' })).toHaveAttribute(
+      'href',
+      '/nutrition/analyse',
+    )
   })
 })

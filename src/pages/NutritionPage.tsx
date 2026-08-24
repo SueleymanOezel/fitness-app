@@ -6,6 +6,10 @@ import { effectiveCalorieGoal } from '../lib/nutrition-goal'
 import { visibleSections } from '../lib/meal-sections'
 import { sumKalorien } from '../lib/entry-calories'
 import DailySummary from '../components/DailySummary'
+import { useChartSelection } from '../components/charts/ChartPicker'
+import CaloriesPerDayChart from '../components/charts/CaloriesPerDayChart'
+import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
+import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 
 export default function NutritionPage() {
   const { session } = useSession()
@@ -26,6 +30,7 @@ export default function NutritionPage() {
 function NutritionDashboard({ userId }: { userId: string }) {
   const { profile, loading: profileLoading, error: profileError, reload } = useProfile(userId)
   const { entries, loading: entriesLoading } = useFoodEntries(userId)
+  const auswahl = useChartSelection(userId)
 
   if (profileLoading || entriesLoading) {
     return (
@@ -73,6 +78,16 @@ function NutritionDashboard({ userId }: { userId: string }) {
         })}
       </ul>
       <Link to="/nutrition/entries">Einträge ansehen</Link>
+      {auswahl.istGewaehlt('E1') && <DashboardCaloriesPerDay userId={userId} />}
+      <Link to="/nutrition/analyse">Analyse</Link>
     </div>
   )
+}
+
+function DashboardCaloriesPerDay({ userId }: { userId: string }) {
+  const { entries, loading, error } = useNutritionAnalysis(userId, DASHBOARD_ZEITRAUM)
+  const { profile } = useProfile(userId)
+  if (loading) return <p>Lädt…</p>
+  if (error) return <p role="alert">Graph konnte nicht geladen werden.</p>
+  return <CaloriesPerDayChart entries={entries} ziel={profile?.taegliches_kalorienziel ?? null} />
 }

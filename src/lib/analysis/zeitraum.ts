@@ -10,6 +10,9 @@ export const ZEITRAEUME: { wert: Zeitraum; label: string }[] = [
 
 export const STANDARD_ZEITRAUM: Zeitraum = 90
 
+/** Dashboards show a fixed window; the switch lives on the analysis page. */
+export const DASHBOARD_ZEITRAUM: Zeitraum = 90
+
 const pad = (value: number) => String(value).padStart(2, '0')
 
 /**
