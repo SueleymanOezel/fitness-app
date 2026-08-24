@@ -55,6 +55,7 @@ erDiagram
         string mahlzeit_4_name
         string mahlzeit_5_name
         string mahlzeit_6_name
+        jsonb analyse_auswahl
     }
 
     products {
@@ -190,4 +191,5 @@ erDiagram
 - `products.ballaststoffe/zucker/salz` liegen wie die übrigen Nährwerte je 100 g vor. **Salz, nicht Natrium** — Open Food Facts liefert beides, deutsche Etiketten drucken Salz.
 - `body_photos.foto_url` speichert den Objektpfad im privaten Bucket `body-photos`, nicht eine URL. Angezeigt wird über kurzlebige signierte Links; der Bucket ist nicht öffentlich, die Policies prüfen den ersten Pfadabschnitt gegen `auth.uid()`.
 - `profiles.aktuelles_gewicht` trägt das Gewicht des `body_metrics`-Eintrags mit dem neuesten Datum und wird nach jedem Schreiben und Löschen dort nachgezogen.
-- Quelle: `supabase/migrations/0001_initial_schema.sql` (Stand Phase 2 + Mahlzeiten-Abschnitte + Phase 3 (Trainingsbereich) + Analysefelder, inkl. `0002_nutrition_profile_fields.sql`, `0003_meal_sections.sql`, `0004_training_days.sql`, `0005_analysis_fields.sql` und `0006_body_photos_bucket.sql`).
+- `profiles.analyse_auswahl` ist eine Liste von Graph-IDs aus der Registry (`src/lib/analysis/registry.ts`), nicht von Fremdschlüsseln. Unbekannte IDs werden beim Lesen verworfen, damit ein später entfernter Graph kein Dashboard zerlegt.
+- Quelle: `supabase/migrations/0001_initial_schema.sql` (Stand Phase 2 + Mahlzeiten-Abschnitte + Phase 3 (Trainingsbereich) + Analysefelder, inkl. `0002_nutrition_profile_fields.sql`, `0003_meal_sections.sql`, `0004_training_days.sql`, `0005_analysis_fields.sql`, `0006_body_photos_bucket.sql` und `0007_analyse_auswahl.sql`).

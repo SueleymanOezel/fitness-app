@@ -39,6 +39,16 @@ vi.mock('./hooks/use-body-photos', () => ({
   }),
 }))
 
+vi.mock('./hooks/use-training-analysis', () => ({
+  useTrainingAnalysis: () => ({ sessions: [], loading: false, error: false }),
+}))
+vi.mock('./hooks/use-nutrition-analysis', () => ({
+  useNutritionAnalysis: () => ({ entries: [], loading: false, error: false }),
+}))
+vi.mock('./hooks/use-body-analysis', () => ({
+  useBodyAnalysis: () => ({ rows: [], loading: false, error: false }),
+}))
+
 afterEach(() => {
   window.history.pushState({}, '', '/')
 })
@@ -202,5 +212,21 @@ describe('App routing', () => {
     render(<App />)
 
     expect(await screen.findByRole('heading', { name: 'Fortschrittsfotos' })).toBeInTheDocument()
+  })
+
+  it.each([
+    ['/training/analyse'],
+    ['/nutrition/analyse'],
+    ['/body/analyse'],
+  ])('shows the analysis page at %s', async (pfad) => {
+    window.history.pushState({}, '', pfad)
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+
+    const { default: App } = await import('./App')
+    render(<App />)
+
+    // findByRole, not getByRole: the analysis pages are loaded lazily, so the
+    // first render is the Suspense fallback.
+    expect(await screen.findByRole('heading', { name: 'Analyse' })).toBeInTheDocument()
   })
 })
