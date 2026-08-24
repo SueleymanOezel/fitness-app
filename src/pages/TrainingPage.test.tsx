@@ -133,6 +133,11 @@ describe('TrainingPage – ausgewaehlte Graphen', () => {
   const am = (monat: number, tag: number) => new Date(2026, monat - 1, tag, 18, 0).toISOString()
 
   beforeEach(() => {
+    // Self-sufficient: this block seeds every mock TrainingPage's own render
+    // path depends on, instead of relying on what the describe above left
+    // behind — running this block alone (vitest -t) must work.
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseActiveTrainingDay.mockReturnValue(activeDay)
     mockUseTrainingAnalysis.mockReturnValue({
       sessions: [
         { id: 'a', gestartet_am: am(8, 17), beendet_am: null, gesamt_kalorien: null },

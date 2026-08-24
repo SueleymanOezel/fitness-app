@@ -292,6 +292,12 @@ describe('NutritionPage – ausgewaehlte Graphen', () => {
   })
 
   beforeEach(() => {
+    // Self-sufficient: this block seeds every mock NutritionPage's own
+    // render path depends on, instead of relying on what the describe above
+    // left behind — running this block alone (vitest -t) must work.
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue(profileResult({ profile }))
+    mockUseFoodEntries.mockReturnValue(entriesResult())
     mockUseNutritionAnalysis.mockReturnValue({
       entries: [eintrag(23, 1800), eintrag(24, 2100)],
       loading: false,

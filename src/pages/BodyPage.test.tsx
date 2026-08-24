@@ -185,6 +185,11 @@ describe('BodyPage – ausgewaehlte Graphen', () => {
   }
 
   beforeEach(() => {
+    // Self-sufficient: this block seeds every mock BodyPage's own render
+    // path depends on, instead of relying on what the describe above left
+    // behind — running this block alone (vitest -t) must work.
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult())
     mockUseBodyAnalysis.mockReturnValue({
       rows: [
         { id: 'a', datum: '2026-08-17', gewicht: 83.3, ...leerZeile },
