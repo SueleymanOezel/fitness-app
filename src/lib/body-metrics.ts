@@ -10,6 +10,14 @@ export const MEASUREMENT_FIELDS = [
 
 export type MeasurementField = (typeof MEASUREMENT_FIELDS)[number]
 
+/** Local calendar day as yyyy-mm-dd — toISOString would shift the date in the evening. */
+export function today() {
+  const now = new Date()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${now.getFullYear()}-${month}-${day}`
+}
+
 export type BodyMetricInput = Record<MeasurementField, string>
 export type BodyMetricValues = Record<MeasurementField, number | null>
 export type BodyMetricRow = { id: string; datum: string } & BodyMetricValues
@@ -30,7 +38,9 @@ export const FIELD_LABELS: Record<MeasurementField, string> = {
  * come back as an unreadable constraint error instead of a usable message.
  */
 const BOUNDS: Record<MeasurementField, { min: number; max: number }> = {
-  gewicht: { min: 20, max: 500 },
+  // Same range as aktuelles_gewicht on the profile page. A wider range here
+  // would let a body entry sync a weight the profile form then refuses to save.
+  gewicht: { min: 30, max: 300 },
   bauchumfang: { min: 10, max: 300 },
   beinumfang: { min: 10, max: 300 },
   armumfang: { min: 10, max: 300 },

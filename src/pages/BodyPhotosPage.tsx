@@ -3,13 +3,7 @@ import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useBodyPhotos } from '../hooks/use-body-photos'
 import type { BodyPhoto } from '../hooks/use-body-photos'
-
-function today() {
-  const now = new Date()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  return `${now.getFullYear()}-${month}-${day}`
-}
+import { today } from '../lib/body-metrics'
 
 function formatDate(iso: string) {
   const [year, month, day] = iso.split('-')
@@ -99,7 +93,11 @@ function Photos({ userId }: { userId: string }) {
               // a broken image and say nothing about why.
               <span>Bild nicht verfügbar</span>
             ) : (
-              <img src={photo.url} alt={`Fortschrittsfoto vom ${formatDate(photo.datum)}`} />
+              <img
+                src={photo.url}
+                alt={`Fortschrittsfoto vom ${formatDate(photo.datum)}`}
+                loading="lazy"
+              />
             )}
             <button type="button" onClick={() => remove(photo)}>
               Löschen

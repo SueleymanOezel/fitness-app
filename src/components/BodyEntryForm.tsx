@@ -4,19 +4,12 @@ import {
   FIELD_LABELS,
   MEASUREMENT_FIELDS,
   parseBodyMetrics,
+  today,
   type BodyMetricInput,
   type BodyMetricRow,
   type BodyMetricValues,
 } from '../lib/body-metrics'
 import { ProfileWeightSyncError } from '../hooks/use-body-metrics'
-
-/** Local calendar day as yyyy-mm-dd — toISOString would shift the date in the evening. */
-function today() {
-  const now = new Date()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  return `${now.getFullYear()}-${month}-${day}`
-}
 
 function inputFrom(entry: BodyMetricRow | undefined): BodyMetricInput {
   if (!entry) return EMPTY_INPUT
@@ -48,7 +41,7 @@ export default function BodyEntryForm({
     const values = parseBodyMetrics(draft)
     if (!values) {
       setError(
-        'Bitte mindestens einen plausiblen Wert eintragen (Gewicht 20–500 kg, Umfänge 10–300 cm, Körperfett 0–100 %).',
+        'Bitte mindestens einen plausiblen Wert eintragen (Gewicht 30–300 kg, Umfänge 10–300 cm, Körperfett 0–100 %).',
       )
       return
     }
@@ -77,7 +70,14 @@ export default function BodyEntryForm({
     <form onSubmit={handleSubmit}>
       <label>
         Datum
-        <input type="date" value={datum} onChange={(event) => setDatum(event.target.value)} />
+        <input
+          type="date"
+          value={datum}
+          // A future date — or 0007-08-24 from a mistyped year — would sort to
+          // the top of the history and hold profiles.aktuelles_gewicht there.
+          max={today()}
+          onChange={(event) => setDatum(event.target.value)}
+        />
       </label>
       {MEASUREMENT_FIELDS.map((field) => (
         <label key={field}>

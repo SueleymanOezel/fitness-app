@@ -47,7 +47,12 @@ export function useBodyMetrics(userId: string) {
    * one before it.
    */
   async function syncProfileWeight() {
-    const { data } = await supabase
+    // A failed read resolves with data: null, which is indistinguishable from
+    // "no entry carries a weight". Writing that null into the profile would
+    // wipe the weight on any transient failure, and the calorie goal and the
+    // workout calorie formula would go dead without a single error anywhere.
+    // Only one case clears the profile: every weight entry actually deleted.
+    const { data, error: readError } = await supabase
       .from('body_metrics')
       .select('gewicht')
       .eq('user_id', userId)
@@ -55,6 +60,7 @@ export function useBodyMetrics(userId: string) {
       .order('datum', { ascending: false })
       .limit(1)
       .maybeSingle()
+    if (readError) throw new ProfileWeightSyncError()
 
     const gewicht = (data as { gewicht: number } | null)?.gewicht ?? null
     const { error: profileError } = await supabase

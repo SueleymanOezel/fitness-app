@@ -3,7 +3,12 @@ import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { ProfileWeightSyncError, useBodyMetrics } from '../hooks/use-body-metrics'
 import { changeSince, latestValue } from '../lib/body-change'
-import { FIELD_LABELS, MEASUREMENT_FIELDS, type MeasurementField } from '../lib/body-metrics'
+import {
+  FIELD_LABELS,
+  MEASUREMENT_FIELDS,
+  today,
+  type MeasurementField,
+} from '../lib/body-metrics'
 import BodyEntryForm from '../components/BodyEntryForm'
 
 /** German notation: comma as the decimal mark, at most one place. */
@@ -41,7 +46,6 @@ export default function BodyPage() {
 function Dashboard({ userId }: { userId: string }) {
   const { rows, loading, error, saveEntry } = useBodyMetrics(userId)
   const [formOpen, setFormOpen] = useState(false)
-  const [saveError, setSaveError] = useState('')
   const [syncNotice, setSyncNotice] = useState('')
 
   if (loading) {
@@ -80,13 +84,15 @@ function Dashboard({ userId }: { userId: string }) {
         })}
       </ul>
 
-      {saveError !== '' && <p role="alert">{saveError}</p>}
       {syncNotice !== '' && <p role="alert">{syncNotice}</p>}
 
       {formOpen ? (
         <BodyEntryForm
+          // The upsert writes all seven columns, so an empty form would blank
+          // everything already recorded today. Correcting the day means
+          // starting from what is stored, not from blanks.
+          entry={rows.find((row) => row.datum === today())}
           onSave={async (datum, values) => {
-            setSaveError('')
             setSyncNotice('')
             try {
               await saveEntry(datum, values)

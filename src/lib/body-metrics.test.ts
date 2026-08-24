@@ -25,8 +25,12 @@ describe('parseBodyMetrics', () => {
   })
 
   it('rejects a weight outside the plausible range', () => {
-    expect(parseBodyMetrics(input({ gewicht: '5' }))).toBeNull()
-    expect(parseBodyMetrics(input({ gewicht: '900' }))).toBeNull()
+    // Same 30–300 range as aktuelles_gewicht on the profile page: a body entry
+    // must not sync a weight the profile form would then refuse to save back.
+    expect(parseBodyMetrics(input({ gewicht: '25' }))).toBeNull()
+    expect(parseBodyMetrics(input({ gewicht: '350' }))).toBeNull()
+    expect(parseBodyMetrics(input({ gewicht: '30' }))?.gewicht).toBe(30)
+    expect(parseBodyMetrics(input({ gewicht: '300' }))?.gewicht).toBe(300)
   })
 
   it('rejects a circumference outside the plausible range', () => {

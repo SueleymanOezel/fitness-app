@@ -1,21 +1,32 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { ProfileWeightSyncError } from './hooks/use-body-metrics'
 
 const mockUseSession = vi.fn()
 vi.mock('./hooks/use-session', () => ({
   useSession: () => mockUseSession(),
 }))
 
-vi.mock('./hooks/use-body-metrics', () => ({
-  useBodyMetrics: () => ({
-    rows: [],
-    loading: false,
-    error: false,
-    saveEntry: vi.fn(),
-    deleteEntry: vi.fn(),
-    reload: vi.fn(),
-  }),
-}))
+const mockSaveEntry = vi.fn().mockResolvedValue(undefined)
+// Spread the real module: the pages import ProfileWeightSyncError as a value and
+// reach it in their catch blocks, so a factory that only defines the hook makes
+// the first failing-save test die on "no export defined on the mock".
+vi.mock('./hooks/use-body-metrics', async () => {
+  const actual = await vi.importActual<typeof import('./hooks/use-body-metrics')>(
+    './hooks/use-body-metrics',
+  )
+  return {
+    ...actual,
+    useBodyMetrics: () => ({
+      rows: [],
+      loading: false,
+      error: false,
+      saveEntry: (datum: string, values: unknown) => mockSaveEntry(datum, values),
+      deleteEntry: vi.fn(),
+      reload: vi.fn(),
+    }),
+  }
+})
 
 vi.mock('./hooks/use-body-photos', () => ({
   useBodyPhotos: () => ({
@@ -164,6 +175,23 @@ describe('App routing', () => {
     render(<App />)
 
     expect(await screen.findByRole('heading', { name: 'Verlauf' })).toBeInTheDocument()
+  })
+
+  it('shows the stale-mirror notice at /body when only the profile sync fails', async () => {
+    window.history.pushState({}, '', '/body')
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockSaveEntry.mockRejectedValueOnce(new ProfileWeightSyncError())
+
+    const { default: App } = await import('./App')
+    render(<App />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Heute eintragen' }))
+    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '80' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      /aktuelle Gewicht im Profil konnte nicht aktualisiert werden/,
+    )
   })
 
   it('shows the photo timeline at /body/photos', async () => {

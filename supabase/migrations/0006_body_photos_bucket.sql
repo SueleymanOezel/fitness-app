@@ -6,8 +6,14 @@
 -- every policy checks it. Reading happens through short-lived signed links that
 -- are created on demand and never stored.
 
-insert into storage.buckets (id, name, public)
-values ('body-photos', 'body-photos', false)
+-- Size and type are limited in the bucket itself, not only in the client: the
+-- resize before upload is a convenience, and anyone holding the anon key plus
+-- their own token can post any file of any type to their own folder. 5 MB is
+-- well above a resized JPEG; the list matches what the client actually sends
+-- (image/jpeg from the canvas re-encode) plus the two formats a direct upload
+-- would plausibly use.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('body-photos', 'body-photos', false, 5242880, array['image/jpeg','image/png','image/webp'])
 on conflict (id) do nothing;
 
 create policy "body_photos_select_own"

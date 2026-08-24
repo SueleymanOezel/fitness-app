@@ -16,11 +16,29 @@ describe('0006_body_photos_bucket.sql', () => {
     // through a guessed URL may already have been fetched.
     expect(statements).toContain("insert into storage.buckets")
     expect(statements).toContain("'body-photos'")
-    expect(statements).toMatch(/values \('body-photos', 'body-photos', false\)/)
+    expect(statements).toMatch(/values \('body-photos', 'body-photos', false,/)
     expect(statements).not.toMatch(/values \([^)]*true\)/)
   })
 
-  it('is safe to run twice', () => {
+  it('caps the upload size in the bucket, not only in the client', () => {
+    // The client-side resize is a convenience, not a control: anyone with the
+    // anon key and their own token can post an arbitrary file to their folder.
+    expect(statements).toMatch(/file_size_limit/)
+    expect(statements).toMatch(/\b5242880\b/)
+  })
+
+  it('restricts the upload type to images', () => {
+    expect(statements).toMatch(/allowed_mime_types/)
+    // image/jpeg is what the canvas re-encode actually produces.
+    expect(statements).toMatch(/array\[[^\]]*'image\/jpeg'[^\]]*\]/)
+    expect(statements).not.toMatch(/allowed_mime_types[^;]*'\*\/\*'/)
+  })
+
+  // Not "safe to run twice": `create policy` has no `if not exists` in Postgres,
+  // so a second run of the whole file would fail on the first policy. Supabase
+  // applies each migration once, so only the bucket insert is guarded — and the
+  // test says exactly that instead of promising more than the SQL delivers.
+  it('inserts the bucket without failing on an existing one', () => {
     expect(statements).toContain('on conflict (id) do nothing')
   })
 

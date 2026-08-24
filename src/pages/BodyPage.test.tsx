@@ -21,6 +21,9 @@ vi.mock('../hooks/use-body-metrics', async () => {
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
+  // In afterEach, not in the test body: a failing test must not leak fake
+  // timers into the ones that follow.
+  vi.useRealTimers()
 })
 
 const emptyRow = {
@@ -94,6 +97,30 @@ describe('BodyPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Heute eintragen' }))
 
     expect(screen.getByLabelText('Datum')).toBeInTheDocument()
+  })
+
+  it('prefills the form from the entry that already exists for today', () => {
+    // saveEntry upserts all seven columns, so an empty form would overwrite
+    // everything recorded earlier today with null. Entering weight in the
+    // morning and again in the evening must not wipe the circumferences.
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 7, 24, 19, 0, 0))
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(
+      metricsResult({
+        rows: [
+          { id: 'c', datum: '2026-08-24', ...emptyRow, gewicht: 82.5, bauchumfang: 88 },
+          { id: 'a', datum: '2026-08-17', ...emptyRow, gewicht: 83.3 },
+        ],
+      }),
+    )
+
+    renderPage()
+    fireEvent.click(screen.getByRole('button', { name: 'Heute eintragen' }))
+
+    expect(screen.getByLabelText('Datum')).toHaveValue('2026-08-24')
+    expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(82.5)
+    expect(screen.getByLabelText('Bauchumfang (cm)')).toHaveValue(88)
   })
 
   it('reports a failed load instead of showing an empty body area', () => {

@@ -116,6 +116,25 @@ describe('useBodyMetrics', () => {
     expect(profiles.update).toHaveBeenCalledWith({ aktuelles_gewicht: null })
   })
 
+  it('does not touch the profile when the newest-weight read fails', async () => {
+    // A failed read resolves with data: null, which looks exactly like "no entry
+    // carries a weight". Writing it through would clear aktuelles_gewicht on a
+    // transient 5xx, an expired token or an RLS rejection.
+    const metrics = createQueryBuilder({ data: rows })
+    metrics.maybeSingle = vi.fn(() => Promise.resolve({ data: null, error: { message: 'boom' } }))
+    const profiles = createQueryBuilder({ data: null })
+    mockTables({ body_metrics: metrics, profiles })
+
+    const { useBodyMetrics } = await import('./use-body-metrics')
+    const { result } = renderHook(() => useBodyMetrics('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await expect(result.current.saveEntry('2026-08-24', values)).rejects.toBeInstanceOf(
+      ProfileWeightSyncError,
+    )
+    expect(profiles.update).not.toHaveBeenCalled()
+  })
+
   it('rejects instead of reporting success when the write fails', async () => {
     const metrics = createQueryBuilder({ data: null, error: { message: 'boom' } })
     mockTables({ body_metrics: metrics })

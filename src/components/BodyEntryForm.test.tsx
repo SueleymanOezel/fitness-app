@@ -3,7 +3,12 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import BodyEntryForm from './BodyEntryForm'
 import { ProfileWeightSyncError } from '../hooks/use-body-metrics'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  // Here rather than at the end of the test that installs them: a failing test
+  // would otherwise leak fake timers into every test after it.
+  vi.useRealTimers()
+})
 
 describe('BodyEntryForm', () => {
   it('defaults the date to today', () => {
@@ -12,7 +17,16 @@ describe('BodyEntryForm', () => {
     render(<BodyEntryForm onSave={vi.fn()} onClose={vi.fn()} />)
 
     expect(screen.getByLabelText('Datum')).toHaveValue('2026-08-24')
-    vi.useRealTimers()
+  })
+
+  it('does not accept a date in the future', () => {
+    // A future date — or 0007-08-24 from a mistyped year — sorts to the top of
+    // the history and would hold profiles.aktuelles_gewicht there indefinitely.
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 7, 24, 9, 0, 0))
+    render(<BodyEntryForm onSave={vi.fn()} onClose={vi.fn()} />)
+
+    expect(screen.getByLabelText('Datum')).toHaveAttribute('max', '2026-08-24')
   })
 
   it('allows fractional values in every measurement field', () => {
