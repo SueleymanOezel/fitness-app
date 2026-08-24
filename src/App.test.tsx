@@ -227,6 +227,11 @@ describe('App routing', () => {
 
     // findByRole, not getByRole: the analysis pages are loaded lazily, so the
     // first render is the Suspense fallback.
-    expect(await screen.findByRole('heading', { name: 'Analyse' })).toBeInTheDocument()
+    // timeout: the page arrives via a dynamic import. The 1000 ms default is a
+    // statement about machine speed, not about correctness, and a loaded CI
+    // runner exceeds it often enough to make the suite intermittently red.
+    expect(
+      await screen.findByRole('heading', { name: 'Analyse' }, { timeout: 5000 }),
+    ).toBeInTheDocument()
   })
 })

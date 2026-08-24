@@ -316,7 +316,12 @@ describe('NutritionPage – ausgewaehlte Graphen', () => {
     // findByRole, not getByRole: CaloriesPerDayChart is now lazy-loaded at
     // this dashboard use site too (not just on the analysis page), so the
     // first render is the Suspense fallback.
-    expect(await screen.findByRole('heading', { name: 'Kalorien pro Tag' })).toBeInTheDocument()
+    // timeout: the component arrives via a dynamic import. The 1000 ms default
+    // is a statement about machine speed, not about correctness, and a loaded
+    // CI runner exceeds it often enough to make the suite intermittently red.
+    expect(
+      await screen.findByRole('heading', { name: 'Kalorien pro Tag' }, { timeout: 5000 }),
+    ).toBeInTheDocument()
     expect(mockUseNutritionAnalysis).toHaveBeenCalledWith('u1', 90)
     expect(screen.queryByRole('button', { name: '30 Tage' })).not.toBeInTheDocument()
   })
@@ -330,7 +335,14 @@ describe('NutritionPage – ausgewaehlte Graphen', () => {
       profileResult({ profile: { ...profile, taegliches_kalorienziel: null } }),
     )
     zeigeDashboard()
-    const ueberschrift = await screen.findByRole('heading', { name: 'Kalorien pro Tag' })
+    // timeout: the component arrives via a dynamic import. The 1000 ms default
+    // is a statement about machine speed, not about correctness, and a loaded
+    // CI runner exceeds it often enough to make the suite intermittently red.
+    const ueberschrift = await screen.findByRole(
+      'heading',
+      { name: 'Kalorien pro Tag' },
+      { timeout: 5000 },
+    )
     // Scoped to the chart's own section: DailySummary above it names the same
     // goal, so an unscoped query would pass even with no reference line drawn.
     const abschnitt = ueberschrift.closest('section')!
@@ -338,7 +350,9 @@ describe('NutritionPage – ausgewaehlte Graphen', () => {
     // above both logged days, which is the normal case for someone cutting.
     // findByText: ResponsiveContainer needs one more tick before Recharts
     // draws into the measured box.
-    expect(await within(abschnitt).findByText('Ziel 2759 kcal')).toBeInTheDocument()
+    expect(
+      await within(abschnitt).findByText('Ziel 2759 kcal', undefined, { timeout: 5000 }),
+    ).toBeInTheDocument()
   })
 
   it('offers no picker on the dashboard', () => {

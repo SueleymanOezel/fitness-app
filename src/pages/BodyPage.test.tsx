@@ -213,7 +213,12 @@ describe('BodyPage – ausgewaehlte Graphen', () => {
     // findByRole, not getByRole: WeightTrendChart is now lazy-loaded at this
     // dashboard use site too (not just on the analysis page), so the first
     // render is the Suspense fallback.
-    expect(await screen.findByRole('heading', { name: 'Gewichtsverlauf' })).toBeInTheDocument()
+    // timeout: the component arrives via a dynamic import. The 1000 ms default
+    // is a statement about machine speed, not about correctness, and a loaded
+    // CI runner exceeds it often enough to make the suite intermittently red.
+    expect(
+      await screen.findByRole('heading', { name: 'Gewichtsverlauf' }, { timeout: 5000 }),
+    ).toBeInTheDocument()
     expect(mockUseBodyAnalysis).toHaveBeenCalledWith('u1', 90)
     expect(screen.queryByRole('button', { name: '30 Tage' })).not.toBeInTheDocument()
   })
