@@ -99,25 +99,26 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Bewusst offen gelassen** (vom Schluss-Review als „darf warten" eingestuft): `formatDate` steht wortgleich in drei Seiten; der `onSave`-Wrapper in `BodyPage` und `BodyEntriesPage` ist nahezu identisch; das Ändern des Datums beim Korrigieren kann einen anderen Eintrag desselben Tages überschreiben; das Profil-Update meldet nicht, wenn es null Zeilen trifft; `Number('0x50')` ergibt 80; Foto-Löschen ohne `busy`-Guard und ohne Bestätigen (Projektkonvention).
 
-## Phase 5 – Analysebereich (Spec und Plan 1 fertig, hier weitermachen)
+## Phase 5 – Analysebereich (Plan 1 fertig gebaut, wartet auf PR und Merge)
 
-**Sofort-Einstieg:** Spec `docs/superpowers/specs/2026-08-24-phase5-analysebereich-design.md`, Plan 1 `docs/superpowers/plans/2026-08-24-phase5-plan1-fundament.md` (15 Tasks). Umgesetzt wird mit `superpowers:subagent-driven-development`. Branch `feat-phase5-plan1-fundament`, 14 Commits, **nicht gepusht**, `master` unberührt.
+**Stand:** Plan 1 vollständig — alle 15 Tasks umgesetzt und je einzeln reviewt, danach Whole-Branch-Review auf dem stärksten Modell, eine Fix-Welle, ein Scoped Re-Review und zwei nachgezogene Rulings. Branch `feat-phase5-plan1-fundament`, 22 Commits, **nicht gepusht**, `master` unberührt. **525 Tests grün**, Lint, `tsc -b --noEmit` und `npm run build` sauber.
 
-**Das Fortschritts-Ledger ist die Wahrheit:** `.superpowers/sdd/2026-08-24-phase5-plan1-fundament/progress.md` — git-ignoriert, nur lokal. Enthält den Preflight-Scan, neun Rulings mit Begründung und den Stand je Task. Dort zuerst hineinschauen, nicht in diese Zusammenfassung.
+**Zuschnitt gegenüber den Eckpunkten geändert: der Home-Bereich ist NICHT dabei.** `HomePage.tsx` ist ein Platzhalter und `day_status` wird von keiner Stelle beschrieben — H1–H3 hätten weder Dashboard noch Daten. Home-Dashboard und Trainingstag/Restday-Kalender werden ein eigenes Vorhaben. Phase 5 deckt Training, Ernährung und Körper ab: 19 Graphen, davon 3 in Plan 1.
 
-**Stand:** Tasks 1–12 abgeschlossen und reviewt. Task 13 implementiert, eine Fix-Runde durch (`d4b5295`), **Scoped Re-Review steht noch aus** — Diff-Paket liegt bereit. 504 Tests grün, Lint und `tsc -b --noEmit` sauber.
+**Was es jetzt gibt:** `/training/analyse`, `/nutrition/analyse`, `/body/analyse` mit Zeitraum-Umschalter (30/90/365/alles, Vorgabe 90) und je einem Graphen: T1 Trainingsfrequenz, E1 Kalorien pro Tag gegen Ziel, K1 Gewichtsverlauf mit Trendlinie. Ein Häkchen am Graphen heftet ihn ans Dashboard; die Auswahl liegt in `profiles.analyse_auswahl` (Migration `0007`). Dashboards zeigen fest 90 Tage ohne Umschalter und lösen **keine** Abfrage aus, solange nichts angehakt ist. **Plan 2** (die restlichen 16 Graphen) ist noch nicht geschrieben.
 
-**Zwei Erkenntnisse, die beim Weiterbauen gelten:**
-- **Graph-Tests prüfen gezeichnete Marken, nie Achsentexte** (Ruling 7). Recharts' Tick-Skipping ist eine Layout-Heuristik, die in jsdom anders ausfällt. Bei Balken die Anzahl der Rechtecke zählen, bei Linien die `M`/`L`-Befehle im `d`-Attribut der Kurve. Recharts zeichnet für einen Nullwert **gar keine** Marke.
-- **Der `getBoundingClientRect`-Stub in `src/test-setup.ts` muss auf den `recharts-responsive-container` begrenzt bleiben.** Pauschal angewandt belegt eine Legende die gesamte Zeichenfläche und die Linien bleiben ohne Fehlermeldung leer — das ist in Task 8 durch Review und Mutationsprobe gerutscht und erst in Task 9/10 aufgefallen.
+**Migration `0007` ist noch NICHT auf Produktion** — sie läuft erst beim Merge. Fügt `profiles.analyse_auswahl jsonb not null default '["T1","E1","K1"]'` hinzu, sonst nichts; Policies bleiben unangetastet.
 
-**Zuschnitt geändert gegenüber den Eckpunkten unten: der Home-Bereich ist NICHT dabei.** `HomePage.tsx` ist noch ein Platzhalter und `day_status` wird von keiner Stelle im Code beschrieben — H1–H3 hätten weder Dashboard noch Daten. Home-Dashboard und Trainingstag/Restday-Kalender werden ein eigenes Vorhaben. Phase 5 deckt Training, Ernährung und Körper ab: 19 Graphen.
+**Bundle:** Entry-Chunk 977 kB / 266 kB gzip — praktisch der Stand vor Recharts, weil die Chart-Komponenten an ihren Verwendungsstellen nachgeladen werden. Weiterhin über Vites Warnschwelle; das ist der Rest der App und gehört in die Härtungsphase.
 
-**Plan 1** bringt Fundament plus T1, E1, K1: Recharts mit `React.lazy`, Registry, Migration `0007` (`profiles.analyse_auswahl jsonb`), drei Analyse-Unterseiten, Zeitraum-Umschalter, drei bereichs-eigene Hooks, Picker. **Plan 2** die restlichen 16 Graphen — noch nicht geschrieben.
+**Fünf Dinge, die beim Weiterbauen gelten:**
+- **Graph-Tests prüfen gezeichnete Marken, nie Achsentexte.** Recharts' Tick-Skipping ist eine Layout-Heuristik, die in jsdom anders ausfällt. Balken: Anzahl der Rechtecke. Linien: `M`/`L`-Befehle im `d` der Kurve — aber Achtung, `type="monotone"` liefert ab drei Punkten `M…C…C…`, die Zählung stimmt nur bei genau zwei.
+- **Recharts zeichnet für einen Nullwert gar keine Marke**, und **verwirft eine `ReferenceLine` über dem Wertebereich der Y-Achse** — deshalb trägt E1 `ifOverflow="extendDomain"`. Ohne das sieht niemand seine Ziel-Linie, der unter dem Ziel isst.
+- **Der `getBoundingClientRect`-Stub in `src/test-setup.ts` muss auf `recharts-responsive-container` begrenzt bleiben.** Pauschal belegt eine Legende die ganze Zeichenfläche und die Linien bleiben ohne Fehlermeldung leer.
+- **Jedes `findBy*` hinter einer `React.lazy`-Grenze braucht `{ timeout: 5000 }`.** Die Vorgabe von 1000 ms reicht auf einem belasteten Rechner nicht für den dynamischen Import — sonst flakt CI.
+- **Das Kalorienziel kommt immer aus `effectiveCalorieGoal(profile)`, nie aus `taegliches_kalorienziel`.** Das Rohfeld ist im Normalfall leer; das Ziel wird gerechnet.
 
-**Festlegungen, die beim Bauen gelten:** Zeitraum 30/90/365/alles, Vorgabe 90; Dashboards fest 90 Tage ohne Umschalter; das Picker-Häkchen sitzt am Graphen auf der Analyse-Seite, nicht in einer eigenen Liste; Ladefehler meldet der Bereich einmal oben, nicht jeder Graph; jeder Graph schreibt einen Satz statt leerer Achsen; die Trendlinie ist ein *zeitgewichteter* EWMA mit sieben Tagen Halbwertszeit. **Recharts zeichnet in jsdom nur mit festen Maßen** — `src/test-setup.ts` bekommt dafür `offsetWidth`/`offsetHeight` und einen `ResizeObserver`-Ersatz; ohne das sind alle Graph-Tests wertlos.
-
-Rückt die bisherige Phase „Härtung & Feinschliff" nach hinten.
+**Bewusst offen gelassen:** `chartsFor`/`CHARTS` werden noch nicht von den Seiten genutzt (die sechs Verwendungsstellen nehmen jetzt immerhin ID-Konstanten aus der Registry); drei aufeinanderfolgende Häkchen-Klicks innerhalb eines Schreibvorgangs können den mittleren verlieren; die Zeitraum-Untergrenze vergleicht ein lokales Datum gegen `timestamptz` (ein Teiltag am Fensteranfang); `useProfile` läuft auf der Ernährungs-Analyseseite doppelt; `useChartSelection` liegt in `ChartPicker.tsx` statt unter `src/hooks/`; `tagesLabel` steht doppelt.
 
 **Ziel:** Interaktive Graphen über alle vier Bereiche, damit sich Fortschritt und Schwachstellen ablesen lassen.
 
