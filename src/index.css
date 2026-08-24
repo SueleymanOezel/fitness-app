@@ -120,6 +120,13 @@ code {
   min-width: 0;
 }
 
+/* Progress photos are stored at up to 1600px on the long edge. Without this the
+   intrinsic width forces a horizontal scrollbar on the whole app on a phone. */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
 header {
   display: flex;
   justify-content: flex-end;

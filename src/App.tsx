@@ -6,6 +6,8 @@ import HomePage from './pages/HomePage'
 import TrainingPage from './pages/TrainingPage'
 import NutritionPage from './pages/NutritionPage'
 import BodyPage from './pages/BodyPage'
+import BodyEntriesPage from './pages/BodyEntriesPage'
+import BodyPhotosPage from './pages/BodyPhotosPage'
 import NutritionEntriesPage from './pages/NutritionEntriesPage'
 import ProfilePage from './pages/ProfilePage'
 import TrainingPlansPage from './pages/TrainingPlansPage'
@@ -40,6 +42,8 @@ export default function App() {
           <Route path="/nutrition" element={<NutritionPage />} />
           <Route path="/nutrition/entries" element={<NutritionEntriesPage />} />
           <Route path="/body" element={<BodyPage />} />
+          <Route path="/body/entries" element={<BodyEntriesPage />} />
+          <Route path="/body/photos" element={<BodyPhotosPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Routes>
