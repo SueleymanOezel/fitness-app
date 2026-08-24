@@ -18,16 +18,29 @@ class ResizeObserverStub {
 }
 globalThis.ResizeObserver ??= ResizeObserverStub as unknown as typeof ResizeObserver
 
+// Only the ResponsiveContainer's own wrapper gets a fixed size: it is what
+// ResizeObserver/getBoundingClientRect are read from to size the SVG.
+// Everything else — most importantly a chart Legend's wrapper — must keep
+// jsdom's native zero rect. Recharts feeds a Legend's measured box straight
+// into the chart's plot-area offset (appendOffsetOfLegend in ChartUtils.js);
+// a blanket 800x400 here previously made every legend consume more height
+// than the 240px chart itself, leaving zero room for any Line to draw a path
+// — a silent failure (no thrown error) discovered while building K1's
+// two-line chart.
+const nativeGetBoundingClientRect = HTMLElement.prototype.getBoundingClientRect
 HTMLElement.prototype.getBoundingClientRect = function () {
-  return {
-    width: 800,
-    height: 400,
-    top: 0,
-    left: 0,
-    right: 800,
-    bottom: 400,
-    x: 0,
-    y: 0,
-    toJSON() {},
-  } as DOMRect
+  if (this.classList.contains('recharts-responsive-container')) {
+    return {
+      width: 800,
+      height: 400,
+      top: 0,
+      left: 0,
+      right: 800,
+      bottom: 400,
+      x: 0,
+      y: 0,
+      toJSON() {},
+    } as DOMRect
+  }
+  return nativeGetBoundingClientRect.call(this)
 }
