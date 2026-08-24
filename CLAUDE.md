@@ -99,17 +99,36 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Bewusst offen gelassen** (vom Schluss-Review als „darf warten" eingestuft): `formatDate` steht wortgleich in drei Seiten; der `onSave`-Wrapper in `BodyPage` und `BodyEntriesPage` ist nahezu identisch; das Ändern des Datums beim Korrigieren kann einen anderen Eintrag desselben Tages überschreiben; das Profil-Update meldet nicht, wenn es null Zeilen trifft; `Number('0x50')` ergibt 80; Foto-Löschen ohne `busy`-Guard und ohne Bestätigen (Projektkonvention).
 
-## Phase 5 – Analysebereich (Spec und Plan 1 fertig, hier weitermachen)
+## Phase 5 – Analysebereich (Plan 1 im PR, HIER WEITERMACHEN)
 
-**Sofort-Einstieg:** Spec `docs/superpowers/specs/2026-08-24-phase5-analysebereich-design.md`, Plan 1 `docs/superpowers/plans/2026-08-24-phase5-plan1-fundament.md` (15 Tasks). Umgesetzt wird mit `superpowers:subagent-driven-development`. Noch nichts implementiert, `master` unberührt.
+### Sofort-Einstieg für einen neuen Chat
 
-**Zuschnitt geändert gegenüber den Eckpunkten unten: der Home-Bereich ist NICHT dabei.** `HomePage.tsx` ist noch ein Platzhalter und `day_status` wird von keiner Stelle im Code beschrieben — H1–H3 hätten weder Dashboard noch Daten. Home-Dashboard und Trainingstag/Restday-Kalender werden ein eigenes Vorhaben. Phase 5 deckt Training, Ernährung und Körper ab: 19 Graphen.
+**Als Erstes:** `gh pr checks 27` — der PR ist offen und die CI lief beim Verlassen noch.
+1. **Alle vier Checks grün?** (build-test, semgrep, npm-audit, zap-baseline) → `gh pr merge 27 --merge --delete-branch`, dann `git checkout master && git pull`.
+2. **Danach die manuelle Verifikation** gegen Produktion. Liste am Ende von `docs/superpowers/plans/2026-08-24-phase5-plan1-fundament.md`. Es gibt keinen Deploy-Workflow im Repo — `npm run dev` hängt an derselben Produktions-Supabase, das reicht für die Prüfung. **Wichtigster Schritt: Häkchen abwählen, Seite neu laden, Graph bleibt weg** — beweist, dass die Auswahl im Profil liegt und nicht im Browser.
+3. **Wiki synchronisieren** (erst nach dem Merge, eigenes Repo unter `../fitness-app.wiki`): `Domain-Model.md` ist bereits gespiegelt aber **nicht committet**; dazu `Phase-5-Design-Spec.md` und `Phase-5-Implementation-Plan.md` aus `docs/superpowers/` kopieren, `Home.md` und `_Sidebar.md` ergänzen, committen, pushen.
+4. **Dann Plan 2 schreiben** — die restlichen 16 Graphen. Spec liegt vor, Zuschnitt steht (siehe unten). Weg: `superpowers:writing-plans` → `superpowers:subagent-driven-development`.
 
-**Plan 1** bringt Fundament plus T1, E1, K1: Recharts mit `React.lazy`, Registry, Migration `0007` (`profiles.analyse_auswahl jsonb`), drei Analyse-Unterseiten, Zeitraum-Umschalter, drei bereichs-eigene Hooks, Picker. **Plan 2** die restlichen 16 Graphen — noch nicht geschrieben.
+Ein Check rot? Ausgabe lesen, Ursache beheben, nicht mergen. Das SDD-Arbeitsverzeichnis ist gelöscht — alles Wissenswerte steht in diesem Abschnitt und im Verlauf von `git log`.
 
-**Festlegungen, die beim Bauen gelten:** Zeitraum 30/90/365/alles, Vorgabe 90; Dashboards fest 90 Tage ohne Umschalter; das Picker-Häkchen sitzt am Graphen auf der Analyse-Seite, nicht in einer eigenen Liste; Ladefehler meldet der Bereich einmal oben, nicht jeder Graph; jeder Graph schreibt einen Satz statt leerer Achsen; die Trendlinie ist ein *zeitgewichteter* EWMA mit sieben Tagen Halbwertszeit. **Recharts zeichnet in jsdom nur mit festen Maßen** — `src/test-setup.ts` bekommt dafür `offsetWidth`/`offsetHeight` und einen `ResizeObserver`-Ersatz; ohne das sind alle Graph-Tests wertlos.
+**Stand:** Plan 1 vollständig — alle 15 Tasks umgesetzt und je einzeln reviewt, danach Whole-Branch-Review auf dem stärksten Modell, eine Fix-Welle, ein Scoped Re-Review und zwei nachgezogene Rulings. Branch `feat-phase5-plan1-fundament`, 23 Commits, gepusht, **PR #27 offen**, `master` unberührt. **525 Tests grün**, Lint, `tsc -b --noEmit` und `npm run build` sauber.
 
-Rückt die bisherige Phase „Härtung & Feinschliff" nach hinten.
+**Zuschnitt gegenüber den Eckpunkten geändert: der Home-Bereich ist NICHT dabei.** `HomePage.tsx` ist ein Platzhalter und `day_status` wird von keiner Stelle beschrieben — H1–H3 hätten weder Dashboard noch Daten. Home-Dashboard und Trainingstag/Restday-Kalender werden ein eigenes Vorhaben. Phase 5 deckt Training, Ernährung und Körper ab: 19 Graphen, davon 3 in Plan 1.
+
+**Was es jetzt gibt:** `/training/analyse`, `/nutrition/analyse`, `/body/analyse` mit Zeitraum-Umschalter (30/90/365/alles, Vorgabe 90) und je einem Graphen: T1 Trainingsfrequenz, E1 Kalorien pro Tag gegen Ziel, K1 Gewichtsverlauf mit Trendlinie. Ein Häkchen am Graphen heftet ihn ans Dashboard; die Auswahl liegt in `profiles.analyse_auswahl` (Migration `0007`). Dashboards zeigen fest 90 Tage ohne Umschalter und lösen **keine** Abfrage aus, solange nichts angehakt ist. **Plan 2** (die restlichen 16 Graphen) ist noch nicht geschrieben.
+
+**Migration `0007` ist noch NICHT auf Produktion** — sie läuft automatisch beim Merge von PR #27. Fügt `profiles.analyse_auswahl jsonb not null default '["T1","E1","K1"]'` hinzu, sonst nichts; Policies bleiben unangetastet.
+
+**Bundle:** Entry-Chunk 977 kB / 266 kB gzip — praktisch der Stand vor Recharts, weil die Chart-Komponenten an ihren Verwendungsstellen nachgeladen werden. Weiterhin über Vites Warnschwelle; das ist der Rest der App und gehört in die Härtungsphase.
+
+**Fünf Dinge, die beim Weiterbauen gelten:**
+- **Graph-Tests prüfen gezeichnete Marken, nie Achsentexte.** Recharts' Tick-Skipping ist eine Layout-Heuristik, die in jsdom anders ausfällt. Balken: Anzahl der Rechtecke. Linien: `M`/`L`-Befehle im `d` der Kurve — aber Achtung, `type="monotone"` liefert ab drei Punkten `M…C…C…`, die Zählung stimmt nur bei genau zwei.
+- **Recharts zeichnet für einen Nullwert gar keine Marke**, und **verwirft eine `ReferenceLine` über dem Wertebereich der Y-Achse** — deshalb trägt E1 `ifOverflow="extendDomain"`. Ohne das sieht niemand seine Ziel-Linie, der unter dem Ziel isst.
+- **Der `getBoundingClientRect`-Stub in `src/test-setup.ts` muss auf `recharts-responsive-container` begrenzt bleiben.** Pauschal belegt eine Legende die ganze Zeichenfläche und die Linien bleiben ohne Fehlermeldung leer.
+- **Jedes `findBy*` hinter einer `React.lazy`-Grenze braucht `{ timeout: 5000 }`.** Die Vorgabe von 1000 ms reicht auf einem belasteten Rechner nicht für den dynamischen Import — sonst flakt CI.
+- **Das Kalorienziel kommt immer aus `effectiveCalorieGoal(profile)`, nie aus `taegliches_kalorienziel`.** Das Rohfeld ist im Normalfall leer; das Ziel wird gerechnet.
+
+**Bewusst offen gelassen:** `chartsFor`/`CHARTS` werden noch nicht von den Seiten genutzt (die sechs Verwendungsstellen nehmen jetzt immerhin ID-Konstanten aus der Registry); drei aufeinanderfolgende Häkchen-Klicks innerhalb eines Schreibvorgangs können den mittleren verlieren; die Zeitraum-Untergrenze vergleicht ein lokales Datum gegen `timestamptz` (ein Teiltag am Fensteranfang); `useProfile` läuft auf der Ernährungs-Analyseseite doppelt; `useChartSelection` liegt in `ChartPicker.tsx` statt unter `src/hooks/`; `tagesLabel` steht doppelt.
 
 **Ziel:** Interaktive Graphen über alle vier Bereiche, damit sich Fortschritt und Schwachstellen ablesen lassen.
 

@@ -18,6 +18,7 @@ export type Profile = {
   mahlzeit_4_name: string
   mahlzeit_5_name: string | null
   mahlzeit_6_name: string | null
+  analyse_auswahl: unknown
 }
 
 export function useProfile(userId: string) {

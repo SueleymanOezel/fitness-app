@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { ProfileWeightSyncError, useBodyMetrics } from '../hooks/use-body-metrics'
@@ -10,6 +10,16 @@ import {
   type MeasurementField,
 } from '../lib/body-metrics'
 import BodyEntryForm from '../components/BodyEntryForm'
+import { useChartSelection } from '../components/charts/ChartPicker'
+import { K1 } from '../lib/analysis/registry'
+import { useBodyAnalysis } from '../hooks/use-body-analysis'
+import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
+
+// Lazy at this use site too, not just on the analysis page: WeightTrendChart
+// pulls in recharts (~136 kB gzipped), and this dashboard is reachable from
+// the entry route graph. Without this, recharts would still end up in the
+// entry chunk regardless of the analysis page's own lazy import.
+const WeightTrendChart = lazy(() => import('../components/charts/WeightTrendChart'))
 
 /** German notation: comma as the decimal mark, at most one place. */
 function formatValue(value: number) {
@@ -47,6 +57,7 @@ function Dashboard({ userId }: { userId: string }) {
   const { rows, loading, error, saveEntry } = useBodyMetrics(userId)
   const [formOpen, setFormOpen] = useState(false)
   const [syncNotice, setSyncNotice] = useState('')
+  const auswahl = useChartSelection(userId)
 
   if (loading) {
     return (
@@ -119,8 +130,26 @@ function Dashboard({ userId }: { userId: string }) {
         </button>
       )}
 
+      {auswahl.istGewaehlt(K1) && <DashboardWeightTrend userId={userId} />}
+      <Link to="/body/analyse">Analyse</Link>
       <Link to="/body/entries">Verlauf</Link>
       <Link to="/body/photos">Fortschrittsfotos</Link>
     </div>
+  )
+}
+
+/**
+ * Own component so the query only runs when the chart is actually pinned:
+ * hooks cannot be called conditionally, and an unpinned chart must not cost a
+ * request.
+ */
+function DashboardWeightTrend({ userId }: { userId: string }) {
+  const { rows, loading, error } = useBodyAnalysis(userId, DASHBOARD_ZEITRAUM)
+  if (loading) return <p>Lädt…</p>
+  if (error) return <p role="alert">Graph konnte nicht geladen werden.</p>
+  return (
+    <Suspense fallback={<p>Lädt…</p>}>
+      <WeightTrendChart rows={rows} />
+    </Suspense>
   )
 }

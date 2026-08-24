@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import BodyPage from './BodyPage'
@@ -51,7 +51,7 @@ function metricsResult(overrides: Record<string, unknown> = {}) {
   }
 }
 
-function renderPage() {
+function zeigeDashboard() {
   return render(
     <MemoryRouter>
       <BodyPage />
@@ -64,7 +64,7 @@ describe('BodyPage', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseBodyMetrics.mockReturnValue(metricsResult())
 
-    renderPage()
+    zeigeDashboard()
 
     expect(screen.getByText('82,5 kg')).toBeInTheDocument()
     expect(screen.getByText(/24\.08\./)).toBeInTheDocument()
@@ -74,7 +74,7 @@ describe('BodyPage', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseBodyMetrics.mockReturnValue(metricsResult())
 
-    renderPage()
+    zeigeDashboard()
 
     expect(screen.getByText(/−0,8 kg seit 17\.08\./)).toBeInTheDocument()
   })
@@ -83,7 +83,7 @@ describe('BodyPage', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseBodyMetrics.mockReturnValue(metricsResult())
 
-    renderPage()
+    zeigeDashboard()
 
     // Leg circumference is null in both rows.
     expect(screen.getByTestId('wert-beinumfang')).toHaveTextContent('—')
@@ -93,7 +93,7 @@ describe('BodyPage', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseBodyMetrics.mockReturnValue(metricsResult())
 
-    renderPage()
+    zeigeDashboard()
     fireEvent.click(screen.getByRole('button', { name: 'Heute eintragen' }))
 
     expect(screen.getByLabelText('Datum')).toBeInTheDocument()
@@ -115,7 +115,7 @@ describe('BodyPage', () => {
       }),
     )
 
-    renderPage()
+    zeigeDashboard()
     fireEvent.click(screen.getByRole('button', { name: 'Heute eintragen' }))
 
     expect(screen.getByLabelText('Datum')).toHaveValue('2026-08-24')
@@ -127,7 +127,7 @@ describe('BodyPage', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseBodyMetrics.mockReturnValue(metricsResult({ error: true, rows: [] }))
 
-    renderPage()
+    zeigeDashboard()
 
     expect(screen.getByRole('alert')).toBeInTheDocument()
   })
@@ -138,7 +138,7 @@ describe('BodyPage', () => {
       metricsResult({ saveEntry: vi.fn().mockRejectedValue(new ProfileWeightSyncError()) }),
     )
 
-    renderPage()
+    zeigeDashboard()
     fireEvent.click(screen.getByRole('button', { name: 'Heute eintragen' }))
     fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '80' } })
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
@@ -146,5 +146,104 @@ describe('BodyPage', () => {
     const notice = await screen.findByRole('alert')
     expect(notice).toHaveTextContent(/aktuelle Gewicht im Profil konnte nicht aktualisiert werden/)
     expect(notice).not.toHaveTextContent(/nicht gespeichert/)
+  })
+})
+
+const mockUseBodyAnalysis = vi.fn()
+vi.mock('../hooks/use-body-analysis', () => ({
+  useBodyAnalysis: (userId: string, zeitraum: unknown) => mockUseBodyAnalysis(userId, zeitraum),
+}))
+
+const mockUseChartSelection = vi.fn()
+vi.mock('../components/charts/ChartPicker', async () => {
+  const actual = await vi.importActual<typeof import('../components/charts/ChartPicker')>(
+    '../components/charts/ChartPicker',
+  )
+  return { ...actual, useChartSelection: () => mockUseChartSelection() }
+})
+
+// Default for tests outside the "ausgewaehlte Graphen" describe below, which
+// know nothing about chart selection: no chart pinned, so the dashboard
+// renders exactly as it did before this hook existed.
+beforeEach(() => {
+  mockUseChartSelection.mockReturnValue({
+    auswahl: [],
+    istGewaehlt: () => false,
+    umschalten: vi.fn(),
+    fehler: '',
+  })
+})
+
+describe('BodyPage – ausgewaehlte Graphen', () => {
+  const leerZeile = {
+    bauchumfang: null,
+    beinumfang: null,
+    armumfang: null,
+    ruckenumfang: null,
+    brustumfang: null,
+    koerperfettanteil: null,
+  }
+
+  beforeEach(() => {
+    // Self-sufficient: this block seeds every mock BodyPage's own render
+    // path depends on, instead of relying on what the describe above left
+    // behind — running this block alone (vitest -t) must work.
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult())
+    mockUseBodyAnalysis.mockReturnValue({
+      rows: [
+        { id: 'a', datum: '2026-08-17', gewicht: 83.3, ...leerZeile },
+        { id: 'b', datum: '2026-08-24', gewicht: 82.5, ...leerZeile },
+      ],
+      loading: false,
+      error: false,
+    })
+    mockUseChartSelection.mockReturnValue({
+      auswahl: ['K1'],
+      istGewaehlt: (id: string) => id === 'K1',
+      umschalten: vi.fn(),
+      fehler: '',
+    })
+  })
+
+  it('shows a pinned chart with the fixed 90-day range', async () => {
+    // No range switch on a dashboard: a dashboard with controls is not a
+    // dashboard any more.
+    zeigeDashboard()
+    // findByRole, not getByRole: WeightTrendChart is now lazy-loaded at this
+    // dashboard use site too (not just on the analysis page), so the first
+    // render is the Suspense fallback.
+    // timeout: the component arrives via a dynamic import. The 1000 ms default
+    // is a statement about machine speed, not about correctness, and a loaded
+    // CI runner exceeds it often enough to make the suite intermittently red.
+    expect(
+      await screen.findByRole('heading', { name: 'Gewichtsverlauf' }, { timeout: 5000 }),
+    ).toBeInTheDocument()
+    expect(mockUseBodyAnalysis).toHaveBeenCalledWith('u1', 90)
+    expect(screen.queryByRole('button', { name: '30 Tage' })).not.toBeInTheDocument()
+  })
+
+  it('offers no picker on the dashboard', () => {
+    zeigeDashboard()
+    expect(
+      screen.queryByRole('checkbox', { name: 'Auf dem Dashboard zeigen' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows nothing and asks for nothing when no chart is pinned', () => {
+    mockUseChartSelection.mockReturnValue({
+      auswahl: [],
+      istGewaehlt: () => false,
+      umschalten: vi.fn(),
+      fehler: '',
+    })
+    zeigeDashboard()
+    expect(screen.queryByRole('heading', { name: 'Gewichtsverlauf' })).not.toBeInTheDocument()
+    expect(mockUseBodyAnalysis).not.toHaveBeenCalled()
+  })
+
+  it('links to the analysis page', () => {
+    zeigeDashboard()
+    expect(screen.getByRole('link', { name: 'Analyse' })).toHaveAttribute('href', '/body/analyse')
   })
 })

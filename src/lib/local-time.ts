@@ -30,3 +30,9 @@ export function fromLocalInputValue(value: string): string | null {
   if (Number.isNaN(date.getTime())) return null
   return date.toISOString()
 }
+
+/** `timestamptz` → the local calendar day it falls on, as `YYYY-MM-DD`. */
+export function localDay(iso: string): string {
+  const date = new Date(iso)
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}
