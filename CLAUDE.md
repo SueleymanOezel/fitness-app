@@ -99,9 +99,17 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Bewusst offen gelassen** (vom Schluss-Review als „darf warten" eingestuft): `formatDate` steht wortgleich in drei Seiten; der `onSave`-Wrapper in `BodyPage` und `BodyEntriesPage` ist nahezu identisch; das Ändern des Datums beim Korrigieren kann einen anderen Eintrag desselben Tages überschreiben; das Profil-Update meldet nicht, wenn es null Zeilen trifft; `Number('0x50')` ergibt 80; Foto-Löschen ohne `busy`-Guard und ohne Bestätigen (Projektkonvention).
 
-## Phase 5 – Analysebereich (beschlossen, noch keine Spec)
+## Phase 5 – Analysebereich (Spec und Plan 1 fertig, hier weitermachen)
 
-Nach Phase 4 geplant, vom Nutzer beauftragt und in den Eckpunkten entschieden. Rückt die bisherige Phase „Härtung & Feinschliff" nach hinten.
+**Sofort-Einstieg:** Spec `docs/superpowers/specs/2026-08-24-phase5-analysebereich-design.md`, Plan 1 `docs/superpowers/plans/2026-08-24-phase5-plan1-fundament.md` (15 Tasks). Umgesetzt wird mit `superpowers:subagent-driven-development`. Noch nichts implementiert, `master` unberührt.
+
+**Zuschnitt geändert gegenüber den Eckpunkten unten: der Home-Bereich ist NICHT dabei.** `HomePage.tsx` ist noch ein Platzhalter und `day_status` wird von keiner Stelle im Code beschrieben — H1–H3 hätten weder Dashboard noch Daten. Home-Dashboard und Trainingstag/Restday-Kalender werden ein eigenes Vorhaben. Phase 5 deckt Training, Ernährung und Körper ab: 19 Graphen.
+
+**Plan 1** bringt Fundament plus T1, E1, K1: Recharts mit `React.lazy`, Registry, Migration `0007` (`profiles.analyse_auswahl jsonb`), drei Analyse-Unterseiten, Zeitraum-Umschalter, drei bereichs-eigene Hooks, Picker. **Plan 2** die restlichen 16 Graphen — noch nicht geschrieben.
+
+**Festlegungen, die beim Bauen gelten:** Zeitraum 30/90/365/alles, Vorgabe 90; Dashboards fest 90 Tage ohne Umschalter; das Picker-Häkchen sitzt am Graphen auf der Analyse-Seite, nicht in einer eigenen Liste; Ladefehler meldet der Bereich einmal oben, nicht jeder Graph; jeder Graph schreibt einen Satz statt leerer Achsen; die Trendlinie ist ein *zeitgewichteter* EWMA mit sieben Tagen Halbwertszeit. **Recharts zeichnet in jsdom nur mit festen Maßen** — `src/test-setup.ts` bekommt dafür `offsetWidth`/`offsetHeight` und einen `ResizeObserver`-Ersatz; ohne das sind alle Graph-Tests wertlos.
+
+Rückt die bisherige Phase „Härtung & Feinschliff" nach hinten.
 
 **Ziel:** Interaktive Graphen über alle vier Bereiche, damit sich Fortschritt und Schwachstellen ablesen lassen.
 
