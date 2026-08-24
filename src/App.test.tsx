@@ -6,6 +6,28 @@ vi.mock('./hooks/use-session', () => ({
   useSession: () => mockUseSession(),
 }))
 
+vi.mock('./hooks/use-body-metrics', () => ({
+  useBodyMetrics: () => ({
+    rows: [],
+    loading: false,
+    error: false,
+    saveEntry: vi.fn(),
+    deleteEntry: vi.fn(),
+    reload: vi.fn(),
+  }),
+}))
+
+vi.mock('./hooks/use-body-photos', () => ({
+  useBodyPhotos: () => ({
+    photos: [],
+    loading: false,
+    error: false,
+    uploadPhoto: vi.fn(),
+    deletePhoto: vi.fn(),
+    reload: vi.fn(),
+  }),
+}))
+
 afterEach(() => {
   window.history.pushState({}, '', '/')
 })
@@ -132,5 +154,25 @@ describe('App routing', () => {
     render(<App />)
 
     expect(screen.getByRole('heading', { name: 'Trainingseinheit' })).toBeInTheDocument()
+  })
+
+  it('shows the body history at /body/entries', async () => {
+    window.history.pushState({}, '', '/body/entries')
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+
+    const { default: App } = await import('./App')
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: 'Verlauf' })).toBeInTheDocument()
+  })
+
+  it('shows the photo timeline at /body/photos', async () => {
+    window.history.pushState({}, '', '/body/photos')
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+
+    const { default: App } = await import('./App')
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: 'Fortschrittsfotos' })).toBeInTheDocument()
   })
 })
