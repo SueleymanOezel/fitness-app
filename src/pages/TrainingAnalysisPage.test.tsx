@@ -12,6 +12,7 @@ vi.mock('../hooks/use-training-analysis', () => ({
     mockUseTrainingAnalysis(userId, zeitraum),
 }))
 
+const mockUseChartSelection = vi.fn()
 vi.mock('../components/charts/ChartPicker', async () => {
   const actual = await vi.importActual<typeof import('../components/charts/ChartPicker')>(
     '../components/charts/ChartPicker',
@@ -19,12 +20,7 @@ vi.mock('../components/charts/ChartPicker', async () => {
   return {
     ...actual,
     default: () => <span data-testid="picker" />,
-    useChartSelection: () => ({
-      auswahl: [],
-      istGewaehlt: () => false,
-      umschalten: vi.fn(),
-      fehler: '',
-    }),
+    useChartSelection: () => mockUseChartSelection(),
   }
 })
 
@@ -40,6 +36,12 @@ beforeEach(() => {
     ],
     loading: false,
     error: false,
+  })
+  mockUseChartSelection.mockReturnValue({
+    auswahl: [],
+    istGewaehlt: () => false,
+    umschalten: vi.fn(),
+    fehler: '',
   })
 })
 
@@ -72,7 +74,22 @@ describe('TrainingAnalysisPage', () => {
   it('shows one message for a failed load, not one per chart', () => {
     mockUseTrainingAnalysis.mockReturnValue({ sessions: [], loading: false, error: true })
     zeige()
-    expect(screen.getAllByRole('alert')).toHaveLength(1)
+    expect(screen.getAllByText('Daten konnten nicht geladen werden.')).toHaveLength(1)
+  })
+
+  it('shows both messages when the load and the picker save fail independently', () => {
+    // A failed load and a selection that could not be saved are different
+    // problems with different remedies; they must not collapse into one message.
+    mockUseTrainingAnalysis.mockReturnValue({ sessions: [], loading: false, error: true })
+    mockUseChartSelection.mockReturnValue({
+      auswahl: [],
+      istGewaehlt: () => false,
+      umschalten: vi.fn(),
+      fehler: 'Auswahl konnte nicht gespeichert werden.',
+    })
+    zeige()
+    expect(screen.getByText('Daten konnten nicht geladen werden.')).toBeInTheDocument()
+    expect(screen.getByText('Auswahl konnte nicht gespeichert werden.')).toBeInTheDocument()
   })
 
   it('shows a loading state', () => {

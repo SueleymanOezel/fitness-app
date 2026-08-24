@@ -73,6 +73,12 @@ describe('BodyAnalysisPage', () => {
   it('shows one message for a failed load', () => {
     mockUseBodyAnalysis.mockReturnValue({ rows: [], loading: false, error: true })
     zeige()
-    expect(screen.getAllByRole('alert')).toHaveLength(1)
+    expect(screen.getAllByText('Daten konnten nicht geladen werden.')).toHaveLength(1)
+  })
+
+  it('shows a loading state', () => {
+    mockUseBodyAnalysis.mockReturnValue({ rows: [], loading: true, error: false })
+    zeige()
+    expect(screen.getByText('Lädt…')).toBeInTheDocument()
   })
 })
