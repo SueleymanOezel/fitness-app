@@ -20,6 +20,7 @@ const calculableProfile: Profile = {
   mahlzeit_4_name: 'Snacks',
   mahlzeit_5_name: null,
   mahlzeit_6_name: null,
+  analyse_auswahl: null,
 }
 
 describe('CalorieGoalEditor', () => {
