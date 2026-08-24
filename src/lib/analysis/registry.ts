@@ -21,10 +21,22 @@ export type ChartDef = { id: string; bereich: Bereich; titel: string }
  * for nothing. Pages embed the components; the registry answers "which ids
  * exist" for the picker and for validating the stored selection.
  */
+/**
+ * One id constant per chart, so the pages stop repeating string literals.
+ *
+ * Renaming an id in the registry then breaks the compile at the use site
+ * instead of silently producing a checkbox that can never be ticked:
+ * parseAuswahl would drop the stored id while `<ChartPicker id="T1">` kept
+ * rendering the old one.
+ */
+export const T1 = 'T1'
+export const E1 = 'E1'
+export const K1 = 'K1'
+
 export const CHARTS: ChartDef[] = [
-  { id: 'T1', bereich: 'training', titel: TRAINING_FREQUENCY },
-  { id: 'E1', bereich: 'nutrition', titel: CALORIES_PER_DAY },
-  { id: 'K1', bereich: 'body', titel: WEIGHT_TREND },
+  { id: T1, bereich: 'training', titel: TRAINING_FREQUENCY },
+  { id: E1, bereich: 'nutrition', titel: CALORIES_PER_DAY },
+  { id: K1, bereich: 'body', titel: WEIGHT_TREND },
 ]
 
 export const CHART_IDS = CHARTS.map((chart) => chart.id)

@@ -19,22 +19,26 @@ describe('TrainingFrequencyChart', () => {
     const { container } = render(
       <TrainingFrequencyChart
         sessions={[
-          { id: 'a', gestartet_am: am(8, 17), beendet_am: null, gesamt_kalorien: null },
-          { id: 'b', gestartet_am: am(8, 24), beendet_am: null, gesamt_kalorien: null },
+          { id: 'a', gestartet_am: am(8, 17), beendet_am: am(8, 17), gesamt_kalorien: null },
+          { id: 'b', gestartet_am: am(8, 24), beendet_am: am(8, 24), gesamt_kalorien: null },
         ]}
       />,
     )
     expect(container.querySelectorAll('.recharts-bar-rectangle')).toHaveLength(2)
   })
 
-  it('says so instead of drawing a single bar', () => {
-    // One week is a dot, not a trend.
-    render(
+  it('draws a single week as one bar', () => {
+    // Spec section 5: lines need two points, bars need one. A lone bar reading
+    // "3 Einheiten diese Woche" is a statement, not noise.
+    const { container } = render(
       <TrainingFrequencyChart
-        sessions={[{ id: 'a', gestartet_am: am(8, 24), beendet_am: null, gesamt_kalorien: null }]}
+        sessions={[{ id: 'a', gestartet_am: am(8, 24), beendet_am: am(8, 24), gesamt_kalorien: null }]}
       />,
     )
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(
+      screen.queryByText('Noch nicht genug Daten für diesen Graphen.'),
+    ).not.toBeInTheDocument()
+    expect(container.querySelectorAll('.recharts-bar-rectangle')).toHaveLength(1)
   })
 
   it('says so when nothing was trained at all', () => {

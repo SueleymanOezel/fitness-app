@@ -4,6 +4,7 @@ import { useSession } from '../hooks/use-session'
 import { useActiveTrainingDay } from '../hooks/use-active-training-day'
 import { startWorkoutSession } from '../hooks/use-workout-session'
 import { useChartSelection } from '../components/charts/ChartPicker'
+import { T1 } from '../lib/analysis/registry'
 import { useTrainingAnalysis } from '../hooks/use-training-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 
@@ -82,7 +83,7 @@ function Dashboard({ userId }: { userId: string }) {
       <Link to="/training/plans">Meine Pläne</Link>
       <Link to="/training/exercises">Übungen</Link>
       <Link to="/training/history">Trainingshistorie</Link>
-      {auswahl.istGewaehlt('T1') && <DashboardTrainingFrequency userId={userId} />}
+      {auswahl.istGewaehlt(T1) && <DashboardTrainingFrequency userId={userId} />}
       <Link to="/training/analyse">Analyse</Link>
     </div>
   )

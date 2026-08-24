@@ -13,8 +13,12 @@ describe('CaloriesPerDayChart', () => {
   it('draws a point per logged day', () => {
     // Tick text is a Recharts layout heuristic and cannot carry this
     // assertion in jsdom (see the training frequency chart's test). The mark
-    // count proves the computed series reached the chart instead: one line,
-    // dot={false}, so the drawn curve's path carries one point per day.
+    // count proves the computed series reached the chart instead.
+    //
+    // The [ML] count is NOT a general "one command per day": type="monotone"
+    // emits `M…L…` only for exactly two points and switches to `M…C…C…` from
+    // three points on, where the same count would read 1. It equals the number
+    // of days only because these fixtures have exactly two.
     const { container } = render(
       <CaloriesPerDayChart entries={[eintrag(23, 1800), eintrag(24, 2100)]} ziel={1672} />,
     )

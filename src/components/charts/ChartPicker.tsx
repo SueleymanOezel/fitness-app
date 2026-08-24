@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useProfile } from '../../hooks/use-profile'
 import { parseAuswahl, toggleAuswahl } from '../../lib/analysis/auswahl'
 import { CHART_IDS } from '../../lib/analysis/registry'
@@ -18,11 +18,28 @@ export function useChartSelection(userId: string) {
 
   const auswahl = parseAuswahl(profile?.analyse_auswahl, CHART_IDS)
 
+  /**
+   * What was last sent, not what was last rendered.
+   *
+   * Two boxes ticked inside one round-trip render from the same `auswahl`:
+   * building the next list from that closure would let the second write erase
+   * the first. The ref carries the in-flight list forward and is re-synced
+   * whenever the stored selection actually changes.
+   */
+  const zuletztGesendet = useRef(auswahl)
+  useEffect(() => {
+    zuletztGesendet.current = parseAuswahl(profile?.analyse_auswahl, CHART_IDS)
+  }, [profile?.analyse_auswahl])
+
   async function umschalten(id: string) {
     setFehler('')
+    const naechste = toggleAuswahl(zuletztGesendet.current, id)
+    zuletztGesendet.current = naechste
     try {
-      await updateProfile({ analyse_auswahl: toggleAuswahl(auswahl, id) })
+      await updateProfile({ analyse_auswahl: naechste })
     } catch {
+      // The write did not land, so the stored selection is still the old one.
+      zuletztGesendet.current = parseAuswahl(profile?.analyse_auswahl, CHART_IDS)
       setFehler('Auswahl konnte nicht gespeichert werden.')
     }
   }

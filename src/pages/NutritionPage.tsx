@@ -8,6 +8,7 @@ import { visibleSections } from '../lib/meal-sections'
 import { sumKalorien } from '../lib/entry-calories'
 import DailySummary from '../components/DailySummary'
 import { useChartSelection } from '../components/charts/ChartPicker'
+import { E1 } from '../lib/analysis/registry'
 import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 
@@ -84,20 +85,25 @@ function NutritionDashboard({ userId }: { userId: string }) {
         })}
       </ul>
       <Link to="/nutrition/entries">Einträge ansehen</Link>
-      {auswahl.istGewaehlt('E1') && <DashboardCaloriesPerDay userId={userId} />}
+      {auswahl.istGewaehlt(E1) && <DashboardCaloriesPerDay userId={userId} ziel={goal} />}
       <Link to="/nutrition/analyse">Analyse</Link>
     </div>
   )
 }
 
-function DashboardCaloriesPerDay({ userId }: { userId: string }) {
+/**
+ * `ziel` comes in as a prop: the parent already computed effectiveCalorieGoal
+ * for DailySummary, so re-reading the profile here would both fetch it a third
+ * time on this page and — because it read the raw column — hand the chart a
+ * different number than the summary right above it.
+ */
+function DashboardCaloriesPerDay({ userId, ziel }: { userId: string; ziel: number | null }) {
   const { entries, loading, error } = useNutritionAnalysis(userId, DASHBOARD_ZEITRAUM)
-  const { profile } = useProfile(userId)
   if (loading) return <p>Lädt…</p>
   if (error) return <p role="alert">Graph konnte nicht geladen werden.</p>
   return (
     <Suspense fallback={<p>Lädt…</p>}>
-      <CaloriesPerDayChart entries={entries} ziel={profile?.taegliches_kalorienziel ?? null} />
+      <CaloriesPerDayChart entries={entries} ziel={ziel} />
     </Suspense>
   )
 }

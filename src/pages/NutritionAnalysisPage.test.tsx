@@ -31,6 +31,17 @@ vi.mock('../components/charts/ChartPicker', async () => {
   }
 })
 
+const vollstaendigesProfil = {
+  geschlecht: 'maennlich' as const,
+  aktivitaetslevel: 'sitzend' as const,
+  ziel: 'halten' as const,
+  ziel_delta_kcal: 500,
+  aktuelles_gewicht: 82.5,
+  groesse: 180,
+  alter: 30,
+  taegliches_kalorienziel: null as number | null,
+}
+
 const eintrag = (tag: number, kalorien: number) => ({
   zeitpunkt: new Date(2026, 7, tag, 12, 0).toISOString(),
   menge: 100,
@@ -47,7 +58,7 @@ beforeEach(() => {
     error: false,
   })
   mockUseProfile.mockReturnValue({
-    profile: { taegliches_kalorienziel: 1672 },
+    profile: { ...vollstaendigesProfil, taegliches_kalorienziel: 1672 },
     loading: false,
     error: false,
     updateProfile: vi.fn(),
@@ -68,9 +79,31 @@ describe('NutritionAnalysisPage', () => {
     expect(screen.getByText('Ziel 1672 kcal')).toBeInTheDocument()
   })
 
+  it('falls back to the calculated goal when none was typed', () => {
+    // The manual field is null for everyone who never typed a goal — the
+    // normal state. The rest of the app reads effectiveCalorieGoal, which
+    // falls back to Mifflin-St-Jeor; reading the raw column here would drop
+    // the reference line for exactly those users.
+    mockUseProfile.mockReturnValue({
+      profile: { ...vollstaendigesProfil, taegliches_kalorienziel: null },
+      loading: false,
+      error: false,
+      updateProfile: vi.fn(),
+    })
+    zeige()
+    // 10*82.5 + 6.25*180 - 5*30 + 5 = 1805 kcal BMR, x 1.2 (sitzend) = 2166.
+    expect(screen.getByText('Ziel 2166 kcal')).toBeInTheDocument()
+  })
+
   it('draws without a goal when the profile is incomplete', () => {
     mockUseProfile.mockReturnValue({
-      profile: { taegliches_kalorienziel: null },
+      profile: {
+        ...vollstaendigesProfil,
+        taegliches_kalorienziel: null,
+        geschlecht: null,
+        groesse: null,
+        alter: null,
+      },
       loading: false,
       error: false,
       updateProfile: vi.fn(),

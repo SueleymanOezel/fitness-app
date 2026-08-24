@@ -11,6 +11,7 @@ import {
 } from '../lib/body-metrics'
 import BodyEntryForm from '../components/BodyEntryForm'
 import { useChartSelection } from '../components/charts/ChartPicker'
+import { K1 } from '../lib/analysis/registry'
 import { useBodyAnalysis } from '../hooks/use-body-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 
@@ -129,7 +130,7 @@ function Dashboard({ userId }: { userId: string }) {
         </button>
       )}
 
-      {auswahl.istGewaehlt('K1') && <DashboardWeightTrend userId={userId} />}
+      {auswahl.istGewaehlt(K1) && <DashboardWeightTrend userId={userId} />}
       <Link to="/body/analyse">Analyse</Link>
       <Link to="/body/entries">Verlauf</Link>
       <Link to="/body/photos">Fortschrittsfotos</Link>

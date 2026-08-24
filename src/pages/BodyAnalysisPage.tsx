@@ -4,6 +4,7 @@ import { useSession } from '../hooks/use-session'
 import { useBodyAnalysis } from '../hooks/use-body-analysis'
 import ZeitraumSwitch from '../components/ZeitraumSwitch'
 import ChartPicker, { useChartSelection } from '../components/charts/ChartPicker'
+import { K1 } from '../lib/analysis/registry'
 import WeightTrendChart from '../components/charts/WeightTrendChart'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
 
@@ -37,7 +38,7 @@ function Analyse({ userId }: { userId: string }) {
       {loading ? (
         <p>Lädt…</p>
       ) : (
-        <WeightTrendChart rows={rows} picker={<ChartPicker id="K1" auswahl={auswahl} />} />
+        <WeightTrendChart rows={rows} picker={<ChartPicker id={K1} auswahl={auswahl} />} />
       )}
       <Link to="/body">Zurück zum Körperbereich</Link>
     </div>

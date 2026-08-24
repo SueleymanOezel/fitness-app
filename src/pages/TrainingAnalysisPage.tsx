@@ -4,6 +4,7 @@ import { useSession } from '../hooks/use-session'
 import { useTrainingAnalysis } from '../hooks/use-training-analysis'
 import ZeitraumSwitch from '../components/ZeitraumSwitch'
 import ChartPicker, { useChartSelection } from '../components/charts/ChartPicker'
+import { T1 } from '../lib/analysis/registry'
 import TrainingFrequencyChart from '../components/charts/TrainingFrequencyChart'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
 
@@ -39,7 +40,7 @@ function Analyse({ userId }: { userId: string }) {
       {loading ? (
         <p>Lädt…</p>
       ) : (
-        <TrainingFrequencyChart sessions={sessions} picker={<ChartPicker id="T1" auswahl={auswahl} />} />
+        <TrainingFrequencyChart sessions={sessions} picker={<ChartPicker id={T1} auswahl={auswahl} />} />
       )}
       <Link to="/training">Zurück zum Trainingsbereich</Link>
     </div>

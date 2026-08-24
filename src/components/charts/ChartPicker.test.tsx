@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
 import ChartPicker, { useChartSelection } from './ChartPicker'
 
 const updateProfile = vi.fn()
@@ -32,6 +32,17 @@ describe('useChartSelection', () => {
     const { result } = renderHook(() => useChartSelection('u1'))
     await result.current.umschalten('K1')
     expect(updateProfile).toHaveBeenCalledWith({ analyse_auswahl: ['T1', 'K1'] })
+  })
+
+  it('keeps both ids when two boxes are ticked inside one round-trip', async () => {
+    // Plan 2 puts eight checkboxes on one analysis page. Computing the next
+    // list from the `auswahl` captured at render time makes the second tick
+    // build on the same stale list, so its write erases the first one.
+    const { result } = renderHook(() => useChartSelection('u1'))
+    await act(async () => {
+      await Promise.all([result.current.umschalten('K1'), result.current.umschalten('E1')])
+    })
+    expect(updateProfile).toHaveBeenLastCalledWith({ analyse_auswahl: ['T1', 'K1', 'E1'] })
   })
 
   it('reports a failed write instead of pretending it stuck', async () => {

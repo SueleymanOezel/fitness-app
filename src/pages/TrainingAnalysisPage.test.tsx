@@ -31,8 +31,8 @@ beforeEach(() => {
   mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
   mockUseTrainingAnalysis.mockReturnValue({
     sessions: [
-      { id: 'a', gestartet_am: am(8, 17), beendet_am: null, gesamt_kalorien: null },
-      { id: 'b', gestartet_am: am(8, 24), beendet_am: null, gesamt_kalorien: null },
+      { id: 'a', gestartet_am: am(8, 17), beendet_am: am(8, 17), gesamt_kalorien: null },
+      { id: 'b', gestartet_am: am(8, 24), beendet_am: am(8, 24), gesamt_kalorien: null },
     ],
     loading: false,
     error: false,

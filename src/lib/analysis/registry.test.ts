@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import * as registry from './registry'
 import { CHARTS, CHART_IDS, chartsFor } from './registry'
 import { TITEL as T1_TITEL } from '../../components/charts/TrainingFrequencyChart'
 import { TITEL as E1_TITEL } from '../../components/charts/CaloriesPerDayChart'
@@ -21,6 +22,18 @@ describe('registry', () => {
     expect(chartsFor('training').map((chart) => chart.id)).toEqual(['T1'])
     expect(chartsFor('nutrition').map((chart) => chart.id)).toEqual(['E1'])
     expect(chartsFor('body').map((chart) => chart.id)).toEqual(['K1'])
+  })
+
+  it('exports an id constant for every registered chart', () => {
+    // The pages use these constants instead of string literals. If one drifts
+    // from the registry, parseAuswahl would drop the stored id while the
+    // picker still renders the old one: a checkbox that can never be ticked.
+    const konstanten = Object.entries(registry).filter(([, wert]) => typeof wert === 'string')
+    for (const [name, wert] of konstanten) {
+      expect(CHART_IDS).toContain(wert)
+      expect(wert).toBe(name) // the constant is named after the id it carries
+    }
+    expect(konstanten.map(([, wert]) => wert).sort()).toEqual([...CHART_IDS].sort())
   })
 
   it('has no duplicate ids', () => {

@@ -25,14 +25,26 @@ function wochenLabel(montag: string): string {
 }
 
 /**
- * Sessions per calendar week, oldest first, with empty weeks kept as zero.
+ * Finished sessions per calendar week, oldest first, with empty weeks kept as
+ * zero.
  *
- * The gaps matter: without them the line joins two distant weeks and reads as
+ * Only sessions with a `beendet_am` count: a session that was opened and never
+ * finished is a real state in this app (the history shows it as "nicht
+ * beendet"), and counting it would raise the week's bar for a workout that did
+ * not happen. The week itself still comes from `gestartet_am` — that is when
+ * the training took place.
+ *
+ * The gaps matter: without them the bars join two distant weeks and read as
  * uninterrupted training.
  */
-export function sessionsJeWoche(sessions: { gestartet_am: string | null }[]): WochenPunkt[] {
+export function sessionsJeWoche(
+  sessions: { gestartet_am: string | null; beendet_am: string | null }[],
+): WochenPunkt[] {
   const montage = sessions
-    .filter((session): session is { gestartet_am: string } => session.gestartet_am != null)
+    .filter(
+      (session): session is { gestartet_am: string; beendet_am: string } =>
+        session.gestartet_am != null && session.beendet_am != null,
+    )
     .map((session) => wochenStart(session.gestartet_am))
   if (montage.length === 0) return []
 

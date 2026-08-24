@@ -7,6 +7,8 @@ import ZeitraumSwitch from '../components/ZeitraumSwitch'
 import ChartPicker, { useChartSelection } from '../components/charts/ChartPicker'
 import CaloriesPerDayChart from '../components/charts/CaloriesPerDayChart'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
+import { E1 } from '../lib/analysis/registry'
+import { effectiveCalorieGoal } from '../lib/nutrition-goal'
 
 export default function NutritionAnalysisPage() {
   const { session } = useSession()
@@ -41,8 +43,11 @@ function Analyse({ userId }: { userId: string }) {
       ) : (
         <CaloriesPerDayChart
           entries={entries}
-          ziel={profile?.taegliches_kalorienziel ?? null}
-          picker={<ChartPicker id="E1" auswahl={auswahl} />}
+          // effectiveCalorieGoal, not the raw column: the manual field is null
+          // for everyone who never typed a goal, and the fallback calculation is
+          // what the rest of the app shows.
+          ziel={profile ? effectiveCalorieGoal(profile) : null}
+          picker={<ChartPicker id={E1} auswahl={auswahl} />}
         />
       )}
       <Link to="/nutrition">Zurück zum Ernährungsbereich</Link>

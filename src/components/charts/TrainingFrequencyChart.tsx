@@ -18,7 +18,9 @@ export default function TrainingFrequencyChart({
   const punkte = sessionsJeWoche(sessions)
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker}>
+    // Spec section 5: lines need two points, bars need one. A single bar still
+    // states something ("3 Einheiten diese Woche"); a single line point does not.
+    <ChartFrame titel={TITEL} leer={punkte.length < 1} picker={picker}>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={punkte}>
           <CartesianGrid strokeDasharray="3 3" />

@@ -24,6 +24,11 @@ describe('WeightTrendChart', () => {
     // frequency chart's test). Two lines are drawn (gewicht, trend), so both
     // curves must be checked — a test that only looked at one would not
     // notice the trend line disappearing.
+    //
+    // The [ML] count is NOT a general "one command per point": type="monotone"
+    // emits `M…L…` only for exactly two points and switches to `M…C…C…` from
+    // three points on, where the same count would read 1. It equals the number
+    // of points only because these fixtures have exactly two.
     const { container } = render(
       <WeightTrendChart
         rows={[zeile('a', '2026-08-17', 83.3), zeile('b', '2026-08-24', 82.5)]}
