@@ -1,12 +1,17 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useActiveTrainingDay } from '../hooks/use-active-training-day'
 import { startWorkoutSession } from '../hooks/use-workout-session'
 import { useChartSelection } from '../components/charts/ChartPicker'
-import TrainingFrequencyChart from '../components/charts/TrainingFrequencyChart'
 import { useTrainingAnalysis } from '../hooks/use-training-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
+
+// Lazy at this use site too, not just on the analysis page: TrainingFrequencyChart
+// pulls in recharts (~136 kB gzipped), and this dashboard is reachable from
+// the entry route graph. Without this, recharts would still end up in the
+// entry chunk regardless of the analysis page's own lazy import.
+const TrainingFrequencyChart = lazy(() => import('../components/charts/TrainingFrequencyChart'))
 
 export default function TrainingPage() {
   const { session } = useSession()
@@ -87,5 +92,9 @@ function DashboardTrainingFrequency({ userId }: { userId: string }) {
   const { sessions, loading, error } = useTrainingAnalysis(userId, DASHBOARD_ZEITRAUM)
   if (loading) return <p>Lädt…</p>
   if (error) return <p role="alert">Graph konnte nicht geladen werden.</p>
-  return <TrainingFrequencyChart sessions={sessions} />
+  return (
+    <Suspense fallback={<p>Lädt…</p>}>
+      <TrainingFrequencyChart sessions={sessions} />
+    </Suspense>
+  )
 }

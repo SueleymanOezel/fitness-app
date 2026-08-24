@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { ProfileWeightSyncError, useBodyMetrics } from '../hooks/use-body-metrics'
@@ -11,9 +11,14 @@ import {
 } from '../lib/body-metrics'
 import BodyEntryForm from '../components/BodyEntryForm'
 import { useChartSelection } from '../components/charts/ChartPicker'
-import WeightTrendChart from '../components/charts/WeightTrendChart'
 import { useBodyAnalysis } from '../hooks/use-body-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
+
+// Lazy at this use site too, not just on the analysis page: WeightTrendChart
+// pulls in recharts (~136 kB gzipped), and this dashboard is reachable from
+// the entry route graph. Without this, recharts would still end up in the
+// entry chunk regardless of the analysis page's own lazy import.
+const WeightTrendChart = lazy(() => import('../components/charts/WeightTrendChart'))
 
 /** German notation: comma as the decimal mark, at most one place. */
 function formatValue(value: number) {
@@ -141,5 +146,9 @@ function DashboardWeightTrend({ userId }: { userId: string }) {
   const { rows, loading, error } = useBodyAnalysis(userId, DASHBOARD_ZEITRAUM)
   if (loading) return <p>Lädt…</p>
   if (error) return <p role="alert">Graph konnte nicht geladen werden.</p>
-  return <WeightTrendChart rows={rows} />
+  return (
+    <Suspense fallback={<p>Lädt…</p>}>
+      <WeightTrendChart rows={rows} />
+    </Suspense>
+  )
 }

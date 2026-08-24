@@ -206,11 +206,14 @@ describe('BodyPage – ausgewaehlte Graphen', () => {
     })
   })
 
-  it('shows a pinned chart with the fixed 90-day range', () => {
+  it('shows a pinned chart with the fixed 90-day range', async () => {
     // No range switch on a dashboard: a dashboard with controls is not a
     // dashboard any more.
     zeigeDashboard()
-    expect(screen.getByRole('heading', { name: 'Gewichtsverlauf' })).toBeInTheDocument()
+    // findByRole, not getByRole: WeightTrendChart is now lazy-loaded at this
+    // dashboard use site too (not just on the analysis page), so the first
+    // render is the Suspense fallback.
+    expect(await screen.findByRole('heading', { name: 'Gewichtsverlauf' })).toBeInTheDocument()
     expect(mockUseBodyAnalysis).toHaveBeenCalledWith('u1', 90)
     expect(screen.queryByRole('button', { name: '30 Tage' })).not.toBeInTheDocument()
   })

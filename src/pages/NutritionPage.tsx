@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
@@ -7,9 +8,14 @@ import { visibleSections } from '../lib/meal-sections'
 import { sumKalorien } from '../lib/entry-calories'
 import DailySummary from '../components/DailySummary'
 import { useChartSelection } from '../components/charts/ChartPicker'
-import CaloriesPerDayChart from '../components/charts/CaloriesPerDayChart'
 import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
+
+// Lazy at this use site too, not just on the analysis page: CaloriesPerDayChart
+// pulls in recharts (~136 kB gzipped), and this dashboard is reachable from
+// the entry route graph. Without this, recharts would still end up in the
+// entry chunk regardless of the analysis page's own lazy import.
+const CaloriesPerDayChart = lazy(() => import('../components/charts/CaloriesPerDayChart'))
 
 export default function NutritionPage() {
   const { session } = useSession()
@@ -89,5 +95,9 @@ function DashboardCaloriesPerDay({ userId }: { userId: string }) {
   const { profile } = useProfile(userId)
   if (loading) return <p>Lädt…</p>
   if (error) return <p role="alert">Graph konnte nicht geladen werden.</p>
-  return <CaloriesPerDayChart entries={entries} ziel={profile?.taegliches_kalorienziel ?? null} />
+  return (
+    <Suspense fallback={<p>Lädt…</p>}>
+      <CaloriesPerDayChart entries={entries} ziel={profile?.taegliches_kalorienziel ?? null} />
+    </Suspense>
+  )
 }

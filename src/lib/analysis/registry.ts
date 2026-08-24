@@ -1,6 +1,13 @@
-import { TITEL as TRAINING_FREQUENCY } from '../../components/charts/TrainingFrequencyChart'
-import { TITEL as CALORIES_PER_DAY } from '../../components/charts/CaloriesPerDayChart'
-import { TITEL as WEIGHT_TREND } from '../../components/charts/WeightTrendChart'
+// Titles come from ./chart-titles, not from the chart component modules
+// directly: those modules import recharts, and this registry is reachable
+// from ChartPicker, which every dashboard renders eagerly. Importing a title
+// from a chart component here would pull recharts back into the entry bundle
+// no matter how the components themselves are lazy-loaded at their use sites.
+import {
+  TRAININGSFREQUENZ_TITEL as TRAINING_FREQUENCY,
+  KALORIEN_PRO_TAG_TITEL as CALORIES_PER_DAY,
+  GEWICHTSVERLAUF_TITEL as WEIGHT_TREND,
+} from './chart-titles'
 
 export type Bereich = 'training' | 'nutrition' | 'body'
 

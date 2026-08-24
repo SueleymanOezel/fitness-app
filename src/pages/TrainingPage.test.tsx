@@ -154,9 +154,12 @@ describe('TrainingPage – ausgewaehlte Graphen', () => {
     })
   })
 
-  it('shows a pinned chart with the fixed 90-day range', () => {
+  it('shows a pinned chart with the fixed 90-day range', async () => {
     zeigeDashboard()
-    expect(screen.getByRole('heading', { name: 'Trainingsfrequenz' })).toBeInTheDocument()
+    // findByRole, not getByRole: TrainingFrequencyChart is now lazy-loaded at
+    // this dashboard use site too (not just on the analysis page), so the
+    // first render is the Suspense fallback.
+    expect(await screen.findByRole('heading', { name: 'Trainingsfrequenz' })).toBeInTheDocument()
     expect(mockUseTrainingAnalysis).toHaveBeenCalledWith('u1', 90)
     expect(screen.queryByRole('button', { name: '30 Tage' })).not.toBeInTheDocument()
   })

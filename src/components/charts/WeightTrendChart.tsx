@@ -12,9 +12,10 @@ import {
 import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 import { gewichtsTrend } from '../../lib/analysis/body-charts'
 import type { BodyMetricRow } from '../../lib/body-metrics'
+import { GEWICHTSVERLAUF_TITEL } from '../../lib/analysis/chart-titles'
 import ChartFrame from './ChartFrame'
 
-export const TITEL = 'Gewichtsverlauf'
+export const TITEL = GEWICHTSVERLAUF_TITEL
 
 function tagesLabel(datum: string) {
   const [, monat, tag] = datum.split('-')

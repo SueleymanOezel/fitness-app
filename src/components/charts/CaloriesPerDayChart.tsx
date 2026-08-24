@@ -12,9 +12,10 @@ import {
 import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 import { kalorienJeTag } from '../../lib/analysis/nutrition-charts'
 import type { AnalysisFoodEntry } from '../../hooks/use-nutrition-analysis'
+import { KALORIEN_PRO_TAG_TITEL } from '../../lib/analysis/chart-titles'
 import ChartFrame from './ChartFrame'
 
-export const TITEL = 'Kalorien pro Tag'
+export const TITEL = KALORIEN_PRO_TAG_TITEL
 
 /** `2026-08-24` → `24.08.` — the year is already implied by the range. */
 function tagesLabel(tag: string) {

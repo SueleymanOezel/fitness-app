@@ -3,9 +3,10 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 import { sessionsJeWoche } from '../../lib/analysis/training-charts'
 import type { AnalysisSession } from '../../hooks/use-training-analysis'
+import { TRAININGSFREQUENZ_TITEL } from '../../lib/analysis/chart-titles'
 import ChartFrame from './ChartFrame'
 
-export const TITEL = 'Trainingsfrequenz'
+export const TITEL = TRAININGSFREQUENZ_TITEL
 
 export default function TrainingFrequencyChart({
   sessions,
