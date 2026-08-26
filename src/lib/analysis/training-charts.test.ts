@@ -5,6 +5,7 @@ import {
   uebungenImZeitraum,
   epley1RM,
   kraftverlauf,
+  volumenJeSession,
 } from './training-charts'
 
 const am = (jahr: number, monat: number, tag: number) =>
@@ -221,5 +222,47 @@ describe('kraftverlauf', () => {
     }
     const punkte = kraftverlauf([spaet], [satzIn('s3', 'e1', 90, 5)], 'e1')
     expect(punkte[0].tag).toBe('2026-08-24')
+  })
+})
+
+describe('volumenJeSession', () => {
+  it('sums weight times reps over the working sets', () => {
+    const punkte = volumenJeSession(
+      [sitzung('s1', '2026-08-17')],
+      [satzIn('s1', 'e1', 80, 8), satzIn('s1', 'e1', 80, 6)],
+      'e1',
+    )
+    expect(punkte).toEqual([{ tag: '2026-08-17', wert: 1120 }])
+  })
+
+  it('leaves warm-up sets out', () => {
+    // Ohne diesen Filter ist jeder Volumengraph systematisch zu hoch — genau
+    // dafuer wurde ist_aufwaermsatz erfasst.
+    const punkte = volumenJeSession(
+      [sitzung('s1', '2026-08-17')],
+      [satzIn('s1', 'e1', 20, 15, true), satzIn('s1', 'e1', 80, 8)],
+      'e1',
+    )
+    expect(punkte).toEqual([{ tag: '2026-08-17', wert: 640 }])
+  })
+
+  it('skips a set without weight or reps rather than counting it as zero', () => {
+    const punkte = volumenJeSession(
+      [sitzung('s1', '2026-08-17')],
+      [satzIn('s1', 'e1', 80, 8), satzIn('s1', 'e1', null, 8), satzIn('s1', 'e1', 80, null)],
+      'e1',
+    )
+    expect(punkte).toEqual([{ tag: '2026-08-17', wert: 640 }])
+  })
+
+  it('gives a session without any usable set no point at all', () => {
+    // Ein Punkt bei 0 laese sich als Trainingstag ohne Leistung lesen; es gab
+    // an dem Tag aber keine verwertbare Angabe.
+    const punkte = volumenJeSession(
+      [sitzung('s1', '2026-08-17')],
+      [satzIn('s1', 'e1', null, null)],
+      'e1',
+    )
+    expect(punkte).toEqual([])
   })
 })

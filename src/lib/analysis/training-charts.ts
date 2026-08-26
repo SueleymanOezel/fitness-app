@@ -162,3 +162,21 @@ export function kraftverlauf(
     return werte.length === 0 ? null : Math.max(...werte)
   })
 }
+
+/** Σ Gewicht × Wiederholungen eines Satzes, oder null bei fehlender Angabe. */
+function satzVolumen(satz: AnalysisSet): number | null {
+  if (satz.gewicht == null || satz.wiederholungen == null) return null
+  return satz.gewicht * satz.wiederholungen
+}
+
+/** T3: Volumen der Arbeitssaetze einer Uebung je Session. */
+export function volumenJeSession(
+  sessions: AnalysisSession[],
+  sets: AnalysisSet[],
+  exerciseId: string,
+): UebungsPunkt[] {
+  return punkteJeSession(sessions, sets, exerciseId, (saetze) => {
+    const werte = saetze.map(satzVolumen).filter((wert): wert is number => wert != null)
+    return werte.length === 0 ? null : werte.reduce((summe, wert) => summe + wert, 0)
+  })
+}

@@ -1,13 +1,14 @@
 import { lazy, Suspense, type ReactNode } from 'react'
 import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-analysis'
 import ChartPicker, { type useChartSelection } from './ChartPicker'
-import { T1, T2 } from '../../lib/analysis/registry'
+import { T1, T2, T3 } from '../../lib/analysis/registry'
 
 // Lazy an dieser einen Stelle: die Liste ist der einzige Ort, an dem ein
 // Trainingsgraph noch eingebunden wird — Dashboard wie Analyse-Seite gehen
 // hierdurch. Recharts bleibt damit aus dem Start-Chunk.
 const TrainingFrequencyChart = lazy(() => import('./TrainingFrequencyChart'))
 const StrengthChart = lazy(() => import('./StrengthChart'))
+const ExerciseVolumeChart = lazy(() => import('./ExerciseVolumeChart'))
 
 export type TrainingChartListProps = {
   ids: string[]
@@ -33,6 +34,15 @@ export default function TrainingChartList({
       case T2:
         return (
           <StrengthChart
+            sessions={sessions}
+            sets={sets}
+            picker={picker}
+            mitUebungsauswahl={analyse}
+          />
+        )
+      case T3:
+        return (
+          <ExerciseVolumeChart
             sessions={sessions}
             sets={sets}
             picker={picker}

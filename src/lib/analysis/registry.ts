@@ -6,6 +6,7 @@
 import {
   TRAININGSFREQUENZ_TITEL as TRAINING_FREQUENCY,
   KRAFTVERLAUF_TITEL as STRENGTH,
+  VOLUMEN_JE_UEBUNG_TITEL as EXERCISE_VOLUME,
   KALORIEN_PRO_TAG_TITEL as CALORIES_PER_DAY,
   GEWICHTSVERLAUF_TITEL as WEIGHT_TREND,
 } from './chart-titles'
@@ -32,12 +33,14 @@ export type ChartDef = { id: string; bereich: Bereich; titel: string }
  */
 export const T1 = 'T1'
 export const T2 = 'T2'
+export const T3 = 'T3'
 export const E1 = 'E1'
 export const K1 = 'K1'
 
 export const CHARTS: ChartDef[] = [
   { id: T1, bereich: 'training', titel: TRAINING_FREQUENCY },
   { id: T2, bereich: 'training', titel: STRENGTH },
+  { id: T3, bereich: 'training', titel: EXERCISE_VOLUME },
   { id: E1, bereich: 'nutrition', titel: CALORIES_PER_DAY },
   { id: K1, bereich: 'body', titel: WEIGHT_TREND },
 ]
