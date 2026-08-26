@@ -12,5 +12,6 @@
  * longer one that drags recharts along with it.
  */
 export const TRAININGSFREQUENZ_TITEL = 'Trainingsfrequenz'
+export const KRAFTVERLAUF_TITEL = 'Kraftverlauf'
 export const KALORIEN_PRO_TAG_TITEL = 'Kalorien pro Tag'
 export const GEWICHTSVERLAUF_TITEL = 'Gewichtsverlauf'

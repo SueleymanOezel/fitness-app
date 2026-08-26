@@ -34,6 +34,7 @@ beforeEach(() => {
       { id: 'a', gestartet_am: am(8, 17), beendet_am: am(8, 17), gesamt_kalorien: null },
       { id: 'b', gestartet_am: am(8, 24), beendet_am: am(8, 24), gesamt_kalorien: null },
     ],
+    sets: [],
     loading: false,
     error: false,
   })
@@ -76,7 +77,7 @@ describe('TrainingAnalysisPage', () => {
   })
 
   it('shows one message for a failed load, not one per chart', () => {
-    mockUseTrainingAnalysis.mockReturnValue({ sessions: [], loading: false, error: true })
+    mockUseTrainingAnalysis.mockReturnValue({ sessions: [], sets: [], loading: false, error: true })
     zeige()
     expect(screen.getAllByText('Daten konnten nicht geladen werden.')).toHaveLength(1)
   })
@@ -84,7 +85,7 @@ describe('TrainingAnalysisPage', () => {
   it('shows both messages when the load and the picker save fail independently', () => {
     // A failed load and a selection that could not be saved are different
     // problems with different remedies; they must not collapse into one message.
-    mockUseTrainingAnalysis.mockReturnValue({ sessions: [], loading: false, error: true })
+    mockUseTrainingAnalysis.mockReturnValue({ sessions: [], sets: [], loading: false, error: true })
     mockUseChartSelection.mockReturnValue({
       auswahl: [],
       istGewaehlt: () => false,
@@ -97,7 +98,7 @@ describe('TrainingAnalysisPage', () => {
   })
 
   it('shows a loading state', () => {
-    mockUseTrainingAnalysis.mockReturnValue({ sessions: [], loading: true, error: false })
+    mockUseTrainingAnalysis.mockReturnValue({ sessions: [], sets: [], loading: true, error: false })
     zeige()
     expect(screen.getByText('Lädt…')).toBeInTheDocument()
   })

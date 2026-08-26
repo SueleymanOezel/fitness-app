@@ -5,6 +5,7 @@
 // no matter how the components themselves are lazy-loaded at their use sites.
 import {
   TRAININGSFREQUENZ_TITEL as TRAINING_FREQUENCY,
+  KRAFTVERLAUF_TITEL as STRENGTH,
   KALORIEN_PRO_TAG_TITEL as CALORIES_PER_DAY,
   GEWICHTSVERLAUF_TITEL as WEIGHT_TREND,
 } from './chart-titles'
@@ -30,11 +31,13 @@ export type ChartDef = { id: string; bereich: Bereich; titel: string }
  * rendering the old one.
  */
 export const T1 = 'T1'
+export const T2 = 'T2'
 export const E1 = 'E1'
 export const K1 = 'K1'
 
 export const CHARTS: ChartDef[] = [
   { id: T1, bereich: 'training', titel: TRAINING_FREQUENCY },
+  { id: T2, bereich: 'training', titel: STRENGTH },
   { id: E1, bereich: 'nutrition', titel: CALORIES_PER_DAY },
   { id: K1, bereich: 'body', titel: WEIGHT_TREND },
 ]

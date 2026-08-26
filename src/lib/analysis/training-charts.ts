@@ -1,5 +1,5 @@
 import { localDay } from '../local-time'
-import type { AnalysisSet } from '../../hooks/use-training-analysis'
+import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-analysis'
 
 export type WochenPunkt = { woche: string; anzahl: number }
 export type UebungsOption = { exercise_id: string; name: string }
@@ -100,4 +100,65 @@ export function haeufigsteUebung(sets: AnalysisSet[]): string | null {
     }
   }
   return beste
+}
+
+export type UebungsPunkt = { tag: string; wert: number }
+
+/**
+ * Geschaetztes Einwiederholungsmaximum nach Epley.
+ *
+ * `null` statt 0 fuer unvollstaendige Saetze: ein Satz ohne Gewicht ist keine
+ * Leistung von null, sondern keine Angabe.
+ */
+export function epley1RM(gewicht: number | null, wiederholungen: number | null): number | null {
+  if (gewicht == null || wiederholungen == null) return null
+  return gewicht * (1 + wiederholungen / 30)
+}
+
+const runde = (wert: number) => Math.round(wert * 10) / 10
+
+/**
+ * Baut je Session einen Punkt aus deren Arbeitssaetzen einer Uebung.
+ *
+ * Gemeinsame Grundlage von T2, T3 und T4: alle drei unterscheiden sich nur
+ * darin, was sie aus den Saetzen einer Session machen.
+ */
+function punkteJeSession(
+  sessions: AnalysisSession[],
+  sets: AnalysisSet[],
+  exerciseId: string,
+  ausSaetzen: (saetze: AnalysisSet[]) => number | null,
+): UebungsPunkt[] {
+  const saetzeJeSession = new Map<string, AnalysisSet[]>()
+  for (const satz of sets) {
+    if (satz.exercise_id !== exerciseId || satz.ist_aufwaermsatz) continue
+    const liste = saetzeJeSession.get(satz.workout_session_id) ?? []
+    liste.push(satz)
+    saetzeJeSession.set(satz.workout_session_id, liste)
+  }
+
+  const punkte: UebungsPunkt[] = []
+  for (const session of sessions) {
+    if (session.gestartet_am == null) continue
+    const saetze = saetzeJeSession.get(session.id)
+    if (!saetze || saetze.length === 0) continue
+    const wert = ausSaetzen(saetze)
+    if (wert == null) continue
+    punkte.push({ tag: localDay(session.gestartet_am), wert: runde(wert) })
+  }
+  return punkte.sort((a, b) => a.tag.localeCompare(b.tag))
+}
+
+/** T2: bestes geschaetztes 1RM je Session. */
+export function kraftverlauf(
+  sessions: AnalysisSession[],
+  sets: AnalysisSet[],
+  exerciseId: string,
+): UebungsPunkt[] {
+  return punkteJeSession(sessions, sets, exerciseId, (saetze) => {
+    const werte = saetze
+      .map((satz) => epley1RM(satz.gewicht, satz.wiederholungen))
+      .filter((wert): wert is number => wert != null)
+    return werte.length === 0 ? null : Math.max(...werte)
+  })
 }

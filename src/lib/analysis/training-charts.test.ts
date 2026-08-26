@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { sessionsJeWoche, haeufigsteUebung, uebungenImZeitraum } from './training-charts'
+import {
+  sessionsJeWoche,
+  haeufigsteUebung,
+  uebungenImZeitraum,
+  epley1RM,
+  kraftverlauf,
+} from './training-charts'
 
 const am = (jahr: number, monat: number, tag: number) =>
   new Date(jahr, monat - 1, tag, 18, 0).toISOString()
@@ -125,5 +131,95 @@ describe('haeufigsteUebung', () => {
 
   it('returns null without sets', () => {
     expect(haeufigsteUebung([])).toBeNull()
+  })
+})
+
+const sitzung = (id: string, tag: string) => ({
+  id,
+  gestartet_am: `${tag}T18:00:00+02:00`,
+  beendet_am: `${tag}T19:00:00+02:00`,
+  gesamt_kalorien: 300,
+})
+
+const satzIn = (
+  sessionId: string,
+  exercise_id: string,
+  gewicht: number | null,
+  wiederholungen: number | null,
+  ist_aufwaermsatz = false,
+) => ({
+  id: `${sessionId}-${exercise_id}-${gewicht}-${wiederholungen}-${ist_aufwaermsatz}`,
+  workout_session_id: sessionId,
+  exercise_id,
+  exercise_name: 'Bankdruecken',
+  muskelgruppen: ['brust'],
+  satz_nummer: 1,
+  gewicht,
+  wiederholungen,
+  ist_aufwaermsatz,
+})
+
+describe('epley1RM', () => {
+  it('computes weight x (1 + reps / 30)', () => {
+    expect(epley1RM(100, 0)).toBe(100)
+    expect(epley1RM(100, 30)).toBe(200)
+  })
+
+  it('returns null for a set without weight or without reps', () => {
+    // Nicht 0: ein unvollstaendiger Satz ist keine Leistung von null, sondern
+    // keine Angabe. Als 0 wuerde er die Bestleistung der Session verschweigen.
+    expect(epley1RM(null, 8)).toBeNull()
+    expect(epley1RM(80, null)).toBeNull()
+  })
+})
+
+describe('kraftverlauf', () => {
+  it('takes the best estimated 1RM per session', () => {
+    const punkte = kraftverlauf(
+      [sitzung('s1', '2026-08-17'), sitzung('s2', '2026-08-24')],
+      [
+        satzIn('s1', 'e1', 80, 8), // 101,3
+        satzIn('s1', 'e1', 90, 5), // 105,0 -> bester Satz
+        satzIn('s2', 'e1', 95, 5), // 110,8
+      ],
+      'e1',
+    )
+    expect(punkte).toEqual([
+      { tag: '2026-08-17', wert: 105 },
+      { tag: '2026-08-24', wert: 110.8 },
+    ])
+  })
+
+  it('ignores warm-up sets', () => {
+    // Ein Aufwaermsatz mit hoher Wiederholungszahl kann das geschaetzte 1RM
+    // ueber den schweren Arbeitssatz heben — der Graph zeigte dann Fortschritt,
+    // wo nur laenger aufgewaermt wurde.
+    const punkte = kraftverlauf(
+      [sitzung('s1', '2026-08-17')],
+      [satzIn('s1', 'e1', 60, 30, true), satzIn('s1', 'e1', 90, 5)],
+      'e1',
+    )
+    expect(punkte).toEqual([{ tag: '2026-08-17', wert: 105 }])
+  })
+
+  it('ignores other exercises and sessions without a usable set', () => {
+    const punkte = kraftverlauf(
+      [sitzung('s1', '2026-08-17'), sitzung('s2', '2026-08-24')],
+      [satzIn('s1', 'e1', 90, 5), satzIn('s2', 'e2', 120, 5), satzIn('s2', 'e1', null, 5)],
+      'e1',
+    )
+    expect(punkte).toEqual([{ tag: '2026-08-17', wert: 105 }])
+  })
+
+  it('uses the local day of the session start', () => {
+    // 23:50 Ortszeit gehoert zu diesem Tag, nicht per UTC zum naechsten.
+    const spaet = {
+      id: 's3',
+      gestartet_am: new Date(2026, 7, 24, 23, 50).toISOString(),
+      beendet_am: null,
+      gesamt_kalorien: null,
+    }
+    const punkte = kraftverlauf([spaet], [satzIn('s3', 'e1', 90, 5)], 'e1')
+    expect(punkte[0].tag).toBe('2026-08-24')
   })
 })
