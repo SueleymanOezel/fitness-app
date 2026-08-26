@@ -1,6 +1,8 @@
 import { localDay } from '../local-time'
+import type { AnalysisSet } from '../../hooks/use-training-analysis'
 
 export type WochenPunkt = { woche: string; anzahl: number }
+export type UebungsOption = { exercise_id: string; name: string }
 
 /** Monday of the week `iso` falls in, as a local `YYYY-MM-DD`. */
 function wochenStart(iso: string): string {
@@ -66,4 +68,36 @@ export function sessionsJeWoche(
     lauf.setDate(lauf.getDate() + 7)
   }
   return punkte
+}
+
+/** Jede im Zeitraum vorkommende Uebung, alphabetisch — die Auswahlliste ueber T2 bis T5. */
+export function uebungenImZeitraum(sets: AnalysisSet[]): UebungsOption[] {
+  const nameJeId = new Map<string, string>()
+  for (const satz of sets) nameJeId.set(satz.exercise_id, satz.exercise_name)
+  return [...nameJeId.entries()]
+    .map(([exercise_id, name]) => ({ exercise_id, name }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'de'))
+}
+
+/**
+ * Die Uebung mit den meisten **Arbeitssaetzen** — die Vorbelegung der Auswahl.
+ *
+ * Aufwaermsaetze zaehlen nicht mit: sonst steht der Graph beim Aufwaermen der
+ * Kniebeuge statt bei der Uebung, um die es ging.
+ */
+export function haeufigsteUebung(sets: AnalysisSet[]): string | null {
+  const anzahl = new Map<string, number>()
+  for (const satz of sets) {
+    if (satz.ist_aufwaermsatz) continue
+    anzahl.set(satz.exercise_id, (anzahl.get(satz.exercise_id) ?? 0) + 1)
+  }
+  let beste: string | null = null
+  let hoechste = 0
+  for (const [id, zahl] of anzahl) {
+    if (zahl > hoechste) {
+      hoechste = zahl
+      beste = id
+    }
+  }
+  return beste
 }

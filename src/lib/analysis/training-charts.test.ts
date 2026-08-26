@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { sessionsJeWoche } from './training-charts'
+import { sessionsJeWoche, haeufigsteUebung, uebungenImZeitraum } from './training-charts'
 
 const am = (jahr: number, monat: number, tag: number) =>
   new Date(jahr, monat - 1, tag, 18, 0).toISOString()
@@ -57,5 +57,73 @@ describe('sessionsJeWoche', () => {
 
   it('returns nothing for no sessions', () => {
     expect(sessionsJeWoche([])).toEqual([])
+  })
+})
+
+const satz = (
+  exercise_id: string,
+  name: string,
+  extra: Partial<{ ist_aufwaermsatz: boolean; gewicht: number | null; wiederholungen: number | null }> = {},
+) => ({
+  id: `${exercise_id}-${Math.random()}`,
+  workout_session_id: 's1',
+  exercise_id,
+  exercise_name: name,
+  muskelgruppen: [],
+  satz_nummer: 1,
+  gewicht: 80,
+  wiederholungen: 8,
+  ist_aufwaermsatz: false,
+  ...extra,
+})
+
+describe('uebungenImZeitraum', () => {
+  it('lists every trained exercise once, alphabetically', () => {
+    expect(
+      uebungenImZeitraum([
+        satz('e2', 'Kniebeuge'),
+        satz('e1', 'Bankdruecken'),
+        satz('e2', 'Kniebeuge'),
+      ]),
+    ).toEqual([
+      { exercise_id: 'e1', name: 'Bankdruecken' },
+      { exercise_id: 'e2', name: 'Kniebeuge' },
+    ])
+  })
+
+  it('keeps an exercise that was only warmed up', () => {
+    // Fuer die Auswahlliste zaehlt, dass die Uebung vorkam.
+    expect(uebungenImZeitraum([satz('e1', 'Bankdruecken', { ist_aufwaermsatz: true })])).toEqual([
+      { exercise_id: 'e1', name: 'Bankdruecken' },
+    ])
+  })
+})
+
+describe('haeufigsteUebung', () => {
+  it('picks the exercise with the most working sets', () => {
+    expect(
+      haeufigsteUebung([
+        satz('e1', 'Bankdruecken'),
+        satz('e2', 'Kniebeuge'),
+        satz('e2', 'Kniebeuge'),
+      ]),
+    ).toBe('e2')
+  })
+
+  it('does not let warm-up sets decide', () => {
+    // Sonst gewinnt die Uebung, die man am laengsten aufwaermt.
+    expect(
+      haeufigsteUebung([
+        satz('e1', 'Bankdruecken'),
+        satz('e1', 'Bankdruecken'),
+        satz('e2', 'Kniebeuge', { ist_aufwaermsatz: true }),
+        satz('e2', 'Kniebeuge', { ist_aufwaermsatz: true }),
+        satz('e2', 'Kniebeuge', { ist_aufwaermsatz: true }),
+      ]),
+    ).toBe('e1')
+  })
+
+  it('returns null without sets', () => {
+    expect(haeufigsteUebung([])).toBeNull()
   })
 })
