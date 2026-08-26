@@ -9,6 +9,7 @@ import {
   bestesGewichtJeSession,
   wiederholungenJeSatz,
   volumenJeMuskelgruppe,
+  dauerUndKalorien,
 } from './training-charts'
 
 const am = (jahr: number, monat: number, tag: number) =>
@@ -376,5 +377,49 @@ describe('volumenJeMuskelgruppe', () => {
     // Ohne Zuordnung gibt es keinen Balken, auf den das Volumen gehoert; eine
     // Sammelgruppe "sonstiges" waere eine erfundene Aussage.
     expect(volumenJeMuskelgruppe([mitGruppen([], 100, 10)])).toEqual([])
+  })
+})
+
+describe('dauerUndKalorien', () => {
+  it('computes the minutes between start and end', () => {
+    expect(
+      dauerUndKalorien([
+        {
+          id: 's1',
+          gestartet_am: '2026-08-17T17:30:00+02:00',
+          beendet_am: '2026-08-17T18:35:00+02:00',
+          gesamt_kalorien: 420,
+        },
+      ]),
+    ).toEqual([{ tag: '2026-08-17', minuten: 65, kalorien: 420 }])
+  })
+
+  it('leaves an unfinished session out', () => {
+    // Ohne beendet_am gibt es keine Dauer. Bis "jetzt" zu rechnen ergaebe
+    // Balken von mehreren Tagen fuer eine vergessene Session.
+    expect(
+      dauerUndKalorien([
+        {
+          id: 's1',
+          gestartet_am: '2026-08-17T17:30:00+02:00',
+          beendet_am: null,
+          gesamt_kalorien: 420,
+        },
+      ]),
+    ).toEqual([])
+  })
+
+  it('keeps a finished session without calories', () => {
+    // gesamt_kalorien ist optional; die Dauer steht trotzdem.
+    expect(
+      dauerUndKalorien([
+        {
+          id: 's1',
+          gestartet_am: '2026-08-17T17:30:00+02:00',
+          beendet_am: '2026-08-17T18:00:00+02:00',
+          gesamt_kalorien: null,
+        },
+      ]),
+    ).toEqual([{ tag: '2026-08-17', minuten: 30, kalorien: null }])
   })
 })

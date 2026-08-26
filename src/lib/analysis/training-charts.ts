@@ -4,6 +4,7 @@ import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-anal
 export type WochenPunkt = { woche: string; anzahl: number }
 export type UebungsOption = { exercise_id: string; name: string }
 export type MuskelPunkt = { muskelgruppe: string; volumen: number }
+export type SessionPunkt = { tag: string; minuten: number; kalorien: number | null }
 
 /** Monday of the week `iso` falls in, as a local `YYYY-MM-DD`. */
 function wochenStart(iso: string): string {
@@ -269,4 +270,22 @@ export function volumenJeMuskelgruppe(sets: AnalysisSet[]): MuskelPunkt[] {
   return [...summe.entries()]
     .map(([muskelgruppe, volumen]) => ({ muskelgruppe, volumen: Math.round(volumen) }))
     .sort((a, b) => b.volumen - a.volumen || a.muskelgruppe.localeCompare(b.muskelgruppe, 'de'))
+}
+
+/** T7: Dauer und Verbrauch je beendeter Session. */
+export function dauerUndKalorien(sessions: AnalysisSession[]): SessionPunkt[] {
+  const punkte: SessionPunkt[] = []
+  for (const session of sessions) {
+    if (session.gestartet_am == null || session.beendet_am == null) continue
+    const minuten = Math.round(
+      (new Date(session.beendet_am).getTime() - new Date(session.gestartet_am).getTime()) / 60_000,
+    )
+    if (minuten <= 0) continue
+    punkte.push({
+      tag: localDay(session.gestartet_am),
+      minuten,
+      kalorien: session.gesamt_kalorien,
+    })
+  }
+  return punkte.sort((a, b) => a.tag.localeCompare(b.tag))
 }
