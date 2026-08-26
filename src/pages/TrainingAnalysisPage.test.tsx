@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import TrainingAnalysisPage from './TrainingAnalysisPage'
+import { chartsFor } from '../lib/analysis/registry'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -62,7 +63,10 @@ describe('TrainingAnalysisPage', () => {
     expect(
       await screen.findByRole('heading', { name: 'Trainingsfrequenz' }, { timeout: 5000 }),
     ).toBeInTheDocument()
-    expect(screen.getAllByTestId('picker')).not.toHaveLength(0)
+    await waitFor(
+      () => expect(screen.getAllByTestId('picker')).toHaveLength(chartsFor('training').length),
+      { timeout: 5000 },
+    )
   })
 
   it('asks for 90 days by default', () => {
@@ -101,5 +105,14 @@ describe('TrainingAnalysisPage', () => {
     mockUseTrainingAnalysis.mockReturnValue({ sessions: [], sets: [], loading: true, error: false })
     zeige()
     expect(screen.getByText('Lädt…')).toBeInTheDocument()
+  })
+
+  it('renders every registered training chart', async () => {
+    // Der Fall, den die Registry verhindern soll: ein Graph ist angemeldet, aber
+    // die Seite kennt ihn nicht — er waere im Picker sichtbar und nirgends sonst.
+    zeige()
+    for (const chart of chartsFor('training')) {
+      expect(await screen.findByText(chart.titel, {}, { timeout: 5000 })).toBeInTheDocument()
+    }
   })
 })
