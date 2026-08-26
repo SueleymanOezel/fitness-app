@@ -4,12 +4,13 @@ import { CHARTS, CHART_IDS, chartsFor } from './registry'
 import { TITEL as T1_TITEL } from '../../components/charts/TrainingFrequencyChart'
 import { TITEL as T2_TITEL } from '../../components/charts/StrengthChart'
 import { TITEL as T3_TITEL } from '../../components/charts/ExerciseVolumeChart'
+import { TITEL as T4_TITEL } from '../../components/charts/BestSetWeightChart'
 import { TITEL as E1_TITEL } from '../../components/charts/CaloriesPerDayChart'
 import { TITEL as K1_TITEL } from '../../components/charts/WeightTrendChart'
 
 describe('registry', () => {
   it('registers the charts of plan 1 and 2a', () => {
-    expect(CHART_IDS).toEqual(['T1', 'T2', 'T3', 'E1', 'K1'])
+    expect(CHART_IDS).toEqual(['T1', 'T2', 'T3', 'T4', 'E1', 'K1'])
   })
 
   it('takes each title from its component instead of restating it', () => {
@@ -18,12 +19,13 @@ describe('registry', () => {
     expect(CHARTS.find((chart) => chart.id === 'T1')?.titel).toBe(T1_TITEL)
     expect(CHARTS.find((chart) => chart.id === 'T2')?.titel).toBe(T2_TITEL)
     expect(CHARTS.find((chart) => chart.id === 'T3')?.titel).toBe(T3_TITEL)
+    expect(CHARTS.find((chart) => chart.id === 'T4')?.titel).toBe(T4_TITEL)
     expect(CHARTS.find((chart) => chart.id === 'E1')?.titel).toBe(E1_TITEL)
     expect(CHARTS.find((chart) => chart.id === 'K1')?.titel).toBe(K1_TITEL)
   })
 
   it('filters by area', () => {
-    expect(chartsFor('training').map((chart) => chart.id)).toEqual(['T1', 'T2', 'T3'])
+    expect(chartsFor('training').map((chart) => chart.id)).toEqual(['T1', 'T2', 'T3', 'T4'])
     expect(chartsFor('nutrition').map((chart) => chart.id)).toEqual(['E1'])
     expect(chartsFor('body').map((chart) => chart.id)).toEqual(['K1'])
   })

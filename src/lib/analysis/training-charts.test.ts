@@ -6,6 +6,7 @@ import {
   epley1RM,
   kraftverlauf,
   volumenJeSession,
+  bestesGewichtJeSession,
 } from './training-charts'
 
 const am = (jahr: number, monat: number, tag: number) =>
@@ -264,5 +265,35 @@ describe('volumenJeSession', () => {
       'e1',
     )
     expect(punkte).toEqual([])
+  })
+})
+
+describe('bestesGewichtJeSession', () => {
+  it('takes the heaviest working set of the session', () => {
+    const punkte = bestesGewichtJeSession(
+      [sitzung('s1', '2026-08-17')],
+      [satzIn('s1', 'e1', 80, 8), satzIn('s1', 'e1', 92.5, 3)],
+      'e1',
+    )
+    expect(punkte).toEqual([{ tag: '2026-08-17', wert: 92.5 }])
+  })
+
+  it('does not let a warm-up set count', () => {
+    const punkte = bestesGewichtJeSession(
+      [sitzung('s1', '2026-08-17')],
+      [satzIn('s1', 'e1', 100, 1, true), satzIn('s1', 'e1', 80, 8)],
+      'e1',
+    )
+    expect(punkte).toEqual([{ tag: '2026-08-17', wert: 80 }])
+  })
+
+  it('counts a set without reps, unlike the 1RM estimate', () => {
+    // Fuer T4 reicht das Gewicht: die Wiederholungen gehen in die Zahl nicht ein.
+    const punkte = bestesGewichtJeSession(
+      [sitzung('s1', '2026-08-17')],
+      [satzIn('s1', 'e1', 85, null)],
+      'e1',
+    )
+    expect(punkte).toEqual([{ tag: '2026-08-17', wert: 85 }])
   })
 })

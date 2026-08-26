@@ -1,7 +1,7 @@
 import { lazy, Suspense, type ReactNode } from 'react'
 import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-analysis'
 import ChartPicker, { type useChartSelection } from './ChartPicker'
-import { T1, T2, T3 } from '../../lib/analysis/registry'
+import { T1, T2, T3, T4 } from '../../lib/analysis/registry'
 
 // Lazy an dieser einen Stelle: die Liste ist der einzige Ort, an dem ein
 // Trainingsgraph noch eingebunden wird — Dashboard wie Analyse-Seite gehen
@@ -9,6 +9,7 @@ import { T1, T2, T3 } from '../../lib/analysis/registry'
 const TrainingFrequencyChart = lazy(() => import('./TrainingFrequencyChart'))
 const StrengthChart = lazy(() => import('./StrengthChart'))
 const ExerciseVolumeChart = lazy(() => import('./ExerciseVolumeChart'))
+const BestSetWeightChart = lazy(() => import('./BestSetWeightChart'))
 
 export type TrainingChartListProps = {
   ids: string[]
@@ -43,6 +44,15 @@ export default function TrainingChartList({
       case T3:
         return (
           <ExerciseVolumeChart
+            sessions={sessions}
+            sets={sets}
+            picker={picker}
+            mitUebungsauswahl={analyse}
+          />
+        )
+      case T4:
+        return (
+          <BestSetWeightChart
             sessions={sessions}
             sets={sets}
             picker={picker}

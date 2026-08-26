@@ -180,3 +180,17 @@ export function volumenJeSession(
     return werte.length === 0 ? null : werte.reduce((summe, wert) => summe + wert, 0)
   })
 }
+
+/** T4: schwerster Arbeitssatz einer Uebung je Session. */
+export function bestesGewichtJeSession(
+  sessions: AnalysisSession[],
+  sets: AnalysisSet[],
+  exerciseId: string,
+): UebungsPunkt[] {
+  return punkteJeSession(sessions, sets, exerciseId, (saetze) => {
+    const werte = saetze
+      .map((satz) => satz.gewicht)
+      .filter((wert): wert is number => wert != null)
+    return werte.length === 0 ? null : Math.max(...werte)
+  })
+}

@@ -14,5 +14,6 @@
 export const TRAININGSFREQUENZ_TITEL = 'Trainingsfrequenz'
 export const KRAFTVERLAUF_TITEL = 'Kraftverlauf'
 export const VOLUMEN_JE_UEBUNG_TITEL = 'Volumen je Übung'
+export const BESTES_SATZGEWICHT_TITEL = 'Bestes Satzgewicht'
 export const KALORIEN_PRO_TAG_TITEL = 'Kalorien pro Tag'
 export const GEWICHTSVERLAUF_TITEL = 'Gewichtsverlauf'
