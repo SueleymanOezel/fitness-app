@@ -13,6 +13,7 @@ import {
   WIEDERHOLUNGEN_JE_SATZ_TITEL as REPS_PER_SET,
   VOLUMEN_JE_MUSKELGRUPPE_TITEL as MUSCLE_VOLUME,
   DAUER_UND_KALORIEN_TITEL as SESSION_LOAD,
+  REKORDE_TITEL as RECORDS,
 } from './chart-titles'
 
 export type Bereich = 'training' | 'nutrition' | 'body'
@@ -42,6 +43,7 @@ export const T4 = 'T4'
 export const T5 = 'T5'
 export const T6 = 'T6'
 export const T7 = 'T7'
+export const T8 = 'T8'
 export const E1 = 'E1'
 export const K1 = 'K1'
 
@@ -53,6 +55,7 @@ export const CHARTS: ChartDef[] = [
   { id: T5, bereich: 'training', titel: REPS_PER_SET },
   { id: T6, bereich: 'training', titel: MUSCLE_VOLUME },
   { id: T7, bereich: 'training', titel: SESSION_LOAD },
+  { id: T8, bereich: 'training', titel: RECORDS },
   { id: E1, bereich: 'nutrition', titel: CALORIES_PER_DAY },
   { id: K1, bereich: 'body', titel: WEIGHT_TREND },
 ]

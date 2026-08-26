@@ -10,6 +10,7 @@ import {
   wiederholungenJeSatz,
   volumenJeMuskelgruppe,
   dauerUndKalorien,
+  persoenlicheRekorde,
 } from './training-charts'
 
 const am = (jahr: number, monat: number, tag: number) =>
@@ -421,5 +422,53 @@ describe('dauerUndKalorien', () => {
         },
       ]),
     ).toEqual([{ tag: '2026-08-17', minuten: 30, kalorien: null }])
+  })
+})
+
+describe('persoenlicheRekorde', () => {
+  it('takes the best estimated 1RM per exercise with its date', () => {
+    const rekorde = persoenlicheRekorde(
+      [sitzung('s1', '2026-08-17'), sitzung('s2', '2026-08-24')],
+      [satzIn('s1', 'e1', 90, 5), satzIn('s2', 'e1', 100, 5)],
+    )
+    expect(rekorde).toEqual([
+      {
+        exercise_id: 'e1',
+        name: 'Bankdruecken',
+        einsRM: 116.7,
+        gewicht: 100,
+        wiederholungen: 5,
+        tag: '2026-08-24',
+      },
+    ])
+  })
+
+  it('keeps the earlier date when a later set only matches the record', () => {
+    // Der Rekord gehoert dem Tag, an dem er zuerst stand.
+    const rekorde = persoenlicheRekorde(
+      [sitzung('s1', '2026-08-17'), sitzung('s2', '2026-08-24')],
+      [satzIn('s1', 'e1', 90, 5), satzIn('s2', 'e1', 90, 5)],
+    )
+    expect(rekorde[0].tag).toBe('2026-08-17')
+  })
+
+  it('ignores warm-up sets and sets without a usable estimate', () => {
+    expect(
+      persoenlicheRekorde(
+        [sitzung('s1', '2026-08-17')],
+        [satzIn('s1', 'e1', 200, 5, true), satzIn('s1', 'e1', null, 5)],
+      ),
+    ).toEqual([])
+  })
+
+  it('sorts by estimated 1RM, heaviest first', () => {
+    const rekorde = persoenlicheRekorde(
+      [sitzung('s1', '2026-08-17')],
+      [
+        satzIn('s1', 'e1', 90, 5),
+        { ...satzIn('s1', 'e2', 140, 5), exercise_name: 'Kniebeuge' },
+      ],
+    )
+    expect(rekorde.map((rekord) => rekord.exercise_id)).toEqual(['e2', 'e1'])
   })
 })

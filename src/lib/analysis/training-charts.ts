@@ -289,3 +289,58 @@ export function dauerUndKalorien(sessions: AnalysisSession[]): SessionPunkt[] {
   }
   return punkte.sort((a, b) => a.tag.localeCompare(b.tag))
 }
+
+export type Rekord = {
+  exercise_id: string
+  name: string
+  einsRM: number
+  gewicht: number
+  wiederholungen: number
+  tag: string
+}
+
+/**
+ * T8: bestes geschaetztes 1RM je Uebung im Zeitraum, mit dem Tag, an dem es
+ * zuerst stand.
+ *
+ * Nur echte Verbesserungen setzen den Tag neu (`>` statt `>=`): ein spaeterer
+ * Satz mit demselben Wert wiederholt den Rekord, er stellt ihn nicht auf. Die
+ * Saetze kommen aus dem Hook nach `satz_nummer` sortiert, nicht nach Datum;
+ * damit "der fruehere Tag gewinnt" stimmt, laeuft die Schleife in
+ * Sessionreihenfolge statt in Satzreihenfolge.
+ */
+export function persoenlicheRekorde(sessions: AnalysisSession[], sets: AnalysisSet[]): Rekord[] {
+  const tagJeSession = new Map<string, string>()
+  for (const session of sessions) {
+    if (session.gestartet_am != null) tagJeSession.set(session.id, localDay(session.gestartet_am))
+  }
+
+  const reihenfolge = new Map(sessions.map((session, index) => [session.id, index]))
+  const sortierteSaetze = [...sets].sort(
+    (a, b) =>
+      (reihenfolge.get(a.workout_session_id) ?? 0) - (reihenfolge.get(b.workout_session_id) ?? 0),
+  )
+
+  const beste = new Map<string, Rekord>()
+  for (const satz of sortierteSaetze) {
+    if (satz.ist_aufwaermsatz) continue
+    const einsRM = epley1RM(satz.gewicht, satz.wiederholungen)
+    const tag = tagJeSession.get(satz.workout_session_id)
+    if (einsRM == null || tag == null) continue
+    const gerundet = runde(einsRM)
+    const bisher = beste.get(satz.exercise_id)
+    if (bisher && bisher.einsRM >= gerundet) continue
+    beste.set(satz.exercise_id, {
+      exercise_id: satz.exercise_id,
+      name: satz.exercise_name,
+      einsRM: gerundet,
+      gewicht: satz.gewicht as number,
+      wiederholungen: satz.wiederholungen as number,
+      tag,
+    })
+  }
+
+  return [...beste.values()].sort(
+    (a, b) => b.einsRM - a.einsRM || a.name.localeCompare(b.name, 'de'),
+  )
+}

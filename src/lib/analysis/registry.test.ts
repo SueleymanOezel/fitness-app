@@ -8,12 +8,13 @@ import { TITEL as T4_TITEL } from '../../components/charts/BestSetWeightChart'
 import { TITEL as T5_TITEL } from '../../components/charts/RepsPerSetChart'
 import { TITEL as T6_TITEL } from '../../components/charts/MuscleVolumeChart'
 import { TITEL as T7_TITEL } from '../../components/charts/SessionLoadChart'
+import { TITEL as T8_TITEL } from '../../components/charts/PersonalRecordsList'
 import { TITEL as E1_TITEL } from '../../components/charts/CaloriesPerDayChart'
 import { TITEL as K1_TITEL } from '../../components/charts/WeightTrendChart'
 
 describe('registry', () => {
   it('registers the charts of plan 1 and 2a', () => {
-    expect(CHART_IDS).toEqual(['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'E1', 'K1'])
+    expect(CHART_IDS).toEqual(['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'E1', 'K1'])
   })
 
   it('takes each title from its component instead of restating it', () => {
@@ -26,12 +27,13 @@ describe('registry', () => {
     expect(CHARTS.find((chart) => chart.id === 'T5')?.titel).toBe(T5_TITEL)
     expect(CHARTS.find((chart) => chart.id === 'T6')?.titel).toBe(T6_TITEL)
     expect(CHARTS.find((chart) => chart.id === 'T7')?.titel).toBe(T7_TITEL)
+    expect(CHARTS.find((chart) => chart.id === 'T8')?.titel).toBe(T8_TITEL)
     expect(CHARTS.find((chart) => chart.id === 'E1')?.titel).toBe(E1_TITEL)
     expect(CHARTS.find((chart) => chart.id === 'K1')?.titel).toBe(K1_TITEL)
   })
 
   it('filters by area', () => {
-    expect(chartsFor('training').map((chart) => chart.id)).toEqual(['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'])
+    expect(chartsFor('training').map((chart) => chart.id)).toEqual(['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8'])
     expect(chartsFor('nutrition').map((chart) => chart.id)).toEqual(['E1'])
     expect(chartsFor('body').map((chart) => chart.id)).toEqual(['K1'])
   })
