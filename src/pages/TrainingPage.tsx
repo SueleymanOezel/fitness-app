@@ -1,18 +1,13 @@
-import { lazy, Suspense, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useActiveTrainingDay } from '../hooks/use-active-training-day'
 import { startWorkoutSession } from '../hooks/use-workout-session'
 import { useChartSelection } from '../components/charts/ChartPicker'
-import { T1 } from '../lib/analysis/registry'
 import { useTrainingAnalysis } from '../hooks/use-training-analysis'
+import TrainingChartList from '../components/charts/TrainingChartList'
+import { chartsFor } from '../lib/analysis/registry'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
-
-// Lazy at this use site too, not just on the analysis page: TrainingFrequencyChart
-// pulls in recharts (~136 kB gzipped), and this dashboard is reachable from
-// the entry route graph. Without this, recharts would still end up in the
-// entry chunk regardless of the analysis page's own lazy import.
-const TrainingFrequencyChart = lazy(() => import('../components/charts/TrainingFrequencyChart'))
 
 export default function TrainingPage() {
   const { session } = useSession()
@@ -83,19 +78,27 @@ function Dashboard({ userId }: { userId: string }) {
       <Link to="/training/plans">Meine Pläne</Link>
       <Link to="/training/exercises">Übungen</Link>
       <Link to="/training/history">Trainingshistorie</Link>
-      {auswahl.istGewaehlt(T1) && <DashboardTrainingFrequency userId={userId} />}
+      <DashboardTrainingCharts userId={userId} auswahl={auswahl.auswahl} />
       <Link to="/training/analyse">Analyse</Link>
     </div>
   )
 }
 
-function DashboardTrainingFrequency({ userId }: { userId: string }) {
-  const { sessions, loading, error } = useTrainingAnalysis(userId, DASHBOARD_ZEITRAUM)
+/**
+ * Rendert die angehakten Trainingsgraphen — und faellt vorher komplett aus,
+ * wenn keiner angehakt ist: der Hook steckt in der Kindkomponente, ein leeres
+ * Dashboard soll keine Abfrage ausloesen.
+ */
+function DashboardTrainingCharts({ userId, auswahl }: { userId: string; auswahl: string[] }) {
+  const bereichsIds = new Set(chartsFor('training').map((chart) => chart.id))
+  const ids = auswahl.filter((id) => bereichsIds.has(id))
+  if (ids.length === 0) return null
+  return <DashboardTrainingChartsData userId={userId} ids={ids} />
+}
+
+function DashboardTrainingChartsData({ userId, ids }: { userId: string; ids: string[] }) {
+  const { sessions, sets, loading, error } = useTrainingAnalysis(userId, DASHBOARD_ZEITRAUM)
   if (loading) return <p>Lädt…</p>
   if (error) return <p role="alert">Graph konnte nicht geladen werden.</p>
-  return (
-    <Suspense fallback={<p>Lädt…</p>}>
-      <TrainingFrequencyChart sessions={sessions} />
-    </Suspense>
-  )
+  return <TrainingChartList ids={ids} sessions={sessions} sets={sets} />
 }

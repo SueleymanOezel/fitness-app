@@ -53,10 +53,14 @@ const zeige = () =>
   )
 
 describe('TrainingAnalysisPage', () => {
-  it('shows the area charts with their picker', () => {
+  it('shows the area charts with their picker', async () => {
     zeige()
     expect(screen.getByRole('heading', { name: 'Analyse' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Trainingsfrequenz' })).toBeInTheDocument()
+    // findByRole, not getByRole: TrainingChartList loads TrainingFrequencyChart
+    // behind React.lazy, so the first render is the Suspense fallback.
+    expect(
+      await screen.findByRole('heading', { name: 'Trainingsfrequenz' }, { timeout: 5000 }),
+    ).toBeInTheDocument()
     expect(screen.getByTestId('picker')).toBeInTheDocument()
   })
 
