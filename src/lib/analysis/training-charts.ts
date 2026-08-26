@@ -194,3 +194,54 @@ export function bestesGewichtJeSession(
     return werte.length === 0 ? null : Math.max(...werte)
   })
 }
+
+export type SatzReihen = {
+  punkte: (Record<string, number | string> & { tag: string })[]
+  satzNummern: number[]
+}
+
+/**
+ * T5: je Arbeitssatz eine Reihe, Schluessel `satz1`, `satz2`, …
+ *
+ * Fehlende Saetze bleiben Luecken statt Nullen: wer an einem Tag nur zwei
+ * Saetze geschafft hat, hat im dritten keine null Wiederholungen gemacht.
+ */
+export function wiederholungenJeSatz(
+  sessions: AnalysisSession[],
+  sets: AnalysisSet[],
+  exerciseId: string,
+): SatzReihen {
+  const arbeitsSaetze = sets.filter(
+    (satz) => satz.exercise_id === exerciseId && !satz.ist_aufwaermsatz,
+  )
+  const jeSession = new Map<string, AnalysisSet[]>()
+  for (const satz of arbeitsSaetze) {
+    const liste = jeSession.get(satz.workout_session_id) ?? []
+    liste.push(satz)
+    jeSession.set(satz.workout_session_id, liste)
+  }
+
+  const punkte: SatzReihen['punkte'] = []
+  const nummern = new Set<number>()
+
+  for (const session of sessions) {
+    if (session.gestartet_am == null) continue
+    const saetze = (jeSession.get(session.id) ?? []).sort((a, b) => a.satz_nummer - b.satz_nummer)
+    if (saetze.length === 0) continue
+    const punkt: Record<string, number | string> & { tag: string } = {
+      tag: localDay(session.gestartet_am),
+    }
+    saetze.forEach((satz, index) => {
+      if (satz.wiederholungen == null) return
+      const nummer = index + 1
+      nummern.add(nummer)
+      punkt[`satz${nummer}`] = satz.wiederholungen
+    })
+    punkte.push(punkt)
+  }
+
+  return {
+    punkte: punkte.sort((a, b) => a.tag.localeCompare(b.tag)),
+    satzNummern: [...nummern].sort((a, b) => a - b),
+  }
+}

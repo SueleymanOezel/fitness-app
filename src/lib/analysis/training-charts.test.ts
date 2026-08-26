@@ -7,6 +7,7 @@ import {
   kraftverlauf,
   volumenJeSession,
   bestesGewichtJeSession,
+  wiederholungenJeSatz,
 } from './training-charts'
 
 const am = (jahr: number, monat: number, tag: number) =>
@@ -295,5 +296,48 @@ describe('bestesGewichtJeSession', () => {
       'e1',
     )
     expect(punkte).toEqual([{ tag: '2026-08-17', wert: 85 }])
+  })
+})
+
+describe('wiederholungenJeSatz', () => {
+  it('numbers the working sets from one, ignoring warm-ups in between', () => {
+    // satz_nummer zaehlt alle Saetze durch. Ohne Umnummerierung hiesse derselbe
+    // Arbeitssatz an einem Tag "Satz 2" und am naechsten "Satz 4".
+    const reihen = wiederholungenJeSatz(
+      [sitzung('s1', '2026-08-17')],
+      [
+        { ...satzIn('s1', 'e1', 40, 12, true), satz_nummer: 1 },
+        { ...satzIn('s1', 'e1', 80, 10), satz_nummer: 2 },
+        { ...satzIn('s1', 'e1', 80, 8), satz_nummer: 3 },
+      ],
+      'e1',
+    )
+    expect(reihen.satzNummern).toEqual([1, 2])
+    expect(reihen.punkte).toEqual([{ tag: '2026-08-17', satz1: 10, satz2: 8 }])
+  })
+
+  it('keeps a missing set as a gap instead of zero', () => {
+    // Wer an einem Tag nur zwei Saetze schafft, hat keine null Wiederholungen
+    // im dritten — die Linie soll dort aussetzen.
+    const reihen = wiederholungenJeSatz(
+      [sitzung('s1', '2026-08-17'), sitzung('s2', '2026-08-24')],
+      [
+        { ...satzIn('s1', 'e1', 80, 10), satz_nummer: 1 },
+        { ...satzIn('s1', 'e1', 80, 8), satz_nummer: 2 },
+        { ...satzIn('s2', 'e1', 80, 9), satz_nummer: 1 },
+      ],
+      'e1',
+    )
+    expect(reihen.satzNummern).toEqual([1, 2])
+    expect(reihen.punkte[1]).toEqual({ tag: '2026-08-24', satz1: 9 })
+  })
+
+  it('is empty for an exercise without working sets', () => {
+    const reihen = wiederholungenJeSatz(
+      [sitzung('s1', '2026-08-17')],
+      [satzIn('s1', 'e1', 40, 12, true)],
+      'e1',
+    )
+    expect(reihen).toEqual({ punkte: [], satzNummern: [] })
   })
 })

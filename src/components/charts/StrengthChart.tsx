@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import {
   CartesianGrid,
   Line,
@@ -10,11 +10,12 @@ import {
 } from 'recharts'
 import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-analysis'
-import { haeufigsteUebung, kraftverlauf, uebungenImZeitraum } from '../../lib/analysis/training-charts'
+import { kraftverlauf } from '../../lib/analysis/training-charts'
 import { KRAFTVERLAUF_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
 import ChartFrame from './ChartFrame'
 import ExerciseSelect from './ExerciseSelect'
+import { useUebungsauswahl } from './useUebungsauswahl'
 
 export const TITEL = KRAFTVERLAUF_TITEL
 
@@ -29,12 +30,7 @@ export default function StrengthChart({
   picker?: ReactNode
   mitUebungsauswahl?: boolean
 }) {
-  const optionen = uebungenImZeitraum(sets)
-  const [gewaehlt, setGewaehlt] = useState<string | null>(null)
-  // Die Vorbelegung wird nicht in den State geschrieben: der Zeitraumwechsel
-  // laedt andere Saetze, und ein festgehaltener alter Wert zeigte dann einen
-  // leeren Graphen zu einer Uebung, die im Zeitraum nicht vorkommt.
-  const exerciseId = gewaehlt ?? haeufigsteUebung(sets)
+  const { optionen, exerciseId, waehlen } = useUebungsauswahl(sets)
   const punkte = exerciseId
     ? kraftverlauf(sessions, sets, exerciseId).map((punkt) => ({
         ...punkt,
@@ -45,7 +41,7 @@ export default function StrengthChart({
   return (
     <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker}>
       {mitUebungsauswahl && (
-        <ExerciseSelect optionen={optionen} wert={exerciseId} onChange={setGewaehlt} />
+        <ExerciseSelect optionen={optionen} wert={exerciseId} onChange={waehlen} />
       )}
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={punkte}>

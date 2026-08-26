@@ -10,6 +10,7 @@ import {
   BESTES_SATZGEWICHT_TITEL as BEST_SET_WEIGHT,
   KALORIEN_PRO_TAG_TITEL as CALORIES_PER_DAY,
   GEWICHTSVERLAUF_TITEL as WEIGHT_TREND,
+  WIEDERHOLUNGEN_JE_SATZ_TITEL as REPS_PER_SET,
 } from './chart-titles'
 
 export type Bereich = 'training' | 'nutrition' | 'body'
@@ -36,6 +37,7 @@ export const T1 = 'T1'
 export const T2 = 'T2'
 export const T3 = 'T3'
 export const T4 = 'T4'
+export const T5 = 'T5'
 export const E1 = 'E1'
 export const K1 = 'K1'
 
@@ -44,6 +46,7 @@ export const CHARTS: ChartDef[] = [
   { id: T2, bereich: 'training', titel: STRENGTH },
   { id: T3, bereich: 'training', titel: EXERCISE_VOLUME },
   { id: T4, bereich: 'training', titel: BEST_SET_WEIGHT },
+  { id: T5, bereich: 'training', titel: REPS_PER_SET },
   { id: E1, bereich: 'nutrition', titel: CALORIES_PER_DAY },
   { id: K1, bereich: 'body', titel: WEIGHT_TREND },
 ]

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import {
   CartesianGrid,
   Line,
@@ -10,15 +10,12 @@ import {
 } from 'recharts'
 import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-analysis'
-import {
-  bestesGewichtJeSession,
-  haeufigsteUebung,
-  uebungenImZeitraum,
-} from '../../lib/analysis/training-charts'
+import { bestesGewichtJeSession } from '../../lib/analysis/training-charts'
 import { BESTES_SATZGEWICHT_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
 import ChartFrame from './ChartFrame'
 import ExerciseSelect from './ExerciseSelect'
+import { useUebungsauswahl } from './useUebungsauswahl'
 
 export const TITEL = BESTES_SATZGEWICHT_TITEL
 
@@ -33,9 +30,7 @@ export default function BestSetWeightChart({
   picker?: ReactNode
   mitUebungsauswahl?: boolean
 }) {
-  const optionen = uebungenImZeitraum(sets)
-  const [gewaehlt, setGewaehlt] = useState<string | null>(null)
-  const exerciseId = gewaehlt ?? haeufigsteUebung(sets)
+  const { optionen, exerciseId, waehlen } = useUebungsauswahl(sets)
   const punkte = exerciseId
     ? bestesGewichtJeSession(sessions, sets, exerciseId).map((punkt) => ({
         ...punkt,
@@ -46,7 +41,7 @@ export default function BestSetWeightChart({
   return (
     <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker}>
       {mitUebungsauswahl && (
-        <ExerciseSelect optionen={optionen} wert={exerciseId} onChange={setGewaehlt} />
+        <ExerciseSelect optionen={optionen} wert={exerciseId} onChange={waehlen} />
       )}
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={punkte}>
