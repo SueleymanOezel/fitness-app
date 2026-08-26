@@ -99,16 +99,29 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Bewusst offen gelassen** (vom Schluss-Review als „darf warten" eingestuft): `formatDate` steht wortgleich in drei Seiten; der `onSave`-Wrapper in `BodyPage` und `BodyEntriesPage` ist nahezu identisch; das Ändern des Datums beim Korrigieren kann einen anderen Eintrag desselben Tages überschreiben; das Profil-Update meldet nicht, wenn es null Zeilen trifft; `Number('0x50')` ergibt 80; Foto-Löschen ohne `busy`-Guard und ohne Bestätigen (Projektkonvention).
 
-## Phase 5 – Analysebereich (Plan 1 gemerged, HIER WEITERMACHEN)
+## Phase 5 – Analysebereich (Plan 1 fertig und verifiziert, HIER WEITERMACHEN)
 
 ### Sofort-Einstieg für einen neuen Chat
 
-**Als Erstes: die manuelle Verifikation von Plan 1 gegen Produktion.** Sie ist der einzige offene Punkt an Plan 1.
+**Plan 1 ist vollständig abgeschlossen, inklusive manueller Verifikation.** Nächster Schritt ist Plan 2.
 1. Erledigt: PR #27 gemerged (Merge-Commit `5cd7b19`), Branch lokal und remote entfernt, `master` grün mit 525 Tests, Migration `0007` automatisch auf Produktion gelaufen, Wiki synchronisiert und gepusht (Commit `694a403`).
-2. **Die manuelle Verifikation** gegen Produktion. Liste am Ende von `docs/superpowers/plans/2026-08-24-phase5-plan1-fundament.md`. Es gibt keinen Deploy-Workflow im Repo — `npm run dev` hängt an derselben Produktions-Supabase, das reicht für die Prüfung. **Wichtigster Schritt: Häkchen abwählen, Seite neu laden, Graph bleibt weg** — beweist, dass die Auswahl im Profil liegt und nicht im Browser.
-3. **Dann Plan 2 schreiben** — die restlichen 16 Graphen. Spec liegt vor, Zuschnitt steht (siehe unten). Weg: `superpowers:writing-plans` → `superpowers:subagent-driven-development`.
+2. **Manuelle Verifikation am 27.08.2026 durchgeführt — alle neun Schritte grün** (`npm run dev` gegen die Produktions-Supabase, Chrome). Details im Abschnitt „Manuelle Verifikation Plan 1" weiter unten.
+3. **Jetzt: Plan 2 schreiben** — die restlichen 16 Graphen. Spec liegt vor, Zuschnitt steht (siehe unten). Weg: `superpowers:writing-plans` → `superpowers:subagent-driven-development`.
 
 Das SDD-Arbeitsverzeichnis ist gelöscht — alles Wissenswerte steht in diesem Abschnitt und im Verlauf von `git log`.
+
+### Manuelle Verifikation Plan 1 (27.08.2026, alle neun Schritte grün)
+
+- `profiles.analyse_auswahl` stand auf `["T1","E1","K1"]`; Dashboards zeigen die Graphen ohne Zeitraum-Knöpfe, die Analyseseiten mit.
+- **Der entscheidende Schritt:** Häkchen bei E1 abgewählt → DB steht auf `["T1","K1"]`, Graph verschwindet vom Ernährungs-Dashboard und bleibt nach vollem Reload weg; wieder anhaken bringt ihn zurück. Die Auswahl liegt also wirklich im Profil.
+- Ein Dashboard ohne angehakten Graphen feuert **keine** Analyseabfrage — nachgewiesen im Netzwerk-Log (nur die Tagesabfrage lief).
+- Zeitraum: 30 Tage → `zeitpunkt=gte.2026-07-28`, „alles" → gar kein Filter; die Achse beim Gewichtsverlauf sprang von `01.08.–27.08.` auf `05.05.–27.08.`.
+- E1 zeichnet die Ziel-Linie auf 1672 kcal, also auf `effectiveCalorieGoal(profile)`. T1 zeigt die Wochen korrekt mit Nulllücken (KW29 = 2, KW30/31 = 0, KW32–35 = 2).
+- `React.lazy` greift: `/login` lädt keinen Recharts-Chunk, beim Wechsel auf ein Dashboard kommt `deps/recharts.js` mit 200. Konsole ohne Fehler und Warnungen.
+
+**Testdaten:** Der Account hatte keine Historie (0 Zeilen `body_metrics`, 0 `workout_sessions`), deshalb wurden am 27.08.2026 **synthetische Daten in die Produktions-DB geschrieben**: 7 `body_metrics` (05.05.–27.08., 88,0 → 82,5 kg), 12 `workout_sessions` (15.05.–26.08.) und 30 `food_entries` (18.–27.08., alle auf das Produkt HARIBO CHERRY-COLA). Ein Alt-Eintrag mit `menge = 50000` (50 kg, 167.000 kcal, hat die Y-Achse von E1 gesprengt) wurde gelöscht. **Vor echtem Gebrauch aufräumen**, sonst verfälschen die erfundenen Zeilen jeden späteren Graphen.
+
+**Zwei Randbeobachtungen ohne Befundcharakter:** `/login` ist auch eingeloggt erreichbar (kein Redirect aufs Dashboard); die Recharts-Einblendanimation braucht im Hintergrund-Tab einen zweiten Frame, Screenshots direkt nach dem Laden zeigen sonst ein leeres Koordinatensystem.
 
 **Stand:** Plan 1 vollständig — alle 15 Tasks umgesetzt und je einzeln reviewt, danach Whole-Branch-Review auf dem stärksten Modell, eine Fix-Welle, ein Scoped Re-Review und zwei nachgezogene Rulings. Gemerged über PR #27 (Merge-Commit `5cd7b19`), Branch entfernt. **525 Tests grün**, Lint, `tsc -b --noEmit` und `npm run build` sauber.
 
