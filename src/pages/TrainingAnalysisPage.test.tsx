@@ -62,7 +62,7 @@ describe('TrainingAnalysisPage', () => {
     expect(
       await screen.findByRole('heading', { name: 'Trainingsfrequenz' }, { timeout: 5000 }),
     ).toBeInTheDocument()
-    expect(screen.getByTestId('picker')).toBeInTheDocument()
+    expect(screen.getAllByTestId('picker')).not.toHaveLength(0)
   })
 
   it('asks for 90 days by default', () => {

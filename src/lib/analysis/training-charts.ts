@@ -3,6 +3,7 @@ import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-anal
 
 export type WochenPunkt = { woche: string; anzahl: number }
 export type UebungsOption = { exercise_id: string; name: string }
+export type MuskelPunkt = { muskelgruppe: string; volumen: number }
 
 /** Monday of the week `iso` falls in, as a local `YYYY-MM-DD`. */
 function wochenStart(iso: string): string {
@@ -244,4 +245,28 @@ export function wiederholungenJeSatz(
     punkte: punkte.sort((a, b) => a.tag.localeCompare(b.tag)),
     satzNummern: [...nummern].sort((a, b) => a - b),
   }
+}
+
+/**
+ * T6: Volumen der Arbeitssaetze ueber den ganzen Zeitraum, auf die primaeren
+ * Muskelgruppen **verteilt**.
+ *
+ * Zwei Gruppen bekommen je die Haelfte. Volle Anrechnung an beide waere die
+ * bequemere Rechnung, machte die Summe aller Balken aber groesser als das
+ * bewegte Volumen und liesse Verbundeuebungen doppelt so wichtig aussehen.
+ */
+export function volumenJeMuskelgruppe(sets: AnalysisSet[]): MuskelPunkt[] {
+  const summe = new Map<string, number>()
+  for (const satz of sets) {
+    if (satz.ist_aufwaermsatz) continue
+    const volumen = satzVolumen(satz)
+    if (volumen == null || satz.muskelgruppen.length === 0) continue
+    const anteil = volumen / satz.muskelgruppen.length
+    for (const gruppe of satz.muskelgruppen) {
+      summe.set(gruppe, (summe.get(gruppe) ?? 0) + anteil)
+    }
+  }
+  return [...summe.entries()]
+    .map(([muskelgruppe, volumen]) => ({ muskelgruppe, volumen: Math.round(volumen) }))
+    .sort((a, b) => b.volumen - a.volumen || a.muskelgruppe.localeCompare(b.muskelgruppe, 'de'))
 }

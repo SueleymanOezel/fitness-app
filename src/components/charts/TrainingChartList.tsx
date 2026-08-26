@@ -1,7 +1,7 @@
 import { lazy, Suspense, type ReactNode } from 'react'
 import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-analysis'
 import ChartPicker, { type useChartSelection } from './ChartPicker'
-import { T1, T2, T3, T4, T5 } from '../../lib/analysis/registry'
+import { T1, T2, T3, T4, T5, T6 } from '../../lib/analysis/registry'
 
 // Lazy an dieser einen Stelle: die Liste ist der einzige Ort, an dem ein
 // Trainingsgraph noch eingebunden wird — Dashboard wie Analyse-Seite gehen
@@ -11,6 +11,7 @@ const StrengthChart = lazy(() => import('./StrengthChart'))
 const ExerciseVolumeChart = lazy(() => import('./ExerciseVolumeChart'))
 const BestSetWeightChart = lazy(() => import('./BestSetWeightChart'))
 const RepsPerSetChart = lazy(() => import('./RepsPerSetChart'))
+const MuscleVolumeChart = lazy(() => import('./MuscleVolumeChart'))
 
 export type TrainingChartListProps = {
   ids: string[]
@@ -69,6 +70,8 @@ export default function TrainingChartList({
             mitUebungsauswahl={analyse}
           />
         )
+      case T6:
+        return <MuscleVolumeChart sets={sets} picker={picker} />
       default:
         // Eine ID ohne Komponente ist kein Fehler, den der Nutzer sehen muss:
         // parseAuswahl haelt Unbekanntes schon fern, hier bleibt nur die Luecke.

@@ -8,6 +8,7 @@ import {
   volumenJeSession,
   bestesGewichtJeSession,
   wiederholungenJeSatz,
+  volumenJeMuskelgruppe,
 } from './training-charts'
 
 const am = (jahr: number, monat: number, tag: number) =>
@@ -339,5 +340,41 @@ describe('wiederholungenJeSatz', () => {
       'e1',
     )
     expect(reihen).toEqual({ punkte: [], satzNummern: [] })
+  })
+})
+
+describe('volumenJeMuskelgruppe', () => {
+  const mitGruppen = (gruppen: string[], gewicht: number, wiederholungen: number, warm = false) => ({
+    ...satzIn('s1', 'e1', gewicht, wiederholungen, warm),
+    id: `${gruppen.join('-')}-${gewicht}-${wiederholungen}-${warm}`,
+    muskelgruppen: gruppen,
+  })
+
+  it('sums the volume per muscle group, largest first', () => {
+    expect(
+      volumenJeMuskelgruppe([mitGruppen(['brust'], 80, 10), mitGruppen(['ruecken'], 60, 10)]),
+    ).toEqual([
+      { muskelgruppe: 'brust', volumen: 800 },
+      { muskelgruppe: 'ruecken', volumen: 600 },
+    ])
+  })
+
+  it('splits an exercise with two primary groups instead of counting it twice', () => {
+    // Volle Anrechnung an beide liesse die Summe aller Balken groesser werden
+    // als das bewegte Volumen.
+    expect(volumenJeMuskelgruppe([mitGruppen(['brust', 'trizeps'], 100, 10)])).toEqual([
+      { muskelgruppe: 'brust', volumen: 500 },
+      { muskelgruppe: 'trizeps', volumen: 500 },
+    ])
+  })
+
+  it('leaves warm-up sets out', () => {
+    expect(volumenJeMuskelgruppe([mitGruppen(['brust'], 100, 10, true)])).toEqual([])
+  })
+
+  it('drops sets whose exercise has no primary group', () => {
+    // Ohne Zuordnung gibt es keinen Balken, auf den das Volumen gehoert; eine
+    // Sammelgruppe "sonstiges" waere eine erfundene Aussage.
+    expect(volumenJeMuskelgruppe([mitGruppen([], 100, 10)])).toEqual([])
   })
 })
