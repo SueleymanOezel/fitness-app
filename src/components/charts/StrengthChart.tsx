@@ -37,12 +37,20 @@ export default function StrengthChart({
         label: tagesLabel(punkt.tag),
       }))
     : []
+  const uebungsName = optionen.find((option) => option.exercise_id === exerciseId)?.name
+  const titel = mitUebungsauswahl || uebungsName == null ? TITEL : `${TITEL} – ${uebungsName}`
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker}>
-      {mitUebungsauswahl && (
-        <ExerciseSelect optionen={optionen} wert={exerciseId} onChange={waehlen} />
-      )}
+    <ChartFrame
+      titel={titel}
+      leer={punkte.length < 2}
+      picker={picker}
+      vorspann={
+        mitUebungsauswahl && (
+          <ExerciseSelect optionen={optionen} wert={exerciseId} onChange={waehlen} />
+        )
+      }
+    >
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={punkte}>
           <CartesianGrid strokeDasharray="3 3" />

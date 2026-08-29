@@ -11,9 +11,14 @@ import { haeufigsteUebung, uebungenImZeitraum } from '../../lib/analysis/trainin
  */
 export function useUebungsauswahl(sets: AnalysisSet[]) {
   const [gewaehlt, setGewaehlt] = useState<string | null>(null)
+  const optionen = uebungenImZeitraum(sets)
+  // Eine Auswahl, die im aktuellen Zeitraum nicht mehr auftaucht (nach einem
+  // Zeitraumwechsel), zaehlt als nicht getroffen — sonst zeigt das <select>
+  // einen Wert ohne passende <option> und rendert leer.
+  const gueltig = gewaehlt != null && optionen.some((option) => option.exercise_id === gewaehlt)
   return {
-    optionen: uebungenImZeitraum(sets),
-    exerciseId: gewaehlt ?? haeufigsteUebung(sets),
+    optionen,
+    exerciseId: gueltig ? gewaehlt : haeufigsteUebung(sets),
     waehlen: setGewaehlt,
   }
 }

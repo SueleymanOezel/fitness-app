@@ -34,4 +34,17 @@ describe('ChartFrame', () => {
     )
     expect(screen.getByRole('button', { name: 'Haken' })).toBeInTheDocument()
   })
+
+  it('shows the vorspann even when empty', () => {
+    // Die Uebungsauswahl auf T2-T5 ist ein vorspann: ohne sie waere ein Nutzer,
+    // dessen Vorbelegung leer ist, ohne jede Moeglichkeit, eine andere Uebung
+    // zu waehlen.
+    render(
+      <ChartFrame titel="Kraftverlauf" leer vorspann={<label htmlFor="x">Übung</label>}>
+        <div />
+      </ChartFrame>,
+    )
+    expect(screen.getByText('Übung')).toBeInTheDocument()
+    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+  })
 })
