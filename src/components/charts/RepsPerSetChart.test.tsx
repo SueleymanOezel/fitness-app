@@ -1,0 +1,90 @@
+import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import RepsPerSetChart from './RepsPerSetChart'
+
+const sitzung = (id: string, tag: string) => ({
+  id,
+  gestartet_am: `${tag}T18:00:00+02:00`,
+  beendet_am: `${tag}T19:00:00+02:00`,
+  gesamt_kalorien: 300,
+})
+
+const satz = (
+  sessionId: string,
+  satz_nummer: number,
+  wiederholungen: number,
+  exercise_id = 'e1',
+  name = 'Bankdruecken',
+) => ({
+  id: `${sessionId}-${exercise_id}-${satz_nummer}`,
+  workout_session_id: sessionId,
+  exercise_id,
+  exercise_name: name,
+  muskelgruppen: ['brust'],
+  satz_nummer,
+  gewicht: 80,
+  wiederholungen,
+  ist_aufwaermsatz: false,
+})
+
+describe('RepsPerSetChart', () => {
+  it('draws one line per working set', () => {
+    const { container } = render(
+      <RepsPerSetChart
+        sessions={[sitzung('s1', '2026-08-17'), sitzung('s2', '2026-08-24')]}
+        sets={[
+          satz('s1', 1, 10),
+          satz('s1', 2, 8),
+          satz('s2', 1, 10),
+          satz('s2', 2, 9),
+        ]}
+      />,
+    )
+    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(2)
+  })
+
+  it('names the lines so the sets are told apart', () => {
+    render(
+      <RepsPerSetChart
+        sessions={[sitzung('s1', '2026-08-17'), sitzung('s2', '2026-08-24')]}
+        sets={[satz('s1', 1, 10), satz('s2', 1, 10)]}
+      />,
+    )
+    expect(screen.getByText('Satz 1')).toBeInTheDocument()
+  })
+
+  it('states the empty case for a single session', () => {
+    render(<RepsPerSetChart sessions={[sitzung('s1', '2026-08-17')]} sets={[satz('s1', 1, 10)]} />)
+    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+  })
+
+  it('keeps the exercise select usable in the empty state', () => {
+    // Kritischer Fund: die Auswahl darf nicht mit dem Graphen verschwinden.
+    render(
+      <RepsPerSetChart
+        sessions={[sitzung('s1', '2026-08-17'), sitzung('s2', '2026-08-24')]}
+        sets={[
+          satz('s1', 1, 10),
+          satz('s2', 1, 9),
+          satz('s1', 1, 5, 'e2', 'Kniebeuge'),
+        ]}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText('Übung'), { target: { value: 'e2' } })
+    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Übung')).toBeInTheDocument()
+  })
+
+  it('names the exercise in the title when the select is hidden', () => {
+    render(
+      <RepsPerSetChart
+        sessions={[sitzung('s1', '2026-08-17'), sitzung('s2', '2026-08-24')]}
+        sets={[satz('s1', 1, 10), satz('s2', 1, 9)]}
+        mitUebungsauswahl={false}
+      />,
+    )
+    expect(
+      screen.getByRole('heading', { name: 'Wiederholungen je Satz – Bankdruecken' }),
+    ).toBeInTheDocument()
+  })
+})

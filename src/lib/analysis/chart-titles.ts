@@ -12,5 +12,12 @@
  * longer one that drags recharts along with it.
  */
 export const TRAININGSFREQUENZ_TITEL = 'Trainingsfrequenz'
+export const KRAFTVERLAUF_TITEL = 'Kraftverlauf'
+export const VOLUMEN_JE_UEBUNG_TITEL = 'Volumen je Übung'
+export const BESTES_SATZGEWICHT_TITEL = 'Bestes Satzgewicht'
 export const KALORIEN_PRO_TAG_TITEL = 'Kalorien pro Tag'
 export const GEWICHTSVERLAUF_TITEL = 'Gewichtsverlauf'
+export const WIEDERHOLUNGEN_JE_SATZ_TITEL = 'Wiederholungen je Satz'
+export const VOLUMEN_JE_MUSKELGRUPPE_TITEL = 'Volumen je Muskelgruppe'
+export const DAUER_UND_KALORIEN_TITEL = 'Dauer und Kalorien'
+export const REKORDE_TITEL = 'Persönliche Rekorde'

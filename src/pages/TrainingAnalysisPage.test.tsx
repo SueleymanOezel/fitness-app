@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import TrainingAnalysisPage from './TrainingAnalysisPage'
+import { chartsFor } from '../lib/analysis/registry'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -34,6 +35,7 @@ beforeEach(() => {
       { id: 'a', gestartet_am: am(8, 17), beendet_am: am(8, 17), gesamt_kalorien: null },
       { id: 'b', gestartet_am: am(8, 24), beendet_am: am(8, 24), gesamt_kalorien: null },
     ],
+    sets: [],
     loading: false,
     error: false,
   })
@@ -53,11 +55,18 @@ const zeige = () =>
   )
 
 describe('TrainingAnalysisPage', () => {
-  it('shows the area charts with their picker', () => {
+  it('shows the area charts with their picker', async () => {
     zeige()
     expect(screen.getByRole('heading', { name: 'Analyse' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Trainingsfrequenz' })).toBeInTheDocument()
-    expect(screen.getByTestId('picker')).toBeInTheDocument()
+    // findByRole, not getByRole: TrainingChartList loads TrainingFrequencyChart
+    // behind React.lazy, so the first render is the Suspense fallback.
+    expect(
+      await screen.findByRole('heading', { name: 'Trainingsfrequenz' }, { timeout: 5000 }),
+    ).toBeInTheDocument()
+    await waitFor(
+      () => expect(screen.getAllByTestId('picker')).toHaveLength(chartsFor('training').length),
+      { timeout: 5000 },
+    )
   })
 
   it('asks for 90 days by default', () => {
@@ -72,7 +81,7 @@ describe('TrainingAnalysisPage', () => {
   })
 
   it('shows one message for a failed load, not one per chart', () => {
-    mockUseTrainingAnalysis.mockReturnValue({ sessions: [], loading: false, error: true })
+    mockUseTrainingAnalysis.mockReturnValue({ sessions: [], sets: [], loading: false, error: true })
     zeige()
     expect(screen.getAllByText('Daten konnten nicht geladen werden.')).toHaveLength(1)
   })
@@ -80,7 +89,7 @@ describe('TrainingAnalysisPage', () => {
   it('shows both messages when the load and the picker save fail independently', () => {
     // A failed load and a selection that could not be saved are different
     // problems with different remedies; they must not collapse into one message.
-    mockUseTrainingAnalysis.mockReturnValue({ sessions: [], loading: false, error: true })
+    mockUseTrainingAnalysis.mockReturnValue({ sessions: [], sets: [], loading: false, error: true })
     mockUseChartSelection.mockReturnValue({
       auswahl: [],
       istGewaehlt: () => false,
@@ -93,8 +102,17 @@ describe('TrainingAnalysisPage', () => {
   })
 
   it('shows a loading state', () => {
-    mockUseTrainingAnalysis.mockReturnValue({ sessions: [], loading: true, error: false })
+    mockUseTrainingAnalysis.mockReturnValue({ sessions: [], sets: [], loading: true, error: false })
     zeige()
     expect(screen.getByText('Lädt…')).toBeInTheDocument()
+  })
+
+  it('renders every registered training chart', async () => {
+    // Der Fall, den die Registry verhindern soll: ein Graph ist angemeldet, aber
+    // die Seite kennt ihn nicht — er waere im Picker sichtbar und nirgends sonst.
+    zeige()
+    for (const chart of chartsFor('training')) {
+      expect(await screen.findByText(chart.titel, {}, { timeout: 5000 })).toBeInTheDocument()
+    }
   })
 })

@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useTrainingAnalysis } from '../hooks/use-training-analysis'
 import ZeitraumSwitch from '../components/ZeitraumSwitch'
-import ChartPicker, { useChartSelection } from '../components/charts/ChartPicker'
-import { T1 } from '../lib/analysis/registry'
-import TrainingFrequencyChart from '../components/charts/TrainingFrequencyChart'
+import { useChartSelection } from '../components/charts/ChartPicker'
+import TrainingChartList from '../components/charts/TrainingChartList'
+import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
 
 export default function TrainingAnalysisPage() {
@@ -26,8 +26,10 @@ export default function TrainingAnalysisPage() {
 
 function Analyse({ userId }: { userId: string }) {
   const [zeitraum, setZeitraum] = useState<Zeitraum>(STANDARD_ZEITRAUM)
-  const { sessions, loading, error } = useTrainingAnalysis(userId, zeitraum)
+  const { sessions, sets, loading, error } = useTrainingAnalysis(userId, zeitraum)
   const auswahl = useChartSelection(userId)
+  // Reihenfolge ist die der Registry — kein Umsortieren, wie in der Spec.
+  const ids = chartsFor('training').map((chart) => chart.id)
 
   return (
     <div>
@@ -40,7 +42,7 @@ function Analyse({ userId }: { userId: string }) {
       {loading ? (
         <p>Lädt…</p>
       ) : (
-        <TrainingFrequencyChart sessions={sessions} picker={<ChartPicker id={T1} auswahl={auswahl} />} />
+        <TrainingChartList ids={ids} sessions={sessions} sets={sets} auswahl={auswahl} />
       )}
       <Link to="/training">Zurück zum Trainingsbereich</Link>
     </div>
