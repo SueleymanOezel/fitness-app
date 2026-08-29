@@ -99,26 +99,23 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Bewusst offen gelassen** (vom Schluss-Review als „darf warten" eingestuft): `formatDate` steht wortgleich in drei Seiten; der `onSave`-Wrapper in `BodyPage` und `BodyEntriesPage` ist nahezu identisch; das Ändern des Datums beim Korrigieren kann einen anderen Eintrag desselben Tages überschreiben; das Profil-Update meldet nicht, wenn es null Zeilen trifft; `Number('0x50')` ergibt 80; Foto-Löschen ohne `busy`-Guard und ohne Bestätigen (Projektkonvention).
 
-## Phase 5 – Analysebereich (Plan 2a fertig, Plan 2b/2c noch zu schreiben)
+## Phase 5 – Analysebereich (Plan 1 und 2a gemerged, Plan 2b/2c noch zu schreiben)
 
 ### Sofort-Einstieg für einen neuen Chat
 
-**Plan 1 und Plan 2a sind abgeschlossen.** Plan 2a hat die restlichen sieben Trainingsgraphen (T2–T8) gebaut, alle 11 Tasks umgesetzt.
-1. Erledigt: alle 11 Tasks von Plan 2a committet. `TrainingChartList.tsx` ist der einzige Ort, an dem noch ein Trainingsgraph eingebunden wird — Dashboard und Analyse-Seite gehen beide durch, jeder Chart hinter `React.lazy`. `useTrainingAnalysis(userId, zeitraum)` lädt jetzt neben `sessions` auch `sets` (`workout_session_sets`, zwei Abfragen, keine je Graph; eine gelöschte Übung erscheint als „Unbekannte Uebung"). `tagesLabel` liegt jetzt einmalig in `src/lib/analysis/tages-label.ts` (vorher doppelt).
-2. Seitentest ergänzt (`src/pages/TrainingAnalysisPage.test.tsx`): rendert `chartsFor('training')` komplett durch und prüft, dass jeder Titel tatsächlich erscheint — die Registry und `TrainingChartList` können so nicht mehr auseinanderlaufen. **Testzahl jetzt: siehe Abschnitt „Plan 2a" unten.**
-3. **Plan 2a ist noch NICHT gemerged, aber review-fertig.** Der Branch heißt `worktree-feat-phase5-plan2a-training-graphen` und liegt im Worktree `.claude/worktrees/feat-phase5-plan2a-training-graphen`. Alle 11 Tasks einzeln abgenommen, danach **Whole-Branch-Review auf Opus** (Commits `dafcbbd..6d3505e`): 2 Critical (Übungsauswahl konnte im Leerzustand ganz verschwinden; Satz-Abfrage ohne Paginierung/Chunking — Truncation-Risiko wie schon einmal in Phase 3), 2 Important (Dashboard zeigte T2–T5 ohne Namen der Übung; Übungsauswahl blieb nach Zeitraum-Wechsel auf einer nicht mehr vorhandenen Übung hängen) und 2 kleinere Nachträge. **Eine gebündelte Fix-Welle** (Commits `4fa9e34`, `2474ad4`, `d633af9`) hat alle sechs behoben, **ein Scoped Re-Review** (Sonnet) hat alle sechs als ADDRESSED bestätigt, keine neue Breakage. **606/606 Tests grün**, Lint/`tsc -b --noEmit` sauber.
+**Plan 1 und Plan 2a sind gemerged.** Plan 2a hat die restlichen sieben Trainingsgraphen (T2–T8) gebaut.
+1. Gemerged über PR #33 (Merge-Commit `4df8a03`), Branch `worktree-feat-phase5-plan2a-training-graphen` lokal und remote entfernt, Worktree `.claude/worktrees/feat-phase5-plan2a-training-graphen` entfernt. Alle 11 Tasks einzeln abgenommen, danach Whole-Branch-Review auf Opus (2 Critical, 2 Important, 2 kleinere Nachträge — alle in einer Fix-Welle behoben, Scoped Re-Review bestätigt ADDRESSED ohne neue Breakage, Details siehe „Plan 2a" unten).
+2. **CI auf PR #33 fing einen echten Fehler ab, kein Flake:** `App.test.tsx` mockte `useTrainingAnalysis` noch mit der alten Rückgabe aus Plan 1 (ohne `sets`) — StrengthChart (T2) stürzte deshalb beim Rendern von `/training/analyse` mit „sets is not iterable" ab. Einzeiliger Fix (`sets: []` ergänzt, Commit `c781ff6`), danach alle vier CI-Checks grün.
+3. `TrainingChartList.tsx` ist der einzige Ort, an dem noch ein Trainingsgraph eingebunden wird — Dashboard und Analyse-Seite gehen beide durch, jeder Chart hinter `React.lazy`. `useTrainingAnalysis(userId, zeitraum)` lädt jetzt neben `sessions` auch `sets` (`workout_session_sets`, paginiert und ID-gechunkt, keine Abfrage je Graph; eine gelöschte Übung erscheint als „Unbekannte Uebung"). `tagesLabel` liegt jetzt einmalig in `src/lib/analysis/tages-label.ts` (vorher doppelt).
+4. Wiki synchronisiert (`Domain-Model`, neue Seite `Phase-5-Plan-2a-Trainingsgraphen`, `Home`, `_Sidebar` — gepusht, Commit `b667b08`).
 
 **Genau hier weitermachen, in dieser Reihenfolge:**
-1. **`superpowers:finishing-a-development-branch`** — PR aus dem Worktree-Branch gegen `master`, CI abwarten (build-test, Semgrep, npm audit, ZAP), mergen.
-2. **Nach dem Merge, aus dem Haupt-Checkout:** `docs/domaenenmodell.md` nach `../fitness-app.wiki/Domain-Model.md` spiegeln und pushen — in Task 11 bewusst übersprungen, weil der relative Pfad aus dem Worktree ins Leere zeigt. Danach den Worktree entfernen (vitest globbt sonst die Kopien unter `.claude/`).
-3. **Manuelle Verifikation gegen Produktion**, Liste am Ende von `docs/superpowers/plans/2026-08-27-phase5-plan2a-training-graphen.md` (zehn Schritte). Wichtigster Punkt: `/training` mit zwei angehakten Graphen darf **genau zwei** Abfragen auslösen, mit null angehakten **keine**. Neu dazu: eine Übung wählen, die nur einmal im Zeitraum trainiert wurde, prüfen dass sich danach noch eine andere Übung auswählen lässt (der Critical-Fund aus dem Schluss-Review).
-4. **Erst danach** Plan 2b (Ernährung, E2–E6) und Plan 2c (Körper, K2–K5) schreiben. Weg: `superpowers:writing-plans` → `superpowers:subagent-driven-development`.
+1. **Manuelle Verifikation gegen Produktion**, Liste am Ende von `docs/superpowers/plans/2026-08-27-phase5-plan2a-training-graphen.md` (zehn Schritte). Wichtigster Punkt: `/training` mit zwei angehakten Graphen darf **genau zwei** Abfragen auslösen, mit null angehakten **keine**. Neu dazu: eine Übung wählen, die nur einmal im Zeitraum trainiert wurde, prüfen dass sich danach noch eine andere Übung auswählen lässt (der Critical-Fund aus dem Schluss-Review) — ebenso die Plan-1-Verifikation nachholen, falls noch offen (siehe unten).
+2. **Erst danach** Plan 2b (Ernährung, E2–E6) und Plan 2c (Körper, K2–K5) schreiben. Weg: `superpowers:writing-plans` → `superpowers:subagent-driven-development`.
 
 **Noch aufzuräumen:** die synthetischen Daten aus der Plan-1-Verifikation stehen weiter in der Produktions-Datenbank (7 `body_metrics` 05.05.–27.08., 12 `workout_sessions` 15.05.–26.08., 30 `food_entries` 18.–27.08. auf ein einziges Produkt). Vor echtem Gebrauch löschen.
 
-Das SDD-Arbeitsverzeichnis für Plan 2a liegt unter `.superpowers/sdd/2026-08-27-phase5-plan2a-training-graphen/`. **Vor dem Merge nicht löschen** — `progress.md` dort ist das Ledger mit allen Rulings, den zurückgestellten Minor-Funden und dem Wiedereinstiegspunkt. Erst nach dem Schluss-Review entfernen.
-
-### Plan 2a – Trainingsgraphen (fertig)
+### Plan 2a – Trainingsgraphen (gemerged, PR #33)
 
 Sieben neue Graphen im Trainingsbereich: **T2** Kraftverlauf je Übung (geschätztes 1RM, Epley), **T3** Volumen je Übung, **T4** bestes Satzgewicht, **T5** Wiederholungen je Satz, **T6** Volumen je Muskelgruppe, **T7** Dauer und Kalorien je Session, **T8** persönliche Rekorde (Liste, kein Recharts). Zusammen mit T1 (Plan 1) sind das jetzt **acht** Trainingsgraphen, alle in `src/lib/analysis/registry.ts` angemeldet und über `TrainingChartList.tsx` gerendert (ein `switch` über die Registry-IDs). T2–T5 bekommen zusätzlich eine Übungsauswahl (`mitUebungsauswahl`), vorbelegt mit der am häufigsten trainierten Übung; auf dem Dashboard ausgeblendet.
 
@@ -126,7 +123,7 @@ Sieben neue Graphen im Trainingsbereich: **T2** Kraftverlauf je Übung (geschät
 
 **Bundle nach Task 11** (`npm run build`): Entry-Chunk `dist/assets/index-BA_sHCOY.js` 984,53 kB (268,30 kB gzip) — praktisch unverändert gegenüber Plan 1 (977 kB), weil jeder neue Chart einzeln hinter `React.lazy` liegt (eigene Chunks von 0,26–1,34 kB je Komponente, dazu ein gemeinsamer `training-charts`-Chunk mit 4,08 kB). Recharts selbst bleibt in den gemeinsamen `CartesianChart`/`Bar`/`Line`/`Legend`-Chunks außerhalb des Entry-Chunks. Weiterhin über Vites Warnschwelle (500 kB) — bekannt, gehört in die Härtungsphase.
 
-**Testzahl nach Task 11: 588 Tests grün** (85 Dateien), Lint ohne Fehler und Warnungen, `tsc -b --noEmit` sauber, `npm run build` erfolgreich.
+**Endstand nach Whole-Branch-Review, Fix-Welle und CI-Fix: 606 Tests grün** (85 Dateien), Lint ohne Fehler und Warnungen, `tsc -b --noEmit` sauber, `npm run build` erfolgreich. Die Sätze-Abfrage in `use-training-analysis.ts` paginiert jetzt (`.range()`, analog zu `use-exercises.ts`) und chunkt Session-IDs zu 100 je Anfrage — vorher lief sie ungechunkt und ungedeckelt, Risiko genau des Fehlers, der in Phase 3 schon einmal auftrat.
 
 ### Manuelle Verifikation Plan 1 (27.08.2026, alle neun Schritte grün)
 
