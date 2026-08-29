@@ -99,19 +99,19 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Bewusst offen gelassen** (vom Schluss-Review als „darf warten" eingestuft): `formatDate` steht wortgleich in drei Seiten; der `onSave`-Wrapper in `BodyPage` und `BodyEntriesPage` ist nahezu identisch; das Ändern des Datums beim Korrigieren kann einen anderen Eintrag desselben Tages überschreiben; das Profil-Update meldet nicht, wenn es null Zeilen trifft; `Number('0x50')` ergibt 80; Foto-Löschen ohne `busy`-Guard und ohne Bestätigen (Projektkonvention).
 
-## Phase 5 – Analysebereich (Plan 1 und 2a gemerged, Plan 2b/2c noch zu schreiben)
+## Phase 5 – Analysebereich (Plan 1 und 2a gemerged und verifiziert, Plan 2b/2c noch zu schreiben)
 
 ### Sofort-Einstieg für einen neuen Chat
 
-**Plan 1 und Plan 2a sind gemerged.** Plan 2a hat die restlichen sieben Trainingsgraphen (T2–T8) gebaut.
+**Plan 1 und Plan 2a sind gemerged und gegen Produktion verifiziert.** Plan 2a hat die restlichen sieben Trainingsgraphen (T2–T8) gebaut.
 1. Gemerged über PR #33 (Merge-Commit `4df8a03`), Branch `worktree-feat-phase5-plan2a-training-graphen` lokal und remote entfernt, Worktree `.claude/worktrees/feat-phase5-plan2a-training-graphen` entfernt. Alle 11 Tasks einzeln abgenommen, danach Whole-Branch-Review auf Opus (2 Critical, 2 Important, 2 kleinere Nachträge — alle in einer Fix-Welle behoben, Scoped Re-Review bestätigt ADDRESSED ohne neue Breakage, Details siehe „Plan 2a" unten).
 2. **CI auf PR #33 fing einen echten Fehler ab, kein Flake:** `App.test.tsx` mockte `useTrainingAnalysis` noch mit der alten Rückgabe aus Plan 1 (ohne `sets`) — StrengthChart (T2) stürzte deshalb beim Rendern von `/training/analyse` mit „sets is not iterable" ab. Einzeiliger Fix (`sets: []` ergänzt, Commit `c781ff6`), danach alle vier CI-Checks grün.
 3. `TrainingChartList.tsx` ist der einzige Ort, an dem noch ein Trainingsgraph eingebunden wird — Dashboard und Analyse-Seite gehen beide durch, jeder Chart hinter `React.lazy`. `useTrainingAnalysis(userId, zeitraum)` lädt jetzt neben `sessions` auch `sets` (`workout_session_sets`, paginiert und ID-gechunkt, keine Abfrage je Graph; eine gelöschte Übung erscheint als „Unbekannte Uebung"). `tagesLabel` liegt jetzt einmalig in `src/lib/analysis/tages-label.ts` (vorher doppelt).
 4. Wiki synchronisiert (`Domain-Model`, neue Seite `Phase-5-Plan-2a-Trainingsgraphen`, `Home`, `_Sidebar` — gepusht, Commit `b667b08`).
+5. **Manuelle Verifikation gegen Produktion abgeschlossen** (29.08.2026, alle zehn Schritte grün, Details im eigenen Abschnitt weiter unten). Dabei ein reales Testszenario aufgebaut (Plan, zwei Übungen, eine Live-Session) statt der rein synthetischen Daten aus Plan 1 — die vorhandenen Sessions aus der Plan-1-Verifikation haben keine Sätze.
 
-**Genau hier weitermachen, in dieser Reihenfolge:**
-1. **Manuelle Verifikation gegen Produktion**, Liste am Ende von `docs/superpowers/plans/2026-08-27-phase5-plan2a-training-graphen.md` (zehn Schritte). Wichtigster Punkt: `/training` mit zwei angehakten Graphen darf **genau zwei** Abfragen auslösen, mit null angehakten **keine**. Neu dazu: eine Übung wählen, die nur einmal im Zeitraum trainiert wurde, prüfen dass sich danach noch eine andere Übung auswählen lässt (der Critical-Fund aus dem Schluss-Review) — ebenso die Plan-1-Verifikation nachholen, falls noch offen (siehe unten).
-2. **Erst danach** Plan 2b (Ernährung, E2–E6) und Plan 2c (Körper, K2–K5) schreiben. Weg: `superpowers:writing-plans` → `superpowers:subagent-driven-development`.
+**Genau hier weitermachen:**
+1. **Plan 2b (Ernährung, E2–E6) und Plan 2c (Körper, K2–K5) schreiben.** Weg: `superpowers:writing-plans` → `superpowers:subagent-driven-development`.
 
 **Noch aufzuräumen:** die synthetischen Daten aus der Plan-1-Verifikation stehen weiter in der Produktions-Datenbank (7 `body_metrics` 05.05.–27.08., 12 `workout_sessions` 15.05.–26.08., 30 `food_entries` 18.–27.08. auf ein einziges Produkt). Vor echtem Gebrauch löschen.
 
@@ -124,6 +124,19 @@ Sieben neue Graphen im Trainingsbereich: **T2** Kraftverlauf je Übung (geschät
 **Bundle nach Task 11** (`npm run build`): Entry-Chunk `dist/assets/index-BA_sHCOY.js` 984,53 kB (268,30 kB gzip) — praktisch unverändert gegenüber Plan 1 (977 kB), weil jeder neue Chart einzeln hinter `React.lazy` liegt (eigene Chunks von 0,26–1,34 kB je Komponente, dazu ein gemeinsamer `training-charts`-Chunk mit 4,08 kB). Recharts selbst bleibt in den gemeinsamen `CartesianChart`/`Bar`/`Line`/`Legend`-Chunks außerhalb des Entry-Chunks. Weiterhin über Vites Warnschwelle (500 kB) — bekannt, gehört in die Härtungsphase.
 
 **Endstand nach Whole-Branch-Review, Fix-Welle und CI-Fix: 606 Tests grün** (85 Dateien), Lint ohne Fehler und Warnungen, `tsc -b --noEmit` sauber, `npm run build` erfolgreich. Die Sätze-Abfrage in `use-training-analysis.ts` paginiert jetzt (`.range()`, analog zu `use-exercises.ts`) und chunkt Session-IDs zu 100 je Anfrage — vorher lief sie ungechunkt und ungedeckelt, Risiko genau des Fehlers, der in Phase 3 schon einmal auftrat.
+
+### Manuelle Verifikation Plan 2a (29.08.2026, alle zehn Schritte grün)
+
+Der Account hatte keine Sätze (nur die synthetischen Plan-1-Sessions ohne `workout_session_sets`), deshalb testweise ein echter Plan mit zwei Übungen angelegt (Barbell Bench Press, drei Arbeitssätze plus ein Aufwärmsatz; Barbell Squat, ein Satz) und über eine echte Live-Session erfasst.
+
+- Alle **acht** Graphen erscheinen auf `/training/analyse` mit Titel und Häkchen.
+- **Der entscheidende Fix bestätigt:** T2, T3, T4, T5 zeigen die Übungsauswahl weiterhin, obwohl T2/T4/T5 wegen zu weniger Tage „Noch nicht genug Daten" melden — die Auswahl verschwindet nicht mehr mit dem Chart (Critical-Fund #1 des Schluss-Reviews). Umschalten auf die kaum trainierte Übung (Squat, ein Satz) und zurück funktioniert, keine Sackgasse.
+- T3 (Volumen je Übung) und T6 (Volumen je Muskelgruppe) per Hover geprüft: Bankdrücken 1630 kg (Summe der drei Arbeitssätze, inklusive eines versehentlichen Duplikat-Satzes durch einen eigenen Fehlklick — der 40-kg-Aufwärmsatz ist korrekt **nicht** enthalten, sonst wären es 2030 kg). Muskelgruppen-Volumen: chest 1630 kg, quadriceps 500 kg, keine Überschneidung.
+- T8 (persönliche Rekorde) zeigt beide Übungen korrekt nach höchstem geschätzten 1RM (Epley), nicht nach höchstem Gewicht: Bankdrücken 101,3 kg aus 80 kg × 8 (nicht aus 82,5 kg × 6, das nur 99,0 kg ergibt) — bestätigt, dass T8 wirklich rechnet statt nur das schwerste Gewicht zu übernehmen.
+- Zwei Graphen angehakt (T3, T6), `/training` geöffnet: beide erscheinen ohne Zeitraum-Umschalter, dafür mit Übungsname im Titel („Volumen je Übung – Barbell Bench Press …", bestätigt Important-Fund #3). Netzwerkanalyse: genau zwei Abfragen (`workout_sessions`, `workout_session_sets`, beide paginiert mit `.range()`, je doppelt geloggt durch React-StrictMode im Dev-Modus — kein Produktionsverhalten).
+- Alle Häkchen abgewählt, `/training` neu geladen: kein Graph, **keine** Analyseabfrage (nur die unabhängige Tag-Rotations-Abfrage lief weiter).
+- `/login`: kein Recharts-Chunk im Netzwerk-Log. Konsole ohne Fehler oder Warnungen.
+- Testdaten danach vollständig gelöscht (Session über „Session löschen", Plan über „Löschen" in Meine Pläne).
 
 ### Manuelle Verifikation Plan 1 (27.08.2026, alle neun Schritte grün)
 
