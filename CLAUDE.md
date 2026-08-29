@@ -106,9 +106,18 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 **Plan 1 und Plan 2a sind abgeschlossen.** Plan 2a hat die restlichen sieben Trainingsgraphen (T2–T8) gebaut, alle 11 Tasks umgesetzt.
 1. Erledigt: alle 11 Tasks von Plan 2a committet. `TrainingChartList.tsx` ist der einzige Ort, an dem noch ein Trainingsgraph eingebunden wird — Dashboard und Analyse-Seite gehen beide durch, jeder Chart hinter `React.lazy`. `useTrainingAnalysis(userId, zeitraum)` lädt jetzt neben `sessions` auch `sets` (`workout_session_sets`, zwei Abfragen, keine je Graph; eine gelöschte Übung erscheint als „Unbekannte Uebung"). `tagesLabel` liegt jetzt einmalig in `src/lib/analysis/tages-label.ts` (vorher doppelt).
 2. Seitentest ergänzt (`src/pages/TrainingAnalysisPage.test.tsx`): rendert `chartsFor('training')` komplett durch und prüft, dass jeder Titel tatsächlich erscheint — die Registry und `TrainingChartList` können so nicht mehr auseinanderlaufen. **Testzahl jetzt: siehe Abschnitt „Plan 2a" unten.**
-3. **Jetzt: Plan 2b (Ernährung, E2–E6) und Plan 2c (Körper, K2–K5) schreiben.** Weg: `superpowers:brainstorming` → `superpowers:writing-plans` → `superpowers:subagent-driven-development`.
+3. **Plan 2a ist noch NICHT gemerged.** Der Branch heißt `worktree-feat-phase5-plan2a-training-graphen` und liegt im Worktree `.claude/worktrees/feat-phase5-plan2a-training-graphen` (Commits `dafcbbd..bf22a2d`). **Alle 11 Tasks sind einzeln reviewt und abgenommen, keine offenen Critical- oder Important-Funde.**
 
-Das SDD-Arbeitsverzeichnis für Plan 2a liegt unter `.superpowers/sdd/2026-08-27-phase5-plan2a-training-graphen/` — nach dem Merge wie üblich löschen, alles Wissenswerte steht in diesem Abschnitt und im Verlauf von `git log`.
+**Genau hier weitermachen, in dieser Reihenfolge:**
+1. **Whole-Branch-Review** auf dem stärksten Modell über `dafcbbd..HEAD`. Paket bauen mit `scripts/review-package` der Skill `superpowers:subagent-driven-development`, Vorlage `superpowers:requesting-code-review`. Die zurückgestellten Minor-Funde aus dem Ledger mitgeben, damit der Review sie triagieren kann.
+2. Findings: **ein** Fix-Dispatch, danach **ein** Scoped Re-Review. Dann `superpowers:finishing-a-development-branch` (PR, CI abwarten, mergen).
+3. **Nach dem Merge, aus dem Haupt-Checkout:** `docs/domaenenmodell.md` nach `../fitness-app.wiki/Domain-Model.md` spiegeln und pushen — in Task 11 bewusst übersprungen, weil der relative Pfad aus dem Worktree ins Leere zeigt. Danach den Worktree entfernen (vitest globbt sonst die Kopien unter `.claude/`).
+4. **Manuelle Verifikation gegen Produktion**, Liste am Ende von `docs/superpowers/plans/2026-08-27-phase5-plan2a-training-graphen.md` (zehn Schritte). Wichtigster Punkt: `/training` mit zwei angehakten Graphen darf **genau zwei** Abfragen auslösen, mit null angehakten **keine**.
+5. **Erst danach** Plan 2b (Ernährung, E2–E6) und Plan 2c (Körper, K2–K5) schreiben. Weg: `superpowers:writing-plans` → `superpowers:subagent-driven-development`.
+
+**Noch aufzuräumen:** die synthetischen Daten aus der Plan-1-Verifikation stehen weiter in der Produktions-Datenbank (7 `body_metrics` 05.05.–27.08., 12 `workout_sessions` 15.05.–26.08., 30 `food_entries` 18.–27.08. auf ein einziges Produkt). Vor echtem Gebrauch löschen.
+
+Das SDD-Arbeitsverzeichnis für Plan 2a liegt unter `.superpowers/sdd/2026-08-27-phase5-plan2a-training-graphen/`. **Vor dem Merge nicht löschen** — `progress.md` dort ist das Ledger mit allen Rulings, den zurückgestellten Minor-Funden und dem Wiedereinstiegspunkt. Erst nach dem Schluss-Review entfernen.
 
 ### Plan 2a – Trainingsgraphen (fertig)
 
