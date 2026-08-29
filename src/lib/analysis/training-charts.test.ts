@@ -343,6 +343,22 @@ describe('wiederholungenJeSatz', () => {
     )
     expect(reihen).toEqual({ punkte: [], satzNummern: [] })
   })
+
+  it('drops a session whose sets all miss reps, instead of an empty axis point', () => {
+    // Zwei Sessions mit je einem Arbeitssatz ohne Wiederholungsangabe waeren
+    // ohne den Fix zwei Punkte `{ tag }` ohne jeden Wert — genug fuer
+    // `punkte.length >= 2` und damit `leer = false`, aber keine Marke auf der
+    // Linie. Das Projekt verbietet leere Achsen ausdruecklich.
+    const reihen = wiederholungenJeSatz(
+      [sitzung('s1', '2026-08-17'), sitzung('s2', '2026-08-24')],
+      [
+        { ...satzIn('s1', 'e1', 80, null), satz_nummer: 1 },
+        { ...satzIn('s2', 'e1', 80, null), satz_nummer: 1 },
+      ],
+      'e1',
+    )
+    expect(reihen).toEqual({ punkte: [], satzNummern: [] })
+  })
 })
 
 describe('volumenJeMuskelgruppe', () => {

@@ -239,7 +239,10 @@ export function wiederholungenJeSatz(
       nummern.add(nummer)
       punkt[`satz${nummer}`] = satz.wiederholungen
     })
-    punkte.push(punkt)
+    // Ohne mindestens einen Satzwert ist der Punkt nur `{ tag }` — keine Linie
+    // haette darin einen Wert, aber er zaehlte fuer `leer` trotzdem mit und
+    // liesse den Graphen mit leeren Achsen rendern.
+    if (Object.keys(punkt).length > 1) punkte.push(punkt)
   }
 
   return {
