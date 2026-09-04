@@ -91,4 +91,13 @@ describe('BodyAnalysisPage', () => {
     zeige()
     expect(screen.getByText('Lädt…')).toBeInTheDocument()
   })
+
+  it('renders every registered body chart', async () => {
+    // Der Fall, den die Registry verhindern soll: ein Graph ist angemeldet, aber
+    // die Seite kennt ihn nicht — er waere im Picker sichtbar und nirgends sonst.
+    zeige()
+    for (const chart of chartsFor('body')) {
+      expect(await screen.findByText(chart.titel, {}, { timeout: 5000 })).toBeInTheDocument()
+    }
+  })
 })
