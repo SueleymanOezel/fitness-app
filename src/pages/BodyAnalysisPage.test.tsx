@@ -45,6 +45,7 @@ beforeEach(() => {
       { id: 'b', datum: '2026-08-24', gewicht: 82.5, ...leer },
     ],
     kalorien: [],
+    fotos: [],
     loading: false,
     error: false,
   })
@@ -72,13 +73,13 @@ describe('BodyAnalysisPage', () => {
   })
 
   it('shows one message for a failed load', () => {
-    mockUseBodyAnalysis.mockReturnValue({ rows: [], kalorien: [], loading: false, error: true })
+    mockUseBodyAnalysis.mockReturnValue({ rows: [], kalorien: [], fotos: [], loading: false, error: true })
     zeige()
     expect(screen.getAllByText('Daten konnten nicht geladen werden.')).toHaveLength(1)
   })
 
   it('shows a loading state', () => {
-    mockUseBodyAnalysis.mockReturnValue({ rows: [], kalorien: [], loading: true, error: false })
+    mockUseBodyAnalysis.mockReturnValue({ rows: [], kalorien: [], fotos: [], loading: true, error: false })
     zeige()
     expect(screen.getByText('Lädt…')).toBeInTheDocument()
   })

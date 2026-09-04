@@ -7,21 +7,32 @@ const order = vi.fn()
 const eq = vi.fn()
 const range = vi.fn()
 const select = vi.fn()
+const createSignedUrls = vi.fn()
 
 vi.mock('../lib/supabase', () => ({
-  supabase: { from: (table: string) => ({ select: (columns: string) => select(table, columns) }) },
+  supabase: {
+    from: (table: string) => ({ select: (columns: string) => select(table, columns) }),
+    storage: { from: () => ({ createSignedUrls }) },
+  },
 }))
 
 type Ergebnis = { data: unknown; error: unknown }
 let metrikErgebnis: Ergebnis
 let essenErgebnis: Ergebnis
+let fotoErgebnis: Ergebnis
 
 beforeEach(() => {
   vi.clearAllMocks()
   metrikErgebnis = { data: [], error: null }
   essenErgebnis = { data: [], error: null }
+  fotoErgebnis = { data: [], error: null }
+  createSignedUrls.mockResolvedValue({ data: [], error: null })
   select.mockImplementation((table: string) => {
-    const antwort = () => (table === 'food_entries' ? essenErgebnis : metrikErgebnis)
+    const antwort = () => {
+      if (table === 'food_entries') return essenErgebnis
+      if (table === 'body_photos') return fotoErgebnis
+      return metrikErgebnis
+    }
     const builder = {
       eq: (...args: unknown[]) => {
         eq(table, ...args)
@@ -120,5 +131,62 @@ describe('useBodyAnalysis', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.error).toBe(true)
     expect(result.current.kalorien).toEqual([])
+  })
+})
+
+describe('useBodyAnalysis photos', () => {
+  const zeile = { id: 'p1', datum: '2026-08-24', foto_url: 'u1/abc.jpg' }
+
+  it('loads the photos of the range and pairs each with a signed link', async () => {
+    fotoErgebnis = { data: [zeile], error: null }
+    createSignedUrls.mockResolvedValue({
+      data: [{ path: 'u1/abc.jpg', signedUrl: 'https://signed.example/abc' }],
+      error: null,
+    })
+    const { result } = renderHook(() => useBodyAnalysis('u1', 90))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.fotos).toEqual([
+      { id: 'p1', datum: '2026-08-24', pfad: 'u1/abc.jpg', url: 'https://signed.example/abc' },
+    ])
+    // Ein Aufruf fuer alle Pfade, nicht einer je Zeile.
+    expect(createSignedUrls).toHaveBeenCalledTimes(1)
+    expect(createSignedUrls).toHaveBeenCalledWith(['u1/abc.jpg'], 3600)
+  })
+
+  it('does not sign anything when the range holds no photo', async () => {
+    fotoErgebnis = { data: [], error: null }
+    const { result } = renderHook(() => useBodyAnalysis('u1', 90))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(createSignedUrls).not.toHaveBeenCalled()
+    expect(result.current.fotos).toEqual([])
+  })
+
+  it('keeps a photo whose link could not be signed', async () => {
+    // Der Graph soll das Datum weiter zeigen und daneben sagen, dass das Bild
+    // fehlt — nicht das Foto verschweigen.
+    fotoErgebnis = { data: [zeile], error: null }
+    createSignedUrls.mockResolvedValue({ data: [{ path: 'u1/abc.jpg', signedUrl: null }], error: null })
+    const { result } = renderHook(() => useBodyAnalysis('u1', 90))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.fotos[0].url).toBeNull()
+  })
+
+  it('bounds the photo query by the range', async () => {
+    const { result } = renderHook(() => useBodyAnalysis('u1', 30))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(gte).toHaveBeenCalledWith('body_photos', 'datum', expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/))
+    expect(range).toHaveBeenCalledWith('body_photos', 0, 499)
+  })
+
+  it('reports a failed photo load like a failed measurement load', async () => {
+    fotoErgebnis = { data: null, error: { message: 'boom' } }
+    const { result } = renderHook(() => useBodyAnalysis('u1', 30))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.error).toBe(true)
+    expect(result.current.fotos).toEqual([])
   })
 })

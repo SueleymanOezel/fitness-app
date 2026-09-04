@@ -4,6 +4,7 @@ import { rangeStart, type Zeitraum } from '../lib/analysis/zeitraum'
 import { seitenweiseLaden } from '../lib/paged-query'
 import { kalorienJeTag, type TagesPunkt } from '../lib/analysis/nutrition-charts'
 import { MEASUREMENT_FIELDS, type BodyMetricRow } from '../lib/body-metrics'
+import { signierteFotoLinks } from '../lib/body-photo-urls'
 
 // Derived from the shared field list rather than written out: a measurement
 // added later must not silently miss the charts.
@@ -21,6 +22,19 @@ type RawFoodEntry = {
   products: { kalorien: number } | null
 }
 
+export type AnalysisPhoto = {
+  id: string
+  datum: string
+  /** Objektpfad im Bucket. Die Spalte heisst historisch `foto_url`, gespeichert
+   *  wird aber nie eine URL — sie wird bei Bedarf signiert. */
+  pfad: string
+  url: string | null
+}
+
+type RawPhoto = { id: string; datum: string; foto_url: string }
+
+const PHOTO_COLUMNS = 'id, datum, foto_url'
+
 /**
  * Ascending, unlike useBodyMetrics: a chart reads left to right through time.
  *
@@ -34,10 +48,15 @@ type RawFoodEntry = {
  * db-max-rows genau die juengsten Tage abgeschnitten. `body_metrics` ist mit
  * einer Zeile je Tag zwar traege, erreicht 1000 Zeilen aber nach knapp drei
  * Jahren — bei `alles` also erreichbar.
+ *
+ * K5 („Fortschrittsfotos") braucht zusaetzlich die Fotozeilen samt signierten
+ * Links; die Signierung ist dieselbe wie in `useBodyPhotos` (Spec 3), sie liegt
+ * dafuer in `src/lib/body-photo-urls.ts`.
  */
 export function useBodyAnalysis(userId: string, zeitraum: Zeitraum) {
   const [rows, setRows] = useState<BodyMetricRow[]>([])
   const [kalorien, setKalorien] = useState<TagesPunkt[]>([])
+  const [fotos, setFotos] = useState<AnalysisPhoto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const requestId = useRef(0)
@@ -70,9 +89,35 @@ export function useBodyAnalysis(userId: string, zeitraum: Zeitraum) {
     })
     if (current !== requestId.current) return
 
+    const fotoZeilen = await seitenweiseLaden<RawPhoto>((from, to) => {
+      let query = supabase.from('body_photos').select(PHOTO_COLUMNS).eq('user_id', userId)
+      if (start) query = query.gte('datum', start)
+      return query
+        .order('datum', { ascending: true })
+        .order('id', { ascending: true })
+        .range(from, to)
+    })
+    if (current !== requestId.current) return
+
+    // Ein gebuendelter Signieraufruf fuer alle Pfade, wie auf der Fotoseite.
+    const links = fotoZeilen.failed
+      ? new Map<string, string>()
+      : await signierteFotoLinks(fotoZeilen.rows.map((row) => row.foto_url))
+    if (current !== requestId.current) return
+
     setRows(metrik.failed ? [] : metrik.rows)
     setKalorien(essen.failed ? [] : kalorienJeTag(essen.rows))
-    setError(metrik.failed || essen.failed)
+    setFotos(
+      fotoZeilen.failed
+        ? []
+        : fotoZeilen.rows.map((row) => ({
+            id: row.id,
+            datum: row.datum,
+            pfad: row.foto_url,
+            url: links.get(row.foto_url) ?? null,
+          })),
+    )
+    setError(metrik.failed || essen.failed || fotoZeilen.failed)
     setLoading(false)
   }, [userId, zeitraum])
 
@@ -84,5 +129,5 @@ export function useBodyAnalysis(userId: string, zeitraum: Zeitraum) {
     }
   }, [reload])
 
-  return { rows, kalorien, loading, error }
+  return { rows, kalorien, fotos, loading, error }
 }
