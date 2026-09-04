@@ -1,3 +1,5 @@
+import { MEASUREMENT_FIELDS, type MeasurementField } from '../body-metrics'
+
 export type TrendPunkt = { datum: string; gewicht: number; trend: number }
 
 const TAG_MS = 86_400_000
@@ -36,4 +38,37 @@ export function gewichtsTrend(
     punkte.push({ datum: row.datum, gewicht: row.gewicht, trend: Math.round(trend * 10) / 10 })
   }
   return punkte
+}
+
+/** Die Umfangsfelder unter den Messwerten — Gewicht und Koerperfettanteil sind keine. */
+export type UmfangFeld = Extract<MeasurementField, `${string}umfang`>
+
+/**
+ * Abgeleitet statt abgeschrieben: ein spaeter ergaenzter Umfang landet damit von
+ * selbst in K2. Eine zweite, handgepflegte Liste wuerde ihn verschweigen.
+ */
+export const UMFANG_FIELDS = MEASUREMENT_FIELDS.filter((feld): feld is UmfangFeld =>
+  feld.endsWith('umfang'),
+)
+
+export type UmfangZeile = { datum: string } & Record<UmfangFeld, number | null>
+export type UmfangPunkt = UmfangZeile
+
+/**
+ * K2: je Tag ein Punkt mit allen fuenf Umfaengen, aeltester zuerst.
+ *
+ * Ein Tag ohne jeden Umfang faellt raus — auf einer Umfangslinie ist er kein
+ * Punkt, sondern nur ein Tag, an dem gewogen wurde. Ein Tag mit einem einzigen
+ * gemessenen Umfang bleibt dagegen stehen: die uebrigen vier bleiben `null` und
+ * werden im Graphen ueberbrueckt.
+ */
+export function umfaengeVerlauf(rows: UmfangZeile[]): UmfangPunkt[] {
+  return rows
+    .filter((row) => UMFANG_FIELDS.some((feld) => row[feld] != null))
+    .sort((a, b) => a.datum.localeCompare(b.datum))
+    .map((row) => {
+      const punkt = { datum: row.datum } as UmfangPunkt
+      for (const feld of UMFANG_FIELDS) punkt[feld] = row[feld]
+      return punkt
+    })
 }

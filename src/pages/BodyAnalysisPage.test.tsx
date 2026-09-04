@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import BodyAnalysisPage from './BodyAnalysisPage'
+import { chartsFor } from '../lib/analysis/registry'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -66,7 +67,10 @@ describe('BodyAnalysisPage', () => {
     expect(
       await screen.findByRole('heading', { name: 'Gewichtsverlauf' }, { timeout: 5000 }),
     ).toBeInTheDocument()
-    expect(screen.getByTestId('picker')).toBeInTheDocument()
+    await waitFor(
+      () => expect(screen.getAllByTestId('picker')).toHaveLength(chartsFor('body').length),
+      { timeout: 5000 },
+    )
   })
 
   it('asks for 90 days by default and reloads with the chosen range', () => {
