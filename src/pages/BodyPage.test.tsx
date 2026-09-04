@@ -195,6 +195,7 @@ describe('BodyPage – ausgewaehlte Graphen', () => {
         { id: 'a', datum: '2026-08-17', gewicht: 83.3, ...leerZeile },
         { id: 'b', datum: '2026-08-24', gewicht: 82.5, ...leerZeile },
       ],
+      kalorien: [],
       loading: false,
       error: false,
     })

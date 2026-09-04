@@ -46,7 +46,7 @@ vi.mock('./hooks/use-nutrition-analysis', () => ({
   useNutritionAnalysis: () => ({ entries: [], sessions: [], loading: false, error: false }),
 }))
 vi.mock('./hooks/use-body-analysis', () => ({
-  useBodyAnalysis: () => ({ rows: [], loading: false, error: false }),
+  useBodyAnalysis: () => ({ rows: [], kalorien: [], loading: false, error: false }),
 }))
 
 afterEach(() => {
