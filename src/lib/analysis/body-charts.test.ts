@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { aenderungsrate, gewichtsTrend, UMFANG_FIELDS, umfaengeVerlauf } from './body-charts'
+import {
+  aenderungsrate,
+  gewichtGegenKalorien,
+  gewichtsTrend,
+  UMFANG_FIELDS,
+  umfaengeVerlauf,
+} from './body-charts'
 
 describe('gewichtsTrend', () => {
   it('starts the trend at the first value', () => {
@@ -169,5 +175,83 @@ describe('aenderungsrate', () => {
 
   it('returns nothing without rows', () => {
     expect(aenderungsrate([])).toEqual([])
+  })
+})
+
+// 2026-08-03, -10, -17 sind Montage (KW32, KW33, KW34).
+describe('gewichtGegenKalorien', () => {
+  it('pairs each week with its mean intake and its change against the week before', () => {
+    expect(
+      gewichtGegenKalorien(
+        [
+          { datum: '2026-08-03', gewicht: 85 },
+          { datum: '2026-08-10', gewicht: 84 },
+          { datum: '2026-08-17', gewicht: 83.5 },
+        ],
+        [
+          { tag: '2026-08-04', kalorien: 2000 },
+          { tag: '2026-08-06', kalorien: 2200 },
+          { tag: '2026-08-11', kalorien: 2500 },
+          { tag: '2026-08-18', kalorien: 1800 },
+        ],
+      ),
+    ).toEqual([
+      { woche: '2026-KW33', kalorien: 2500, aenderung: -1 },
+      { woche: '2026-KW34', kalorien: 1800, aenderung: -0.5 },
+    ])
+  })
+
+  it('averages several weighings of one week instead of taking the last', () => {
+    // Ein einzelner Wassertag darf die Wochenaenderung nicht bestimmen.
+    expect(
+      gewichtGegenKalorien(
+        [
+          { datum: '2026-08-03', gewicht: 85 },
+          { datum: '2026-08-10', gewicht: 85 },
+          { datum: '2026-08-12', gewicht: 83 },
+        ],
+        [
+          { tag: '2026-08-04', kalorien: 2000 },
+          { tag: '2026-08-11', kalorien: 2000 },
+        ],
+      ),
+    ).toEqual([{ woche: '2026-KW33', kalorien: 2000, aenderung: -1 }])
+  })
+
+  it('spreads a skipped week over its real distance', () => {
+    // Zwei Wochen ohne Wiegung sind nicht die doppelte Wochenaenderung.
+    expect(
+      gewichtGegenKalorien(
+        [
+          { datum: '2026-08-03', gewicht: 85 },
+          { datum: '2026-08-17', gewicht: 83 },
+        ],
+        [{ tag: '2026-08-18', kalorien: 1800 }],
+      ),
+    ).toEqual([{ woche: '2026-KW34', kalorien: 1800, aenderung: -1 }])
+  })
+
+  it('drops a week without logged food', () => {
+    // Keine Eintraege heisst nicht null Kalorien; ein Punkt bei x = 0 waere eine
+    // erfundene Nulldiaet.
+    expect(
+      gewichtGegenKalorien(
+        [
+          { datum: '2026-08-03', gewicht: 85 },
+          { datum: '2026-08-10', gewicht: 84 },
+        ],
+        [],
+      ),
+    ).toEqual([])
+  })
+
+  it('ignores entries without a weight and needs no first week', () => {
+    // Die erste Woche hat keine Vorwoche und liefert deshalb keinen Punkt.
+    expect(
+      gewichtGegenKalorien(
+        [{ datum: '2026-08-03', gewicht: 85 }, { datum: '2026-08-05', gewicht: null }],
+        [{ tag: '2026-08-04', kalorien: 2000 }],
+      ),
+    ).toEqual([])
   })
 })

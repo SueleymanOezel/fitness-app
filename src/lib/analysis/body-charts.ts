@@ -1,4 +1,6 @@
 import { MEASUREMENT_FIELDS, type MeasurementField } from '../body-metrics'
+import { wochenLabel, wochenStart } from './wochen'
+import type { TagesPunkt } from './nutrition-charts'
 
 export type TrendPunkt = { datum: string; gewicht: number; trend: number }
 
@@ -112,6 +114,69 @@ export function aenderungsrate(
     // Zwei Nachkommastellen: eine Rate von −0,05 kg/Woche waere auf eine Stelle
     // gerundet eine glatte Null und der Graph eine Gerade auf der Achse.
     punkte.push({ datum: trend[i].datum, rate: Math.round(rate * 100) / 100 })
+  }
+  return punkte
+}
+
+export type KalorienPunkt = { woche: string; kalorien: number; aenderung: number }
+
+/** Mittelwert je Kalenderwoche, Schluessel ist der Montag als `YYYY-MM-DD`. */
+function mittelJeWoche(werte: { tag: string; wert: number }[]): Map<string, number> {
+  const summen = new Map<string, { summe: number; anzahl: number }>()
+  for (const eintrag of werte) {
+    // `T00:00:00` angehaengt: `new Date('2026-08-17')` waere UTC-Mitternacht und
+    // faellt westlich von Greenwich auf den Vortag, also womoeglich in die
+    // Vorwoche.
+    const montag = wochenStart(`${eintrag.tag}T00:00:00`)
+    const bisher = summen.get(montag) ?? { summe: 0, anzahl: 0 }
+    summen.set(montag, { summe: bisher.summe + eintrag.wert, anzahl: bisher.anzahl + 1 })
+  }
+  return new Map([...summen].map(([montag, { summe, anzahl }]) => [montag, summe / anzahl]))
+}
+
+const WOCHE_MS = 7 * TAG_MS
+
+/**
+ * K4: je Woche ein Punkt aus mittlerer Tagesaufnahme und Gewichtsaenderung.
+ *
+ * Die Woche ist die richtige Aufloesung: Tagesgewicht schwankt durch Wasser
+ * staerker als durch jede Tagesbilanz. Verglichen wird mit der letzten Woche,
+ * in der ueberhaupt gewogen wurde — nicht stur mit der Kalenderwoche davor —,
+ * und die Differenz wird durch den Wochenabstand geteilt, damit zwei Wochen
+ * Pause nicht als doppelte Aenderung dastehen.
+ *
+ * Eine Woche ohne Ernaehrungseintraege liefert keinen Punkt: null Kalorien
+ * hiesse „nichts gegessen", gemeint ist aber „nichts erfasst".
+ */
+export function gewichtGegenKalorien(
+  rows: { datum: string; gewicht: number | null }[],
+  kalorien: TagesPunkt[],
+): KalorienPunkt[] {
+  const gewichtJeWoche = mittelJeWoche(
+    rows
+      .filter((row): row is { datum: string; gewicht: number } => row.gewicht != null)
+      .map((row) => ({ tag: row.datum, wert: row.gewicht })),
+  )
+  const kalorienJeWoche = mittelJeWoche(
+    kalorien.map((punkt) => ({ tag: punkt.tag, wert: punkt.kalorien })),
+  )
+
+  const wochen = [...gewichtJeWoche.keys()].sort()
+  const punkte: KalorienPunkt[] = []
+  for (let i = 1; i < wochen.length; i += 1) {
+    const montag = wochen[i]
+    const mittlereKalorien = kalorienJeWoche.get(montag)
+    if (mittlereKalorien == null) continue
+    const abstand =
+      (new Date(`${montag}T00:00:00`).getTime() -
+        new Date(`${wochen[i - 1]}T00:00:00`).getTime()) /
+      WOCHE_MS
+    const aenderung = (gewichtJeWoche.get(montag)! - gewichtJeWoche.get(wochen[i - 1])!) / abstand
+    punkte.push({
+      woche: wochenLabel(montag),
+      kalorien: Math.round(mittlereKalorien),
+      aenderung: Math.round(aenderung * 10) / 10,
+    })
   }
   return punkte
 }
