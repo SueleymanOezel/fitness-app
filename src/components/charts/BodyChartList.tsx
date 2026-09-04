@@ -1,0 +1,49 @@
+import { lazy, Suspense, type ReactNode } from 'react'
+import type { AnalysisPhoto } from '../../hooks/use-body-analysis'
+import type { TagesPunkt } from '../../lib/analysis/nutrition-charts'
+import type { BodyMetricRow } from '../../lib/body-metrics'
+import ChartPicker, { type useChartSelection } from './ChartPicker'
+import { K1 } from '../../lib/analysis/registry'
+
+// Lazy an dieser einen Stelle: die Liste ist der einzige Ort, an dem ein
+// Koerpergraph noch eingebunden wird — Dashboard wie Analyse-Seite gehen
+// hierdurch. Recharts bleibt damit aus dem Start-Chunk.
+const WeightTrendChart = lazy(() => import('./WeightTrendChart'))
+
+export type BodyChartListProps = {
+  ids: string[]
+  rows: BodyMetricRow[]
+  kalorien: TagesPunkt[]
+  fotos: AnalysisPhoto[]
+  /** Gesetzt auf der Analyse-Seite: zeigt die Haekchen. */
+  auswahl?: ReturnType<typeof useChartSelection>
+}
+
+export default function BodyChartList({ ids, rows, kalorien, fotos, auswahl }: BodyChartListProps) {
+  function graph(id: string): ReactNode {
+    const picker = auswahl ? <ChartPicker id={id} auswahl={auswahl} /> : undefined
+    switch (id) {
+      case K1:
+        return <WeightTrendChart rows={rows} picker={picker} />
+      default:
+        // Eine ID ohne Komponente ist kein Fehler, den der Nutzer sehen muss:
+        // parseAuswahl haelt Unbekanntes schon fern, hier bleibt nur die Luecke.
+        return null
+    }
+  }
+
+  // `kalorien` und `fotos` werden ab Task 6 und 7 gebraucht; bis dahin reicht
+  // die Liste sie nur durch.
+  void kalorien
+  void fotos
+
+  return (
+    <>
+      {ids.map((id) => (
+        <Suspense key={id} fallback={<p>Lädt…</p>}>
+          {graph(id)}
+        </Suspense>
+      ))}
+    </>
+  )
+}

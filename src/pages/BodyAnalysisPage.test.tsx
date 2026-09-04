@@ -59,9 +59,13 @@ const zeige = () =>
   )
 
 describe('BodyAnalysisPage', () => {
-  it('shows the area chart with its picker', () => {
+  it('shows the area chart with its picker', async () => {
     zeige()
-    expect(screen.getByRole('heading', { name: 'Gewichtsverlauf' })).toBeInTheDocument()
+    // findByRole, not getByRole: BodyChartList loads the chart behind
+    // React.lazy, so the first render is the Suspense fallback.
+    expect(
+      await screen.findByRole('heading', { name: 'Gewichtsverlauf' }, { timeout: 5000 }),
+    ).toBeInTheDocument()
     expect(screen.getByTestId('picker')).toBeInTheDocument()
   })
 
