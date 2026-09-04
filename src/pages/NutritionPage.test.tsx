@@ -300,6 +300,7 @@ describe('NutritionPage – ausgewaehlte Graphen', () => {
     mockUseFoodEntries.mockReturnValue(entriesResult())
     mockUseNutritionAnalysis.mockReturnValue({
       entries: [eintrag(23, 1800), eintrag(24, 2100)],
+      sessions: [],
       loading: false,
       error: false,
     })

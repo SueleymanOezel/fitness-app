@@ -43,7 +43,7 @@ vi.mock('./hooks/use-training-analysis', () => ({
   useTrainingAnalysis: () => ({ sessions: [], sets: [], loading: false, error: false }),
 }))
 vi.mock('./hooks/use-nutrition-analysis', () => ({
-  useNutritionAnalysis: () => ({ entries: [], loading: false, error: false }),
+  useNutritionAnalysis: () => ({ entries: [], sessions: [], loading: false, error: false }),
 }))
 vi.mock('./hooks/use-body-analysis', () => ({
   useBodyAnalysis: () => ({ rows: [], loading: false, error: false }),

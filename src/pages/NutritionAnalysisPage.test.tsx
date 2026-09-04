@@ -54,6 +54,7 @@ beforeEach(() => {
   mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
   mockUseNutritionAnalysis.mockReturnValue({
     entries: [eintrag(23, 1800), eintrag(24, 2100)],
+    sessions: [],
     loading: false,
     error: false,
   })
@@ -122,13 +123,13 @@ describe('NutritionAnalysisPage', () => {
   })
 
   it('shows one message for a failed load', () => {
-    mockUseNutritionAnalysis.mockReturnValue({ entries: [], loading: false, error: true })
+    mockUseNutritionAnalysis.mockReturnValue({ entries: [], sessions: [], loading: false, error: true })
     zeige()
     expect(screen.getAllByText('Daten konnten nicht geladen werden.')).toHaveLength(1)
   })
 
   it('shows a loading state', () => {
-    mockUseNutritionAnalysis.mockReturnValue({ entries: [], loading: true, error: false })
+    mockUseNutritionAnalysis.mockReturnValue({ entries: [], sessions: [], loading: true, error: false })
     zeige()
     expect(screen.getByText('Lädt…')).toBeInTheDocument()
   })

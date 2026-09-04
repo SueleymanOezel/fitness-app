@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { seitenweiseLaden } from '../lib/paged-query'
 import { rangeStart, type Zeitraum } from '../lib/analysis/zeitraum'
 
 export type AnalysisSession = {
@@ -39,10 +40,6 @@ const SET_COLUMNS =
 /** Ein geloeschter Uebungseintrag laesst den Satz stehen; er verliert nur seinen Namen. */
 const UNBEKANNTE_UEBUNG = 'Unbekannte Uebung'
 
-/** Mirrors `use-exercises.ts`: PostgREST caps a response at db-max-rows (1000 by default). */
-const PAGE_SIZE = 500
-/** Stops a misconfigured db-max-rows from turning the loop into an endless one. */
-const MAX_PAGES = 40
 /**
  * Session-IDs je `.in()`-Aufruf. Bei `alles` mit Jahren an Historie waeren
  * alle IDs in einer Abfrage ein Query-String von zehn kB und mehr — genau die
@@ -50,22 +47,6 @@ const MAX_PAGES = 40
  * Gateway lehnt ab").
  */
 const ID_CHUNK_SIZE = 100
-
-/** Seitenweise laden, bis eine kurze Seite kommt — sonst schneidet db-max-rows still ab. */
-async function seitenweiseLaden<T>(
-  seite: (from: number, to: number) => PromiseLike<{ data: unknown; error: unknown }>,
-): Promise<{ rows: T[]; failed: boolean }> {
-  const rows: T[] = []
-  for (let page = 0; page < MAX_PAGES; page += 1) {
-    const from = page * PAGE_SIZE
-    const { data, error } = await seite(from, from + PAGE_SIZE - 1)
-    if (error) return { rows: [], failed: true }
-    const batch = (data ?? []) as T[]
-    rows.push(...batch)
-    if (batch.length < PAGE_SIZE) break
-  }
-  return { rows, failed: false }
-}
 
 function inChunks<T>(items: T[], size: number): T[][] {
   const chunks: T[][] = []
