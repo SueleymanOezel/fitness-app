@@ -1,7 +1,5 @@
-import { entryKalorien, sumMakro, type MakroEintrag } from '../entry-calories'
+import { entryKalorien, entryMakro, sumMakro, type MakroEintrag } from '../entry-calories'
 import { localDay } from '../local-time'
-// entryMakro landet in Task 4 (E3) als zweiter Aufrufer aus dieser Datei; bis
-// dahin bleibt es unbenutzt, deshalb hier nicht mitimportiert (noUnusedLocals).
 
 export type TagesPunkt = { tag: string; kalorien: number }
 
@@ -58,4 +56,31 @@ export function makroAnteileHeute(entries: MakroTagEintrag[], heute: string): Ma
     anteil: Math.round((kcal[makro] / gesamtKcal) * 100),
     gramm: Math.round(gramm[makro]),
   }))
+}
+
+export type MakroTagPunkt = { tag: string; eiweiss: number; fett: number; kohlenhydrate: number }
+
+/**
+ * E3: dieselben drei Makros wie E2, aber die Gramm-Menge ueber die Zeit statt
+ * ihr Energie-Anteil an einem einzelnen Tag.
+ */
+export function makroVerlauf(entries: MakroTagEintrag[]): MakroTagPunkt[] {
+  const jeTag = new Map<string, { eiweiss: number; fett: number; kohlenhydrate: number }>()
+  for (const entry of entries) {
+    const tag = localDay(entry.zeitpunkt)
+    const bisher = jeTag.get(tag) ?? { eiweiss: 0, fett: 0, kohlenhydrate: 0 }
+    jeTag.set(tag, {
+      eiweiss: bisher.eiweiss + entryMakro(entry, 'eiweiss'),
+      fett: bisher.fett + entryMakro(entry, 'fett'),
+      kohlenhydrate: bisher.kohlenhydrate + entryMakro(entry, 'kohlenhydrate'),
+    })
+  }
+  return [...jeTag.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([tag, werte]) => ({
+      tag,
+      eiweiss: Math.round(werte.eiweiss),
+      fett: Math.round(werte.fett),
+      kohlenhydrate: Math.round(werte.kohlenhydrate),
+    }))
 }

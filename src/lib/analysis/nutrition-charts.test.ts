@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { kalorienJeTag, makroAnteileHeute } from './nutrition-charts'
+import { kalorienJeTag, makroAnteileHeute, makroVerlauf } from './nutrition-charts'
 
 const um = (tag: number, stunde: number) => new Date(2026, 7, tag, stunde, 0).toISOString()
 
@@ -86,5 +86,30 @@ describe('makroAnteileHeute', () => {
     expect(makroAnteileHeute([{ zeitpunkt: um(24, 8), menge: 100, products: null }], '2026-08-24')).toEqual(
       [],
     )
+  })
+})
+
+describe('makroVerlauf', () => {
+  it('sums each macro per day, oldest first', () => {
+    const punkte = makroVerlauf([
+      { zeitpunkt: um(24, 8), menge: 200, products: { eiweiss: 10, fett: 5, kohlenhydrate: 20 } },
+      { zeitpunkt: um(24, 19), menge: 50, products: { eiweiss: 4, fett: 40, kohlenhydrate: 0 } },
+      { zeitpunkt: um(23, 12), menge: 100, products: { eiweiss: 8, fett: 2, kohlenhydrate: 30 } },
+    ])
+    expect(punkte).toEqual([
+      { tag: '2026-08-23', eiweiss: 8, fett: 2, kohlenhydrate: 30 },
+      { tag: '2026-08-24', eiweiss: 22, fett: 30, kohlenhydrate: 40 },
+    ])
+  })
+
+  it('counts a missing macro as zero, not as a missing entry', () => {
+    const punkte = makroVerlauf([
+      { zeitpunkt: um(24, 8), menge: 100, products: { eiweiss: null, fett: 5, kohlenhydrate: 20 } },
+    ])
+    expect(punkte).toEqual([{ tag: '2026-08-24', eiweiss: 0, fett: 5, kohlenhydrate: 20 }])
+  })
+
+  it('returns nothing without entries', () => {
+    expect(makroVerlauf([])).toEqual([])
   })
 })
