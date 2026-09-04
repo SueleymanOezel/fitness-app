@@ -9,6 +9,7 @@ import {
   VOLUMEN_JE_UEBUNG_TITEL as EXERCISE_VOLUME,
   BESTES_SATZGEWICHT_TITEL as BEST_SET_WEIGHT,
   KALORIEN_PRO_TAG_TITEL as CALORIES_PER_DAY,
+  MAKRO_VERTEILUNG_HEUTE_TITEL as MACRO_DISTRIBUTION_TODAY,
   GEWICHTSVERLAUF_TITEL as WEIGHT_TREND,
   WIEDERHOLUNGEN_JE_SATZ_TITEL as REPS_PER_SET,
   VOLUMEN_JE_MUSKELGRUPPE_TITEL as MUSCLE_VOLUME,
@@ -45,6 +46,7 @@ export const T6 = 'T6'
 export const T7 = 'T7'
 export const T8 = 'T8'
 export const E1 = 'E1'
+export const E2 = 'E2'
 export const K1 = 'K1'
 
 export const CHARTS: ChartDef[] = [
@@ -57,6 +59,7 @@ export const CHARTS: ChartDef[] = [
   { id: T7, bereich: 'training', titel: SESSION_LOAD },
   { id: T8, bereich: 'training', titel: RECORDS },
   { id: E1, bereich: 'nutrition', titel: CALORIES_PER_DAY },
+  { id: E2, bereich: 'nutrition', titel: MACRO_DISTRIBUTION_TODAY },
   { id: K1, bereich: 'body', titel: WEIGHT_TREND },
 ]
 

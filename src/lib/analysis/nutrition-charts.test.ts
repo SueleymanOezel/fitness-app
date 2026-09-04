@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { kalorienJeTag } from './nutrition-charts'
+import { kalorienJeTag, makroAnteileHeute } from './nutrition-charts'
 
 const um = (tag: number, stunde: number) => new Date(2026, 7, tag, stunde, 0).toISOString()
 
@@ -38,5 +38,53 @@ describe('kalorienJeTag', () => {
       { zeitpunkt: um(24, 8), menge: 100, products: { kalorien: 100 } },
     ])
     expect(punkte.map((p) => p.tag)).toEqual(['2026-08-20', '2026-08-24'])
+  })
+})
+
+describe('makroAnteileHeute', () => {
+  it('splits by energy share, not by gram share', () => {
+    // 20g protein = 80 kcal, 20g fat = 180 kcal, 20g carbs = 80 kcal (total 340 kcal).
+    // By gram all three would tie at 33%; fat carries more than twice the energy
+    // per gram (9 vs 4 kcal/g), so its energy share must come out far higher.
+    const anteile = makroAnteileHeute(
+      [{ zeitpunkt: um(24, 8), menge: 100, products: { eiweiss: 20, fett: 20, kohlenhydrate: 20 } }],
+      '2026-08-24',
+    )
+    expect(anteile).toEqual([
+      { makro: 'Eiweiß', anteil: 24, gramm: 20 },
+      { makro: 'Fett', anteil: 53, gramm: 20 },
+      { makro: 'Kohlenhydrate', anteil: 24, gramm: 20 },
+    ])
+  })
+
+  it('keeps only entries from the given day', () => {
+    const anteile = makroAnteileHeute(
+      [
+        { zeitpunkt: um(24, 8), menge: 100, products: { eiweiss: 20, fett: 0, kohlenhydrate: 0 } },
+        { zeitpunkt: um(23, 8), menge: 100, products: { eiweiss: 100, fett: 0, kohlenhydrate: 0 } },
+      ],
+      '2026-08-24',
+    )
+    expect(anteile).toEqual([
+      { makro: 'Eiweiß', anteil: 100, gramm: 20 },
+      { makro: 'Fett', anteil: 0, gramm: 0 },
+      { makro: 'Kohlenhydrate', anteil: 0, gramm: 0 },
+    ])
+  })
+
+  it('returns nothing without any macros today', () => {
+    expect(makroAnteileHeute([], '2026-08-24')).toEqual([])
+    expect(
+      makroAnteileHeute(
+        [{ zeitpunkt: um(24, 8), menge: 0, products: { eiweiss: 0, fett: 0, kohlenhydrate: 0 } }],
+        '2026-08-24',
+      ),
+    ).toEqual([])
+  })
+
+  it('skips an entry whose product is gone', () => {
+    expect(makroAnteileHeute([{ zeitpunkt: um(24, 8), menge: 100, products: null }], '2026-08-24')).toEqual(
+      [],
+    )
   })
 })

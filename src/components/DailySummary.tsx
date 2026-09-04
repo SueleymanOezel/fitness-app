@@ -1,17 +1,9 @@
-import { sumKalorien } from '../lib/entry-calories'
+import { sumKalorien, sumMakro } from '../lib/entry-calories'
 import type { FoodEntry } from '../hooks/use-food-entries'
 
 type Props = {
   entries: FoodEntry[]
   goal: number | null
-}
-
-function sumMakro(entries: FoodEntry[], makro: 'eiweiss' | 'fett' | 'kohlenhydrate'): number {
-  return entries.reduce((total, entry) => {
-    const value = entry.products?.[makro]
-    if (value == null) return total
-    return total + (value * entry.menge) / 100
-  }, 0)
 }
 
 export default function DailySummary({ entries, goal }: Props) {
