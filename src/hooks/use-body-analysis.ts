@@ -65,38 +65,39 @@ export function useBodyAnalysis(userId: string, zeitraum: Zeitraum) {
     const current = ++requestId.current
     const start = rangeStart(zeitraum)
 
-    const metrik = await seitenweiseLaden<BodyMetricRow>((from, to) => {
-      let query = supabase.from('body_metrics').select(COLUMNS).eq('user_id', userId)
-      if (start) query = query.gte('datum', start)
-      return query
-        .order('datum', { ascending: true })
-        // id als Tiebreaker: ohne totale Ordnung kann eine Zeile an der
-        // Seitengrenze doppelt oder gar nicht ankommen.
-        .order('id', { ascending: true })
-        .range(from, to)
-    })
-    if (current !== requestId.current) return
-
-    const essen = await seitenweiseLaden<RawFoodEntry>((from, to) => {
-      let query = supabase.from('food_entries').select(FOOD_COLUMNS).eq('user_id', userId)
-      // `zeitpunkt` ist timestamptz und die Grenze ein Datum: Postgres liest sie
-      // als Mitternacht dieses Tages, genau die gewuenschte Untergrenze.
-      if (start) query = query.gte('zeitpunkt', start)
-      return query
-        .order('zeitpunkt', { ascending: true })
-        .order('id', { ascending: true })
-        .range(from, to)
-    })
-    if (current !== requestId.current) return
-
-    const fotoZeilen = await seitenweiseLaden<RawPhoto>((from, to) => {
-      let query = supabase.from('body_photos').select(PHOTO_COLUMNS).eq('user_id', userId)
-      if (start) query = query.gte('datum', start)
-      return query
-        .order('datum', { ascending: true })
-        .order('id', { ascending: true })
-        .range(from, to)
-    })
+    // Die drei Abfragen sind voneinander unabhaengig (keine liest das Ergebnis
+    // einer anderen) und laufen deshalb parallel; nur die Signierung unten
+    // braucht wirklich das Ergebnis von `fotoZeilen`.
+    const [metrik, essen, fotoZeilen] = await Promise.all([
+      seitenweiseLaden<BodyMetricRow>((from, to) => {
+        let query = supabase.from('body_metrics').select(COLUMNS).eq('user_id', userId)
+        if (start) query = query.gte('datum', start)
+        return query
+          .order('datum', { ascending: true })
+          // id als Tiebreaker: ohne totale Ordnung kann eine Zeile an der
+          // Seitengrenze doppelt oder gar nicht ankommen.
+          .order('id', { ascending: true })
+          .range(from, to)
+      }),
+      seitenweiseLaden<RawFoodEntry>((from, to) => {
+        let query = supabase.from('food_entries').select(FOOD_COLUMNS).eq('user_id', userId)
+        // `zeitpunkt` ist timestamptz und die Grenze ein Datum: Postgres liest sie
+        // als Mitternacht dieses Tages, genau die gewuenschte Untergrenze.
+        if (start) query = query.gte('zeitpunkt', start)
+        return query
+          .order('zeitpunkt', { ascending: true })
+          .order('id', { ascending: true })
+          .range(from, to)
+      }),
+      seitenweiseLaden<RawPhoto>((from, to) => {
+        let query = supabase.from('body_photos').select(PHOTO_COLUMNS).eq('user_id', userId)
+        if (start) query = query.gte('datum', start)
+        return query
+          .order('datum', { ascending: true })
+          .order('id', { ascending: true })
+          .range(from, to)
+      }),
+    ])
     if (current !== requestId.current) return
 
     // Ein gebuendelter Signieraufruf fuer alle Pfade, wie auf der Fotoseite.
