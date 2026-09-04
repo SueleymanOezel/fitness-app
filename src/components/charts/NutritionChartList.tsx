@@ -2,7 +2,7 @@ import { lazy, Suspense, type ReactNode } from 'react'
 import type { AnalysisFoodEntry, AnalysisSessionKalorien } from '../../hooks/use-nutrition-analysis'
 import type { MealSectionNames } from '../../lib/meal-sections'
 import ChartPicker, { type useChartSelection } from './ChartPicker'
-import { E1, E2, E3 } from '../../lib/analysis/registry'
+import { E1, E2, E3, E4 } from '../../lib/analysis/registry'
 
 // Lazy an dieser einen Stelle: die Liste ist der einzige Ort, an dem ein
 // Ernaehrungsgraph noch eingebunden wird — Dashboard wie Analyse-Seite gehen
@@ -10,6 +10,7 @@ import { E1, E2, E3 } from '../../lib/analysis/registry'
 const CaloriesPerDayChart = lazy(() => import('./CaloriesPerDayChart'))
 const MacroDistributionChart = lazy(() => import('./MacroDistributionChart'))
 const MacroTrendChart = lazy(() => import('./MacroTrendChart'))
+const MealSectionCaloriesChart = lazy(() => import('./MealSectionCaloriesChart'))
 
 export type NutritionChartListProps = {
   ids: string[]
@@ -38,6 +39,8 @@ export default function NutritionChartList({
         return <MacroDistributionChart entries={entries} picker={picker} />
       case E3:
         return <MacroTrendChart entries={entries} picker={picker} />
+      case E4:
+        return <MealSectionCaloriesChart entries={entries} profile={profile} picker={picker} />
       default:
         // Eine ID ohne Komponente ist kein Fehler, den der Nutzer sehen muss:
         // parseAuswahl haelt Unbekanntes schon fern, hier bleibt nur die Luecke.
@@ -45,10 +48,8 @@ export default function NutritionChartList({
     }
   }
 
-  // sessions wird ab Task 7 (E6), profile ab Task 5 (E4) gebraucht; bis dahin
-  // reicht die Liste sie nur durch.
+  // sessions wird ab Task 7 (E6) gebraucht; bis dahin reicht die Liste sie nur durch.
   void sessions
-  void profile
 
   return (
     <>

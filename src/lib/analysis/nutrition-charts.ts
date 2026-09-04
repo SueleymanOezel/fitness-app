@@ -1,5 +1,6 @@
-import { entryKalorien, entryMakro, sumMakro, type MakroEintrag } from '../entry-calories'
+import { entryKalorien, entryMakro, sumMakro, type KalorienEintrag, type MakroEintrag } from '../entry-calories'
 import { localDay } from '../local-time'
+import { visibleSections, type MealSectionNames } from '../meal-sections'
 
 export type TagesPunkt = { tag: string; kalorien: number }
 
@@ -83,4 +84,27 @@ export function makroVerlauf(entries: MakroTagEintrag[]): MakroTagPunkt[] {
       fett: Math.round(werte.fett),
       kohlenhydrate: Math.round(werte.kohlenhydrate),
     }))
+}
+
+export type AbschnittPunkt = { name: string; kalorien: number }
+
+/**
+ * E4: Kalorien je Mahlzeiten-Abschnitt ueber den ganzen Zeitraum.
+ *
+ * Nutzt dieselbe Abschnitts-Logik wie die Eintragsliste (`visibleSections`):
+ * ein besetzter, aber unbenannter Slot bleibt als "Abschnitt N" sichtbar, ein
+ * unzugeordneter Eintrag landet unter "Ohne Zuordnung" statt zu verschwinden.
+ */
+export function kalorienJeAbschnitt(
+  entries: (KalorienEintrag & { mahlzeit: number | null })[],
+  namen: MealSectionNames,
+): AbschnittPunkt[] {
+  return visibleSections(namen, entries).map((section) => ({
+    name: section.name,
+    kalorien: Math.round(
+      entries
+        .filter((entry) => entry.mahlzeit === section.slot)
+        .reduce((summe, entry) => summe + entryKalorien(entry), 0),
+    ),
+  }))
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { kalorienJeTag, makroAnteileHeute, makroVerlauf } from './nutrition-charts'
+import { kalorienJeTag, makroAnteileHeute, makroVerlauf, kalorienJeAbschnitt } from './nutrition-charts'
+import type { MealSectionNames } from '../meal-sections'
 
 const um = (tag: number, stunde: number) => new Date(2026, 7, tag, stunde, 0).toISOString()
 
@@ -111,5 +112,55 @@ describe('makroVerlauf', () => {
 
   it('returns nothing without entries', () => {
     expect(makroVerlauf([])).toEqual([])
+  })
+})
+
+const namen: MealSectionNames = {
+  mahlzeit_1_name: 'Frühstück',
+  mahlzeit_2_name: 'Mittagessen',
+  mahlzeit_3_name: 'Abendessen',
+  mahlzeit_4_name: 'Snacks',
+  mahlzeit_5_name: null,
+  mahlzeit_6_name: null,
+}
+
+describe('kalorienJeAbschnitt', () => {
+  it('sums calories per named section over the whole range', () => {
+    const punkte = kalorienJeAbschnitt(
+      [
+        { menge: 200, products: { kalorien: 100 }, mahlzeit: 1 }, // 200 kcal, Fruehstueck
+        { menge: 100, products: { kalorien: 100 }, mahlzeit: 1 }, // 100 kcal, Fruehstueck
+        { menge: 100, products: { kalorien: 300 }, mahlzeit: 2 }, // 300 kcal, Mittagessen
+      ],
+      namen,
+    )
+    expect(punkte).toEqual([
+      { name: 'Frühstück', kalorien: 300 },
+      { name: 'Mittagessen', kalorien: 300 },
+      { name: 'Abendessen', kalorien: 0 },
+      { name: 'Snacks', kalorien: 0 },
+    ])
+  })
+
+  it('keeps an occupied but unnamed slot as "Abschnitt N"', () => {
+    const punkte = kalorienJeAbschnitt([{ menge: 100, products: { kalorien: 200 }, mahlzeit: 5 }], namen)
+    expect(punkte.find((p) => p.name === 'Abschnitt 5')).toEqual({ name: 'Abschnitt 5', kalorien: 200 })
+  })
+
+  it('groups unassigned entries under "Ohne Zuordnung"', () => {
+    const punkte = kalorienJeAbschnitt([{ menge: 100, products: { kalorien: 150 }, mahlzeit: null }], namen)
+    expect(punkte.find((p) => p.name === 'Ohne Zuordnung')).toEqual({
+      name: 'Ohne Zuordnung',
+      kalorien: 150,
+    })
+  })
+
+  it('returns the four named sections with zero calories when there are no entries', () => {
+    expect(kalorienJeAbschnitt([], namen)).toEqual([
+      { name: 'Frühstück', kalorien: 0 },
+      { name: 'Mittagessen', kalorien: 0 },
+      { name: 'Abendessen', kalorien: 0 },
+      { name: 'Snacks', kalorien: 0 },
+    ])
   })
 })
