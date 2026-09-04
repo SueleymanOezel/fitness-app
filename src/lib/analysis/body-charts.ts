@@ -180,3 +180,36 @@ export function gewichtGegenKalorien(
   }
   return punkte
 }
+
+export type FotoPunkt = { id: string; datum: string; url: string | null; gewicht: number | null }
+
+/**
+ * K5: die Fotos des Zeitraums, neuestes zuerst, jedes mit dem Gewicht seines
+ * Tages.
+ *
+ * Verknuepft wird auf exakte Tagesgleichheit — `body_metrics` hat je Nutzer und
+ * Tag hoechstens eine Zeile, die Zuordnung ist also eindeutig. Kein Suchen nach
+ * dem naechstgelegenen Tag: unter dem Foto stuende sonst eine Zahl von
+ * vorgestern, ohne dass man es sieht. Ein Foto ohne Wiegung bleibt stehen und
+ * traegt `null`.
+ */
+export function fotoZeitleiste(
+  fotos: { id: string; datum: string; url: string | null }[],
+  rows: { datum: string; gewicht: number | null }[],
+): FotoPunkt[] {
+  const gewichtJeTag = new Map<string, number>()
+  for (const row of rows) {
+    if (row.gewicht != null) gewichtJeTag.set(row.datum, row.gewicht)
+  }
+
+  return [...fotos]
+    // id als Tiebreaker: zwei Fotos desselben Tages brauchen eine feste
+    // Reihenfolge, sonst springen sie zwischen zwei Renderdurchlaeufen.
+    .sort((a, b) => b.datum.localeCompare(a.datum) || a.id.localeCompare(b.id))
+    .map((foto) => ({
+      id: foto.id,
+      datum: foto.datum,
+      url: foto.url,
+      gewicht: gewichtJeTag.get(foto.datum) ?? null,
+    }))
+}

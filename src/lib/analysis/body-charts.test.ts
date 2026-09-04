@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   aenderungsrate,
+  fotoZeitleiste,
   gewichtGegenKalorien,
   gewichtsTrend,
   UMFANG_FIELDS,
@@ -253,5 +254,60 @@ describe('gewichtGegenKalorien', () => {
         [{ tag: '2026-08-04', kalorien: 2000 }],
       ),
     ).toEqual([])
+  })
+})
+
+const foto = (id: string, datum: string, url: string | null = `https://signed/${id}`) => ({
+  id,
+  datum,
+  url,
+})
+
+describe('fotoZeitleiste', () => {
+  it('labels each photo with the weight of the same day, newest first', () => {
+    expect(
+      fotoZeitleiste(
+        [foto('p1', '2026-08-17'), foto('p2', '2026-08-24')],
+        [
+          { datum: '2026-08-17', gewicht: 83.3 },
+          { datum: '2026-08-24', gewicht: 82.5 },
+        ],
+      ),
+    ).toEqual([
+      { id: 'p2', datum: '2026-08-24', url: 'https://signed/p2', gewicht: 82.5 },
+      { id: 'p1', datum: '2026-08-17', url: 'https://signed/p1', gewicht: 83.3 },
+    ])
+  })
+
+  it('keeps a photo taken on a day without a weighing', () => {
+    // Ein Foto verschweigen, weil an dem Tag die Waage fehlte, waere der
+    // teurere der beiden Fehler.
+    expect(fotoZeitleiste([foto('p1', '2026-08-17')], [])).toEqual([
+      { id: 'p1', datum: '2026-08-17', url: 'https://signed/p1', gewicht: null },
+    ])
+  })
+
+  it('does not label a photo with a weight from a neighbouring day', () => {
+    // „mit Gewicht beschriftet" heisst das Gewicht dieses Tages, nicht das
+    // naechstgelegene — sonst steht unter dem Foto eine Zahl von vorgestern.
+    expect(
+      fotoZeitleiste([foto('p1', '2026-08-17')], [{ datum: '2026-08-16', gewicht: 83.3 }])[0]
+        .gewicht,
+    ).toBeNull()
+  })
+
+  it('ignores a day whose entry recorded no weight', () => {
+    expect(
+      fotoZeitleiste([foto('p1', '2026-08-17')], [{ datum: '2026-08-17', gewicht: null }])[0]
+        .gewicht,
+    ).toBeNull()
+  })
+
+  it('keeps a photo whose link could not be signed', () => {
+    expect(fotoZeitleiste([foto('p1', '2026-08-17', null)], [])[0].url).toBeNull()
+  })
+
+  it('returns nothing without photos', () => {
+    expect(fotoZeitleiste([], [{ datum: '2026-08-17', gewicht: 83.3 }])).toEqual([])
   })
 })
