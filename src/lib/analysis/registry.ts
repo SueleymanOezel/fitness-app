@@ -18,6 +18,7 @@ import {
   VOLUMEN_JE_MUSKELGRUPPE_TITEL as MUSCLE_VOLUME,
   DAUER_UND_KALORIEN_TITEL as SESSION_LOAD,
   REKORDE_TITEL as RECORDS,
+  KALORIENBILANZ_TITEL as CALORIE_BALANCE,
 } from './chart-titles'
 
 export type Bereich = 'training' | 'nutrition' | 'body'
@@ -53,6 +54,7 @@ export const E2 = 'E2'
 export const E3 = 'E3'
 export const E4 = 'E4'
 export const E5 = 'E5'
+export const E6 = 'E6'
 export const K1 = 'K1'
 
 export const CHARTS: ChartDef[] = [
@@ -69,6 +71,7 @@ export const CHARTS: ChartDef[] = [
   { id: E3, bereich: 'nutrition', titel: MACRO_TREND },
   { id: E4, bereich: 'nutrition', titel: MEAL_SECTION_CALORIES },
   { id: E5, bereich: 'nutrition', titel: WEEKLY_AVERAGE },
+  { id: E6, bereich: 'nutrition', titel: CALORIE_BALANCE },
   { id: K1, bereich: 'body', titel: WEIGHT_TREND },
 ]
 

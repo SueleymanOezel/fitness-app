@@ -137,3 +137,29 @@ export function wochenschnitt(
       schnitt: Math.round(summe / (tageJeWoche.get(woche) ?? 1)),
     }))
 }
+
+export type BilanzPunkt = { tag: string; bilanz: number }
+
+/**
+ * E6: Kalorienaufnahme minus Trainingsverbrauch je Tag.
+ *
+ * Ein Tag mit Eintraegen aber ohne Session zaehlt trotzdem: der Verbrauch ist
+ * dann schlicht 0, nicht "kein Tag". Ein Tag mit Session aber ohne Eintrag
+ * bleibt aussen vor — dieselbe Regel wie bei kalorienJeTag: kein Eintrag
+ * heisst nicht erfasst, nicht "nichts gegessen".
+ */
+export function kalorienbilanz(
+  entries: { zeitpunkt: string; menge: number; products: { kalorien: number } | null }[],
+  sessions: { gestartet_am: string | null; gesamt_kalorien: number | null }[],
+): BilanzPunkt[] {
+  const verbrauchJeTag = new Map<string, number>()
+  for (const session of sessions) {
+    if (session.gestartet_am == null || session.gesamt_kalorien == null) continue
+    const tag = localDay(session.gestartet_am)
+    verbrauchJeTag.set(tag, (verbrauchJeTag.get(tag) ?? 0) + session.gesamt_kalorien)
+  }
+  return kalorienJeTag(entries).map((punkt) => ({
+    tag: punkt.tag,
+    bilanz: Math.round(punkt.kalorien - (verbrauchJeTag.get(punkt.tag) ?? 0)),
+  }))
+}

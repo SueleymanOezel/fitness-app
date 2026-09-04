@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { kalorienJeTag, makroAnteileHeute, makroVerlauf, kalorienJeAbschnitt, wochenschnitt } from './nutrition-charts'
+import {
+  kalorienJeTag,
+  makroAnteileHeute,
+  makroVerlauf,
+  kalorienJeAbschnitt,
+  wochenschnitt,
+  kalorienbilanz,
+} from './nutrition-charts'
 import type { MealSectionNames } from '../meal-sections'
 
 const um = (tag: number, stunde: number) => new Date(2026, 7, tag, stunde, 0).toISOString()
@@ -186,5 +193,37 @@ describe('wochenschnitt', () => {
 
   it('returns nothing without entries', () => {
     expect(wochenschnitt([])).toEqual([])
+  })
+})
+
+describe('kalorienbilanz', () => {
+  it('subtracts the training burn of the same day from intake', () => {
+    const punkte = kalorienbilanz(
+      [{ zeitpunkt: um(24, 8), menge: 100, products: { kalorien: 2000 } }],
+      [{ gestartet_am: um(24, 18), gesamt_kalorien: 300 }],
+    )
+    expect(punkte).toEqual([{ tag: '2026-08-24', bilanz: 1700 }])
+  })
+
+  it('counts a day with no session as zero burn, not as no day', () => {
+    const punkte = kalorienbilanz(
+      [{ zeitpunkt: um(24, 8), menge: 100, products: { kalorien: 2000 } }],
+      [],
+    )
+    expect(punkte).toEqual([{ tag: '2026-08-24', bilanz: 2000 }])
+  })
+
+  it('drops a day with a session but no food entry', () => {
+    // Same rule as kalorienJeTag: no entry means "not logged", not "ate nothing".
+    const punkte = kalorienbilanz([], [{ gestartet_am: um(24, 18), gesamt_kalorien: 300 }])
+    expect(punkte).toEqual([])
+  })
+
+  it('ignores an unfinished session (no gesamt_kalorien yet)', () => {
+    const punkte = kalorienbilanz(
+      [{ zeitpunkt: um(24, 8), menge: 100, products: { kalorien: 2000 } }],
+      [{ gestartet_am: um(24, 18), gesamt_kalorien: null }],
+    )
+    expect(punkte).toEqual([{ tag: '2026-08-24', bilanz: 2000 }])
   })
 })
