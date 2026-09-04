@@ -162,8 +162,11 @@ describe('NutritionAnalysisPage', () => {
       updateProfile: vi.fn(),
     })
     zeige()
+    // Sechs Lazy-Grenzen nacheinander statt einer: mehr Budget als das sonst
+    // uebliche 5000ms, damit ein kalter Modul-Transform-Cache diesen Test nicht
+    // als ersten in der Reihe reissen laesst.
     for (const chart of chartsFor('nutrition')) {
-      expect(await screen.findByText(chart.titel, {}, { timeout: 5000 })).toBeInTheDocument()
+      expect(await screen.findByText(chart.titel, {}, { timeout: 10000 })).toBeInTheDocument()
     }
   })
 })

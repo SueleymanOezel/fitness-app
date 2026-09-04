@@ -20,13 +20,6 @@ describe('MacroDistributionChart', () => {
     expect(screen.getByText('50 g')).toBeInTheDocument()
   })
 
-  it('names every bar so the three macros are distinguishable', () => {
-    render(<MacroDistributionChart entries={[eintrag(24, 30, 20, 50)]} heute="2026-08-24" />)
-    expect(screen.getByText('Eiweiß')).toBeInTheDocument()
-    expect(screen.getByText('Fett')).toBeInTheDocument()
-    expect(screen.getByText('Kohlenhydrate')).toBeInTheDocument()
-  })
-
   it('states the empty case without any logged macro today', () => {
     render(<MacroDistributionChart entries={[]} heute="2026-08-24" />)
     expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()

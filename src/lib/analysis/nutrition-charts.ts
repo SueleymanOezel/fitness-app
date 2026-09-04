@@ -69,6 +69,7 @@ export type MakroTagPunkt = { tag: string; eiweiss: number; fett: number; kohlen
 export function makroVerlauf(entries: MakroTagEintrag[]): MakroTagPunkt[] {
   const jeTag = new Map<string, { eiweiss: number; fett: number; kohlenhydrate: number }>()
   for (const entry of entries) {
+    if (!entry.products) continue
     const tag = localDay(entry.zeitpunkt)
     const bisher = jeTag.get(tag) ?? { eiweiss: 0, fett: 0, kohlenhydrate: 0 }
     jeTag.set(tag, {

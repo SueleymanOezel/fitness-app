@@ -120,6 +120,10 @@ describe('makroVerlauf', () => {
   it('returns nothing without entries', () => {
     expect(makroVerlauf([])).toEqual([])
   })
+
+  it('skips an entry whose product is gone', () => {
+    expect(makroVerlauf([{ zeitpunkt: um(24, 8), menge: 100, products: null }])).toEqual([])
+  })
 })
 
 const namen: MealSectionNames = {
