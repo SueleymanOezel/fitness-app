@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { kalorienJeTag, makroAnteileHeute, makroVerlauf, kalorienJeAbschnitt } from './nutrition-charts'
+import { kalorienJeTag, makroAnteileHeute, makroVerlauf, kalorienJeAbschnitt, wochenschnitt } from './nutrition-charts'
 import type { MealSectionNames } from '../meal-sections'
 
 const um = (tag: number, stunde: number) => new Date(2026, 7, tag, stunde, 0).toISOString()
@@ -162,5 +162,29 @@ describe('kalorienJeAbschnitt', () => {
       { name: 'Abendessen', kalorien: 0 },
       { name: 'Snacks', kalorien: 0 },
     ])
+  })
+})
+
+const kalorienEintrag = (jahr: number, monat: number, tag: number, kalorien: number) => ({
+  zeitpunkt: new Date(jahr, monat - 1, tag, 12, 0).toISOString(),
+  menge: 100,
+  products: { kalorien },
+})
+
+describe('wochenschnitt', () => {
+  it('averages over days with entries, not over seven', () => {
+    const punkte = wochenschnitt([
+      kalorienEintrag(2026, 8, 17, 1000), // Mo, KW34
+      kalorienEintrag(2026, 8, 19, 2000), // Mi, KW34
+      kalorienEintrag(2026, 8, 24, 1800), // Mo, KW35
+    ])
+    expect(punkte).toEqual([
+      { woche: '2026-KW34', schnitt: 1500 },
+      { woche: '2026-KW35', schnitt: 1800 },
+    ])
+  })
+
+  it('returns nothing without entries', () => {
+    expect(wochenschnitt([])).toEqual([])
   })
 })

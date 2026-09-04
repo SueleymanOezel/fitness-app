@@ -12,6 +12,7 @@ import {
   MAKRO_VERTEILUNG_HEUTE_TITEL as MACRO_DISTRIBUTION_TODAY,
   MAKRO_VERLAUF_TITEL as MACRO_TREND,
   KALORIEN_JE_ABSCHNITT_TITEL as MEAL_SECTION_CALORIES,
+  WOCHENSCHNITT_TITEL as WEEKLY_AVERAGE,
   GEWICHTSVERLAUF_TITEL as WEIGHT_TREND,
   WIEDERHOLUNGEN_JE_SATZ_TITEL as REPS_PER_SET,
   VOLUMEN_JE_MUSKELGRUPPE_TITEL as MUSCLE_VOLUME,
@@ -51,6 +52,7 @@ export const E1 = 'E1'
 export const E2 = 'E2'
 export const E3 = 'E3'
 export const E4 = 'E4'
+export const E5 = 'E5'
 export const K1 = 'K1'
 
 export const CHARTS: ChartDef[] = [
@@ -66,6 +68,7 @@ export const CHARTS: ChartDef[] = [
   { id: E2, bereich: 'nutrition', titel: MACRO_DISTRIBUTION_TODAY },
   { id: E3, bereich: 'nutrition', titel: MACRO_TREND },
   { id: E4, bereich: 'nutrition', titel: MEAL_SECTION_CALORIES },
+  { id: E5, bereich: 'nutrition', titel: WEEKLY_AVERAGE },
   { id: K1, bereich: 'body', titel: WEIGHT_TREND },
 ]
 

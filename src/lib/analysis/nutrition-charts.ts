@@ -1,6 +1,7 @@
 import { entryKalorien, entryMakro, sumMakro, type KalorienEintrag, type MakroEintrag } from '../entry-calories'
 import { localDay } from '../local-time'
 import { visibleSections, type MealSectionNames } from '../meal-sections'
+import { wochenStart, wochenLabel } from './wochen'
 
 export type TagesPunkt = { tag: string; kalorien: number }
 
@@ -107,4 +108,32 @@ export function kalorienJeAbschnitt(
         .reduce((summe, entry) => summe + entryKalorien(entry), 0),
     ),
   }))
+}
+
+export type WochenSchnittPunkt = { woche: string; schnitt: number }
+
+/**
+ * E5: mittlere Tageskalorien je Kalenderwoche, gemittelt ueber Tage **mit
+ * Eintraegen** — nicht ueber alle sieben. `kalorienJeTag` liefert bereits nur
+ * solche Tage; zwei getrackte Tage in einer Woche teilen die Summe durch
+ * zwei, nicht durch sieben, sonst saehe eine kaum getrackte Woche wie eine
+ * strenge Diaetwoche aus.
+ */
+export function wochenschnitt(
+  entries: { zeitpunkt: string; menge: number; products: { kalorien: number } | null }[],
+): WochenSchnittPunkt[] {
+  const tage = kalorienJeTag(entries)
+  const summeJeWoche = new Map<string, number>()
+  const tageJeWoche = new Map<string, number>()
+  for (const tag of tage) {
+    const woche = wochenStart(`${tag.tag}T00:00:00`)
+    summeJeWoche.set(woche, (summeJeWoche.get(woche) ?? 0) + tag.kalorien)
+    tageJeWoche.set(woche, (tageJeWoche.get(woche) ?? 0) + 1)
+  }
+  return [...summeJeWoche.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([woche, summe]) => ({
+      woche: wochenLabel(woche),
+      schnitt: Math.round(summe / (tageJeWoche.get(woche) ?? 1)),
+    }))
 }
