@@ -111,7 +111,8 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Genau hier weitermachen:**
 1. **Plan 2c (Körper, K2–K5) starten.** Der Plan ist bereits vollständig geschrieben (8 Tasks inklusive Abschluss, `docs/superpowers/plans/2026-08-29-phase5-plan2c-koerpergraphen.md`, committet auf `master`) — im Gegensatz zu Plan 2b keine Lücke zu füllen. Direkt mit `superpowers:subagent-driven-development` starten.
-2. **Wiki für Plan 2b noch zu synchronisieren** — `docs/domaenenmodell.md` ist auf `master` aktuell, die Wiki-Kopie (`../fitness-app.wiki/Domain-Model.md`) und `Home.md`/`_Sidebar.md` sind noch auf dem Stand von Plan 2a. Vor oder parallel zu Plan 2c nachziehen.
+
+Wiki für Plan 2b bereits synchronisiert (`Domain-Model`, neue Seite `Phase-5-Plan-2b-Ernaehrungsgraphen`, `Home`, `_Sidebar` — gepusht, Commit `decc790`).
 
 **Noch aufzuräumen:** die synthetischen Daten aus der Plan-1-Verifikation stehen weiter in der Produktions-Datenbank (7 `body_metrics` 05.05.–27.08., 12 `workout_sessions` 15.05.–26.08., 30 `food_entries` 18.–27.08. auf ein einziges Produkt). Vor echtem Gebrauch löschen.
 
