@@ -2,15 +2,10 @@ import type { ReactNode } from 'react'
 import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-analysis'
 import { persoenlicheRekorde } from '../../lib/analysis/training-charts'
 import { REKORDE_TITEL } from '../../lib/analysis/chart-titles'
+import { datumsLabel } from '../../lib/analysis/tages-label'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = REKORDE_TITEL
-
-/** `2026-08-17` → `17.08.2026`. */
-function datumsLabel(tag: string) {
-  const [jahr, monat, tagesZahl] = tag.split('-')
-  return `${tagesZahl}.${monat}.${jahr}`
-}
 
 /** Eine Zahl mit einer Nachkommastelle, deutsch geschrieben. */
 function zahl(wert: number) {

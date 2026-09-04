@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import BodyAnalysisPage from './BodyAnalysisPage'
+import { chartsFor } from '../lib/analysis/registry'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -44,6 +45,8 @@ beforeEach(() => {
       { id: 'a', datum: '2026-08-17', gewicht: 83.3, ...leer },
       { id: 'b', datum: '2026-08-24', gewicht: 82.5, ...leer },
     ],
+    kalorien: [],
+    fotos: [],
     loading: false,
     error: false,
   })
@@ -57,10 +60,17 @@ const zeige = () =>
   )
 
 describe('BodyAnalysisPage', () => {
-  it('shows the area chart with its picker', () => {
+  it('shows the area chart with its picker', async () => {
     zeige()
-    expect(screen.getByRole('heading', { name: 'Gewichtsverlauf' })).toBeInTheDocument()
-    expect(screen.getByTestId('picker')).toBeInTheDocument()
+    // findByRole, not getByRole: BodyChartList loads the chart behind
+    // React.lazy, so the first render is the Suspense fallback.
+    expect(
+      await screen.findByRole('heading', { name: 'Gewichtsverlauf' }, { timeout: 5000 }),
+    ).toBeInTheDocument()
+    await waitFor(
+      () => expect(screen.getAllByTestId('picker')).toHaveLength(chartsFor('body').length),
+      { timeout: 5000 },
+    )
   })
 
   it('asks for 90 days by default and reloads with the chosen range', () => {
@@ -71,14 +81,23 @@ describe('BodyAnalysisPage', () => {
   })
 
   it('shows one message for a failed load', () => {
-    mockUseBodyAnalysis.mockReturnValue({ rows: [], loading: false, error: true })
+    mockUseBodyAnalysis.mockReturnValue({ rows: [], kalorien: [], fotos: [], loading: false, error: true })
     zeige()
     expect(screen.getAllByText('Daten konnten nicht geladen werden.')).toHaveLength(1)
   })
 
   it('shows a loading state', () => {
-    mockUseBodyAnalysis.mockReturnValue({ rows: [], loading: true, error: false })
+    mockUseBodyAnalysis.mockReturnValue({ rows: [], kalorien: [], fotos: [], loading: true, error: false })
     zeige()
     expect(screen.getByText('Lädt…')).toBeInTheDocument()
+  })
+
+  it('renders every registered body chart', async () => {
+    // Der Fall, den die Registry verhindern soll: ein Graph ist angemeldet, aber
+    // die Seite kennt ihn nicht — er waere im Picker sichtbar und nirgends sonst.
+    zeige()
+    for (const chart of chartsFor('body')) {
+      expect(await screen.findByText(chart.titel, {}, { timeout: 5000 })).toBeInTheDocument()
+    }
   })
 })

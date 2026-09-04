@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { tagesLabel } from './tages-label'
+import { datumsLabel, tagesLabel } from './tages-label'
 
 describe('tagesLabel', () => {
   it('formats a two-digit day and month', () => {
@@ -12,5 +12,11 @@ describe('tagesLabel', () => {
 
   it('formats a two-digit day with a one-digit-looking month', () => {
     expect(tagesLabel('2026-01-31')).toBe('31.01.')
+  })
+})
+
+describe('datumsLabel', () => {
+  it('writes a day German, with its year', () => {
+    expect(datumsLabel('2026-08-17')).toBe('17.08.2026')
   })
 })

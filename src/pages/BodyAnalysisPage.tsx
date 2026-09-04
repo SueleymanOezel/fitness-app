@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useBodyAnalysis } from '../hooks/use-body-analysis'
 import ZeitraumSwitch from '../components/ZeitraumSwitch'
-import ChartPicker, { useChartSelection } from '../components/charts/ChartPicker'
-import { K1 } from '../lib/analysis/registry'
-import WeightTrendChart from '../components/charts/WeightTrendChart'
+import { useChartSelection } from '../components/charts/ChartPicker'
+import BodyChartList from '../components/charts/BodyChartList'
+import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
 
 export default function BodyAnalysisPage() {
@@ -26,8 +26,10 @@ export default function BodyAnalysisPage() {
 
 function Analyse({ userId }: { userId: string }) {
   const [zeitraum, setZeitraum] = useState<Zeitraum>(STANDARD_ZEITRAUM)
-  const { rows, loading, error } = useBodyAnalysis(userId, zeitraum)
+  const { rows, kalorien, fotos, loading, error } = useBodyAnalysis(userId, zeitraum)
   const auswahl = useChartSelection(userId)
+  // Reihenfolge ist die der Registry — kein Umsortieren, wie in der Spec.
+  const ids = chartsFor('body').map((chart) => chart.id)
 
   return (
     <div>
@@ -38,7 +40,7 @@ function Analyse({ userId }: { userId: string }) {
       {loading ? (
         <p>Lädt…</p>
       ) : (
-        <WeightTrendChart rows={rows} picker={<ChartPicker id={K1} auswahl={auswahl} />} />
+        <BodyChartList ids={ids} rows={rows} kalorien={kalorien} fotos={fotos} auswahl={auswahl} />
       )}
       <Link to="/body">Zurück zum Körperbereich</Link>
     </div>

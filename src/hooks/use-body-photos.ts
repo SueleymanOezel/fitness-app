@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { resizeToJpeg } from '../lib/image-resize'
-
-const BUCKET = 'body-photos'
-/** One hour is plenty for a page view, and the link never reaches the database. */
-const SIGNED_URL_TTL_SECONDS = 3600
+import { BODY_PHOTO_BUCKET, signierteFotoLinks } from '../lib/body-photo-urls'
 
 export type BodyPhoto = {
   id: string
@@ -31,18 +28,8 @@ export function useBodyPhotos(userId: string) {
     if (current !== requestId.current) return
 
     const stored = (data ?? []) as { id: string; datum: string; foto_url: string }[]
-    let urls = new Map<string, string>()
-    if (stored.length > 0) {
-      // Signed in one call rather than per row: one request instead of N.
-      const { data: signed } = await supabase.storage
-        .from(BUCKET)
-        .createSignedUrls(stored.map((row) => row.foto_url), SIGNED_URL_TTL_SECONDS)
-      urls = new Map(
-        (signed ?? [])
-          .filter((item): item is typeof item & { signedUrl: string } => item.signedUrl !== null)
-          .map((item) => [item.path ?? '', item.signedUrl]),
-      )
-    }
+    // Signed in one call rather than per row: one request instead of N.
+    const urls = await signierteFotoLinks(stored.map((row) => row.foto_url))
     if (current !== requestId.current) return
 
     setPhotos(
@@ -77,7 +64,7 @@ export function useBodyPhotos(userId: string) {
     const pfad = `${userId}/${crypto.randomUUID()}.jpg`
 
     const { error: uploadError } = await supabase.storage
-      .from(BUCKET)
+      .from(BODY_PHOTO_BUCKET)
       .upload(pfad, blob, { contentType: 'image/jpeg' })
     if (uploadError) throw new Error('photo upload failed')
 
@@ -85,7 +72,7 @@ export function useBodyPhotos(userId: string) {
       .from('body_photos')
       .insert({ user_id: userId, datum, foto_url: pfad })
     if (rowError) {
-      await supabase.storage.from(BUCKET).remove([pfad])
+      await supabase.storage.from(BODY_PHOTO_BUCKET).remove([pfad])
       throw new Error('photo row failed')
     }
 
@@ -98,7 +85,7 @@ export function useBodyPhotos(userId: string) {
    * works. The reverse order would leave a row without a file behind.
    */
   async function deletePhoto(photo: BodyPhoto) {
-    const { error: fileError } = await supabase.storage.from(BUCKET).remove([photo.pfad])
+    const { error: fileError } = await supabase.storage.from(BODY_PHOTO_BUCKET).remove([photo.pfad])
     if (fileError) throw new Error('photo file delete failed')
 
     const { error: rowError } = await supabase.from('body_photos').delete().eq('id', photo.id)
