@@ -20,6 +20,7 @@ import {
   REKORDE_TITEL as RECORDS,
   KALORIENBILANZ_TITEL as CALORIE_BALANCE,
   UMFAENGE_TITEL as BODY_MEASUREMENTS,
+  AENDERUNGSRATE_TITEL as CHANGE_RATE,
 } from './chart-titles'
 
 export type Bereich = 'training' | 'nutrition' | 'body'
@@ -58,6 +59,7 @@ export const E5 = 'E5'
 export const E6 = 'E6'
 export const K1 = 'K1'
 export const K2 = 'K2'
+export const K3 = 'K3'
 
 export const CHARTS: ChartDef[] = [
   { id: T1, bereich: 'training', titel: TRAINING_FREQUENCY },
@@ -76,6 +78,7 @@ export const CHARTS: ChartDef[] = [
   { id: E6, bereich: 'nutrition', titel: CALORIE_BALANCE },
   { id: K1, bereich: 'body', titel: WEIGHT_TREND },
   { id: K2, bereich: 'body', titel: BODY_MEASUREMENTS },
+  { id: K3, bereich: 'body', titel: CHANGE_RATE },
 ]
 
 export const CHART_IDS = CHARTS.map((chart) => chart.id)

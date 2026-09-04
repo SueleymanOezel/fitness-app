@@ -72,3 +72,46 @@ export function umfaengeVerlauf(rows: UmfangZeile[]): UmfangPunkt[] {
       return punkt
     })
 }
+
+export type RatenPunkt = { datum: string; rate: number }
+
+/** Wie weit ein Punkt mindestens zurueckliegen muss, um als Vergleich zu taugen. */
+const FENSTER_TAGE = 7
+
+/**
+ * K3: Steigung der Trendlinie ueber die vorangegangene Woche, in kg pro Woche.
+ *
+ * Gerechnet wird auf `gewichtsTrend` — derselben Linie, die K1 zeichnet — und
+ * nicht auf den Rohgewichten: zwei aufeinanderfolgende Tage koennen sich durch
+ * Wasser um ein Kilo unterscheiden, hochgerechnet waeren das sieben Kilo Woche.
+ *
+ * Verglichen wird mit dem juengsten Punkt, der mindestens eine Woche
+ * zurueckliegt, und die Differenz wird ueber den **tatsaechlichen** Abstand
+ * normiert. Nach einer dreiwoechigen Luecke waere sie sonst dreifach zu hoch.
+ * Punkte ohne eine Woche Vorlauf entfallen — eine Rate braucht eine Strecke.
+ */
+export function aenderungsrate(
+  rows: { datum: string; gewicht: number | null }[],
+  halbwertszeitTage = 7,
+): RatenPunkt[] {
+  const trend = gewichtsTrend(rows, halbwertszeitTage)
+  const zeit = trend.map((punkt) => new Date(`${punkt.datum}T00:00:00`).getTime())
+
+  const punkte: RatenPunkt[] = []
+  for (let i = 0; i < trend.length; i += 1) {
+    let vergleich = -1
+    for (let j = i - 1; j >= 0; j -= 1) {
+      if (zeit[i] - zeit[j] >= FENSTER_TAGE * TAG_MS) {
+        vergleich = j
+        break
+      }
+    }
+    if (vergleich === -1) continue
+    const tage = (zeit[i] - zeit[vergleich]) / TAG_MS
+    const rate = ((trend[i].trend - trend[vergleich].trend) / tage) * 7
+    // Zwei Nachkommastellen: eine Rate von −0,05 kg/Woche waere auf eine Stelle
+    // gerundet eine glatte Null und der Graph eine Gerade auf der Achse.
+    punkte.push({ datum: trend[i].datum, rate: Math.round(rate * 100) / 100 })
+  }
+  return punkte
+}

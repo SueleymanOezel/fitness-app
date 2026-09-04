@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { gewichtsTrend, UMFANG_FIELDS, umfaengeVerlauf } from './body-charts'
+import { aenderungsrate, gewichtsTrend, UMFANG_FIELDS, umfaengeVerlauf } from './body-charts'
 
 describe('gewichtsTrend', () => {
   it('starts the trend at the first value', () => {
@@ -117,5 +117,57 @@ describe('umfaengeVerlauf', () => {
 
   it('returns nothing without rows', () => {
     expect(umfaengeVerlauf([])).toEqual([])
+  })
+})
+
+const wiegung = (datum: string, gewicht: number | null) => ({ datum, gewicht })
+
+describe('aenderungsrate', () => {
+  it('derives kg per week from the trend line', () => {
+    // Trend bei 7 Tagen Abstand und 7 Tagen Halbwertszeit: die Haelfte bleibt.
+    // 85 → 85*0,5 + 84*0,5 = 84,5 → 84,5*0,5 + 83*0,5 = 83,75 → gerundet 83,8.
+    expect(
+      aenderungsrate([
+        wiegung('2026-08-01', 85),
+        wiegung('2026-08-08', 84),
+        wiegung('2026-08-15', 83),
+      ]),
+    ).toEqual([
+      { datum: '2026-08-08', rate: -0.5 },
+      { datum: '2026-08-15', rate: -0.7 },
+    ])
+  })
+
+  it('normalises a gap to one week instead of reading it as one step', () => {
+    // 21 Tage Abstand: Halbwertszeit dreimal, es bleiben 0,125 vom alten Trend.
+    // 85*0,125 + 82*0,875 = 82,375 → 82,4. (82,4 − 85) / 21 × 7 = −0,87.
+    expect(aenderungsrate([wiegung('2026-08-01', 85), wiegung('2026-08-22', 82)])).toEqual([
+      { datum: '2026-08-22', rate: -0.87 },
+    ])
+  })
+
+  it('shows a rising trend as a positive rate', () => {
+    // Das Vorzeichen ist die eigentliche Aussage des Graphen.
+    const punkte = aenderungsrate([wiegung('2026-08-01', 80), wiegung('2026-08-08', 81)])
+    expect(punkte[0].rate).toBeGreaterThan(0)
+  })
+
+  it('drops points without a full week of history behind them', () => {
+    // Zwei Wiegungen im Abstand von drei Tagen ergeben keine Wochenrate.
+    expect(aenderungsrate([wiegung('2026-08-01', 85), wiegung('2026-08-04', 84)])).toEqual([])
+  })
+
+  it('ignores entries that recorded no weight', () => {
+    expect(
+      aenderungsrate([
+        wiegung('2026-08-01', 85),
+        wiegung('2026-08-05', null),
+        wiegung('2026-08-08', 84),
+      ]),
+    ).toEqual([{ datum: '2026-08-08', rate: -0.5 }])
+  })
+
+  it('returns nothing without rows', () => {
+    expect(aenderungsrate([])).toEqual([])
   })
 })
