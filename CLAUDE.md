@@ -99,7 +99,7 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Bewusst offen gelassen** (vom Schluss-Review als „darf warten" eingestuft): `formatDate` steht wortgleich in drei Seiten; der `onSave`-Wrapper in `BodyPage` und `BodyEntriesPage` ist nahezu identisch; das Ändern des Datums beim Korrigieren kann einen anderen Eintrag desselben Tages überschreiben; das Profil-Update meldet nicht, wenn es null Zeilen trifft; `Number('0x50')` ergibt 80; Foto-Löschen ohne `busy`-Guard und ohne Bestätigen (Projektkonvention).
 
-## Phase 5 – Analysebereich (Plan 1 und 2a gemerged und verifiziert, Plan 2b/2c noch zu schreiben)
+## Phase 5 – Analysebereich (Plan 1 und 2a gemerged und verifiziert, Plan 2b implementiert auf Branch `worktree-feat-phase5-plan2b-ernaehrungsgraphen` — noch nicht gemerged, Plan 2c offen)
 
 ### Sofort-Einstieg für einen neuen Chat
 
@@ -110,10 +110,25 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 4. Wiki synchronisiert (`Domain-Model`, neue Seite `Phase-5-Plan-2a-Trainingsgraphen`, `Home`, `_Sidebar` — gepusht, Commit `b667b08`).
 5. **Manuelle Verifikation gegen Produktion abgeschlossen** (29.08.2026, alle zehn Schritte grün, Details im eigenen Abschnitt weiter unten). Dabei ein reales Testszenario aufgebaut (Plan, zwei Übungen, eine Live-Session) statt der rein synthetischen Daten aus Plan 1 — die vorhandenen Sessions aus der Plan-1-Verifikation haben keine Sätze.
 
+**Plan 2b (Ernährung, E2–E6) ist implementiert, aber noch nicht gemerged.** Alle 8 Tasks auf Branch `worktree-feat-phase5-plan2b-ernaehrungsgraphen` fertig (Worktree `.claude/worktrees/feat-phase5-plan2b-ernaehrungsgraphen`), Details im eigenen Abschnitt „Plan 2b" weiter unten. Noch offen: Whole-Branch-Review, Fix-Welle falls nötig, Merge, Wiki-Commit/-Push (die Datei ist bereits lokal gespiegelt, siehe Abschnitt), manuelle Verifikation gegen Produktion.
+
 **Genau hier weitermachen:**
-1. **Plan 2b (Ernährung, E2–E6) und Plan 2c (Körper, K2–K5) schreiben.** Weg: `superpowers:writing-plans` → `superpowers:subagent-driven-development`.
+1. **Plan 2b abnehmen:** `superpowers:finishing-a-development-branch` — Whole-Branch-Review, danach Merge und Wiki-Sync.
+2. **Plan 2c (Körper, K2–K5) ist weiterhin offen.** Kein Branch, kein Worktree, keine Spec/Plan-Datei gefunden (Stand 04.09.2026, geprüft über `git branch -a` und den Worktree-Ordner) — noch nicht begonnen. Weg: `superpowers:writing-plans` → `superpowers:subagent-driven-development`.
 
 **Noch aufzuräumen:** die synthetischen Daten aus der Plan-1-Verifikation stehen weiter in der Produktions-Datenbank (7 `body_metrics` 05.05.–27.08., 12 `workout_sessions` 15.05.–26.08., 30 `food_entries` 18.–27.08. auf ein einziges Produkt). Vor echtem Gebrauch löschen.
+
+### Plan 2b – Ernährungsgraphen (implementiert auf Branch `worktree-feat-phase5-plan2b-ernaehrungsgraphen`, noch nicht gemerged)
+
+Fünf neue Graphen im Ernährungsbereich: **E2** Makro-Verteilung heute (Eiweiß/Kohlenhydrate/Fett als Energie-Anteile, nicht Gramm-Anteile — sonst sähe ein fettreicher Tag ausgeglichen aus), **E3** Makro-Verlauf (dieselben drei über die Zeit, in Gramm statt Prozent), **E4** Kalorien je Mahlzeiten-Abschnitt (dieselbe Abschnitts-Logik wie die Eintragsliste, `visibleSections`: ein besetzter unbenannter Slot bleibt als „Abschnitt N" sichtbar, Unzugeordnetes läuft unter „Ohne Zuordnung"), **E5** Wochenschnitt (Kalorien je Kalenderwoche, gemittelt über Tage **mit** Eintrag statt über alle sieben Tage), **E6** Kalorienbilanz (Aufnahme minus Trainingsverbrauch je Tag, subtrahiert `gesamt_kalorien` der Sessions; ein Tag mit Session ohne Ernährungseintrag fällt weg, ein Tag mit Eintrag ohne Session zählt mit Verbrauch 0). Zusammen mit E1 (Plan 1) sind das jetzt **sechs** Ernährungsgraphen, alle in `src/lib/analysis/registry.ts` angemeldet und über `NutritionChartList.tsx` gerendert (ein `switch` über die Registry-IDs, analog zu `TrainingChartList`) — der einzige Ort, an dem noch ein Ernährungsgraph eingebunden wird.
+
+`useNutritionAnalysis(userId, zeitraum)` liest neben den Einträgen (`food_entries` mit eingebettetem `products`) jetzt auch die Trainingskalorien mit (`workout_sessions`, nur `gestartet_am`/`gesamt_kalorien`, für E6) — zwei Abfragen, beide seitenweise paginiert, keine Beziehung zwischen den Tabellen, also kein Join. Das Ernährungs-Dashboard feuert deshalb **zwei** Abfragen, sobald mindestens ein Ernährungsgraph angehakt ist, unabhängig davon, welcher — E6 braucht die Sessions, die übrigen fünf lesen sie nur ungenutzt mit.
+
+Zwei Hilfsmodule sind jetzt zwischen Training und Ernährung geteilt statt verdoppelt: `seitenweiseLaden` liegt seit diesem Plan in `src/lib/paged-query.ts` (vorher nur in `use-training-analysis.ts`), die Wochenhilfsfunktionen `wochenStart`/`wochenLabel` in `src/lib/analysis/wochen.ts` (vorher privat in `training-charts.ts`). Die Makro-Rechnung (`entryMakro`/`sumMakro`, Energie- statt Gramm-Anteile) liegt jetzt in `src/lib/entry-calories.ts` und wird von `DailySummary` und den Graphen E2/E3 gemeinsam benutzt statt einmal in `DailySummary` und einmal in `nutrition-charts.ts` zu stehen.
+
+**Bundle nach Task 8** (`npm run build`): Ohne `.env` (Worktree-Default, da `.env` gitignored ist und von `git worktree add`/`git clone` nie mitkopiert wird) misst der Entry-Chunk nur 231,71 kB (74,53 kB gzip) — das ist kein echter Vergleichswert, sondern ein Build ohne `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`, dem dadurch das komplette Barcode-Scanner-Subsystem (`@zxing/browser`/`@zxing/library`, erreichbar über `NutritionEntriesPage → AddEntryFlow → ProductPicker → BarcodeScanner`) fehlt. Mit echter `.env` (per Experiment gegengeprüft, inkl. Repro auf `master`) lauten die tatsächlich vergleichbaren Zahlen: `master`-Baseline 985,06 kB (268,52 kB gzip) → dieser Branch 987,48 kB (268,93 kB gzip), also **+2,42 kB / +0,41 kB gzip** — wächst kaum, wie erwartet, weil jeder neue Chart einzeln hinter `React.lazy` liegt. Recharts bleibt bestätigt außerhalb des Entry-Chunks (weiterhin in den gemeinsamen `CartesianChart`/`Bar`/`Line`/`Legend`/`ReferenceLine`-Chunks), die fünf neuen Ernährungsgraphen selbst sind winzig (0,72–1,06 kB je Komponente, dazu ein `nutrition-charts`-Sammel-Chunk mit 1,95 kB). Kein neuer offener Punkt aus diesem Plan; das Bundle bleibt aus den früheren Phasen über der Warnschwelle, gehört weiter in die Härtungsphase.
+
+**Stand: 655 Tests grün** (93 Dateien), Lint ohne Fehler und Warnungen, `tsc -b --noEmit` sauber, `npm run build` erfolgreich. Keine Migration in diesem Plan. `docs/domaenenmodell.md` um die Ernährungsanalyse-Notizen (E2–E6, zwei Abfragen statt Join, geteilte Hilfsmodule) ergänzt und nach `../fitness-app.wiki/Domain-Model.md` gespiegelt (Wiki-Repo noch **nicht** committet/gepusht, passiert nach dem Merge).
 
 ### Plan 2a – Trainingsgraphen (gemerged, PR #33)
 

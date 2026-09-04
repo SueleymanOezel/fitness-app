@@ -4,10 +4,10 @@ import { useSession } from '../hooks/use-session'
 import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
 import { useProfile } from '../hooks/use-profile'
 import ZeitraumSwitch from '../components/ZeitraumSwitch'
-import ChartPicker, { useChartSelection } from '../components/charts/ChartPicker'
-import CaloriesPerDayChart from '../components/charts/CaloriesPerDayChart'
+import { useChartSelection } from '../components/charts/ChartPicker'
+import NutritionChartList from '../components/charts/NutritionChartList'
+import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
-import { E1 } from '../lib/analysis/registry'
 import { effectiveCalorieGoal } from '../lib/nutrition-goal'
 
 export default function NutritionAnalysisPage() {
@@ -28,9 +28,11 @@ export default function NutritionAnalysisPage() {
 
 function Analyse({ userId }: { userId: string }) {
   const [zeitraum, setZeitraum] = useState<Zeitraum>(STANDARD_ZEITRAUM)
-  const { entries, loading, error } = useNutritionAnalysis(userId, zeitraum)
+  const { entries, sessions, loading, error } = useNutritionAnalysis(userId, zeitraum)
   const { profile } = useProfile(userId)
   const auswahl = useChartSelection(userId)
+  // Reihenfolge ist die der Registry — kein Umsortieren, wie in der Spec.
+  const ids = chartsFor('nutrition').map((chart) => chart.id)
 
   return (
     <div>
@@ -41,13 +43,16 @@ function Analyse({ userId }: { userId: string }) {
       {loading ? (
         <p>Lädt…</p>
       ) : (
-        <CaloriesPerDayChart
+        <NutritionChartList
+          ids={ids}
           entries={entries}
+          sessions={sessions}
           // effectiveCalorieGoal, not the raw column: the manual field is null
           // for everyone who never typed a goal, and the fallback calculation is
           // what the rest of the app shows.
           ziel={profile ? effectiveCalorieGoal(profile) : null}
-          picker={<ChartPicker id={E1} auswahl={auswahl} />}
+          profile={profile}
+          auswahl={auswahl}
         />
       )}
       <Link to="/nutrition">Zurück zum Ernährungsbereich</Link>
