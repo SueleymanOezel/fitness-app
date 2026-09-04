@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import NutritionAnalysisPage from './NutritionAnalysisPage'
+import { chartsFor } from '../lib/analysis/registry'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -140,5 +141,29 @@ describe('NutritionAnalysisPage', () => {
     mockUseNutritionAnalysis.mockReturnValue({ entries: [], sessions: [], loading: true, error: false })
     zeige()
     expect(screen.getByText('Lädt…')).toBeInTheDocument()
+  })
+
+  it('renders every registered nutrition chart', async () => {
+    // Der Fall, den die Registry verhindern soll: ein Graph ist angemeldet, aber
+    // die Seite kennt ihn nicht — er waere im Picker sichtbar und nirgends sonst.
+    mockUseProfile.mockReturnValue({
+      profile: {
+        ...vollstaendigesProfil,
+        taegliches_kalorienziel: 1672,
+        mahlzeit_1_name: 'Frühstück',
+        mahlzeit_2_name: 'Mittagessen',
+        mahlzeit_3_name: 'Abendessen',
+        mahlzeit_4_name: 'Snacks',
+        mahlzeit_5_name: null,
+        mahlzeit_6_name: null,
+      },
+      loading: false,
+      error: false,
+      updateProfile: vi.fn(),
+    })
+    zeige()
+    for (const chart of chartsFor('nutrition')) {
+      expect(await screen.findByText(chart.titel, {}, { timeout: 5000 })).toBeInTheDocument()
+    }
   })
 })
