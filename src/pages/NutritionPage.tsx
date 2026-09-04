@@ -1,22 +1,16 @@
-import { lazy, Suspense } from 'react'
 import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
-import { useProfile } from '../hooks/use-profile'
+import { useProfile, type Profile } from '../hooks/use-profile'
 import { useFoodEntries } from '../hooks/use-food-entries'
 import { effectiveCalorieGoal } from '../lib/nutrition-goal'
 import { visibleSections } from '../lib/meal-sections'
 import { sumKalorien } from '../lib/entry-calories'
 import DailySummary from '../components/DailySummary'
 import { useChartSelection } from '../components/charts/ChartPicker'
-import { E1 } from '../lib/analysis/registry'
+import NutritionChartList from '../components/charts/NutritionChartList'
+import { chartsFor } from '../lib/analysis/registry'
 import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
-
-// Lazy at this use site too, not just on the analysis page: CaloriesPerDayChart
-// pulls in recharts (~136 kB gzipped), and this dashboard is reachable from
-// the entry route graph. Without this, recharts would still end up in the
-// entry chunk regardless of the analysis page's own lazy import.
-const CaloriesPerDayChart = lazy(() => import('../components/charts/CaloriesPerDayChart'))
 
 export default function NutritionPage() {
   const { session } = useSession()
@@ -85,25 +79,49 @@ function NutritionDashboard({ userId }: { userId: string }) {
         })}
       </ul>
       <Link to="/nutrition/entries">Einträge ansehen</Link>
-      {auswahl.istGewaehlt(E1) && <DashboardCaloriesPerDay userId={userId} ziel={goal} />}
+      <DashboardNutritionCharts userId={userId} auswahl={auswahl.auswahl} ziel={goal} profile={profile} />
       <Link to="/nutrition/analyse">Analyse</Link>
     </div>
   )
 }
 
 /**
- * `ziel` comes in as a prop: the parent already computed effectiveCalorieGoal
- * for DailySummary, so re-reading the profile here would both fetch it a third
- * time on this page and — because it read the raw column — hand the chart a
- * different number than the summary right above it.
+ * Rendert die angehakten Ernaehrungsgraphen — und faellt vorher komplett aus,
+ * wenn keiner angehakt ist: der Hook steckt in der Kindkomponente, ein leeres
+ * Dashboard soll keine Abfrage ausloesen.
  */
-function DashboardCaloriesPerDay({ userId, ziel }: { userId: string; ziel: number | null }) {
-  const { entries, loading, error } = useNutritionAnalysis(userId, DASHBOARD_ZEITRAUM)
+function DashboardNutritionCharts({
+  userId,
+  auswahl,
+  ziel,
+  profile,
+}: {
+  userId: string
+  auswahl: string[]
+  ziel: number | null
+  profile: Profile
+}) {
+  const bereichsIds = new Set(chartsFor('nutrition').map((chart) => chart.id))
+  const ids = auswahl.filter((id) => bereichsIds.has(id))
+  if (ids.length === 0) return null
+  return <DashboardNutritionChartsData userId={userId} ids={ids} ziel={ziel} profile={profile} />
+}
+
+function DashboardNutritionChartsData({
+  userId,
+  ids,
+  ziel,
+  profile,
+}: {
+  userId: string
+  ids: string[]
+  ziel: number | null
+  profile: Profile
+}) {
+  const { entries, sessions, loading, error } = useNutritionAnalysis(userId, DASHBOARD_ZEITRAUM)
   if (loading) return <p>Lädt…</p>
   if (error) return <p role="alert">Graph konnte nicht geladen werden.</p>
   return (
-    <Suspense fallback={<p>Lädt…</p>}>
-      <CaloriesPerDayChart entries={entries} ziel={ziel} />
-    </Suspense>
+    <NutritionChartList ids={ids} entries={entries} sessions={sessions} ziel={ziel} profile={profile} />
   )
 }
