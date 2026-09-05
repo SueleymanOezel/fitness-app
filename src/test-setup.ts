@@ -44,3 +44,21 @@ HTMLElement.prototype.getBoundingClientRect = function () {
   }
   return nativeGetBoundingClientRect.call(this)
 }
+
+// jsdom (v30, as installed in this project) does not implement
+// HTMLDialogElement.showModal()/close() — verified directly against the
+// installed version before writing this. Without a polyfill, no test that
+// opens a <dialog> can run. This reproduces only what Dialog.tsx actually
+// needs: the `open` attribute toggling (jsdom already applies the UA rule
+// `dialog:not([open]) { display: none }` on top of that, verified
+// separately) and a `close` event on programmatic close — not focus-trapping
+// or Escape-key handling, which no test here exercises.
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+    this.setAttribute('open', '')
+  }
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+    this.removeAttribute('open')
+    this.dispatchEvent(new Event('close'))
+  }
+}

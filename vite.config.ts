@@ -1,13 +1,14 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import basicSsl from '@vitejs/plugin-basic-ssl'
+import tailwindcss from '@tailwindcss/vite'
 
 // `npm run dev:mobile` serves over HTTPS on the local network so a phone can
 // reach the app: getUserMedia (the barcode scanner) only runs in a secure
 // context, and plain http:// over the LAN is not one. Plain `npm run dev` stays
 // http on localhost, which counts as secure and needs no certificate prompt.
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), ...(mode === 'mobile' ? [basicSsl()] : [])],
+  plugins: [react(), tailwindcss(), ...(mode === 'mobile' ? [basicSsl()] : [])],
   // '0.0.0.0', not `true`: the latter binds to '::' and this machine's dual-stack
   // does not accept IPv4 through it, so phones on the LAN could not connect.
   server: mode === 'mobile' ? { host: '0.0.0.0' } : {},
