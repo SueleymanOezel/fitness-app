@@ -73,7 +73,7 @@ Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer 
 
 **Aktueller Stand:** Phase 1, 2 und 3 sind gemerged, deployed und manuell gegen Produktion verifiziert; die kosmetischen Nacharbeiten am Layout ebenfalls (PR #22/#23, Merge-Commit `5b79651`). **Phase 4 (Körperbereich) ist gemerged und gegen Produktion verifiziert** (PR #26, Merge-Commit `63aced2`) — Details im eigenen Abschnitt weiter unten. **Phase 5 (Analysebereich) ist ebenfalls vollständig gemerged und verifiziert** — Details im eigenen Abschnitt weiter unten. Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header. Der Ernährungsbereich hat eine eigene Eintragsliste unter `/nutrition/entries`, nach Mahlzeiten-Abschnitten gegliedert (PR #20, Merge-Commit `752587c`; Phase 3: PR #21, `7420145`).
 
-**Genau hier weitermachen (Stand 05.09.2026):** Hosting ist erledigt, App heißt jetzt **VitaLoop** (siehe „Hosting" im Tech-Stack oben) — dauerhaft erreichbar unter `https://vitaloop.web.app`, auch vom iPhone aus (Safari öffnen, URL eingeben, über „Teilen" → „Zum Home-Bildschirm" installierbar, ganz ohne App Store). Deploy bei künftigen Änderungen: `npm run build && firebase deploy --only hosting:vitaloop` (manuell, noch nicht in die CI-Pipeline integriert — das wäre ein Kandidat für Phase 7/Härtung). Als Nächstes: **Phase 6 (Design)**, nachträglich vor die Härtung eingeschoben (Nutzerentscheidung 05.09.2026, analog dazu, wie der Analysebereich vor die Härtung geschoben wurde) — noch keine Spec/kein Plan. Härtung rückt auf Phase 7.
+**Genau hier weitermachen (Stand 05.09.2026):** Hosting ist erledigt, App heißt jetzt **VitaLoop** (siehe „Hosting" im Tech-Stack oben) — dauerhaft erreichbar unter `https://vitaloop.web.app`. **Phase 6 (Design) ist in Arbeit:** Brainstorming abgeschlossen, Referenzvideo analysiert, Design-Spec geschrieben und vom Nutzer freigegeben, Plan 1 (Fundament) geschrieben und freigegeben. **Nächster Schritt: Plan 1 umsetzen** mit `superpowers:subagent-driven-development` (vom Nutzer so entschieden, 05.09.2026) — noch nicht begonnen, keine Tasks abgehakt. Danach folgen die Bereichs-Pläne (2a–2d: Training, Ernährung, Körper, Analyse-Seiten), noch ungeschrieben. Details im eigenen Abschnitt „Phase 6" weiter unten. Härtung rückt auf Phase 7.
 
 **Mahlzeiten-Abschnitte (gemerged, alle 9 Tasks fertig):** Einträge auf `/nutrition/entries` sind nach Mahlzeiten gegliedert — sechs feste Slots, vier davon vorbelegt (Frühstück, Mittagessen, Abendessen, Snacks), die restlichen zwei optional und nur sichtbar, sobald sie einen Namen oder Einträge haben. Die Namen stehen im Profil unter „Mahlzeiten"; welchem Abschnitt ein Eintrag zugeordnet ist, ergibt sich daraus, in welchem Abschnitt er erfasst wurde. Alt-Einträge von vor der Migration stehen unter „Ohne Zuordnung" und lassen sich über „Bearbeiten" nachträglich einsortieren. Das Ernährungs-Dashboard zeigt die Kalorien je Abschnitt als Link zur Eintragsliste. Enthält Migration `0003_meal_sections.sql` (fügt nur Spalten hinzu; bestehende Zeilen bekommen `mahlzeit = null`). Spec: `docs/superpowers/specs/2026-08-20-mahlzeiten-abschnitte-design.md`, Plan: `docs/superpowers/plans/2026-08-20-mahlzeiten-abschnitte-plan.md`.
 
@@ -84,6 +84,21 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 2. **Trainingstag/Restday-Kalender** (Integration ins Home-Dashboard).
 3. **Kalorienberechnung je Übung mit eigener Dauer** statt eines MET-Durchschnitts über die ganze Session.
 4. **Schwierigkeitsgrad-Import** aus free-exercise-db (`level`-Feld wird beim Import derzeit verworfen).
+
+## Phase 6 – Design (in Arbeit — Plan 1 bereit zur Umsetzung)
+
+**Ziel:** komplettes visuelles und teilweise strukturelles Redesign für Training, Ernährung, Körper und die drei Analyse-Seiten, nach dem Vorbild eines vom Nutzer bereitgestellten Referenzvideos. Home-Dashboard bleibt bewusst außen vor (eigenes künftiges Vorhaben, braucht erst ein Datenmodell für Trainingstag/Restday).
+
+**Ablauf bisher:**
+1. **Referenzvideo analysiert** (`original-3735dd65e03e83c2a88808c611a05afb.mp4`, vom Nutzer bereitgestellt): Frames per ffmpeg extrahiert (2 fps, 42 Frames), exakte Farbwerte per Pixel-Sampling (Python/Pillow) gemessen statt geschätzt. Ergebnis: `docs/superpowers/specs/2026-09-05-phase6-referenzdesign-analyse.md`.
+2. **Brainstorming abgeschlossen** (architektonischer Pfad, da bereichsübergreifend): Scope (strukturelle Änderungen erlaubt, Home bleibt Platzhalter), Dark-Mode-only, exakte Farbübernahme aus dem Video, Tailwind CSS als neue Abhängigkeit, lucide-react für Icons, kein erhöhter Nav-Mittelbutton — alles vom Nutzer einzeln bestätigt.
+3. **Design-Spec geschrieben und freigegeben:** `docs/superpowers/specs/2026-09-05-phase6-design-design.md`. Enthält alle Design-Tokens (exakte Hex-Werte), sechs Kernkomponenten (Karte, Buttons, Chip, Navigation, Toast, Dialog) und die Farbzuordnung für alle 19 bestehenden Graphen.
+4. **Plan 1 (Fundament) geschrieben und freigegeben:** `docs/superpowers/plans/2026-09-05-phase6-plan1-fundament.md`, 6 Tasks (Tailwind-Setup, Karte/Button/Chip, Navigation, Toast, Dialog, Abschluss). Tailwind 4.3.3 und lucide-react 1.41.0 vor Plan-Erstellung testweise installiert und gegen Build/Lint/Typecheck verifiziert (danach zurückgesetzt — die eigentliche Umsetzung passiert erst über den Plan).
+5. **Umsetzungsart entschieden:** `superpowers:subagent-driven-development` (Nutzerentscheidung 05.09.2026) — noch nicht gestartet.
+
+**Aufteilung wie bei Phase 5:** Plan 1 (Fundament) zuerst, danach je ein eigener Plan pro Bereich (2a Training, 2b Ernährung, 2c Körper, 2d Analyse-Seiten) — noch keiner davon geschrieben, entsteht erst nachdem Plan 1 gemerged ist, da die Bereichs-Pläne die in Plan 1 gebauten Bausteine (Card/Button-Klassen, Chip, Toast, Dialog) voraussetzen.
+
+**Wichtig für den Wiedereinstieg:** Noch kein Code aus Plan 1 umgesetzt — nur Recherche- und Planungsartefakte existieren bisher (die drei Dokumente oben). Vor dem Start von Plan 1 einen isolierten Worktree einrichten (`superpowers:using-git-worktrees`, Teil des `subagent-driven-development`-Ablaufs).
 
 ## Phase 4 – Körperbereich (abgeschlossen)
 
