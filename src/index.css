@@ -61,134 +61,136 @@ body {
   box-sizing: border-box;
 }
 
-h1,
-h2 {
-  font-family: var(--font-sans);
-  font-weight: 500;
-  color: var(--color-text);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+@layer base {
+  h1,
+  h2 {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    color: var(--color-text);
   }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
+
+  h1 {
+    font-size: 56px;
+    letter-spacing: -1.68px;
+    margin: 32px 0;
+    @media (max-width: 1024px) {
+      font-size: 36px;
+      margin: 20px 0;
+    }
   }
-}
-p {
-  margin: 0;
-}
+  h2 {
+    font-size: 24px;
+    line-height: 118%;
+    letter-spacing: -0.24px;
+    margin: 0 0 8px;
+    @media (max-width: 1024px) {
+      font-size: 20px;
+    }
+  }
+  p {
+    margin: 0;
+  }
 
-/* Layout. The app ships plain semantic markup without classes, so every rule
-   here is element-level. Interactive elements are 44px tall — the smallest
-   reliable tap target on a phone. This block is transitional: it styles
-   pages that have not yet been migrated to Tailwind utility classes and the
-   Card/Button/Chip primitives (src/lib/ui-classes.ts, src/components/Chip.tsx).
-   Each area plan in Phase 6 removes the rules its pages no longer need once
-   migrated. */
-#root > * {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
+  /* Layout. The app ships plain semantic markup without classes, so every rule
+     here is element-level. Interactive elements are 44px tall — the smallest
+     reliable tap target on a phone. This block is transitional: it styles
+     pages that have not yet been migrated to Tailwind utility classes and the
+     Card/Button/Chip primitives (src/lib/ui-classes.ts, src/components/Chip.tsx).
+     Each area plan in Phase 6 removes the rules its pages no longer need once
+     migrated. */
+  #root > * {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
 
-/* Progress photos are stored at up to 1600px on the long edge. Without this the
-   intrinsic width forces a horizontal scrollbar on the whole app on a phone. */
-img {
-  max-width: 100%;
-  height: auto;
-}
+  /* Progress photos are stored at up to 1600px on the long edge. Without this the
+     intrinsic width forces a horizontal scrollbar on the whole app on a phone. */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
 
-header {
-  display: flex;
-  justify-content: flex-end;
-  padding: 8px 16px;
-}
+  header {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 16px;
+  }
 
-main {
-  flex: 1;
-  padding: 0 16px 16px;
-}
+  main {
+    flex: 1;
+    padding: 0 16px 16px;
+  }
 
-a {
-  color: var(--color-accent);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  min-width: 44px;
-  padding: 0 8px;
-}
+  a {
+    color: var(--color-accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 8px;
+  }
 
-/* A link that is not part of a list row gets a row of its own, so navigation
-   links stop running together and the whole width stays tappable. Matched by
-   what the link is next to rather than by nesting depth: an extra wrapper
-   element must not silently bring the glued-together links back. */
-main a:not(li a):not(p a) {
-  display: flex;
-}
+  /* A link that is not part of a list row gets a row of its own, so navigation
+     links stop running together and the whole width stays tappable. Matched by
+     what the link is next to rather than by nesting depth: an extra wrapper
+     element must not silently bring the glued-together links back. */
+  main a:not(li a):not(p a) {
+    display: flex;
+  }
 
-/* Transitional border color for pages not yet migrated to the Card primitive.
-   Removed once every list/form in the app uses Card instead of a bordered
-   element (tracked across the Phase 6 area plans). */
-button,
-input,
-select {
-  font: inherit;
-  min-height: 44px;
-  margin: 4px;
-  padding: 8px 12px;
-  border: 1px solid #2e303a;
-  border-radius: 6px;
-  background: var(--color-surface);
-  color: var(--color-text);
-}
+  /* Transitional border color for pages not yet migrated to the Card primitive.
+     Removed once every list/form in the app uses Card instead of a bordered
+     element (tracked across the Phase 6 area plans). */
+  button,
+  input,
+  select {
+    font: inherit;
+    min-height: 44px;
+    margin: 4px;
+    padding: 8px 12px;
+    border: 1px solid #2e303a;
+    border-radius: 6px;
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
 
-button {
-  cursor: pointer;
-}
+  button {
+    cursor: pointer;
+  }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
+  button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
 
-/* The components carry role="list": Safari drops list semantics from a ul
-   whose marker is removed, and VoiceOver would stop announcing "list, N items". */
-ul {
-  list-style: none;
-  margin: 16px 0;
-  padding: 0;
-}
+  /* The components carry role="list": Safari drops list semantics from a ul
+     whose marker is removed, and VoiceOver would stop announcing "list, N items". */
+  ul {
+    list-style: none;
+    margin: 16px 0;
+    padding: 0;
+  }
 
-li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px 0;
-  border-bottom: 1px solid #2e303a;
-}
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid #2e303a;
+  }
 
-/* A form inside a list row belongs under it, not beside it. */
-li form {
-  flex-basis: 100%;
-}
+  /* A form inside a list row belongs under it, not beside it. */
+  li form {
+    flex-basis: 100%;
+  }
 
-label {
-  display: block;
-  margin: 8px 0;
+  label {
+    display: block;
+    margin: 8px 0;
+  }
 }
