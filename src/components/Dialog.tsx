@@ -34,7 +34,7 @@ export default function Dialog({
     <dialog
       ref={ref}
       onClose={onClose}
-      className="rounded-3xl bg-transparent p-0 backdrop:bg-bg/70 backdrop:backdrop-blur-sm"
+      className="m-auto rounded-3xl bg-transparent p-0 backdrop:bg-bg/70 backdrop:backdrop-blur-sm"
     >
       <div className="flex flex-col gap-4">{children}</div>
       <button
