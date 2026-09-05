@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import TrainingPlanEditPage from './TrainingPlanEditPage'
+import { renderWithProviders } from '../test-render'
 
 const mockUseWorkoutPlan = vi.fn()
 vi.mock('../hooks/use-workout-plans', () => ({ useWorkoutPlan: (planId: string) => mockUseWorkoutPlan(planId) }))
@@ -52,13 +52,10 @@ function planResult(overrides: Partial<ReturnType<typeof mockUseWorkoutPlan>> = 
 }
 
 function renderPage() {
-  return render(
-    <MemoryRouter initialEntries={['/training/plans/p1']}>
-      <Routes>
-        <Route path="/training/plans/:planId" element={<TrainingPlanEditPage />} />
-      </Routes>
-    </MemoryRouter>,
-  )
+  return renderWithProviders(<TrainingPlanEditPage />, {
+    route: '/training/plans/p1',
+    path: '/training/plans/:planId',
+  })
 }
 
 describe('TrainingPlanEditPage', () => {
@@ -89,7 +86,7 @@ describe('TrainingPlanEditPage', () => {
     await waitFor(() => expect(result.addDay).toHaveBeenCalledWith('Tag B'))
   })
 
-  it('adds an exercise to a day via inline search', async () => {
+  it('adds an exercise to a day via a picker dialog', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     const result = planResult()
     mockUseWorkoutPlan.mockReturnValue(result)
@@ -102,10 +99,13 @@ describe('TrainingPlanEditPage', () => {
     renderPage()
     await screen.findByText('Tag A')
 
+    fireEvent.click(screen.getByRole('button', { name: 'Übung hinzufügen' }))
     fireEvent.change(screen.getByLabelText('Übung suchen'), { target: { value: 'Kniebeuge' } })
     fireEvent.click(screen.getByRole('button', { name: 'Kniebeuge hinzufügen' }))
 
     await waitFor(() => expect(result.addExerciseToDay).toHaveBeenCalledWith('d1', 'ex2'))
+    // The dialog closes itself once an exercise is picked.
+    expect(screen.queryByLabelText('Übung suchen')).not.toBeInTheDocument()
   })
 
   it('writes a target value once on blur, not on every keystroke', async () => {
