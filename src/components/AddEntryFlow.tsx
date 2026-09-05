@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import ProductPicker from './ProductPicker'
 import type { Product } from '../lib/product-lookup'
+import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 
 type Props = {
   onAdd: (productId: string, menge: number) => Promise<void>
@@ -42,14 +43,18 @@ export default function AddEntryFlow({ onAdd }: Props) {
 
   return (
     <form onSubmit={handleConfirmQuantity}>
-      <p>{product.name}</p>
-      <label>
-        Menge (g)
-        <input type="number" step="any" value={menge} onChange={(event) => setMenge(event.target.value)} />
-      </label>
+      <div className={cardClass}>
+        <p>{product.name}</p>
+        <label>
+          Menge (g)
+          <input type="number" step="any" value={menge} onChange={(event) => setMenge(event.target.value)} />
+        </label>
+      </div>
       {error && <p role="alert">{error}</p>}
-      <button type="submit">Hinzufügen</button>
-      <button type="button" onClick={reset}>
+      <button type="submit" className={buttonPrimaryClass}>
+        Hinzufügen
+      </button>
+      <button type="button" className={buttonSecondaryClass} onClick={reset}>
         Abbrechen
       </button>
     </form>
