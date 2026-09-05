@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useWorkoutSession } from '../hooks/use-workout-session'
+import { cardClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { useToast } from '../components/ToastProvider'
 
 export default function TrainingHistoryDetailPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -19,7 +21,7 @@ export default function TrainingHistoryDetailPage() {
 
 function Detail({ sessionId }: { sessionId: string }) {
   const { session, sets, loading, updateSet, deleteSession } = useWorkoutSession(sessionId)
-  const [error, setError] = useState('')
+  const showToast = useToast()
   const navigate = useNavigate()
 
   if (loading) {
@@ -42,11 +44,10 @@ function Detail({ sessionId }: { sessionId: string }) {
   }
 
   async function run(action: () => Promise<void>, message: string) {
-    setError('')
     try {
       await action()
     } catch {
-      setError(message)
+      showToast(message, 'error')
     }
   }
 
@@ -55,57 +56,58 @@ function Detail({ sessionId }: { sessionId: string }) {
       <h1>Trainingseinheit</h1>
       {/* An unfinished session has no calorie result; "0 kcal" would read as a measurement. */}
       <p>{session.gesamt_kalorien == null ? 'nicht beendet' : `${Math.round(session.gesamt_kalorien)} kcal`}</p>
-      <ul role="list">
+      <ul role="list" className="space-y-4">
         {sets.map((set) => (
-          <li key={set.id}>
-            {set.exercise?.name}
-            <SetField
-              label="Gewicht (kg)"
-              stored={set.gewicht}
-              onCommit={(value) => run(() => updateSet(set.id, { gewicht: value }), 'Speichern fehlgeschlagen.')}
-            />
-            <SetField
-              label="Wiederholungen"
-              stored={set.wiederholungen}
-              integer
-              onCommit={(value) =>
-                run(() => updateSet(set.id, { wiederholungen: value }), 'Speichern fehlgeschlagen.')
-              }
-            />
-            <SetField
-              label="RIR"
-              stored={set.rir}
-              max={5}
-              integer
-              onCommit={(value) => run(() => updateSet(set.id, { rir: value }), 'Speichern fehlgeschlagen.')}
-            />
-            <label>
-              Aufwärmsatz
-              <input
-                type="checkbox"
-                checked={set.ist_aufwaermsatz}
-                // Written straight through: there is nothing to type, so the
-                // blur-commit dance the number fields need buys nothing here.
-                onChange={(event) =>
-                  run(
-                    () => updateSet(set.id, { ist_aufwaermsatz: event.target.checked }),
-                    'Speichern fehlgeschlagen.',
-                  )
+          <li key={set.id} className="block border-b-0">
+            <div className={`${cardClass} w-full`}>
+              {set.exercise?.name}
+              <SetField
+                label="Gewicht (kg)"
+                stored={set.gewicht}
+                onCommit={(value) => run(() => updateSet(set.id, { gewicht: value }), 'Speichern fehlgeschlagen.')}
+              />
+              <SetField
+                label="Wiederholungen"
+                stored={set.wiederholungen}
+                integer
+                onCommit={(value) =>
+                  run(() => updateSet(set.id, { wiederholungen: value }), 'Speichern fehlgeschlagen.')
                 }
               />
-            </label>
+              <SetField
+                label="RIR"
+                stored={set.rir}
+                max={5}
+                integer
+                onCommit={(value) => run(() => updateSet(set.id, { rir: value }), 'Speichern fehlgeschlagen.')}
+              />
+              <label>
+                Aufwärmsatz
+                <input
+                  type="checkbox"
+                  checked={set.ist_aufwaermsatz}
+                  // Written straight through: there is nothing to type, so the
+                  // blur-commit dance the number fields need buys nothing here.
+                  onChange={(event) =>
+                    run(
+                      () => updateSet(set.id, { ist_aufwaermsatz: event.target.checked }),
+                      'Speichern fehlgeschlagen.',
+                    )
+                  }
+                />
+              </label>
+            </div>
           </li>
         ))}
       </ul>
-      {error !== '' && <p role="alert">{error}</p>}
       <button
         type="button"
+        className={buttonSecondaryClass}
         onClick={async () => {
-          setError('')
           try {
             await deleteSession()
           } catch {
-            setError('Löschen fehlgeschlagen.')
+            showToast('Löschen fehlgeschlagen.', 'error')
             return
           }
           navigate('/training/history')
