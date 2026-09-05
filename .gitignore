@@ -30,3 +30,6 @@ dist-ssr
 
 # Scratch space for subagent-driven development (ledger, briefs, review packages)
 .superpowers/
+
+# Firebase CLI's local deploy cache (file-hash cache, not project config)
+.firebase/

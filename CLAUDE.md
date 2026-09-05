@@ -11,7 +11,7 @@ Progressive Web App, die Training und Ernährung kombiniert. Installierbar über
 - Barcode-Daten: Open Food Facts API
 - Übungsdatenbank: free-exercise-db (einmaliger Import in eigene Tabelle)
 - Foto-Analyse (spätere Phase): Gemini API
-- Hosting: Firebase Hosting oder Supabase Hosting
+- Hosting: Firebase Hosting (Projekt `fitness-app-3e8f5`, live unter `https://fitness-app-3e8f5.web.app`, seit 05.09.2026)
 
 ## Namenskonventionen
 
@@ -73,7 +73,7 @@ Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer 
 
 **Aktueller Stand:** Phase 1, 2 und 3 sind gemerged, deployed und manuell gegen Produktion verifiziert; die kosmetischen Nacharbeiten am Layout ebenfalls (PR #22/#23, Merge-Commit `5b79651`). **Phase 4 (Körperbereich) ist gemerged und gegen Produktion verifiziert** (PR #26, Merge-Commit `63aced2`) — Details im eigenen Abschnitt weiter unten. **Phase 5 (Analysebereich) ist ebenfalls vollständig gemerged und verifiziert** — Details im eigenen Abschnitt weiter unten. Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header. Der Ernährungsbereich hat eine eigene Eintragsliste unter `/nutrition/entries`, nach Mahlzeiten-Abschnitten gegliedert (PR #20, Merge-Commit `752587c`; Phase 3: PR #21, `7420145`).
 
-**Genau hier weitermachen (Stand 05.09.2026):** Zwei Dinge stehen an, bevor Phase 6 beginnt: (1) Hosting einrichten (Firebase Hosting oder Supabase Hosting) — die App läuft bisher nur lokal über `npm run dev`, hat keine dauerhafte URL, ist vom iPhone aus also nur über das lokale WLAN erreichbar (siehe „Dev-Server am Handy testen" unten). (2) Danach **Phase 6 (Design)**, nachträglich vor die Härtung eingeschoben (Nutzerentscheidung 05.09.2026, analog dazu, wie der Analysebereich vor die Härtung geschoben wurde) — noch keine Spec/kein Plan. Härtung rückt auf Phase 7.
+**Genau hier weitermachen (Stand 05.09.2026):** Hosting ist erledigt (siehe „Hosting" im Tech-Stack oben) — die App ist jetzt dauerhaft unter `https://fitness-app-3e8f5.web.app` erreichbar, auch vom iPhone aus (Safari öffnen, URL eingeben, über „Teilen" → „Zum Home-Bildschirm" installierbar, ganz ohne App Store). Deploy bei künftigen Änderungen: `npm run build && firebase deploy --only hosting` (manuell, noch nicht in die CI-Pipeline integriert — das wäre ein Kandidat für Phase 7/Härtung). Als Nächstes: **Phase 6 (Design)**, nachträglich vor die Härtung eingeschoben (Nutzerentscheidung 05.09.2026, analog dazu, wie der Analysebereich vor die Härtung geschoben wurde) — noch keine Spec/kein Plan. Härtung rückt auf Phase 7.
 
 **Mahlzeiten-Abschnitte (gemerged, alle 9 Tasks fertig):** Einträge auf `/nutrition/entries` sind nach Mahlzeiten gegliedert — sechs feste Slots, vier davon vorbelegt (Frühstück, Mittagessen, Abendessen, Snacks), die restlichen zwei optional und nur sichtbar, sobald sie einen Namen oder Einträge haben. Die Namen stehen im Profil unter „Mahlzeiten"; welchem Abschnitt ein Eintrag zugeordnet ist, ergibt sich daraus, in welchem Abschnitt er erfasst wurde. Alt-Einträge von vor der Migration stehen unter „Ohne Zuordnung" und lassen sich über „Bearbeiten" nachträglich einsortieren. Das Ernährungs-Dashboard zeigt die Kalorien je Abschnitt als Link zur Eintragsliste. Enthält Migration `0003_meal_sections.sql` (fügt nur Spalten hinzu; bestehende Zeilen bekommen `mahlzeit = null`). Spec: `docs/superpowers/specs/2026-08-20-mahlzeiten-abschnitte-design.md`, Plan: `docs/superpowers/plans/2026-08-20-mahlzeiten-abschnitte-plan.md`.
 
