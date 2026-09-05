@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes } from 'react'
 
-type ChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+export type ChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   active: boolean
 }
 
@@ -14,7 +14,7 @@ export default function Chip({ active, className = '', ...props }: ChipProps) {
     <button
       type="button"
       aria-pressed={active}
-      className={`rounded-full px-4 py-2 font-medium ${
+      className={`rounded-full border-0 m-0 px-4 py-2 font-medium ${
         active ? 'bg-accent text-text' : 'bg-surface text-text-muted'
       } ${className}`}
       {...props}

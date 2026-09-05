@@ -11,11 +11,15 @@ describe('ui-classes', () => {
     expect(buttonPrimaryClass).toContain('bg-accent')
     expect(buttonPrimaryClass).toContain('w-full')
     expect(buttonPrimaryClass).toContain('rounded-2xl')
+    expect(buttonPrimaryClass).toContain('border-0')
+    expect(buttonPrimaryClass).toContain('m-0')
   })
 
   it('keeps the secondary button visually distinct from the primary one', () => {
     expect(buttonSecondaryClass).not.toContain('bg-accent')
     expect(buttonSecondaryClass).not.toContain('w-full')
     expect(buttonSecondaryClass).toContain('rounded-2xl')
+    expect(buttonSecondaryClass).toContain('border-0')
+    expect(buttonSecondaryClass).toContain('m-0')
   })
 })

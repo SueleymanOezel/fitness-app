@@ -8,7 +8,7 @@
 export const cardClass = 'bg-surface rounded-3xl p-6'
 
 export const buttonPrimaryClass =
-  'w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-text disabled:opacity-50'
+  'w-full rounded-2xl border-0 m-0 bg-accent px-4 py-3 font-semibold text-text disabled:opacity-50'
 
 export const buttonSecondaryClass =
-  'rounded-2xl bg-surface px-4 py-3 font-semibold text-text disabled:opacity-50'
+  'rounded-2xl border-0 m-0 bg-surface px-4 py-3 font-semibold text-text disabled:opacity-50'
