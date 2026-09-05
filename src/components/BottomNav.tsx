@@ -17,7 +17,6 @@ const tabs = [
 export default function BottomNav() {
   return (
     <nav
-      role="list"
       className="sticky bottom-4 mx-4 flex justify-around rounded-full bg-surface-raised p-2"
       style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
     >
