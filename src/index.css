@@ -122,21 +122,6 @@ main {
   padding: 0 16px 16px;
 }
 
-nav {
-  position: sticky;
-  bottom: 0;
-  /* Keeps the tabs clear of the home indicator, which otherwise covers their
-     lower third and wins the touch. */
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  display: flex;
-  background: var(--color-bg);
-  border-top: 1px solid #2e303a;
-}
-
-nav a {
-  flex: 1;
-}
-
 a {
   color: var(--color-accent);
   display: inline-flex;
