@@ -67,13 +67,26 @@ Wichtig: Nach jeder Phase soll eine Zusammenfassung gegeben und Tests durchgefü
 
 Das vollständige Architekturkonzept mit Datenbankschema, REST-API-Endpunkten pro Bereich, UI/UX-Konzept und OWASP-Checkliste liegt in docs/architektur.md. Bei Unklarheiten dort nachschlagen, bevor Annahmen getroffen werden.
 
+## Codex/GPT als Zweitmeinung und Kontingent-Entlastung
+
+Seit 06.09.2026: Codex CLI (`npm install -g @openai/codex`) ist lokal installiert und über den ChatGPT-Account des Nutzers angemeldet — läuft auf dessen eigenem OpenAI-Kontingent, komplett unabhängig von Claudes Nutzungslimit. `codex doctor` zeigt Auth-/Verbindungsstatus; aktuell bestes verfügbares Modell ist `gpt-5.6-sol` (Slug bestätigt am 06.09.2026 — ein neues Modell kann eine neuere CLI-Version voraussetzen, die Fehlermeldung nennt das dann explizit, `npm install -g @openai/codex` aktualisiert).
+
+**Zweitmeinung bei Reviews:** Nach jedem Whole-Branch-Review (und optional bei größeren Task-Reviews) zusätzlich `codex review -c model="gpt-5.6-sol" --base <base-branch>` laufen lassen, als unabhängige zweite Meinung neben dem eigenen Review — ersetzt den bestehenden Review-Prozess aus `subagent-driven-development` nicht (Task-Reviewer, Whole-Branch-Review, Scoped Re-Review bleiben wie gehabt), ergänzt ihn nur. Ergebnis kurz im Status-Abschnitt des jeweiligen Plans festhalten (siehe „Plan 2b" als Beispiel).
+
+**Bei Claude-Nutzungslimit:** Codex/GPT für die Code-*Generierung* einsetzen, das Ergebnis danach selbst reviewen (Review kostet deutlich weniger als Generierung) — spart Claude-Kontingent, ohne die Qualitätskontrolle aufzugeben. Sinnvoll vor allem für mechanische, klar spezifizierte Tasks (vergleichbar mit den „cheap model"-Tasks in `subagent-driven-development`), weniger geeignet für Architektur-/Design-Entscheidungen mit viel Projektkontext.
+
+Befehle:
+- `codex exec --sandbox read-only -m gpt-5.6-sol "<Prompt>"` — nur lesen/antworten, keine Dateiänderungen.
+- `codex exec --sandbox workspace-write -m gpt-5.6-sol "<Auftrag>"` — darf Dateien im Arbeitsverzeichnis ändern.
+- `codex review -c model="gpt-5.6-sol" --base <branch> --title "<Titel>"` — eigenständiger Review-Lauf gegen einen Base-Branch.
+
 ## Status / Fortschritt (laufend aktuell halten)
 
 Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer Chat sofort weiß, was gemacht wurde und was als Nächstes ansteht.
 
 **Aktueller Stand:** Phase 1, 2 und 3 sind gemerged, deployed und manuell gegen Produktion verifiziert; die kosmetischen Nacharbeiten am Layout ebenfalls (PR #22/#23, Merge-Commit `5b79651`). **Phase 4 (Körperbereich) ist gemerged und gegen Produktion verifiziert** (PR #26, Merge-Commit `63aced2`) — Details im eigenen Abschnitt weiter unten. **Phase 5 (Analysebereich) ist ebenfalls vollständig gemerged und verifiziert** — Details im eigenen Abschnitt weiter unten. Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header. Der Ernährungsbereich hat eine eigene Eintragsliste unter `/nutrition/entries`, nach Mahlzeiten-Abschnitten gegliedert (PR #20, Merge-Commit `752587c`; Phase 3: PR #21, `7420145`).
 
-**Genau hier weitermachen (Stand 06.09.2026):** Hosting ist erledigt, App heißt jetzt **VitaLoop** (siehe „Hosting" im Tech-Stack oben) — dauerhaft erreichbar unter `https://vitaloop.web.app`. **Phase 6 (Design), Plan 1 (Fundament) ist vollständig umgesetzt, reviewt und gemerged** (PR #40, Merge-Commit `b891d0b`, alle vier CI-Checks grün). **Plan 2a (Training) ist ebenfalls vollständig umgesetzt, reviewt und gemerged** (PR #41, Merge-Commit `f187a4b`, alle CI-Checks grün) — Worktree und Branch entfernt. **Plan 2b (Ernährung) ist vollständig umgesetzt, reviewt (Whole-Branch-Review + 1 Fix-Welle + Scoped Re-Review clean) und als PR #42 offen** (Branch `worktree-phase6-plan2b-ernaehrung`, 730 Tests grün) — **CI-Checks abwarten, danach mergen.** Details im eigenen Abschnitt „Plan 2b" weiter unten. Danach folgen 2c (Körper), 2d (Analyse-Seiten), noch keiner geschrieben. Härtung rückt auf Phase 7.
+**Genau hier weitermachen (Stand 06.09.2026):** Hosting ist erledigt, App heißt jetzt **VitaLoop** (siehe „Hosting" im Tech-Stack oben) — dauerhaft erreichbar unter `https://vitaloop.web.app`. **Phase 6 (Design), Plan 1 (Fundament) ist vollständig umgesetzt, reviewt und gemerged** (PR #40, Merge-Commit `b891d0b`, alle vier CI-Checks grün). **Plan 2a (Training) ist ebenfalls vollständig umgesetzt, reviewt und gemerged** (PR #41, Merge-Commit `f187a4b`, alle CI-Checks grün) — Worktree und Branch entfernt. **Plan 2b (Ernährung) ist vollständig umgesetzt, reviewt (Whole-Branch-Review + 1 Fix-Welle + Scoped Re-Review clean, zusätzlich unabhängig von Codex/GPT-5.6-Sol gegengeprüft) und gemerged** (PR #42, Merge-Commit `82112fa`, alle vier CI-Checks grün) — Worktree und Branch entfernt. Details im eigenen Abschnitt „Plan 2b" weiter unten. Danach folgen 2c (Körper), 2d (Analyse-Seiten), noch keiner geschrieben. Härtung rückt auf Phase 7.
 
 **Mahlzeiten-Abschnitte (gemerged, alle 9 Tasks fertig):** Einträge auf `/nutrition/entries` sind nach Mahlzeiten gegliedert — sechs feste Slots, vier davon vorbelegt (Frühstück, Mittagessen, Abendessen, Snacks), die restlichen zwei optional und nur sichtbar, sobald sie einen Namen oder Einträge haben. Die Namen stehen im Profil unter „Mahlzeiten"; welchem Abschnitt ein Eintrag zugeordnet ist, ergibt sich daraus, in welchem Abschnitt er erfasst wurde. Alt-Einträge von vor der Migration stehen unter „Ohne Zuordnung" und lassen sich über „Bearbeiten" nachträglich einsortieren. Das Ernährungs-Dashboard zeigt die Kalorien je Abschnitt als Link zur Eintragsliste. Enthält Migration `0003_meal_sections.sql` (fügt nur Spalten hinzu; bestehende Zeilen bekommen `mahlzeit = null`). Spec: `docs/superpowers/specs/2026-08-20-mahlzeiten-abschnitte-design.md`, Plan: `docs/superpowers/plans/2026-08-20-mahlzeiten-abschnitte-plan.md`.
 
@@ -85,7 +98,7 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 3. **Kalorienberechnung je Übung mit eigener Dauer** statt eines MET-Durchschnitts über die ganze Session.
 4. **Schwierigkeitsgrad-Import** aus free-exercise-db (`level`-Feld wird beim Import derzeit verworfen).
 
-## Phase 6 – Design (in Arbeit — Plan 1 und Plan 2a gemerged, Plan 2b als PR #42 offen)
+## Phase 6 – Design (in Arbeit — Plan 1, Plan 2a und Plan 2b gemerged)
 
 **Ziel:** komplettes visuelles und teilweise strukturelles Redesign für Training, Ernährung, Körper und die drei Analyse-Seiten, nach dem Vorbild eines vom Nutzer bereitgestellten Referenzvideos. Home-Dashboard bleibt bewusst außen vor (eigenes künftiges Vorhaben, braucht erst ein Datenmodell für Trainingstag/Restday).
 
@@ -149,7 +162,7 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Stand nach Task 9: 726 Tests grün** (104 Dateien), Lint ohne Fehler und Warnungen, `tsc -b --noEmit` sauber, `npm run build` erfolgreich. Entry-Chunk `dist/assets/index-0FBfwa9p.js` 235,36 kB (75,50 kB gzip), CSS `dist/assets/index-B1IpXdqo.css` ~15,5 kB — kein echter Vergleichswert zur `master`-Baseline (Worktree ohne `.env`, wie bei Plan 1). Keine Migration in diesem Plan, `docs/domaenenmodell.md` unverändert.
 
-## Plan 2b – Ernährungsbereich im neuen Design (umgesetzt und reviewt, PR #42 offen)
+## Plan 2b – Ernährungsbereich im neuen Design (gemerged, PR #42)
 
 **Plan:** `docs/superpowers/plans/2026-09-05-phase6-plan2b-ernaehrung-plan.md`, Commit `0b73bf1` auf `master`, 7 Tasks. Dashboard-Tagesübersicht als Karte, die Barcode-/Produktsuche-Kette (`ProductPicker`/`BarcodeScanner`/`ManualProductForm`/`AddEntryFlow`) und der Bearbeiten-Flow (`FoodEntryList`/`FoodEntryEditForm`) verwenden jetzt die in Plan 1 gebauten Bausteine. Umgesetzt per `superpowers:subagent-driven-development`, isolierter Worktree/Branch `worktree-phase6-plan2b-ernaehrung`.
 
@@ -168,15 +181,17 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Whole-Branch-Review (Opus) und eine Fix-Welle abgeschlossen:** Verdict „Ready to merge? Yes" — kein Critical, 2 Important (`AddEntryFlow`s „Abbrechen" auf dem `ProductPicker`-Idle-Screen war im neuen Dialog-Kontext ein No-op statt den Dialog zu schließen — kein Regressionsfehler, aber die Dialog-Umstellung machte den bereits bestehenden toten Button zur Falle; `FoodEntryList.test.tsx` hatte keine Assertion, die das Karten-in-Liste-Markup sperrt, obwohl das die fragilste Eigenschaft dieses Plans ist), 3 Minor bewusst geparkt (`ManualProductForm`-Einrückung aus Task 2, ein unbeabsichtigt reichender `index.css`-Selektor ohne beobachteten Effekt, `buttonSecondaryClass`/`cardClass` teilen `bg-surface` — eine Plan-1-Eigenschaft, kein Plan-2b-Verstoß). Beide Important-Findings in einer Fix-Welle behoben (Commit `106d2f5` — `AddEntryFlow` bekommt ein optionales `onCancel`-Prop mit Default `reset`, `SectionBlock` übergibt `onCancel={() => setDialogOpen(false)}`; neuer Test sperrt das `<li>`/`<div>`-Markup), Scoped Re-Review bestätigte beide Findings ADDRESSED ohne neue Breakage.
 
-**Als PR #42 gegen `master` offen** (Branch `worktree-phase6-plan2b-ernaehrung`), CI-Checks (Semgrep, npm audit, ZAP, build-test) noch abzuwarten. Worktree bleibt bis zum Merge bestehen.
+**Zusätzlich unabhängig von Codex (GPT-5.6-Sol) gegengeprüft** (siehe „Codex/GPT als Zweitmeinung" oben) — `codex review -c model="gpt-5.6-sol" --base origin/master` auf dem finalen, bereits gefixten Stand: „The changes consistently apply the new design components while preserving existing behavior. The new dialog and toast integrations include appropriate provider usage and state-reset handling, and no actionable regressions were identified." Deckt sich mit dem Opus-Verdict — zwei unabhängige Modelle, gleiches Ergebnis.
+
+**PR #42 gegen `master` gemergt** (Merge-Commit `82112fa`, alle vier CI-Checks grün: build-test, npm-audit, semgrep, zap-baseline), Worktree und Branch entfernt.
 
 **Manuelle Browser-Verifikation (alle 8 Punkte grün, keine Funde):** über eine Wegwerf-Testseite (`TestPlayPage.tsx` + temporäre Route in `App.tsx`, beide nicht committet, nach der Prüfung entfernt) im echten Chrome-Tab geprüft, da kein Test in diesem Plan echtes Layout rendert. `DailySummary` als abgerundete Karte ohne Rahmen; `FoodEntryList`-Einträge als Karten; Dialog öffnet zentriert mit verschwommenem Hintergrund (die Plan-1-Regressionsklasse tritt hier nicht erneut auf); „Barcode scannen" als voller lila Hauptbutton, Rest sekundär; ungültige Barcode-Nummer zeigt die Fehlermeldung lesbar innerhalb des offenen Dialogs; Dialog schließen und neu öffnen zeigt ein leeres Formular ohne Altwerte/-fehler; „Bearbeiten" öffnet ebenfalls zentriert mit Formular als Karte, „Speichern" als Hauptbutton; ein simulierter Löschfehler zeigt einen echten Toast (`position:fixed`, `top:18px`, sichtbar per `getComputedStyle` bestätigt — Screenshot-Tool hatte erneut Timing-Probleme mit dem 4-Sekunden-Auto-Dismiss, wie schon in Plan 2a, kein App-Fehler); Konsole auf der Testseite durchgängig ohne Fehler oder Warnungen.
 
 **Stand nach Task 7 und Fix-Welle: 730 Tests grün** (104 Dateien), Lint ohne Fehler und Warnungen, `tsc -b --noEmit` sauber, `npm run build` erfolgreich. Entry-Chunk `dist/assets/index-CR0IR7-K.js` 235,36 kB (75,50 kB gzip), CSS `dist/assets/index-D2fk5ca_.css` 15,95 kB (3,98 kB gzip) — kein echter Vergleichswert zur `master`-Baseline (Worktree ohne `.env`, wie bei Plan 1/2a: das komplette Barcode-Scanner-Subsystem fehlt im Entry-Chunk). Keine Migration in diesem Plan, `docs/domaenenmodell.md` unverändert.
 
-**Noch offen:** CI-Checks auf PR #42 abwarten, danach mergen. Nach dem Merge: Worktree/Branch `worktree-phase6-plan2b-ernaehrung` entfernen, Wiki synchronisieren.
+**Noch offen:** Wiki synchronisieren (noch nicht gemacht für Plan 2b).
 
-**Aufteilung wie bei Phase 5:** Plan 1 (Fundament) — **fertig und gemerged** —, Plan 2a (Training) — **fertig und gemerged** —, Plan 2b (Ernährung) — **umgesetzt, reviewt, als PR #42 offen** —, danach Plan 2c (Körper), 2d (Analyse-Seiten), noch keiner geschrieben.
+**Aufteilung wie bei Phase 5:** Plan 1 (Fundament) — **fertig und gemerged** —, Plan 2a (Training) — **fertig und gemerged** —, Plan 2b (Ernährung) — **fertig und gemerged** —, danach Plan 2c (Körper), 2d (Analyse-Seiten), noch keiner geschrieben.
 
 ## Phase 4 – Körperbereich (abgeschlossen)
 
