@@ -7,6 +7,8 @@ import { mealSections, visibleSections, type MealSection } from '../lib/meal-sec
 import { sumKalorien } from '../lib/entry-calories'
 import FoodEntryList from '../components/FoodEntryList'
 import AddEntryFlow from '../components/AddEntryFlow'
+import { buttonPrimaryClass } from '../lib/ui-classes'
+import Dialog from '../components/Dialog'
 
 export default function NutritionEntriesPage() {
   const { session } = useSession()
@@ -98,10 +100,7 @@ function SectionBlock({
   updateEntry: (entryId: string, patch: EntryPatch) => Promise<void>
   deleteEntry: (entryId: string) => Promise<void>
 }) {
-  // Collapsed by default: with up to six sections, an always-open capture flow
-  // in each one stacks that many full forms (barcode input, manual entry, …)
-  // on screen at once. One local flag per section is all this needs.
-  const [adding, setAdding] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
     <section>
@@ -114,19 +113,26 @@ function SectionBlock({
         onDelete={deleteEntry}
       />
       {/* No add button for the unassigned group — nothing new belongs there. */}
-      {slot !== null &&
-        (adding ? (
-          <AddEntryFlow
-            onAdd={async (productId, menge) => {
-              await addEntry(productId, menge, slot)
-              setAdding(false)
-            }}
-          />
-        ) : (
-          <button type="button" onClick={() => setAdding(true)}>
+      {slot !== null && (
+        <>
+          <button type="button" className={buttonPrimaryClass} onClick={() => setDialogOpen(true)}>
             + Hinzufügen
           </button>
-        ))}
+          {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
+              rendering AddEntryFlow only while open resets its product/quantity/error
+              state each time it opens, instead of showing the last attempt's leftovers. */}
+          <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+            {dialogOpen && (
+              <AddEntryFlow
+                onAdd={async (productId, menge) => {
+                  await addEntry(productId, menge, slot)
+                  setDialogOpen(false)
+                }}
+              />
+            )}
+          </Dialog>
+        </>
+      )}
     </section>
   )
 }
