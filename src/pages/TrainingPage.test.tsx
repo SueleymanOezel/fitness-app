@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
+import { renderWithProviders } from '../test-render'
 import TrainingPage from './TrainingPage'
 
 const mockUseSession = vi.fn()
@@ -33,7 +33,7 @@ const activeDay = {
 }
 
 function zeigeDashboard() {
-  return render(<TrainingPage />, { wrapper: MemoryRouter })
+  return renderWithProviders(<TrainingPage />)
 }
 
 describe('TrainingPage', () => {
