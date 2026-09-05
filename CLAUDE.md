@@ -73,7 +73,7 @@ Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer 
 
 **Aktueller Stand:** Phase 1, 2 und 3 sind gemerged, deployed und manuell gegen Produktion verifiziert; die kosmetischen Nacharbeiten am Layout ebenfalls (PR #22/#23, Merge-Commit `5b79651`). **Phase 4 (Körperbereich) ist gemerged und gegen Produktion verifiziert** (PR #26, Merge-Commit `63aced2`) — Details im eigenen Abschnitt weiter unten. **Phase 5 (Analysebereich) ist ebenfalls vollständig gemerged und verifiziert** — Details im eigenen Abschnitt weiter unten. Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header. Der Ernährungsbereich hat eine eigene Eintragsliste unter `/nutrition/entries`, nach Mahlzeiten-Abschnitten gegliedert (PR #20, Merge-Commit `752587c`; Phase 3: PR #21, `7420145`).
 
-**Genau hier weitermachen (Stand 05.09.2026):** Hosting ist erledigt, App heißt jetzt **VitaLoop** (siehe „Hosting" im Tech-Stack oben) — dauerhaft erreichbar unter `https://vitaloop.web.app`. **Phase 6 (Design), Plan 1 (Fundament) ist vollständig umgesetzt, reviewt und gemerged** (PR #40, Merge-Commit `b891d0b`, alle vier CI-Checks grün) — Worktree und Branch entfernt. **Nächster Schritt: die Bereichs-Pläne schreiben** (2a Training, 2b Ernährung, 2c Körper, 2d Analyse-Seiten — noch keiner davon existiert), die die in Plan 1 gebauten Bausteine (Card/Button-Klassen, Chip, Navigation, Toast, Dialog) tatsächlich in den Seiten einsetzen. Details im eigenen Abschnitt „Phase 6" weiter unten. Härtung rückt auf Phase 7.
+**Genau hier weitermachen (Stand 05.09.2026):** Hosting ist erledigt, App heißt jetzt **VitaLoop** (siehe „Hosting" im Tech-Stack oben) — dauerhaft erreichbar unter `https://vitaloop.web.app`. **Phase 6 (Design), Plan 1 (Fundament) ist vollständig umgesetzt, reviewt und gemerged** (PR #40, Merge-Commit `b891d0b`, alle vier CI-Checks grün). **Plan 2a (Training) ist vollständig umgesetzt und reviewt** (alle 8 Tasks, per `superpowers:subagent-driven-development` im Worktree/Branch `worktree-phase6-plan2a-training`) — Whole-Branch-Review und Merge stehen noch aus. **Nächster Schritt danach: Plan 2b (Ernährung), 2c (Körper), 2d (Analyse-Seiten) schreiben** — noch keiner davon existiert. Details im eigenen Abschnitt „Phase 6" weiter unten. Härtung rückt auf Phase 7.
 
 **Mahlzeiten-Abschnitte (gemerged, alle 9 Tasks fertig):** Einträge auf `/nutrition/entries` sind nach Mahlzeiten gegliedert — sechs feste Slots, vier davon vorbelegt (Frühstück, Mittagessen, Abendessen, Snacks), die restlichen zwei optional und nur sichtbar, sobald sie einen Namen oder Einträge haben. Die Namen stehen im Profil unter „Mahlzeiten"; welchem Abschnitt ein Eintrag zugeordnet ist, ergibt sich daraus, in welchem Abschnitt er erfasst wurde. Alt-Einträge von vor der Migration stehen unter „Ohne Zuordnung" und lassen sich über „Bearbeiten" nachträglich einsortieren. Das Ernährungs-Dashboard zeigt die Kalorien je Abschnitt als Link zur Eintragsliste. Enthält Migration `0003_meal_sections.sql` (fügt nur Spalten hinzu; bestehende Zeilen bekommen `mahlzeit = null`). Spec: `docs/superpowers/specs/2026-08-20-mahlzeiten-abschnitte-design.md`, Plan: `docs/superpowers/plans/2026-08-20-mahlzeiten-abschnitte-plan.md`.
 
@@ -85,7 +85,7 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 3. **Kalorienberechnung je Übung mit eigener Dauer** statt eines MET-Durchschnitts über die ganze Session.
 4. **Schwierigkeitsgrad-Import** aus free-exercise-db (`level`-Feld wird beim Import derzeit verworfen).
 
-## Phase 6 – Design (in Arbeit — Plan 1 gemerged, Bereichs-Pläne noch zu schreiben)
+## Phase 6 – Design (in Arbeit — Plan 1 gemerged, Plan 2a umgesetzt und reviewt, Merge steht aus)
 
 **Ziel:** komplettes visuelles und teilweise strukturelles Redesign für Training, Ernährung, Körper und die drei Analyse-Seiten, nach dem Vorbild eines vom Nutzer bereitgestellten Referenzvideos. Home-Dashboard bleibt bewusst außen vor (eigenes künftiges Vorhaben, braucht erst ein Datenmodell für Trainingstag/Restday).
 
@@ -118,9 +118,39 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 **Ein Ding, das beim Weiterbauen gilt:**
 - **Uebergangsregeln in `index.css` muessen in `@layer base` stehen, sonst schlagen sie jede Tailwind-Utility-Klasse.** Tailwind v4 packt alle eigenen Utilities in `@layer utilities`, und ein unlayered Element-Selektor gewinnt gegen jede layered Regel unabhaengig von Spezifitaet. Genau dieser Fehler machte in Plan 1 den `border-0`/`m-0`-Fix aus Task 2 wirkungslos und liess alle vier BottomNav-Icons identisch akzentfarben rendern, bis er im Whole-Branch-Review gefunden wurde.
 
-**Aufteilung wie bei Phase 5:** Plan 1 (Fundament) zuerst — **jetzt fertig und gemerged** —, danach je ein eigener Plan pro Bereich (2a Training, 2b Ernährung, 2c Körper, 2d Analyse-Seiten). **Keiner der vier Bereichs-Pläne ist bisher geschrieben** — das ist der nächste Schritt, da die Bereichs-Pläne die in Plan 1 gebauten Bausteine voraussetzen.
+## Plan 2a – Trainingsbereich im neuen Design (umgesetzt und reviewt — Merge steht aus)
 
-**Wichtig für den Wiedereinstieg:** Plan 1 ist vollständig auf `master` (PR #40, Merge-Commit `b891d0b`), Worktree und Branch entfernt. Nächster Schritt: mit Plan 2a starten (`superpowers:brainstorming`/`superpowers:writing-plans`, in einem eigenen Worktree).
+**Plan:** `docs/superpowers/plans/2026-09-05-phase6-plan2a-training-plan.md`, 9 Tasks. Alle sieben Trainingsseiten (Dashboard, Pläne, Plan-Editor, Übungen, Live-Modus, Historie, Historien-Detail) verwenden jetzt die in Plan 1 gebauten Bausteine statt der alten unstylisierten Listen und `<p role="alert">`-Meldungen.
+
+**Ablauf:** Kein separates Plan-Brainstorming nötig (Design-Entscheidungen waren schon im Phase-6-Design-Spec getroffen, „Struktur je Bereich" nennt Training explizit) — direkt von `superpowers:writing-plans` in den Plan, dann `superpowers:subagent-driven-development` im Worktree/Branch `worktree-phase6-plan2a-training`. Pre-Flight-Scan clean (keine Task-Konflikte).
+
+**Alle 8 Tasks, je einzeln reviewt:**
+- Task 1 (Test-Render-Helfer, `renderWithProviders`): Commit `dde199e`, Review clean, keine Fix-Runde.
+- Task 2 (Dashboard): Commit `73b1886` (nach Cherry-Pick, siehe Zwischenfall unten), Review clean, keine Fix-Runde.
+- Task 3 (Pläne-Liste): Commit `819866e`, Review clean, keine Fix-Runde.
+- Task 4 (Übungsliste, Dialog für „Eigene Übung anlegen"): Commit `b7a8f1f`, Review clean, keine Fix-Runde.
+- Task 5 (Plan-Editor, Dialog-Übungssuche — umfangreichster Task): Commit `d10875e`, Review clean, keine Fix-Runde.
+- Task 6 (Live-Modus, Chip-Reihe für RIR, Log-Screen-Muster): Commit `635a6bb`, Review clean, keine Fix-Runde.
+- Task 7 (Historie): Commit `dbc2458`, Review clean, keine Fix-Runde.
+- Task 8 (Historien-Detail): Commit `dad19b2`, Review clean, keine Fix-Runde.
+- Task 9 (Abschluss): Bundle gemessen, `docs/domaenenmodell.md` geprüft (keine Änderung nötig), manuelle Browser-Verifikation (siehe unten), Status hier nachgezogen.
+
+**Zwischenfall bei Task 2 (behoben, kein Datenverlust):** der Implementer-Subagent arbeitete versehentlich im Haupt-Checkout (`G:\Code Projekte\fitness-app\fitness-app`) statt im Worktree und committete dort direkt auf `master`. Bemerkt, bevor irgendetwas gepusht wurde. Behoben: Commit per `git cherry-pick` in den Worktree-Branch übernommen (`73b1886`), `master` per `git reset --hard origin/master` wieder auf den Remote-Stand zurückgesetzt, zwei doppelte Untracked-Dateien im Haupt-Checkout gelöscht. **Seither Prozessänderung:** nach jedem Implementer-Report verifiziert der Controller per `git log` im Worktree, dass der Commit auch wirklich dort gelandet ist, bevor das Review-Package erzeugt wird — bei allen folgenden sieben Tasks bestätigt.
+
+**Design-Entscheidungen, vom Controller getroffen (Spec deckte nur die grobe Struktur ab, Datei-für-Datei-Umsetzung war bewusst dem Plan überlassen):**
+- **Karten-in-Liste-Muster:** `<li className="block border-b-0">` umschließt `<div className={`${cardClass} w-full`}>` — niemals `cardClass` direkt auf `<li>`. Grund: die Übergangsregel für `li` in `index.css` (`display:flex; justify-content:center; border-bottom:...`) würde sonst durchschlagen (dieselbe Klasse Fund wie Plan 1s Cascade-Layer-Bug, hier vorab vermieden). `<section>` ist von keiner Übergangsregel betroffen, bekommt `cardClass` deshalb direkt.
+- **Toast vs. inline:** kurzlebige Aktions-Fehler (Speichern/Löschen/Aktivieren/Starten/Satz-Loggen) → Toast. Formular-Validierung (leerer Pflichtwert) und seitenblockierende Ladefehler bleiben inline — exakt die Regel aus `ToastProvider.tsx`s eigenem Doc-Kommentar.
+- **Dialog** für zwei neue Sheet-Abläufe: Übungssuche im Plan-Editor, „Eigene Übung anlegen". **Bewusst kein** Bestätigungs-Dialog vor „Löschen" — hätte die zweimal dokumentierte Projekt-Konvention „kein Rückfragen-Dialog vor dem Löschen" (Phase 3, Phase 4) umgekehrt; vom Nutzer bei der Plan-Freigabe bestätigt.
+- **Dialog-mit-Formular-Fund während der Plan-Erstellung (nicht erst bei der Umsetzung):** `Dialog` hält seine Kinder immer gemountet (nur `showModal()`/`close()` steuern Sichtbarkeit). Ein Formular/eine Suche mit eigenem `useState` darin müsste sonst beim Wiederöffnen alte Werte zeigen — in Task 5s Test hätte das sogar einen Test tatsächlich scheitern lassen (`queryByLabelText` prüft nicht auf CSS-Sichtbarkeit). Beide betroffenen Tasks (4, 5) rendern den Formular-/Sucheninhalt deshalb bedingt auf den Öffnen-Status, das `Dialog`-Element selbst bleibt unbedingt gerendert.
+- Ein Button je Seite wird `buttonPrimaryClass`, sekundäre/löschende Aktionen `buttonSecondaryClass`, kleine Zeilen-Werkzeuge (rauf/runter) bleiben unstyled.
+
+**Manuelle Browser-Verifikation (alle 8 Punkte grün, keine Funde):** Karte/Button/Chip/Dialog/Toast auf einer Wegwerf-Testseite (nicht committet) im echten Chrome-Tab geprüft — Karten-in-Liste ohne sichtbaren Rahmen, Dialog zentriert sich korrekt (die Plan-1-Regressionsklasse tritt hier nicht erneut auf), Chip-Reihe zeigt aktiv/inaktiv klar unterschieden, Toast per `getComputedStyle` bestätigt echt sichtbar (Screenshot-Tool hatte Timing-Probleme mit dem 4-Sekunden-Auto-Dismiss, kein App-Fehler). Anders als bei Plan 1 diesmal **keine** neuen Bugs gefunden — dieser Plan setzt nur bereits gefixte Bausteine in neuen Kombinationen ein (verschachtelte Karten, Dialog in einer Tages-Karte, Chip in einer Karte).
+
+**Stand nach Task 9: 726 Tests grün** (104 Dateien), Lint ohne Fehler und Warnungen, `tsc -b --noEmit` sauber, `npm run build` erfolgreich. Entry-Chunk `dist/assets/index-0FBfwa9p.js` 235,36 kB (75,50 kB gzip), CSS `dist/assets/index-B1IpXdqo.css` ~15,5 kB — kein echter Vergleichswert zur `master`-Baseline (Worktree ohne `.env`, wie bei Plan 1). Keine Migration in diesem Plan, `docs/domaenenmodell.md` unverändert.
+
+**Aufteilung wie bei Phase 5:** Plan 1 (Fundament) zuerst — **fertig und gemerged** —, Plan 2a (Training) — **fertig und reviewt, Merge steht aus** —, danach Plan 2b (Ernährung), 2c (Körper), 2d (Analyse-Seiten). **Keiner der drei verbleibenden Bereichs-Pläne ist bisher geschrieben.**
+
+**Wichtig für den Wiedereinstieg:** Plan 2a ist vollständig im Code auf dem Branch `worktree-phase6-plan2a-training` — Whole-Branch-Review und Merge nach `master` stehen noch aus. Danach Worktree entfernen und mit Plan 2b starten (`superpowers:writing-plans`, in einem eigenen Worktree — kein separates Brainstorming nötig, gleiches Muster wie 2a).
 
 ## Phase 4 – Körperbereich (abgeschlossen)
 
