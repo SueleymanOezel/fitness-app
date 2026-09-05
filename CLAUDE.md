@@ -49,7 +49,10 @@ Das Projekt wird in klar getrennten Phasen entwickelt, nicht alles auf einmal:
 3. Trainingsbereich (Trainingspläne, Live-Modus, Kalorienberechnung über MET-Werte)
 4. Körperbereich & Health-Integration (Körper-Dashboard, Apple-Shortcuts-Sync)
 5. Analysebereich (interaktive Graphen über alle Bereiche, konfigurierbare Dashboards) — nachträglich eingeschoben, siehe eigenen Abschnitt
-6. Härtung & Feinschliff (vollständiger OWASP-Durchlauf, Penetration-Tests, PWA-Feinschliff)
+6. Design (komplettes visuelles Design der App) — nachträglich eingeschoben, vor die Härtung, siehe eigenen Abschnitt
+7. Härtung & Feinschliff (vollständiger OWASP-Durchlauf, Penetration-Tests, PWA-Feinschliff)
+
+**Vor Phase 6:** Hosting einrichten (Firebase Hosting oder Supabase Hosting), damit die App eine dauerhafte URL bekommt statt nur über `npm run dev` lokal erreichbar zu sein. Kein eigener Phasen-Schritt, aber Voraussetzung dafür, dass Design und Härtung gegen eine echte deployte Instanz statt nur lokal geprüft werden können.
 
 Wichtig: Nach jeder Phase soll eine Zusammenfassung gegeben und Tests durchgeführt werden (statisch und dynamisch), bevor die nächste Phase begonnen wird. Nicht mehrere Phasen gleichzeitig anfangen.
 
@@ -68,7 +71,9 @@ Das vollständige Architekturkonzept mit Datenbankschema, REST-API-Endpunkten pr
 
 Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer Chat sofort weiß, was gemacht wurde und was als Nächstes ansteht.
 
-**Aktueller Stand:** Phase 1, 2 und 3 sind gemerged, deployed und manuell gegen Produktion verifiziert; die kosmetischen Nacharbeiten am Layout ebenfalls (PR #22/#23, Merge-Commit `5b79651`). **Phase 4 (Körperbereich) ist gemerged und gegen Produktion verifiziert** (PR #26, Merge-Commit `63aced2`) — Details im eigenen Abschnitt weiter unten. Danach folgt der Analysebereich als Phase 5, Härtung rückt auf 6. Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header. Der Ernährungsbereich hat eine eigene Eintragsliste unter `/nutrition/entries`, nach Mahlzeiten-Abschnitten gegliedert (PR #20, Merge-Commit `752587c`; Phase 3: PR #21, `7420145`).
+**Aktueller Stand:** Phase 1, 2 und 3 sind gemerged, deployed und manuell gegen Produktion verifiziert; die kosmetischen Nacharbeiten am Layout ebenfalls (PR #22/#23, Merge-Commit `5b79651`). **Phase 4 (Körperbereich) ist gemerged und gegen Produktion verifiziert** (PR #26, Merge-Commit `63aced2`) — Details im eigenen Abschnitt weiter unten. **Phase 5 (Analysebereich) ist ebenfalls vollständig gemerged und verifiziert** — Details im eigenen Abschnitt weiter unten. Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header. Der Ernährungsbereich hat eine eigene Eintragsliste unter `/nutrition/entries`, nach Mahlzeiten-Abschnitten gegliedert (PR #20, Merge-Commit `752587c`; Phase 3: PR #21, `7420145`).
+
+**Genau hier weitermachen (Stand 05.09.2026):** Zwei Dinge stehen an, bevor Phase 6 beginnt: (1) Hosting einrichten (Firebase Hosting oder Supabase Hosting) — die App läuft bisher nur lokal über `npm run dev`, hat keine dauerhafte URL, ist vom iPhone aus also nur über das lokale WLAN erreichbar (siehe „Dev-Server am Handy testen" unten). (2) Danach **Phase 6 (Design)**, nachträglich vor die Härtung eingeschoben (Nutzerentscheidung 05.09.2026, analog dazu, wie der Analysebereich vor die Härtung geschoben wurde) — noch keine Spec/kein Plan. Härtung rückt auf Phase 7.
 
 **Mahlzeiten-Abschnitte (gemerged, alle 9 Tasks fertig):** Einträge auf `/nutrition/entries` sind nach Mahlzeiten gegliedert — sechs feste Slots, vier davon vorbelegt (Frühstück, Mittagessen, Abendessen, Snacks), die restlichen zwei optional und nur sichtbar, sobald sie einen Namen oder Einträge haben. Die Namen stehen im Profil unter „Mahlzeiten"; welchem Abschnitt ein Eintrag zugeordnet ist, ergibt sich daraus, in welchem Abschnitt er erfasst wurde. Alt-Einträge von vor der Migration stehen unter „Ohne Zuordnung" und lassen sich über „Bearbeiten" nachträglich einsortieren. Das Ernährungs-Dashboard zeigt die Kalorien je Abschnitt als Link zur Eintragsliste. Enthält Migration `0003_meal_sections.sql` (fügt nur Spalten hinzu; bestehende Zeilen bekommen `mahlzeit = null`). Spec: `docs/superpowers/specs/2026-08-20-mahlzeiten-abschnitte-design.md`, Plan: `docs/superpowers/plans/2026-08-20-mahlzeiten-abschnitte-plan.md`.
 
@@ -111,7 +116,7 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 5. **Plan 2c (Körper, K2–K5) ist gemerged über PR #39 (Squash-Merge-Commit `279e532`), Branch/Worktree entfernt, manuelle Verifikation am 05.09.2026 abgeschlossen.** Alle 8 Tasks einzeln abgenommen, danach Whole-Branch-Review auf Opus (kein Critical, ein Important — vier statt einer sequenziellen Abfrage im Körper-Hook — vor dem Merge per `Promise.all` behoben und sauber re-reviewt). Details siehe „Plan 2c" unten.
 
 **Genau hier weitermachen:**
-Kein Folge-Schritt für Phase 5 mehr offen — der Analysebereich ist inhaltlich und in der Verifikation vollständig abgeschlossen. Nächster Meilenstein wäre Phase 6 (Härtung: vollständiger OWASP-Durchlauf, Penetration-Tests, PWA-Feinschliff), für die noch keine Spec/Plan existiert.
+Kein Folge-Schritt für Phase 5 mehr offen — der Analysebereich ist inhaltlich und in der Verifikation vollständig abgeschlossen. Siehe „Status / Fortschritt" oben für den nächsten Schritt (Hosting, dann Phase 6 Design).
 
 **Noch aufzuräumen:** die synthetischen Daten aus der Plan-1-Verifikation stehen weiter in der Produktions-Datenbank (7 `body_metrics` 05.05.–27.08., 12 `workout_sessions` 15.05.–26.08., 30 `food_entries` 18.–27.08. auf ein einziges Produkt). Vor echtem Gebrauch löschen.
 
