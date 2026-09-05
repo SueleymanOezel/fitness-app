@@ -151,4 +151,14 @@ describe('AddEntryFlow', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('8–14 Ziffern')
     expect(mockFindOrFetch).not.toHaveBeenCalled()
   })
+
+  it('calls onCancel when Abbrechen is clicked on the idle picker screen', async () => {
+    const onCancel = vi.fn()
+    const { default: AddEntryFlow } = await import('./AddEntryFlow')
+    render(<AddEntryFlow onAdd={vi.fn().mockResolvedValue(undefined)} onCancel={onCancel} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }))
+
+    expect(onCancel).toHaveBeenCalled()
+  })
 })

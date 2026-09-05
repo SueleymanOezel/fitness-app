@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { PRODUCT_COLUMNS, type Product } from '../lib/product-lookup'
 import { MAX_NAME_LENGTH } from '../lib/open-food-facts'
 import { parseNutrients } from '../lib/nutrients'
+import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 
 type Props = {
   barcode?: string
@@ -71,10 +72,11 @@ export default function ManualProductForm({ barcode, onCreated, onCancel }: Prop
   return (
     <form onSubmit={handleSubmit}>
       <h2>Neues Produkt (Werte pro 100 g)</h2>
-      <label>
-        Name
-        <input value={name} onChange={(event) => setName(event.target.value)} />
-      </label>
+      <div className={cardClass}>
+        <label>
+          Name
+          <input value={name} onChange={(event) => setName(event.target.value)} />
+        </label>
       <label>
         Kalorien (kcal)
         <input type="number" step="any" value={kalorien} onChange={(event) => setKalorien(event.target.value)} />
@@ -108,12 +110,13 @@ export default function ManualProductForm({ barcode, onCreated, onCancel }: Prop
         Salz (g)
         <input type="number" step="any" value={salz} onChange={(event) => setSalz(event.target.value)} />
       </label>
+      </div>
 
       {error && <p role="alert">{error}</p>}
-      <button type="submit" disabled={submitting}>
+      <button type="submit" className={buttonPrimaryClass} disabled={submitting}>
         Produkt speichern
       </button>
-      <button type="button" onClick={onCancel}>
+      <button type="button" className={buttonSecondaryClass} onClick={onCancel}>
         Abbrechen
       </button>
     </form>

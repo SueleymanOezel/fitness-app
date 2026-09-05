@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { BrowserMultiFormatReader } from '@zxing/browser'
 import { BarcodeFormat, DecodeHintType } from '@zxing/library'
+import { buttonSecondaryClass } from '../lib/ui-classes'
 
 type ScannerControls = { stop: () => void }
 
@@ -97,7 +98,7 @@ export default function BarcodeScanner({ onDetected, onClose }: Props) {
         style={{ width: '100%', maxWidth: '480px' }}
       />
       {error && <p role="alert">{error}</p>}
-      <button type="button" onClick={onClose}>
+      <button type="button" className={buttonSecondaryClass} onClick={onClose}>
         Abbrechen
       </button>
     </div>

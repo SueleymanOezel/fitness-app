@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import ProductPicker from './ProductPicker'
 import type { Product } from '../lib/product-lookup'
+import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 
 type Props = {
   onAdd: (productId: string, menge: number) => Promise<void>
+  onCancel?: () => void
 }
 
-export default function AddEntryFlow({ onAdd }: Props) {
+export default function AddEntryFlow({ onAdd, onCancel }: Props) {
   const [product, setProduct] = useState<Product | null>(null)
   const [menge, setMenge] = useState('100')
   const [error, setError] = useState<string | null>(null)
@@ -37,19 +39,23 @@ export default function AddEntryFlow({ onAdd }: Props) {
   }
 
   if (!product) {
-    return <ProductPicker onPicked={setProduct} onCancel={reset} />
+    return <ProductPicker onPicked={setProduct} onCancel={onCancel ?? reset} />
   }
 
   return (
     <form onSubmit={handleConfirmQuantity}>
-      <p>{product.name}</p>
-      <label>
-        Menge (g)
-        <input type="number" step="any" value={menge} onChange={(event) => setMenge(event.target.value)} />
-      </label>
+      <div className={cardClass}>
+        <p>{product.name}</p>
+        <label>
+          Menge (g)
+          <input type="number" step="any" value={menge} onChange={(event) => setMenge(event.target.value)} />
+        </label>
+      </div>
       {error && <p role="alert">{error}</p>}
-      <button type="submit">Hinzufügen</button>
-      <button type="button" onClick={reset}>
+      <button type="submit" className={buttonPrimaryClass}>
+        Hinzufügen
+      </button>
+      <button type="button" className={buttonSecondaryClass} onClick={reset}>
         Abbrechen
       </button>
     </form>

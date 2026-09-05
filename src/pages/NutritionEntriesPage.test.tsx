@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { renderWithProviders } from '../test-render'
 import type { FoodEntry } from '../hooks/use-food-entries'
 
 const mockUseSession = vi.fn()
@@ -88,7 +88,7 @@ async function renderPage(result = entriesResult()) {
   mockUseProfile.mockReturnValue(profileResult())
   mockUseFoodEntries.mockReturnValue(result)
   const { default: NutritionEntriesPage } = await import('./NutritionEntriesPage')
-  render(<NutritionEntriesPage />, { wrapper: MemoryRouter })
+  renderWithProviders(<NutritionEntriesPage />)
   return result
 }
 
@@ -139,7 +139,7 @@ describe('NutritionEntriesPage', () => {
     mockUseProfile.mockReturnValue(profileResult({ profile: null, error: true, reload }))
     mockUseFoodEntries.mockReturnValue(entriesResult())
     const { default: NutritionEntriesPage } = await import('./NutritionEntriesPage')
-    render(<NutritionEntriesPage />, { wrapper: MemoryRouter })
+    renderWithProviders(<NutritionEntriesPage />)
 
     expect(screen.queryByText('Lädt…')).not.toBeInTheDocument()
     expect(screen.getByRole('alert')).toHaveTextContent('Profil konnte nicht geladen werden')
@@ -242,5 +242,31 @@ describe('NutritionEntriesPage', () => {
 
     const headings = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent ?? '')
     expect(headings[headings.length - 1]).toContain('Ohne Zuordnung')
+  })
+
+  it('resets the capture flow on reopen instead of showing the last attempt', async () => {
+    await renderPage(entriesResult({ entries: [] }))
+
+    const fruehstueckHeading = screen.getByRole('heading', { name: /Frühstück/ })
+    const fruehstueckSection = fruehstueckHeading.closest('section')
+    expect(fruehstueckSection).not.toBeNull()
+    const section = within(fruehstueckSection as HTMLElement)
+
+    fireEvent.click(section.getByRole('button', { name: '+ Hinzufügen' }))
+    fireEvent.change(section.getByLabelText('Barcode-Nummer eingeben'), { target: { value: '123' } })
+    // '123' is not a valid barcode length — this leaves an inline error and no lookup call.
+    fireEvent.click(section.getByRole('button', { name: 'Suchen' }))
+    expect(section.getByRole('alert')).toHaveTextContent('8–14 Ziffern')
+
+    // The dialog's own close button (Dialog.tsx's built-in "Schließen", not
+    // AddEntryFlow's inner "Abbrechen" — that only resets the picker's own
+    // state without closing the dialog) actually dismisses it, so reopening
+    // must not show the stale error or the stale digits.
+    fireEvent.click(section.getByRole('button', { name: 'Schließen' }))
+    expect(section.queryByLabelText('Barcode-Nummer eingeben')).not.toBeInTheDocument()
+
+    fireEvent.click(section.getByRole('button', { name: '+ Hinzufügen' }))
+    expect(section.queryByRole('alert')).not.toBeInTheDocument()
+    expect(section.getByLabelText('Barcode-Nummer eingeben')).toHaveValue('')
   })
 })
