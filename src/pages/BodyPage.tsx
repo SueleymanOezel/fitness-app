@@ -15,6 +15,9 @@ import BodyChartList from '../components/charts/BodyChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { useBodyAnalysis } from '../hooks/use-body-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
+import { cardClass, buttonPrimaryClass } from '../lib/ui-classes'
+import Dialog from '../components/Dialog'
+import { useToast } from '../components/ToastProvider'
 
 /** German notation: comma as the decimal mark, at most one place. */
 function formatValue(value: number) {
@@ -51,7 +54,7 @@ export default function BodyPage() {
 function Dashboard({ userId }: { userId: string }) {
   const { rows, loading, error, saveEntry } = useBodyMetrics(userId)
   const [formOpen, setFormOpen] = useState(false)
-  const [syncNotice, setSyncNotice] = useState('')
+  const showToast = useToast()
   const auswahl = useChartSelection(userId)
 
   if (loading) {
@@ -68,62 +71,68 @@ function Dashboard({ userId }: { userId: string }) {
       <h1>Körper</h1>
       {error && <p role="alert">Werte konnten nicht geladen werden.</p>}
 
-      <ul role="list">
+      <ul role="list" className="grid grid-cols-2 gap-4">
         {MEASUREMENT_FIELDS.map((field) => {
           const latest = latestValue(rows, field)
           const change = changeSince(rows, field)
           return (
-            <li key={field}>
-              <span>{FIELD_LABELS[field]}</span>
-              <span data-testid={`wert-${field}`}>
-                {latest == null ? '—' : `${formatValue(latest.value)} ${unitOf(field)}`}
-              </span>
-              {latest != null && <span>{`Stand ${formatDate(latest.datum)}`}</span>}
-              {change != null && (
-                <span>
-                  {/* U+2212 minus, not a hyphen: it lines up with digits. */}
-                  {`${change.delta < 0 ? '−' : '+'}${formatValue(Math.abs(change.delta))} ${unitOf(field)} seit ${formatDate(change.datum)}`}
+            <li key={field} className="block border-b-0">
+              <div className={`${cardClass} w-full`}>
+                <span>{FIELD_LABELS[field]}</span>
+                <span data-testid={`wert-${field}`}>
+                  {latest == null ? '—' : `${formatValue(latest.value)} ${unitOf(field)}`}
                 </span>
-              )}
+                {latest != null && <span>{`Stand ${formatDate(latest.datum)}`}</span>}
+                {change != null && (
+                  <span>
+                    {/* U+2212 minus, not a hyphen: it lines up with digits. */}
+                    {`${change.delta < 0 ? '−' : '+'}${formatValue(Math.abs(change.delta))} ${unitOf(field)} seit ${formatDate(change.datum)}`}
+                  </span>
+                )}
+              </div>
             </li>
           )
         })}
       </ul>
 
-      {syncNotice !== '' && <p role="alert">{syncNotice}</p>}
-
-      {formOpen ? (
-        <BodyEntryForm
-          // The upsert writes all seven columns, so an empty form would blank
-          // everything already recorded today. Correcting the day means
-          // starting from what is stored, not from blanks.
-          entry={rows.find((row) => row.datum === today())}
-          onSave={async (datum, values) => {
-            setSyncNotice('')
-            try {
-              await saveEntry(datum, values)
-            } catch (err) {
-              // The entry was already written and the list already reloaded;
-              // only the profiles mirror failed. Resolve normally so the form
-              // closes without its own "not saved" alert — that message would
-              // be wrong here, and this page (which stays on screen) is the
-              // right place for the real one.
-              if (err instanceof ProfileWeightSyncError) {
-                setSyncNotice(
-                  'Eintrag gespeichert. Das aktuelle Gewicht im Profil konnte nicht aktualisiert werden.',
-                )
-                return
+      <button type="button" className={buttonPrimaryClass} onClick={() => setFormOpen(true)}>
+        Heute eintragen
+      </button>
+      {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
+          rendering the form only while open forces a fresh prefill from the
+          current rows each time it opens, instead of showing the last
+          attempt's leftover draft. */}
+      <Dialog open={formOpen} onClose={() => setFormOpen(false)}>
+        {formOpen && (
+          <BodyEntryForm
+            // The upsert writes all seven columns, so an empty form would blank
+            // everything already recorded today. Correcting the day means
+            // starting from what is stored, not from blanks.
+            entry={rows.find((row) => row.datum === today())}
+            onSave={async (datum, values) => {
+              try {
+                await saveEntry(datum, values)
+              } catch (err) {
+                // The entry was already written and the list already reloaded;
+                // only the profiles mirror failed. Resolve normally so the
+                // dialog closes without its own "not saved" alert — the dialog
+                // is already gone by the time this notice appears, so it is
+                // short-lived feedback on a completed action, not a blocking
+                // form error, hence a toast rather than inline.
+                if (err instanceof ProfileWeightSyncError) {
+                  showToast(
+                    'Eintrag gespeichert. Das aktuelle Gewicht im Profil konnte nicht aktualisiert werden.',
+                    'error',
+                  )
+                  return
+                }
+                throw err
               }
-              throw err
-            }
-          }}
-          onClose={() => setFormOpen(false)}
-        />
-      ) : (
-        <button type="button" onClick={() => setFormOpen(true)}>
-          Heute eintragen
-        </button>
-      )}
+            }}
+            onClose={() => setFormOpen(false)}
+          />
+        )}
+      </Dialog>
 
       <DashboardBodyCharts userId={userId} auswahl={auswahl.auswahl} />
       <Link to="/body/analyse">Analyse</Link>
