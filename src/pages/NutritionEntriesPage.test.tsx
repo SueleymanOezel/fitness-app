@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { renderWithProviders } from '../test-render'
 import type { FoodEntry } from '../hooks/use-food-entries'
 
 const mockUseSession = vi.fn()
@@ -88,7 +88,7 @@ async function renderPage(result = entriesResult()) {
   mockUseProfile.mockReturnValue(profileResult())
   mockUseFoodEntries.mockReturnValue(result)
   const { default: NutritionEntriesPage } = await import('./NutritionEntriesPage')
-  render(<NutritionEntriesPage />, { wrapper: MemoryRouter })
+  renderWithProviders(<NutritionEntriesPage />)
   return result
 }
 
@@ -139,7 +139,7 @@ describe('NutritionEntriesPage', () => {
     mockUseProfile.mockReturnValue(profileResult({ profile: null, error: true, reload }))
     mockUseFoodEntries.mockReturnValue(entriesResult())
     const { default: NutritionEntriesPage } = await import('./NutritionEntriesPage')
-    render(<NutritionEntriesPage />, { wrapper: MemoryRouter })
+    renderWithProviders(<NutritionEntriesPage />)
 
     expect(screen.queryByText('Lädt…')).not.toBeInTheDocument()
     expect(screen.getByRole('alert')).toHaveTextContent('Profil konnte nicht geladen werden')

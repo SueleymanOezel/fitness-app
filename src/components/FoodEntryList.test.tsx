@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { renderWithProviders } from '../test-render'
 import FoodEntryList from './FoodEntryList'
 import type { FoodEntry } from '../hooks/use-food-entries'
 
@@ -28,7 +29,7 @@ const entries: FoodEntry[] = [
 
 describe('FoodEntryList', () => {
   it('shows a placeholder when there are no entries', () => {
-    render(
+    renderWithProviders(
       <FoodEntryList
         entries={[]}
         userId="u1"
@@ -41,7 +42,7 @@ describe('FoodEntryList', () => {
   })
 
   it('shows the stored values without an input field', () => {
-    render(
+    renderWithProviders(
       <FoodEntryList
         entries={entries}
         userId="u1"
@@ -60,7 +61,7 @@ describe('FoodEntryList', () => {
   })
 
   it('opens the edit form on request and closes it again', () => {
-    render(
+    renderWithProviders(
       <FoodEntryList
         entries={entries}
         userId="u1"
@@ -79,7 +80,7 @@ describe('FoodEntryList', () => {
 
   it('calls onDelete when the delete button is clicked', () => {
     const onDelete = vi.fn().mockResolvedValue(undefined)
-    render(
+    renderWithProviders(
       <FoodEntryList
         entries={entries}
         userId="u1"
@@ -96,7 +97,7 @@ describe('FoodEntryList', () => {
 
   it('shows a visible warning when the delete is rejected', async () => {
     const onDelete = vi.fn().mockRejectedValue(new Error('delete failed'))
-    render(
+    renderWithProviders(
       <FoodEntryList
         entries={entries}
         userId="u1"

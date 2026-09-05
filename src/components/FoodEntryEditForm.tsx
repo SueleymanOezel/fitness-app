@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import ProductPicker from './ProductPicker'
+import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 import { parseNutrients, type Nutrients } from '../lib/nutrients'
 import { saveProductEdit } from '../lib/product-edit'
 import { fromLocalInputValue, toLocalInputValue } from '../lib/local-time'
@@ -145,91 +146,95 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
 
   return (
     <form onSubmit={handleSubmit}>
-      <label>
-        Menge (g)
-        <input type="number" step="any" value={menge} onChange={(event) => setMenge(event.target.value)} />
-      </label>
-      <label>
-        Zeitpunkt
-        <input
-          type="datetime-local"
-          value={zeitpunkt}
-          onChange={(event) => setZeitpunkt(event.target.value)}
-        />
-      </label>
-      <label>
-        Mahlzeit
-        <select value={mahlzeit} onChange={(event) => setMahlzeit(event.target.value)}>
-          <option value="">{UNASSIGNED_LABEL}</option>
-          {sections.map((section) => (
-            <option key={section.slot} value={String(section.slot)}>
-              {section.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className={cardClass}>
+        <label>
+          Menge (g)
+          <input type="number" step="any" value={menge} onChange={(event) => setMenge(event.target.value)} />
+        </label>
+        <label>
+          Zeitpunkt
+          <input
+            type="datetime-local"
+            value={zeitpunkt}
+            onChange={(event) => setZeitpunkt(event.target.value)}
+          />
+        </label>
+        <label>
+          Mahlzeit
+          <select value={mahlzeit} onChange={(event) => setMahlzeit(event.target.value)}>
+            <option value="">{UNASSIGNED_LABEL}</option>
+            {sections.map((section) => (
+              <option key={section.slot} value={String(section.slot)}>
+                {section.name}
+              </option>
+            ))}
+          </select>
+        </label>
 
-      <p>{swapped ? swapped.name : (product?.name ?? 'Unbekanntes Produkt')}</p>
-      <button type="button" onClick={() => setPicking(true)}>
-        Anderes Produkt wählen
-      </button>
+        <p>{swapped ? swapped.name : (product?.name ?? 'Unbekanntes Produkt')}</p>
+        <button type="button" className={buttonSecondaryClass} onClick={() => setPicking(true)}>
+          Anderes Produkt wählen
+        </button>
 
-      {!swapped && product && (
-        <fieldset>
-          <legend>Nährwerte pro 100 g</legend>
-          <label>
-            Name
-            <input value={name} onChange={(event) => setName(event.target.value)} />
-          </label>
-          <label>
-            Kalorien (kcal)
-            <input
-              type="number"
-              step="any"
-              value={kalorien}
-              onChange={(event) => setKalorien(event.target.value)}
-            />
-          </label>
-          <label>
-            Eiweiß (g)
-            <input type="number" step="any" value={eiweiss} onChange={(event) => setEiweiss(event.target.value)} />
-          </label>
-          <label>
-            Fett (g)
-            <input type="number" step="any" value={fett} onChange={(event) => setFett(event.target.value)} />
-          </label>
-          <label>
-            Kohlenhydrate (g)
-            <input
-              type="number"
-              step="any"
-              value={kohlenhydrate}
-              onChange={(event) => setKohlenhydrate(event.target.value)}
-            />
-          </label>
-          <label>
-            Ballaststoffe (g)
-            <input
-              type="number"
-              step="any"
-              value={ballaststoffe}
-              onChange={(event) => setBallaststoffe(event.target.value)}
-            />
-          </label>
-          <label>
-            Zucker (g)
-            <input type="number" step="any" value={zucker} onChange={(event) => setZucker(event.target.value)} />
-          </label>
-          <label>
-            Salz (g)
-            <input type="number" step="any" value={salz} onChange={(event) => setSalz(event.target.value)} />
-          </label>
-        </fieldset>
-      )}
+        {!swapped && product && (
+          <fieldset>
+            <legend>Nährwerte pro 100 g</legend>
+            <label>
+              Name
+              <input value={name} onChange={(event) => setName(event.target.value)} />
+            </label>
+            <label>
+              Kalorien (kcal)
+              <input
+                type="number"
+                step="any"
+                value={kalorien}
+                onChange={(event) => setKalorien(event.target.value)}
+              />
+            </label>
+            <label>
+              Eiweiß (g)
+              <input type="number" step="any" value={eiweiss} onChange={(event) => setEiweiss(event.target.value)} />
+            </label>
+            <label>
+              Fett (g)
+              <input type="number" step="any" value={fett} onChange={(event) => setFett(event.target.value)} />
+            </label>
+            <label>
+              Kohlenhydrate (g)
+              <input
+                type="number"
+                step="any"
+                value={kohlenhydrate}
+                onChange={(event) => setKohlenhydrate(event.target.value)}
+              />
+            </label>
+            <label>
+              Ballaststoffe (g)
+              <input
+                type="number"
+                step="any"
+                value={ballaststoffe}
+                onChange={(event) => setBallaststoffe(event.target.value)}
+              />
+            </label>
+            <label>
+              Zucker (g)
+              <input type="number" step="any" value={zucker} onChange={(event) => setZucker(event.target.value)} />
+            </label>
+            <label>
+              Salz (g)
+              <input type="number" step="any" value={salz} onChange={(event) => setSalz(event.target.value)} />
+            </label>
+          </fieldset>
+        )}
+      </div>
 
       {error && <p role="alert">{error}</p>}
-      <button type="submit">Speichern</button>
-      <button type="button" onClick={onClose}>
+      <button type="submit" className={buttonPrimaryClass}>
+        Speichern
+      </button>
+      <button type="button" className={buttonSecondaryClass} onClick={onClose}>
         Abbrechen
       </button>
     </form>
