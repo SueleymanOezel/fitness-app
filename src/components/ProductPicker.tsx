@@ -3,6 +3,7 @@ import BarcodeScanner from './BarcodeScanner'
 import ManualProductForm from './ManualProductForm'
 import { findOrFetchProductByBarcode, type Product } from '../lib/product-lookup'
 import { isValidBarcode } from '../lib/open-food-facts'
+import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 
 type Step = 'idle' | 'scanning' | 'looking-up' | 'manual-entry'
 
@@ -86,11 +87,11 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
   }
 
   return (
-    <div>
-      <button type="button" onClick={() => setStep('scanning')}>
+    <div className={cardClass}>
+      <button type="button" className={buttonPrimaryClass} onClick={() => setStep('scanning')}>
         Barcode scannen
       </button>
-      <button type="button" onClick={() => setStep('manual-entry')}>
+      <button type="button" className={buttonSecondaryClass} onClick={() => setStep('manual-entry')}>
         Manuell hinzufügen
       </button>
       <form onSubmit={handleTypedBarcode}>
@@ -103,10 +104,12 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
             placeholder="z. B. 8076809580144"
           />
         </label>
-        <button type="submit">Suchen</button>
+        <button type="submit" className={buttonSecondaryClass}>
+          Suchen
+        </button>
       </form>
       {error && <p role="alert">{error}</p>}
-      <button type="button" onClick={onCancel}>
+      <button type="button" className={buttonSecondaryClass} onClick={onCancel}>
         Abbrechen
       </button>
     </div>
