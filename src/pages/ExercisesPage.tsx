@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useExercises } from '../hooks/use-exercises'
+import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import Dialog from '../components/Dialog'
+import { useToast } from '../components/ToastProvider'
 
 export default function ExercisesPage() {
   const { session } = useSession()
@@ -22,7 +25,8 @@ export default function ExercisesPage() {
 function ExercisesList({ userId }: { userId: string }) {
   const { exercises, loading, error: loadError, createExercise } = useExercises(userId)
   const [query, setQuery] = useState('')
-  const [showForm, setShowForm] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const showToast = useToast()
 
   if (loading) {
     return (
@@ -35,6 +39,8 @@ function ExercisesList({ userId }: { userId: string }) {
 
   if (loadError) {
     // A partly loaded library would look complete and quietly hide exercises.
+    // This blocks the whole page, so it stays inline rather than a toast
+    // that would vanish while the page is still broken.
     return (
       <div>
         <h1>Übungen</h1>
@@ -53,24 +59,39 @@ function ExercisesList({ userId }: { userId: string }) {
         Suche
         <input value={query} onChange={(event) => setQuery(event.target.value)} />
       </label>
-      <ul role="list">
+      <ul role="list" className="space-y-4">
         {filtered.map((exercise) => (
-          <li key={exercise.id}>{exercise.name}</li>
+          <li key={exercise.id} className="block border-b-0">
+            <div className={`${cardClass} w-full`}>{exercise.name}</div>
+          </li>
         ))}
       </ul>
-      {showForm ? (
-        <NewExerciseForm
-          onSave={async (input) => {
-            await createExercise(input)
-            setShowForm(false)
-          }}
-          onCancel={() => setShowForm(false)}
-        />
-      ) : (
-        <button type="button" onClick={() => setShowForm(true)}>
-          Eigene Übung anlegen
-        </button>
-      )}
+      <button type="button" className={buttonPrimaryClass} onClick={() => setDialogOpen(true)}>
+        Eigene Übung anlegen
+      </button>
+      {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
+          rendering the form only while open forces a fresh instance (blank
+          fields) each time it opens, instead of showing the last attempt's
+          leftover values on reopen. */}
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+        {dialogOpen && (
+          <NewExerciseForm
+            onSave={async (input) => {
+              try {
+                await createExercise(input)
+              } catch {
+                // A failed write on an otherwise valid form: not a validation
+                // problem, so it goes to a toast, not the form's inline error —
+                // the dialog stays open exactly as the old inline form did.
+                showToast('Speichern fehlgeschlagen.', 'error')
+                return
+              }
+              setDialogOpen(false)
+            }}
+            onCancel={() => setDialogOpen(false)}
+          />
+        )}
+      </Dialog>
       <Link to="/training">Zurück zum Training</Link>
     </div>
   )
@@ -98,34 +119,32 @@ function NewExerciseForm({
       return
     }
     setSaving(true)
-    try {
-      await onSave({ name: name.trim(), kategorie: kategorie.trim(), met_wert: met })
-    } catch {
-      setError('Speichern fehlgeschlagen.')
-    } finally {
-      setSaving(false)
-    }
+    setError('')
+    await onSave({ name: name.trim(), kategorie: kategorie.trim(), met_wert: met })
+    setSaving(false)
   }
 
   return (
     <form onSubmit={handleSubmit}>
-      <label>
-        Name
-        <input value={name} onChange={(event) => setName(event.target.value)} />
-      </label>
-      <label>
-        Kategorie
-        <input value={kategorie} onChange={(event) => setKategorie(event.target.value)} />
-      </label>
-      <label>
-        MET-Wert
-        <input type="number" step="any" value={metWert} onChange={(event) => setMetWert(event.target.value)} />
-      </label>
+      <div className={cardClass}>
+        <label>
+          Name
+          <input value={name} onChange={(event) => setName(event.target.value)} />
+        </label>
+        <label>
+          Kategorie
+          <input value={kategorie} onChange={(event) => setKategorie(event.target.value)} />
+        </label>
+        <label>
+          MET-Wert
+          <input type="number" step="any" value={metWert} onChange={(event) => setMetWert(event.target.value)} />
+        </label>
+      </div>
       {error !== '' && <p role="alert">{error}</p>}
-      <button type="submit" disabled={saving}>
+      <button type="submit" className={buttonPrimaryClass} disabled={saving}>
         Speichern
       </button>
-      <button type="button" onClick={onCancel}>
+      <button type="button" className={buttonSecondaryClass} onClick={onCancel}>
         Abbrechen
       </button>
     </form>
