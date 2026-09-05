@@ -1,25 +1,39 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens for Phase 6 (Design). Values are measured pixel samples from
+ * the reference video analysed in
+ * docs/superpowers/specs/2026-09-05-phase6-referenzdesign-analyse.md — not
+ * approximated. Dark mode only, no light variant (decided in the Phase 6
+ * design spec, docs/superpowers/specs/2026-09-05-phase6-design-design.md).
+ */
+@theme {
+  --color-bg: #181920;
+  --color-surface: #23242b;
+  --color-surface-raised: #414249;
+
+  --color-accent: #8766ed;
+  --color-success: #ebfd6e;
+  --color-success-ink: #17181f;
+  --color-danger: #f27a6b;
+
+  --color-text: #fefeff;
+  --color-text-muted: #5e5f66;
+
+  --color-chart-mint: #6efde6;
+  --color-chart-blue: #4f6ca5;
+  --color-chart-green: #49be69;
+  --color-chart-orange: #ff6f43;
+  --color-chart-violet: #8766ed;
+  --color-chart-grid: #5e5f66;
+
+  --font-sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
+  font: 18px/145% var(--font-sans);
   letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
+  color-scheme: dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -30,24 +44,10 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 #root {
@@ -55,22 +55,17 @@
   max-width: 100%;
   margin: 0 auto;
   text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-}
-
 h1,
 h2 {
-  font-family: var(--heading);
+  font-family: var(--font-sans);
   font-weight: 500;
-  color: var(--text-h);
+  color: var(--color-text);
 }
 
 h1 {
@@ -95,24 +90,13 @@ p {
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
-
 /* Layout. The app ships plain semantic markup without classes, so every rule
    here is element-level. Interactive elements are 44px tall — the smallest
-   reliable tap target on a phone. */
+   reliable tap target on a phone. This block is transitional: it styles
+   pages that have not yet been migrated to Tailwind utility classes and the
+   Card/Button/Chip primitives (src/lib/ui-classes.ts, src/components/Chip.tsx).
+   Each area plan in Phase 6 removes the rules its pages no longer need once
+   migrated. */
 #root > * {
   flex: 1;
   display: flex;
@@ -145,8 +129,8 @@ nav {
      lower third and wins the touch. */
   padding-bottom: env(safe-area-inset-bottom, 0px);
   display: flex;
-  background: var(--bg);
-  border-top: 1px solid var(--border);
+  background: var(--color-bg);
+  border-top: 1px solid #2e303a;
 }
 
 nav a {
@@ -154,7 +138,7 @@ nav a {
 }
 
 a {
-  color: var(--accent);
+  color: var(--color-accent);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -171,6 +155,9 @@ main a:not(li a):not(p a) {
   display: flex;
 }
 
+/* Transitional border color for pages not yet migrated to the Card primitive.
+   Removed once every list/form in the app uses Card instead of a bordered
+   element (tracked across the Phase 6 area plans). */
 button,
 input,
 select {
@@ -178,10 +165,10 @@ select {
   min-height: 44px;
   margin: 4px;
   padding: 8px 12px;
-  border: 1px solid var(--border);
+  border: 1px solid #2e303a;
   border-radius: 6px;
-  background: var(--bg);
-  color: var(--text-h);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 button {
@@ -208,7 +195,7 @@ li {
   justify-content: center;
   gap: 8px;
   padding: 8px 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #2e303a;
 }
 
 /* A form inside a list row belongs under it, not beside it. */
