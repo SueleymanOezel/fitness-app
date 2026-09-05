@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutHistory } from '../hooks/use-workout-history'
+import { cardClass } from '../lib/ui-classes'
 
 export default function TrainingHistoryPage() {
   const { session } = useSession()
@@ -36,17 +37,19 @@ function HistoryList({ userId }: { userId: string }) {
       {sessions.length === 0 ? (
         <p>Noch keine Trainings aufgezeichnet.</p>
       ) : (
-        <ul role="list">
+        <ul role="list" className="space-y-4">
           {sessions.map((entry) => (
-            <li key={entry.id}>
-              <Link to={`/training/history/${entry.id}`}>
-                {`${entry.plan_name ?? '—'} – ${entry.tag_name ?? '—'} – ${new Date(
-                  entry.gestartet_am,
-                ).toLocaleDateString('de-DE')} – ${
-                  // An unfinished session has no calorie result; "0 kcal" would read as a measurement.
-                  entry.gesamt_kalorien == null ? 'nicht beendet' : `${Math.round(entry.gesamt_kalorien)} kcal`
-                }`}
-              </Link>
+            <li key={entry.id} className="block border-b-0">
+              <div className={`${cardClass} w-full`}>
+                <Link to={`/training/history/${entry.id}`}>
+                  {`${entry.plan_name ?? '—'} – ${entry.tag_name ?? '—'} – ${new Date(
+                    entry.gestartet_am,
+                  ).toLocaleDateString('de-DE')} – ${
+                    // An unfinished session has no calorie result; "0 kcal" would read as a measurement.
+                    entry.gesamt_kalorien == null ? 'nicht beendet' : `${Math.round(entry.gesamt_kalorien)} kcal`
+                  }`}
+                </Link>
+              </div>
             </li>
           ))}
         </ul>
