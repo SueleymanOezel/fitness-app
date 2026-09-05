@@ -8,6 +8,9 @@ import {
   type BodyMetricRow,
 } from '../lib/body-metrics'
 import BodyEntryForm from '../components/BodyEntryForm'
+import { cardClass, buttonSecondaryClass } from '../lib/ui-classes'
+import Dialog from '../components/Dialog'
+import { useToast } from '../components/ToastProvider'
 
 function formatDate(iso: string) {
   const [year, month, day] = iso.split('-')
@@ -40,7 +43,7 @@ export default function BodyEntriesPage() {
 function Entries({ userId }: { userId: string }) {
   const { rows, loading, error, saveEntry, deleteEntry } = useBodyMetrics(userId)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [actionError, setActionError] = useState('')
+  const showToast = useToast()
 
   if (loading) {
     return (
@@ -52,7 +55,6 @@ function Entries({ userId }: { userId: string }) {
   }
 
   async function remove(id: string) {
-    setActionError('')
     try {
       await deleteEntry(id)
     } catch (err) {
@@ -60,14 +62,17 @@ function Entries({ userId }: { userId: string }) {
       // profiles mirror failed afterwards. Saying "not deleted" here would be a
       // lie that sends the user to retry an action that already happened.
       if (err instanceof ProfileWeightSyncError) {
-        setActionError(
+        showToast(
           'Eintrag gelöscht. Das aktuelle Gewicht im Profil konnte nicht aktualisiert werden.',
+          'error',
         )
         return
       }
-      setActionError('Eintrag konnte nicht gelöscht werden.')
+      showToast('Eintrag konnte nicht gelöscht werden.', 'error')
     }
   }
+
+  const editingEntry = rows.find((row) => row.id === editingId)
 
   return (
     <div>
@@ -75,48 +80,59 @@ function Entries({ userId }: { userId: string }) {
       {error && <p role="alert">Werte konnten nicht geladen werden.</p>}
       {rows.length === 0 && <p>Noch keine Einträge.</p>}
 
-      <ul role="list">
+      <ul role="list" className="space-y-4">
         {rows.map((entry) => (
-          <li key={entry.id}>
-            {editingId === entry.id ? (
-              <BodyEntryForm
-                entry={entry}
-                onSave={async (datum, values) => {
-                  setActionError('')
-                  try {
-                    await saveEntry(datum, values)
-                  } catch (err) {
-                    // Same reasoning as remove(): the write already succeeded,
-                    // only the profile mirror is stale. Resolve normally so the
-                    // form closes without its own "not saved" alert.
-                    if (err instanceof ProfileWeightSyncError) {
-                      setActionError(
-                        'Eintrag gespeichert. Das aktuelle Gewicht im Profil konnte nicht aktualisiert werden.',
-                      )
-                      return
-                    }
-                    throw err
-                  }
-                }}
-                onClose={() => setEditingId(null)}
-              />
-            ) : (
-              <>
-                <span>{formatDate(entry.datum)}</span>
-                <span>{summarize(entry)}</span>
-                <button type="button" onClick={() => setEditingId(entry.id)}>
-                  Bearbeiten
-                </button>
-                <button type="button" onClick={() => remove(entry.id)}>
-                  Löschen
-                </button>
-              </>
-            )}
+          <li key={entry.id} className="block border-b-0">
+            <div className={`${cardClass} w-full`}>
+              <span>{formatDate(entry.datum)}</span>
+              <span>{summarize(entry)}</span>
+              <button
+                type="button"
+                className={buttonSecondaryClass}
+                onClick={() => setEditingId(entry.id)}
+              >
+                Bearbeiten
+              </button>
+              <button type="button" className={buttonSecondaryClass} onClick={() => remove(entry.id)}>
+                Löschen
+              </button>
+            </div>
           </li>
         ))}
       </ul>
 
-      {actionError !== '' && <p role="alert">{actionError}</p>}
+      {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
+          rendering the form only while open forces a fresh prefill from the
+          entry each time it opens, instead of showing the last attempt's
+          leftover draft. One shared dialog for the whole list, not one per
+          row: editingId already guarantees only one row is ever being edited
+          at a time. */}
+      <Dialog open={editingId !== null} onClose={() => setEditingId(null)}>
+        {editingEntry && (
+          <BodyEntryForm
+            entry={editingEntry}
+            onSave={async (datum, values) => {
+              try {
+                await saveEntry(datum, values)
+              } catch (err) {
+                // Same reasoning as remove(): the write already succeeded,
+                // only the profile mirror is stale. Resolve normally so the
+                // dialog closes without its own "not saved" alert.
+                if (err instanceof ProfileWeightSyncError) {
+                  showToast(
+                    'Eintrag gespeichert. Das aktuelle Gewicht im Profil konnte nicht aktualisiert werden.',
+                    'error',
+                  )
+                  return
+                }
+                throw err
+              }
+            }}
+            onClose={() => setEditingId(null)}
+          />
+        )}
+      </Dialog>
+
       <Link to="/body">Zurück zum Körperbereich</Link>
     </div>
   )

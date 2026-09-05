@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import BodyEntriesPage from './BodyEntriesPage'
 import { ProfileWeightSyncError } from '../hooks/use-body-metrics'
+import { renderWithProviders } from '../test-render'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -49,11 +49,7 @@ function metricsResult(overrides: Record<string, unknown> = {}) {
 }
 
 function renderPage() {
-  return render(
-    <MemoryRouter>
-      <BodyEntriesPage />
-    </MemoryRouter>,
-  )
+  return renderWithProviders(<BodyEntriesPage />)
 }
 
 describe('BodyEntriesPage', () => {
@@ -139,5 +135,20 @@ describe('BodyEntriesPage', () => {
     expect(notice).toHaveTextContent(/Eintrag gelöscht/)
     expect(notice).toHaveTextContent(/aktuelle Gewicht im Profil konnte nicht aktualisiert werden/)
     expect(notice).not.toHaveTextContent(/nicht gelöscht werden/)
+  })
+
+  it('resets the form on reopen instead of showing the last attempt', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult())
+
+    renderPage()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Bearbeiten' })[1])
+    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '99' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }))
+
+    expect(screen.queryByLabelText('Gewicht (kg)')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Bearbeiten' })[1])
+    expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(83.3)
   })
 })
