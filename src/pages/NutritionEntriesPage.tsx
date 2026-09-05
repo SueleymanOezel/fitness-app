@@ -128,6 +128,7 @@ function SectionBlock({
                   await addEntry(productId, menge, slot)
                   setDialogOpen(false)
                 }}
+                onCancel={() => setDialogOpen(false)}
               />
             )}
           </Dialog>

@@ -60,6 +60,26 @@ describe('FoodEntryList', () => {
     expect(screen.queryByLabelText('Menge (g) für Testprodukt')).not.toBeInTheDocument()
   })
 
+  it('wraps each entry in the card-in-list markup', () => {
+    renderWithProviders(
+      <FoodEntryList
+        entries={entries}
+        userId="u1"
+        sections={[{ slot: 1, name: 'Frühstück' }]}
+        onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
+        onDelete={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
+
+    // The li must never carry cardClass directly — index.css's transition rule
+    // for bare <li> elements (display:flex/justify-content:center/border-bottom)
+    // would clobber the card look. cardClass belongs on the nested div only.
+    const li = screen.getByText('Testprodukt').closest('li')
+    expect(li).toHaveClass('block', 'border-b-0')
+    const card = screen.getByText('Testprodukt').closest('div')
+    expect(card).toHaveClass('bg-surface', 'rounded-3xl')
+  })
+
   it('opens the edit form on request and closes it again', () => {
     renderWithProviders(
       <FoodEntryList

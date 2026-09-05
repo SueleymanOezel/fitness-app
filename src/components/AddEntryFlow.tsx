@@ -5,9 +5,10 @@ import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-c
 
 type Props = {
   onAdd: (productId: string, menge: number) => Promise<void>
+  onCancel?: () => void
 }
 
-export default function AddEntryFlow({ onAdd }: Props) {
+export default function AddEntryFlow({ onAdd, onCancel }: Props) {
   const [product, setProduct] = useState<Product | null>(null)
   const [menge, setMenge] = useState('100')
   const [error, setError] = useState<string | null>(null)
@@ -38,7 +39,7 @@ export default function AddEntryFlow({ onAdd }: Props) {
   }
 
   if (!product) {
-    return <ProductPicker onPicked={setProduct} onCancel={reset} />
+    return <ProductPicker onPicked={setProduct} onCancel={onCancel ?? reset} />
   }
 
   return (
