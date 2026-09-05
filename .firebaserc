@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "fitness-app-3e8f5"
-  }
+  },
+  "targets": {
+    "fitness-app-3e8f5": {
+      "hosting": {
+        "vitaloop": [
+          "vitaloop"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
