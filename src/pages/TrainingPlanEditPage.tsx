@@ -202,6 +202,12 @@ function DayBlock({
           <ExercisePicker
             exercises={exercises}
             alreadyAdded={day.exercises.map((row) => row.exercise_id)}
+            // onAddExercise's write failure reports via a toast (see run() above); the
+            // dialog is already closed by the time it would land, since this callback
+            // closes it synchronously before the async write resolves — a toast raised
+            // while this Dialog is still open would render invisible behind its native
+            // top-layer backdrop (see ExercisesPage.tsx's onSave for the case where
+            // that actually happened). Do not make this await the write before closing.
             onPick={(exerciseId) => {
               onAddExercise(exerciseId)
               setPickerOpen(false)

@@ -4,7 +4,6 @@ import { useSession } from '../hooks/use-session'
 import { useExercises } from '../hooks/use-exercises'
 import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
-import { useToast } from '../components/ToastProvider'
 
 export default function ExercisesPage() {
   const { session } = useSession()
@@ -26,7 +25,6 @@ function ExercisesList({ userId }: { userId: string }) {
   const { exercises, loading, error: loadError, createExercise } = useExercises(userId)
   const [query, setQuery] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
-  const showToast = useToast()
 
   if (loading) {
     return (
@@ -77,15 +75,7 @@ function ExercisesList({ userId }: { userId: string }) {
         {dialogOpen && (
           <NewExerciseForm
             onSave={async (input) => {
-              try {
-                await createExercise(input)
-              } catch {
-                // A failed write on an otherwise valid form: not a validation
-                // problem, so it goes to a toast, not the form's inline error —
-                // the dialog stays open exactly as the old inline form did.
-                showToast('Speichern fehlgeschlagen.', 'error')
-                return
-              }
+              await createExercise(input)
               setDialogOpen(false)
             }}
             onCancel={() => setDialogOpen(false)}
@@ -120,8 +110,13 @@ function NewExerciseForm({
     }
     setSaving(true)
     setError('')
-    await onSave({ name: name.trim(), kategorie: kategorie.trim(), met_wert: met })
-    setSaving(false)
+    try {
+      await onSave({ name: name.trim(), kategorie: kategorie.trim(), met_wert: met })
+    } catch {
+      setError('Speichern fehlgeschlagen.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (

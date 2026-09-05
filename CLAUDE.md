@@ -117,6 +117,7 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Ein Ding, das beim Weiterbauen gilt:**
 - **Uebergangsregeln in `index.css` muessen in `@layer base` stehen, sonst schlagen sie jede Tailwind-Utility-Klasse.** Tailwind v4 packt alle eigenen Utilities in `@layer utilities`, und ein unlayered Element-Selektor gewinnt gegen jede layered Regel unabhaengig von Spezifitaet. Genau dieser Fehler machte in Plan 1 den `border-0`/`m-0`-Fix aus Task 2 wirkungslos und liess alle vier BottomNav-Icons identisch akzentfarben rendern, bis er im Whole-Branch-Review gefunden wurde.
+- **Ein Toast, der auslöst waehrend ein Dialog offen ist, ist unsichtbar:** natives `showModal()` hebt den Dialog und sein `::backdrop` in den Browser-Top-Layer, der ueber allem anderen liegt, unabhaengig von z-index — `ToastProvider`s Toast liegt im normalen Layer und wird dahinter unlesbar verblasst. Gefunden in Plan 2a: `ExercisesPage`s Speichern-Fehler blieb dadurch unsichtbar, waehrend der Dialog absichtlich offen blieb; behoben durch Rueckkehr zur Inline-Fehlermeldung im Formular selbst (sichtbar, weil sie im Dialog rendert). Merke fuer 2b/2c/2d: jeder Fehler, der auftreten kann waehrend ein Dialog offen bleibt, gehoert inline in den Dialog-Inhalt, nicht in einen Toast.
 
 ## Plan 2a – Trainingsbereich im neuen Design (umgesetzt und reviewt — Merge steht aus)
 

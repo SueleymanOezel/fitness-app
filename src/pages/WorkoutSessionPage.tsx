@@ -224,7 +224,7 @@ function SetForm({
             onChange={(event) => setIstAufwaermsatz(event.target.checked)}
           />
         </label>
-        <fieldset>
+        <fieldset className="flex flex-wrap gap-2">
           <legend>Wie viele hättest du noch geschafft?</legend>
           {RIR_VALUES.map((value) => (
             <Chip
