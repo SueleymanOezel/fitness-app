@@ -1,5 +1,6 @@
 import { sumKalorien, sumMakro } from '../lib/entry-calories'
 import type { FoodEntry } from '../hooks/use-food-entries'
+import { cardClass } from '../lib/ui-classes'
 
 type Props = {
   entries: FoodEntry[]
@@ -12,7 +13,7 @@ export default function DailySummary({ entries, goal }: Props) {
   const remaining = goal != null ? Math.round(goal - consumedExact) : null
 
   return (
-    <div>
+    <div className={cardClass}>
       <h2>Heute</h2>
       <p>
         {consumed} kcal verbraucht

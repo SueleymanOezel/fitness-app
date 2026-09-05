@@ -81,4 +81,10 @@ describe('DailySummary', () => {
     render(<DailySummary entries={withMissing} goal={null} />)
     expect(screen.getByText(/400 kcal verbraucht/)).toBeInTheDocument()
   })
+
+  it('wraps the summary in the card recipe', () => {
+    render(<DailySummary entries={[]} goal={2000} />)
+    const heading = screen.getByRole('heading', { name: 'Heute' })
+    expect(heading.closest('div')).toHaveClass('bg-surface', 'rounded-3xl', 'p-6')
+  })
 })
