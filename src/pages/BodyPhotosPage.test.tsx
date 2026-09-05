@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import BodyPhotosPage from './BodyPhotosPage'
+import { renderWithProviders } from '../test-render'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -32,11 +32,7 @@ function photosResult(overrides: Record<string, unknown> = {}) {
 }
 
 function renderPage() {
-  return render(
-    <MemoryRouter>
-      <BodyPhotosPage />
-    </MemoryRouter>,
-  )
+  return renderWithProviders(<BodyPhotosPage />)
 }
 
 const file = new File(['x'], 'foto.jpg', { type: 'image/jpeg' })
