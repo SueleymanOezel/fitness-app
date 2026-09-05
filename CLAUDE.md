@@ -12,6 +12,7 @@
 - Übungsdatenbank: free-exercise-db (einmaliger Import in eigene Tabelle)
 - Foto-Analyse (spätere Phase): Gemini API
 - Hosting: Firebase Hosting, Projekt `fitness-app-3e8f5` (Projekt-ID kann nicht mehr umbenannt werden, spielt aber sonst keine Rolle), Hosting-Site `vitaloop` — **live unter `https://vitaloop.web.app`**, seit 05.09.2026. Deploy-Target `vitaloop` in `.firebaserc` auf diese Site gemappt; `firebase.json` trägt `"target": "vitaloop"`. Der ursprüngliche Default-Site-Link `fitness-app-3e8f5.web.app` existiert noch (letzter Deploy davor), wird aber nicht mehr aktiv bespielt.
+  **Deploy ist nicht automatisiert** — `ci.yml` baut und testet nur, enthält keinen Firebase-Schritt. **Nach jedem Merge nach `master` deployen**: im Haupt-Checkout (nicht im Worktree — der hat kein `.env`) `npm ci && npm run build && firebase deploy --only hosting:vitaloop`. Ohne echte `.env` fehlt im Build das komplette Barcode-Scanner-Subsystem. Diese Regel gilt ab sofort für jeden gemergten PR, nicht nur für Design-Pläne — nach dem PR-Merge kurz sanity-checken (`curl -s https://vitaloop.web.app/ | grep -o 'index-[A-Za-z0-9_-]*\.js'` gegen den frisch gebauten Hash aus `dist/assets/`).
 
 ## Namenskonventionen
 
