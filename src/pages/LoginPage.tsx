@@ -70,6 +70,18 @@ export default function LoginPage() {
     setMode(mode === 'login' ? 'signup' : 'login')
   }
 
+  async function handleGoogleSignIn() {
+    setError(null)
+    // Same call for login and signup: Supabase creates the auth.users row (and,
+    // via the handle_new_user trigger, the profiles row) on first Google
+    // sign-in, so there is no separate "register with Google" action.
+    const { error: authError } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    })
+    if (authError) setError(authError.message)
+  }
+
   return (
     <form onSubmit={handleSubmit}>
       <h1>{mode === 'login' ? 'Login' : 'Registrieren'}</h1>
@@ -91,6 +103,9 @@ export default function LoginPage() {
       </button>
       <button type="button" onClick={toggleMode}>
         {mode === 'login' ? 'Noch keinen Account? Registrieren' : 'Schon registriert? Einloggen'}
+      </button>
+      <button type="button" onClick={handleGoogleSignIn}>
+        Mit Google anmelden
       </button>
     </form>
   )

@@ -4,12 +4,14 @@ import { MemoryRouter } from 'react-router-dom'
 
 const mockSignIn = vi.fn()
 const mockSignUp = vi.fn()
+const mockSignInWithOAuth = vi.fn()
 
 vi.mock('../lib/supabase', () => ({
   supabase: {
     auth: {
       signInWithPassword: (args: unknown) => mockSignIn(args),
       signUp: (args: unknown) => mockSignUp(args),
+      signInWithOAuth: (args: unknown) => mockSignInWithOAuth(args),
     },
   },
 }))
@@ -27,6 +29,7 @@ describe('LoginPage', () => {
   beforeEach(() => {
     mockSignIn.mockReset()
     mockSignUp.mockReset()
+    mockSignInWithOAuth.mockReset()
   })
 
   it('shows a validation error and does not call Supabase when fields are empty', async () => {
@@ -90,5 +93,38 @@ describe('LoginPage', () => {
         'Bitte bestätige deine E-Mail-Adresse, dann kannst du dich einloggen.',
       ),
     )
+  })
+
+  it('starts the Google OAuth flow, redirecting back to the current origin', async () => {
+    mockSignInWithOAuth.mockResolvedValue({ data: { provider: 'google', url: 'https://x' }, error: null })
+    await renderLoginPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mit Google anmelden' }))
+
+    await waitFor(() =>
+      expect(mockSignInWithOAuth).toHaveBeenCalledWith({
+        provider: 'google',
+        options: { redirectTo: window.location.origin },
+      }),
+    )
+  })
+
+  it('shows the Google button in signup mode too, since sign-in and sign-up are the same OAuth action', async () => {
+    await renderLoginPage()
+    fireEvent.click(screen.getByRole('button', { name: 'Noch keinen Account? Registrieren' }))
+
+    expect(screen.getByRole('button', { name: 'Mit Google anmelden' })).toBeInTheDocument()
+  })
+
+  it('shows an error when Google sign-in fails instead of silently doing nothing', async () => {
+    mockSignInWithOAuth.mockResolvedValue({
+      data: { provider: 'google', url: null },
+      error: { message: 'boom' },
+    })
+    await renderLoginPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mit Google anmelden' }))
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('boom'))
   })
 })
