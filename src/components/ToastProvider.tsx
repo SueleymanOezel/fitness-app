@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 
 type ToastType = 'success' | 'error'
 type ToastState = { message: string; type: ToastType } | null
@@ -17,10 +17,31 @@ const ToastContext = createContext<((message: string, type: ToastType) => void) 
  */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<ToastState>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const showToast = useCallback((message: string, type: ToastType) => {
+    // Clear any existing pending timeout before showing a new toast
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current)
+    }
+
     setToast({ message, type })
-    setTimeout(() => setToast(null), AUTO_DISMISS_MS)
+
+    // Schedule a new timeout and store its ID
+    timeoutRef.current = setTimeout(() => {
+      setToast(null)
+      timeoutRef.current = null
+    }, AUTO_DISMISS_MS)
+  }, [])
+
+  // Clean up the timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
+      }
+    }
   }, [])
 
   return (
