@@ -8,6 +8,8 @@ import { useTrainingAnalysis } from '../hooks/use-training-analysis'
 import TrainingChartList from '../components/charts/TrainingChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
+import { buttonPrimaryClass } from '../lib/ui-classes'
+import { useToast } from '../components/ToastProvider'
 
 export default function TrainingPage() {
   const { session } = useSession()
@@ -29,7 +31,7 @@ function Dashboard({ userId }: { userId: string }) {
   const { plan, day, loading } = useActiveTrainingDay(userId)
   const navigate = useNavigate()
   const [starting, setStarting] = useState(false)
-  const [error, setError] = useState('')
+  const showToast = useToast()
   const auswahl = useChartSelection(userId)
 
   if (loading) {
@@ -44,13 +46,12 @@ function Dashboard({ userId }: { userId: string }) {
   // Disabled while starting: a second click would create a second session
   // and leave the first one open forever.
   async function start(dayId: string) {
-    setError('')
     setStarting(true)
     try {
       const sessionId = await startWorkoutSession(userId, dayId)
       navigate(`/training/session/${sessionId}`)
     } catch {
-      setError('Training konnte nicht gestartet werden.')
+      showToast('Training konnte nicht gestartet werden.', 'error')
       setStarting(false)
     }
   }
@@ -69,12 +70,11 @@ function Dashboard({ userId }: { userId: string }) {
         <>
           <p>{plan.name}</p>
           <p>{day.name}</p>
-          <button type="button" disabled={starting} onClick={() => start(day.id)}>
+          <button type="button" className={buttonPrimaryClass} disabled={starting} onClick={() => start(day.id)}>
             Training starten
           </button>
         </>
       )}
-      {error !== '' && <p role="alert">{error}</p>}
       <Link to="/training/plans">Meine Pläne</Link>
       <Link to="/training/exercises">Übungen</Link>
       <Link to="/training/history">Trainingshistorie</Link>

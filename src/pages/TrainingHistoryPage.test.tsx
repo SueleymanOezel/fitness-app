@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { cleanup, screen } from '@testing-library/react'
+import { renderWithProviders } from '../test-render'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -27,7 +27,7 @@ describe('TrainingHistoryPage', () => {
     mockUseWorkoutHistory.mockReturnValue({ sessions: [finished], loading: false })
 
     const { default: TrainingHistoryPage } = await import('./TrainingHistoryPage')
-    render(<TrainingHistoryPage />, { wrapper: MemoryRouter })
+    renderWithProviders(<TrainingHistoryPage />)
 
     const link = screen.getByRole('link', { name: /Ganzkörper.*Tag A/ })
     expect(link).toHaveAttribute('href', '/training/history/s1')
@@ -42,7 +42,7 @@ describe('TrainingHistoryPage', () => {
     })
 
     const { default: TrainingHistoryPage } = await import('./TrainingHistoryPage')
-    render(<TrainingHistoryPage />, { wrapper: MemoryRouter })
+    renderWithProviders(<TrainingHistoryPage />)
 
     const link = screen.getByRole('link', { name: /Ganzkörper.*Tag A/ })
     expect(link).not.toHaveTextContent('0 kcal')
@@ -54,7 +54,7 @@ describe('TrainingHistoryPage', () => {
     mockUseWorkoutHistory.mockReturnValue({ sessions: [], loading: false })
 
     const { default: TrainingHistoryPage } = await import('./TrainingHistoryPage')
-    render(<TrainingHistoryPage />, { wrapper: MemoryRouter })
+    renderWithProviders(<TrainingHistoryPage />)
 
     expect(screen.getByText('Noch keine Trainings aufgezeichnet.')).toBeInTheDocument()
   })

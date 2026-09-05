@@ -3,6 +3,9 @@ import { Link, useParams } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlan, type DayExercisePatch, type WorkoutPlanDay } from '../hooks/use-workout-plans'
 import { useExercises } from '../hooks/use-exercises'
+import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import Dialog from '../components/Dialog'
+import { useToast } from '../components/ToastProvider'
 
 export default function TrainingPlanEditPage() {
   const { session } = useSession()
@@ -35,7 +38,8 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
   } = useWorkoutPlan(planId)
   const { exercises } = useExercises(userId)
   const [newDayName, setNewDayName] = useState('')
-  const [error, setError] = useState('')
+  const [dayNameError, setDayNameError] = useState('')
+  const showToast = useToast()
 
   if (loading) {
     return (
@@ -59,11 +63,10 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
   // The hook rejects on a failed write; without this the rejection would go
   // unhandled and the user would see nothing at all.
   async function run(action: () => Promise<void>, message: string) {
-    setError('')
     try {
       await action()
     } catch {
-      setError(message)
+      showToast(message, 'error')
     }
   }
 
@@ -92,9 +95,10 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
         onSubmit={(event) => {
           event.preventDefault()
           if (newDayName.trim() === '') {
-            setError('Der Tag braucht einen Namen.')
+            setDayNameError('Der Tag braucht einen Namen.')
             return
           }
+          setDayNameError('')
           const name = newDayName.trim()
           setNewDayName('')
           void run(() => addDay(name), 'Tag hinzufügen fehlgeschlagen.')
@@ -104,9 +108,11 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
           Neuer Tag
           <input value={newDayName} onChange={(event) => setNewDayName(event.target.value)} />
         </label>
-        <button type="submit">Tag hinzufügen</button>
+        <button type="submit" className={buttonPrimaryClass}>
+          Tag hinzufügen
+        </button>
       </form>
-      {error !== '' && <p role="alert">{error}</p>}
+      {dayNameError !== '' && <p role="alert">{dayNameError}</p>}
       <Link to="/training/plans">Zurück zu meinen Plänen</Link>
     </div>
   )
@@ -133,20 +139,10 @@ function DayBlock({
   onRemoveExercise: (id: string) => void
   onMoveExercise: (exerciseRowId: string, direction: 'up' | 'down') => void
 }) {
-  const [query, setQuery] = useState('')
-  // Already-added exercises are filtered out rather than silently rejected by
-  // the hook's duplicate guard, which would look like a dead button.
-  const matches =
-    query === ''
-      ? []
-      : exercises.filter(
-          (exercise) =>
-            exercise.name.toLowerCase().includes(query.toLowerCase()) &&
-            !day.exercises.some((row) => row.exercise_id === exercise.id),
-        )
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   return (
-    <section>
+    <section className={cardClass}>
       <h2>{day.name}</h2>
       {canMoveUp && (
         <button type="button" onClick={() => onMoveDay('up')}>
@@ -158,41 +154,93 @@ function DayBlock({
           Tag nach unten
         </button>
       )}
-      <ul role="list">
+      <ul role="list" className="space-y-4">
         {day.exercises.map((row, index) => (
-          <li key={row.id}>
-            {row.exercise?.name}
-            <TargetField
-              label="Sätze"
-              stored={row.ziel_saetze}
-              onCommit={(value) => onUpdateExercise(row.id, { ziel_saetze: value })}
-            />
-            <TargetField
-              label="Wiederholungen"
-              stored={row.ziel_wiederholungen}
-              onCommit={(value) => onUpdateExercise(row.id, { ziel_wiederholungen: value })}
-            />
-            <TargetField
-              label="Pause (Sekunden)"
-              stored={row.pausenzeit_sekunden}
-              onCommit={(value) => onUpdateExercise(row.id, { pausenzeit_sekunden: value })}
-            />
-            {index > 0 && (
-              <button type="button" onClick={() => onMoveExercise(row.id, 'up')}>
-                Nach oben
+          <li key={row.id} className="block border-b-0">
+            <div className={`${cardClass} w-full`}>
+              {row.exercise?.name}
+              <TargetField
+                label="Sätze"
+                stored={row.ziel_saetze}
+                onCommit={(value) => onUpdateExercise(row.id, { ziel_saetze: value })}
+              />
+              <TargetField
+                label="Wiederholungen"
+                stored={row.ziel_wiederholungen}
+                onCommit={(value) => onUpdateExercise(row.id, { ziel_wiederholungen: value })}
+              />
+              <TargetField
+                label="Pause (Sekunden)"
+                stored={row.pausenzeit_sekunden}
+                onCommit={(value) => onUpdateExercise(row.id, { pausenzeit_sekunden: value })}
+              />
+              {index > 0 && (
+                <button type="button" onClick={() => onMoveExercise(row.id, 'up')}>
+                  Nach oben
+                </button>
+              )}
+              {index < day.exercises.length - 1 && (
+                <button type="button" onClick={() => onMoveExercise(row.id, 'down')}>
+                  Nach unten
+                </button>
+              )}
+              <button type="button" className={buttonSecondaryClass} onClick={() => onRemoveExercise(row.id)}>
+                Entfernen
               </button>
-            )}
-            {index < day.exercises.length - 1 && (
-              <button type="button" onClick={() => onMoveExercise(row.id, 'down')}>
-                Nach unten
-              </button>
-            )}
-            <button type="button" onClick={() => onRemoveExercise(row.id)}>
-              Entfernen
-            </button>
+            </div>
           </li>
         ))}
       </ul>
+      <button type="button" className={buttonPrimaryClass} onClick={() => setPickerOpen(true)}>
+        Übung hinzufügen
+      </button>
+      {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
+          rendering the picker only while open resets the search field each
+          time it opens, instead of keeping the last search around. */}
+      <Dialog open={pickerOpen} onClose={() => setPickerOpen(false)}>
+        {pickerOpen && (
+          <ExercisePicker
+            exercises={exercises}
+            alreadyAdded={day.exercises.map((row) => row.exercise_id)}
+            // onAddExercise's write failure reports via a toast (see run() above); the
+            // dialog is already closed by the time it would land, since this callback
+            // closes it synchronously before the async write resolves — a toast raised
+            // while this Dialog is still open would render invisible behind its native
+            // top-layer backdrop (see ExercisesPage.tsx's onSave for the case where
+            // that actually happened). Do not make this await the write before closing.
+            onPick={(exerciseId) => {
+              onAddExercise(exerciseId)
+              setPickerOpen(false)
+            }}
+          />
+        )}
+      </Dialog>
+    </section>
+  )
+}
+
+function ExercisePicker({
+  exercises,
+  alreadyAdded,
+  onPick,
+}: {
+  exercises: { id: string; name: string }[]
+  alreadyAdded: string[]
+  onPick: (exerciseId: string) => void
+}) {
+  const [query, setQuery] = useState('')
+  // Already-added exercises are filtered out rather than silently rejected by
+  // the hook's duplicate guard, which would look like a dead button.
+  const matches =
+    query === ''
+      ? []
+      : exercises.filter(
+          (exercise) =>
+            exercise.name.toLowerCase().includes(query.toLowerCase()) && !alreadyAdded.includes(exercise.id),
+        )
+
+  return (
+    <div className={cardClass}>
       <label>
         Übung suchen
         <input value={query} onChange={(event) => setQuery(event.target.value)} />
@@ -201,19 +249,13 @@ function DayBlock({
         {matches.map((exercise) => (
           <li key={exercise.id}>
             {exercise.name}
-            <button
-              type="button"
-              onClick={() => {
-                onAddExercise(exercise.id)
-                setQuery('')
-              }}
-            >
+            <button type="button" onClick={() => onPick(exercise.id)}>
               {`${exercise.name} hinzufügen`}
             </button>
           </li>
         ))}
       </ul>
-    </section>
+    </div>
   )
 }
 

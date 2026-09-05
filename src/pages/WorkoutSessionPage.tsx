@@ -7,6 +7,9 @@ import {
   type SessionExercise,
   type SetValues,
 } from '../hooks/use-workout-session'
+import { cardClass, buttonPrimaryClass } from '../lib/ui-classes'
+import Chip from '../components/Chip'
+import { useToast } from '../components/ToastProvider'
 
 export default function WorkoutSessionPage() {
   const { session } = useSession()
@@ -30,7 +33,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
   const { session, exercises, sets, loading, logSet, completeSession } = useWorkoutSession(sessionId)
   const [openExerciseId, setOpenExerciseId] = useState<string | null>(null)
   const [pause, setPause] = useState<{ until: number; sekunden: number } | null>(null)
-  const [error, setError] = useState('')
+  const showToast = useToast()
   const navigate = useNavigate()
 
   // Warm-ups are logged like any other set but count for nothing: not against
@@ -91,12 +94,11 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
 
   async function complete() {
     if (gewichtKg === null) return
-    setError('')
     try {
       await completeSession(gewichtKg)
       navigate('/training')
     } catch {
-      setError('Training konnte nicht abgeschlossen werden.')
+      showToast('Training konnte nicht abgeschlossen werden.', 'error')
     }
   }
 
@@ -104,46 +106,46 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     <div>
       <h1>Training</h1>
       {pause !== null && <PauseTimer until={pause.until} sekunden={pause.sekunden} onDone={pauseOver} />}
-      <ul role="list">
+      <ul role="list" className="space-y-4">
         {exercises.map((entry) => (
-          <li key={entry.exercise_id}>
-            <button type="button" onClick={() => setOpenExerciseId(entry.exercise_id)}>
-              {entry.name}
-            </button>
-            {openExerciseId === entry.exercise_id && (
-              <SetForm
-                exercise={entry}
-                completedCount={workingSetCount(entry.exercise_id)}
-                onLog={async (values) => {
-                  setError('')
-                  // satz_nummer stays a running order over every set of the
-                  // exercise; only the displayed counting skips warm-ups.
-                  const satzNummer =
-                    sets.filter((set) => set.exercise_id === entry.exercise_id).length + 1
-                  try {
-                    await logSet(entry.exercise_id, satzNummer, values)
-                  } catch {
-                    // No pause on a set that was never stored — it would suggest it counted.
-                    setError('Satz konnte nicht gespeichert werden.')
-                    return false
-                  }
-                  if (entry.pausenzeit_sekunden) {
-                    setPause({
-                      until: Date.now() + entry.pausenzeit_sekunden * 1000,
-                      sekunden: entry.pausenzeit_sekunden,
-                    })
-                  }
-                  return true
-                }}
-              />
-            )}
+          <li key={entry.exercise_id} className="block border-b-0">
+            <div className={`${cardClass} w-full`}>
+              <button type="button" onClick={() => setOpenExerciseId(entry.exercise_id)}>
+                {entry.name}
+              </button>
+              {openExerciseId === entry.exercise_id && (
+                <SetForm
+                  exercise={entry}
+                  completedCount={workingSetCount(entry.exercise_id)}
+                  onLog={async (values) => {
+                    // satz_nummer stays a running order over every set of the
+                    // exercise; only the displayed counting skips warm-ups.
+                    const satzNummer =
+                      sets.filter((set) => set.exercise_id === entry.exercise_id).length + 1
+                    try {
+                      await logSet(entry.exercise_id, satzNummer, values)
+                    } catch {
+                      // No pause on a set that was never stored — it would suggest it counted.
+                      showToast('Satz konnte nicht gespeichert werden.', 'error')
+                      return false
+                    }
+                    if (entry.pausenzeit_sekunden) {
+                      setPause({
+                        until: Date.now() + entry.pausenzeit_sekunden * 1000,
+                        sekunden: entry.pausenzeit_sekunden,
+                      })
+                    }
+                    return true
+                  }}
+                />
+              )}
+            </div>
           </li>
         ))}
       </ul>
       <p>{gewichtKg === null ? '—' : `${gewichtKg} kg`}</p>
       {gewichtKg === null && <p>Ohne Gewicht im Profil lässt sich der Verbrauch nicht berechnen.</p>}
-      {error !== '' && <p role="alert">{error}</p>}
-      <button type="button" disabled={gewichtKg === null} onClick={complete}>
+      <button type="button" className={buttonPrimaryClass} disabled={gewichtKg === null} onClick={complete}>
         Training abschließen
       </button>
     </div>
@@ -198,45 +200,48 @@ function SetForm({
         setIstAufwaermsatz(false)
       }}
     >
-      <p>
-        {istAufwaermsatz
-          ? 'Aufwärmsatz — zählt nicht zum Ziel'
-          : targetReached(exercise.ziel_saetze, completedCount)
-            ? 'Alle Sätze erfasst'
-            : `Satz ${completedCount + 1}${exercise.ziel_saetze == null ? '' : ` von ${exercise.ziel_saetze}`}`}
-      </p>
-      <label>
-        Gewicht (kg)
-        <input value={gewicht} onChange={(event) => setGewicht(event.target.value)} />
-      </label>
-      <label>
-        Wiederholungen
-        <input value={wiederholungen} onChange={(event) => setWiederholungen(event.target.value)} />
-      </label>
-      <label>
-        Aufwärmsatz
-        <input
-          type="checkbox"
-          checked={istAufwaermsatz}
-          onChange={(event) => setIstAufwaermsatz(event.target.checked)}
-        />
-      </label>
-      <fieldset>
-        <legend>Wie viele hättest du noch geschafft?</legend>
-        {RIR_VALUES.map((value) => (
-          <button
-            key={value}
-            type="button"
-            // Pressed rather than disabled: tapping the same value again clears
-            // it, so a mistap does not stick for the rest of the session.
-            aria-pressed={rir === value}
-            onClick={() => setRir(rir === value ? null : value)}
-          >
-            {value === 5 ? '5+' : String(value)}
-          </button>
-        ))}
-      </fieldset>
-      <button type="submit">Satz abschließen</button>
+      <div className={cardClass}>
+        <p>
+          {istAufwaermsatz
+            ? 'Aufwärmsatz — zählt nicht zum Ziel'
+            : targetReached(exercise.ziel_saetze, completedCount)
+              ? 'Alle Sätze erfasst'
+              : `Satz ${completedCount + 1}${exercise.ziel_saetze == null ? '' : ` von ${exercise.ziel_saetze}`}`}
+        </p>
+        <label>
+          Gewicht (kg)
+          <input value={gewicht} onChange={(event) => setGewicht(event.target.value)} />
+        </label>
+        <label>
+          Wiederholungen
+          <input value={wiederholungen} onChange={(event) => setWiederholungen(event.target.value)} />
+        </label>
+        <label>
+          Aufwärmsatz
+          <input
+            type="checkbox"
+            checked={istAufwaermsatz}
+            onChange={(event) => setIstAufwaermsatz(event.target.checked)}
+          />
+        </label>
+        <fieldset className="flex flex-wrap gap-2">
+          <legend>Wie viele hättest du noch geschafft?</legend>
+          {RIR_VALUES.map((value) => (
+            <Chip
+              key={value}
+              active={rir === value}
+              // Pressed rather than disabled: tapping the same value again clears
+              // it, so a mistap does not stick for the rest of the session.
+              onClick={() => setRir(rir === value ? null : value)}
+            >
+              {value === 5 ? '5+' : String(value)}
+            </Chip>
+          ))}
+        </fieldset>
+      </div>
+      <button type="submit" className={buttonPrimaryClass}>
+        Satz abschließen
+      </button>
     </form>
   )
 }

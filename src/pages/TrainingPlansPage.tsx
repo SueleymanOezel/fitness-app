@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlans } from '../hooks/use-workout-plans'
+import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { useToast } from '../components/ToastProvider'
 
 export default function TrainingPlansPage() {
   const { session } = useSession()
@@ -22,7 +24,8 @@ export default function TrainingPlansPage() {
 function PlansList({ userId }: { userId: string }) {
   const { plans, loading, createPlan, deletePlan, activatePlan } = useWorkoutPlans(userId)
   const [name, setName] = useState('')
-  const [error, setError] = useState('')
+  const [nameError, setNameError] = useState('')
+  const showToast = useToast()
 
   if (loading) {
     return (
@@ -34,32 +37,44 @@ function PlansList({ userId }: { userId: string }) {
   }
 
   // The hooks reject on a failed write; without this the rejection would go
-  // unhandled and the user would see nothing at all.
+  // unhandled and the user would see nothing at all. A write failure is
+  // short-lived feedback on an action, so it goes to a toast — unlike the
+  // name-is-empty check below, which is permanent form validation and stays
+  // inline (ToastProvider's own contract: transient action feedback only).
   async function run(action: () => Promise<void>, message: string) {
-    setError('')
     try {
       await action()
     } catch {
-      setError(message)
+      showToast(message, 'error')
     }
   }
 
   return (
     <div>
       <h1>Meine Pläne</h1>
-      <ul role="list">
+      <ul role="list" className="space-y-4">
         {plans.map((plan) => (
-          <li key={plan.id}>
-            <Link to={`/training/plans/${plan.id}`}>{plan.name}</Link>
-            {plan.aktiv && <span>aktiv</span>}
-            {!plan.aktiv && (
-              <button type="button" onClick={() => run(() => activatePlan(plan.id), 'Aktivieren fehlgeschlagen.')}>
-                Aktivieren
+          <li key={plan.id} className="block border-b-0">
+            <div className={`${cardClass} w-full`}>
+              <Link to={`/training/plans/${plan.id}`}>{plan.name}</Link>
+              {plan.aktiv && <span>aktiv</span>}
+              {!plan.aktiv && (
+                <button
+                  type="button"
+                  className={buttonSecondaryClass}
+                  onClick={() => run(() => activatePlan(plan.id), 'Aktivieren fehlgeschlagen.')}
+                >
+                  Aktivieren
+                </button>
+              )}
+              <button
+                type="button"
+                className={buttonSecondaryClass}
+                onClick={() => run(() => deletePlan(plan.id), 'Löschen fehlgeschlagen.')}
+              >
+                Löschen
               </button>
-            )}
-            <button type="button" onClick={() => run(() => deletePlan(plan.id), 'Löschen fehlgeschlagen.')}>
-              Löschen
-            </button>
+            </div>
           </li>
         ))}
       </ul>
@@ -67,9 +82,10 @@ function PlansList({ userId }: { userId: string }) {
         onSubmit={async (event) => {
           event.preventDefault()
           if (name.trim() === '') {
-            setError('Der Plan braucht einen Namen.')
+            setNameError('Der Plan braucht einen Namen.')
             return
           }
+          setNameError('')
           const trimmed = name.trim()
           setName('')
           await run(() => createPlan(trimmed), 'Anlegen fehlgeschlagen.')
@@ -79,9 +95,11 @@ function PlansList({ userId }: { userId: string }) {
           Neuer Plan
           <input value={name} onChange={(event) => setName(event.target.value)} />
         </label>
-        <button type="submit">Anlegen</button>
+        <button type="submit" className={buttonPrimaryClass}>
+          Anlegen
+        </button>
       </form>
-      {error !== '' && <p role="alert">{error}</p>}
+      {nameError !== '' && <p role="alert">{nameError}</p>}
       <Link to="/training">Zurück zum Training</Link>
     </div>
   )

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
+import { renderWithProviders } from '../test-render'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -42,7 +42,7 @@ describe('ExercisesPage', () => {
     )
 
     const { default: ExercisesPage } = await import('./ExercisesPage')
-    render(<ExercisesPage />, { wrapper: MemoryRouter })
+    renderWithProviders(<ExercisesPage />)
 
     expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
     expect(screen.getByText('Kniebeuge')).toBeInTheDocument()
@@ -59,7 +59,7 @@ describe('ExercisesPage', () => {
     mockUseExercises.mockReturnValue(result)
 
     const { default: ExercisesPage } = await import('./ExercisesPage')
-    render(<ExercisesPage />, { wrapper: MemoryRouter })
+    renderWithProviders(<ExercisesPage />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Eigene Übung anlegen' }))
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Meine Übung' } })
@@ -82,7 +82,7 @@ describe('ExercisesPage', () => {
     mockUseExercises.mockReturnValue(result)
 
     const { default: ExercisesPage } = await import('./ExercisesPage')
-    render(<ExercisesPage />, { wrapper: MemoryRouter })
+    renderWithProviders(<ExercisesPage />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Eigene Übung anlegen' }))
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Meine Übung' } })
@@ -98,7 +98,7 @@ describe('ExercisesPage', () => {
     mockUseExercises.mockReturnValue(result)
 
     const { default: ExercisesPage } = await import('./ExercisesPage')
-    render(<ExercisesPage />, { wrapper: MemoryRouter })
+    renderWithProviders(<ExercisesPage />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Eigene Übung anlegen' }))
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Meine Übung' } })
@@ -115,7 +115,7 @@ describe('ExercisesPage', () => {
     mockUseExercises.mockReturnValue(exercisesResult({ exercises: [], error: true }))
 
     const { default: ExercisesPage } = await import('./ExercisesPage')
-    render(<ExercisesPage />, { wrapper: MemoryRouter })
+    renderWithProviders(<ExercisesPage />)
 
     expect(screen.getByRole('alert')).toBeInTheDocument()
     expect(screen.queryByLabelText('Suche')).not.toBeInTheDocument()

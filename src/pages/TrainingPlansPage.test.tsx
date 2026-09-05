@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
+import { renderWithProviders } from '../test-render'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -27,7 +27,7 @@ describe('TrainingPlansPage', () => {
     mockUseWorkoutPlans.mockReturnValue(plansResult())
 
     const { default: TrainingPlansPage } = await import('./TrainingPlansPage')
-    render(<TrainingPlansPage />, { wrapper: MemoryRouter })
+    renderWithProviders(<TrainingPlansPage />)
 
     expect(screen.getByRole('link', { name: /Ganzkörper/ })).toHaveAttribute('href', '/training/plans/p1')
     expect(screen.getByText(/aktiv/i)).toBeInTheDocument()
@@ -39,7 +39,7 @@ describe('TrainingPlansPage', () => {
     mockUseWorkoutPlans.mockReturnValue(result)
 
     const { default: TrainingPlansPage } = await import('./TrainingPlansPage')
-    render(<TrainingPlansPage />, { wrapper: MemoryRouter })
+    renderWithProviders(<TrainingPlansPage />)
 
     fireEvent.change(screen.getByLabelText('Neuer Plan'), { target: { value: 'Push/Pull/Legs' } })
     fireEvent.click(screen.getByRole('button', { name: 'Anlegen' }))
@@ -55,7 +55,7 @@ describe('TrainingPlansPage', () => {
     mockUseWorkoutPlans.mockReturnValue(result)
 
     const { default: TrainingPlansPage } = await import('./TrainingPlansPage')
-    render(<TrainingPlansPage />, { wrapper: MemoryRouter })
+    renderWithProviders(<TrainingPlansPage />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Aktivieren' }))
     await waitFor(() => expect(result.activatePlan).toHaveBeenCalledWith('p1'))
@@ -70,7 +70,7 @@ describe('TrainingPlansPage', () => {
     mockUseWorkoutPlans.mockReturnValue(result)
 
     const { default: TrainingPlansPage } = await import('./TrainingPlansPage')
-    render(<TrainingPlansPage />, { wrapper: MemoryRouter })
+    renderWithProviders(<TrainingPlansPage />)
 
     fireEvent.change(screen.getByLabelText('Neuer Plan'), { target: { value: '   ' } })
     fireEvent.click(screen.getByRole('button', { name: 'Anlegen' }))
@@ -88,7 +88,7 @@ describe('TrainingPlansPage', () => {
     mockUseWorkoutPlans.mockReturnValue(result)
 
     const { default: TrainingPlansPage } = await import('./TrainingPlansPage')
-    render(<TrainingPlansPage />, { wrapper: MemoryRouter })
+    renderWithProviders(<TrainingPlansPage />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Aktivieren' }))
 

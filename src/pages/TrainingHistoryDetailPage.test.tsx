@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import TrainingHistoryDetailPage from './TrainingHistoryDetailPage'
+import { renderWithProviders } from '../test-render'
 
 const mockUseWorkoutSession = vi.fn()
 vi.mock('../hooks/use-workout-session', () => ({
@@ -52,13 +52,10 @@ function sessionResult(overrides: Partial<ReturnType<typeof mockUseWorkoutSessio
 }
 
 function renderPage() {
-  return render(
-    <MemoryRouter initialEntries={['/training/history/s1']}>
-      <Routes>
-        <Route path="/training/history/:sessionId" element={<TrainingHistoryDetailPage />} />
-      </Routes>
-    </MemoryRouter>,
-  )
+  return renderWithProviders(<TrainingHistoryDetailPage />, {
+    route: '/training/history/s1',
+    path: '/training/history/:sessionId',
+  })
 }
 
 describe('TrainingHistoryDetailPage', () => {
