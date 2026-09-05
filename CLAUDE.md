@@ -189,7 +189,7 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Stand nach Task 7 und Fix-Welle: 730 Tests grün** (104 Dateien), Lint ohne Fehler und Warnungen, `tsc -b --noEmit` sauber, `npm run build` erfolgreich. Entry-Chunk `dist/assets/index-CR0IR7-K.js` 235,36 kB (75,50 kB gzip), CSS `dist/assets/index-D2fk5ca_.css` 15,95 kB (3,98 kB gzip) — kein echter Vergleichswert zur `master`-Baseline (Worktree ohne `.env`, wie bei Plan 1/2a: das komplette Barcode-Scanner-Subsystem fehlt im Entry-Chunk). Keine Migration in diesem Plan, `docs/domaenenmodell.md` unverändert.
 
-**Noch offen:** Wiki synchronisieren (noch nicht gemacht für Plan 2b).
+**Wiki synchronisiert** (06.09.2026, Commit `a0d307b`): nicht nur Plan 2b, sondern der komplette Phase-6-Rückstand — Design-Spec, Plan 1 (Fundament) und Plan 2a (Training) waren trotz Merge nie gespiegelt worden. Vier neue Seiten (`Phase-6-Design-Spec`, `Phase-6-Plan-1-Fundament`, `Phase-6-Plan-2a-Training`, `Phase-6-Plan-2b-Ernaehrungsbereich`), `Home`/`_Sidebar` verlinkt und der Status-Absatz ergänzt. `Domain-Model.md` unverändert (keiner der drei Pläne fasst das Schema an).
 
 **Aufteilung wie bei Phase 5:** Plan 1 (Fundament) — **fertig und gemerged** —, Plan 2a (Training) — **fertig und gemerged** —, Plan 2b (Ernährung) — **fertig und gemerged** —, danach Plan 2c (Körper), 2d (Analyse-Seiten), noch keiner geschrieben.
 
