@@ -1,6 +1,7 @@
 import { ZEITRAEUME, type Zeitraum } from '../lib/analysis/zeitraum'
+import Chip from './Chip'
 
-/** Buttons rather than a select: four options, and one tap instead of two. */
+/** Chips rather than a select: four options, and one tap instead of two. */
 export default function ZeitraumSwitch({
   wert,
   onChange,
@@ -11,14 +12,9 @@ export default function ZeitraumSwitch({
   return (
     <div>
       {ZEITRAEUME.map((zeitraum) => (
-        <button
-          key={String(zeitraum.wert)}
-          type="button"
-          aria-pressed={zeitraum.wert === wert}
-          onClick={() => onChange(zeitraum.wert)}
-        >
+        <Chip key={String(zeitraum.wert)} active={zeitraum.wert === wert} onClick={() => onChange(zeitraum.wert)}>
           {zeitraum.label}
-        </button>
+        </Chip>
       ))}
     </div>
   )

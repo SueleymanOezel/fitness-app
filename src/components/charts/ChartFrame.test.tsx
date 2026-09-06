@@ -13,6 +13,16 @@ describe('ChartFrame', () => {
     expect(screen.getByTestId('inhalt')).toBeInTheDocument()
   })
 
+  it('wraps every chart in the card recipe', () => {
+    render(
+      <ChartFrame titel="Trainingsfrequenz" leer={false}>
+        <div data-testid="inhalt" />
+      </ChartFrame>,
+    )
+    const heading = screen.getByRole('heading', { name: 'Trainingsfrequenz' })
+    expect(heading.closest('section')).toHaveClass('bg-surface', 'rounded-3xl', 'p-6')
+  })
+
   it('writes a sentence instead of drawing empty axes', () => {
     // An empty coordinate system looks like a failure. A sentence says which it
     // is: nothing recorded yet.
