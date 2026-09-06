@@ -87,7 +87,7 @@ Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer 
 
 **Aktueller Stand:** Phase 1, 2 und 3 sind gemerged, deployed und manuell gegen Produktion verifiziert; die kosmetischen Nacharbeiten am Layout ebenfalls (PR #22/#23, Merge-Commit `5b79651`). **Phase 4 (Körperbereich) ist gemerged und gegen Produktion verifiziert** (PR #26, Merge-Commit `63aced2`) — Details im eigenen Abschnitt weiter unten. **Phase 5 (Analysebereich) ist ebenfalls vollständig gemerged und verifiziert** — Details im eigenen Abschnitt weiter unten. Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header. Der Ernährungsbereich hat eine eigene Eintragsliste unter `/nutrition/entries`, nach Mahlzeiten-Abschnitten gegliedert (PR #20, Merge-Commit `752587c`; Phase 3: PR #21, `7420145`).
 
-**Genau hier weitermachen (Stand 06.09.2026):** Hosting ist erledigt, App heißt jetzt **VitaLoop** (siehe „Hosting" im Tech-Stack oben) — dauerhaft erreichbar unter `https://vitaloop.web.app`. **Phase 6 (Design) ist mit Plan 2d vollständig — alle fünf Pläne (Fundament, Training, Ernährung, Körper, Analyse-Seiten) umgesetzt, reviewt und gemerged.** Details zu Plan 2d im eigenen Abschnitt weiter unten. Nächster Schritt: Deploy von Plan 2d, danach Wiki-Sync, danach rückt Härtung auf Phase 7.
+**Genau hier weitermachen (Stand 06.09.2026):** Hosting ist erledigt, App heißt jetzt **VitaLoop** (siehe „Hosting" im Tech-Stack oben) — dauerhaft erreichbar unter `https://vitaloop.web.app`. **Phase 6 (Design) ist vollständig abgeschlossen — alle fünf Pläne (Fundament, Training, Ernährung, Körper, Analyse-Seiten) umgesetzt, reviewt, gemerged, live deployed und im Wiki dokumentiert.** Details zu Plan 2d im eigenen Abschnitt weiter unten. **Nächster Schritt: Phase 7 (Härtung) — Spec/Plan dafür noch nicht geschrieben.**
 
 **Mahlzeiten-Abschnitte (gemerged, alle 9 Tasks fertig):** Einträge auf `/nutrition/entries` sind nach Mahlzeiten gegliedert — sechs feste Slots, vier davon vorbelegt (Frühstück, Mittagessen, Abendessen, Snacks), die restlichen zwei optional und nur sichtbar, sobald sie einen Namen oder Einträge haben. Die Namen stehen im Profil unter „Mahlzeiten"; welchem Abschnitt ein Eintrag zugeordnet ist, ergibt sich daraus, in welchem Abschnitt er erfasst wurde. Alt-Einträge von vor der Migration stehen unter „Ohne Zuordnung" und lassen sich über „Bearbeiten" nachträglich einsortieren. Das Ernährungs-Dashboard zeigt die Kalorien je Abschnitt als Link zur Eintragsliste. Enthält Migration `0003_meal_sections.sql` (fügt nur Spalten hinzu; bestehende Zeilen bekommen `mahlzeit = null`). Spec: `docs/superpowers/specs/2026-08-20-mahlzeiten-abschnitte-design.md`, Plan: `docs/superpowers/plans/2026-08-20-mahlzeiten-abschnitte-plan.md`.
 
@@ -219,7 +219,7 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Wiki synchronisiert** (06.09.2026, Commit `39b8b21`): neue Seite `Phase-6-Plan-2c-Koerper`, `Home`/`_Sidebar` verlinkt und der Phase-6-Status-Absatz um Plan 2c ergänzt. `Domain-Model.md` unverändert (Plan fasst kein Schema an).
 
-## Plan 2d – Analyse-Seiten im neuen Design (Whole-Branch-Review ausstehend)
+## Plan 2d – Analyse-Seiten im neuen Design (gemerged, PR #44)
 
 **Plan:** `docs/superpowers/plans/2026-09-06-phase6-plan2d-analyse-plan.md`, Commit `e2d2481` auf `master`, 5 Tasks. Alle 19 Graphen (Training T1–T8, Ernährung E1–E6, Körper K1–K5) bekommen die Design-Farbpalette aus dem Phase-6-Design-Spec statt Recharts' Default-Lila; `ChartFrame` (die Karten-Hülle aller Graphen) und `ZeitraumSwitch` (die Zeitraum-Buttons) verwenden jetzt `cardClass` bzw. `Chip` aus Plan 1. Umgesetzt per `superpowers:subagent-driven-development`, isolierter Worktree/Branch `worktree-phase6-plan2d-analyse`.
 
@@ -254,7 +254,11 @@ Nach der Fix-Welle erneut manuell im echten Chrome-Tab gegen die reale `Training
 
 **Zusätzlich unabhängig von Codex (GPT-5.6-Sol) gegengeprüft** (siehe „Codex/GPT als Zweitmeinung" oben) — `codex review -c model="gpt-5.6-sol" --base origin/master` auf dem finalen, bereits gefixten Stand: „The changes consistently apply the shared card and chip styling and centralize chart colors without altering chart data behavior. No actionable regressions were identified." Deckt sich mit dem Opus-Verdict nach der Fix-Welle — zwei unabhängige Modelle, gleiches Ergebnis.
 
-**Noch offen:** Merge, Deploy und Wiki-Sync — diesen Abschnitt nach jedem Schritt nachziehen.
+**PR #44 gegen `master` gemergt** (Merge-Commit `7b7c418`, alle vier CI-Checks grün: build-test, npm-audit, semgrep, zap-baseline), Worktree und Branch entfernt. **Live deployed** (`npm ci && npm run build && firebase deploy --only hosting:vitaloop`, Asset-Hash `index-CIIZdvdp.js` auf `https://vitaloop.web.app` verifiziert, Entry-Chunk 999,96 kB / 272,59 kB gzip mit echter `.env` — praktisch identisch zur Plan-2c-Baseline).
+
+**Wiki synchronisiert** (06.09.2026, Commit `126d86b`): neue Seite `Phase-6-Plan-2d-Analyse-Seiten`, `Home`/`_Sidebar` verlinkt und der Phase-6-Status-Absatz auf „vollständig" aktualisiert. `Domain-Model.md` unverändert (Plan fasst kein Schema an).
+
+**Damit ist Phase 6 (Design) vollständig abgeschlossen** — alle fünf Pläne (Fundament, Training, Ernährung, Körper, Analyse-Seiten) gemerged, live deployed und im Wiki dokumentiert. Nächster Schritt: Phase 7 (Härtung) — Spec/Plan noch nicht geschrieben.
 
 ## Phase 4 – Körperbereich (abgeschlossen)
 
