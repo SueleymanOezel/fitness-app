@@ -1,5 +1,6 @@
 import { Activity, Dumbbell, House, UtensilsCrossed } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
+import { interactiveClass } from '../lib/ui-classes'
 
 const tabs = [
   { to: '/', label: 'Home', Icon: House, end: true },
@@ -27,7 +28,7 @@ export default function BottomNav() {
           end={end}
           aria-label={label}
           className={({ isActive }) =>
-            `flex h-11 w-11 items-center justify-center rounded-full ${
+            `flex h-11 w-11 items-center justify-center rounded-full ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised ${
               isActive ? 'text-accent' : 'text-text-muted'
             }`
           }

@@ -27,4 +27,15 @@ describe('BottomNav', () => {
     expect(active.className).toContain('text-accent')
     expect(inactive.className).not.toContain('text-accent')
   })
+
+  it('gives every nav link hover, press and focus-visible feedback', () => {
+    renderNav()
+    const home = screen.getByRole('link', { name: 'Home' })
+    expect(home.className).toContain('transition')
+    expect(home.className).toContain('hover:brightness-110')
+    expect(home.className).toContain('active:scale-[0.97]')
+    expect(home.className).toContain('focus-visible:ring-2')
+    expect(home.className).toContain('focus-visible:ring-offset-2')
+    expect(home.className).toContain('focus-visible:ring-offset-surface-raised')
+  })
 })
