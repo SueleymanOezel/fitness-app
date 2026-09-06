@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Profile } from '../hooks/use-profile'
 import { calculateCalorieGoal } from '../lib/nutrition-goal'
+import { cardClass, buttonSecondaryClass } from '../lib/ui-classes'
 
 type Props = {
   profile: Profile
@@ -53,14 +54,14 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
 
   if (mode === 'calculated') {
     return (
-      <div>
+      <div className={cardClass}>
         <p>
           {calculated != null
             ? `Berechnetes Tagesziel: ${calculated} kcal`
             : 'Profil vervollständigen (Gewicht, Größe, Alter, Geschlecht, Aktivitätslevel), um ein Ziel zu berechnen.'}
         </p>
         {failed && <p role="alert">Ziel konnte nicht gespeichert werden.</p>}
-        <button type="button" onClick={switchToManual}>
+        <button type="button" className={buttonSecondaryClass} onClick={switchToManual}>
           Manuell festlegen
         </button>
       </div>
@@ -68,7 +69,7 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
   }
 
   return (
-    <div>
+    <div className={cardClass}>
       <label>
         Tagesziel (kcal)
         <input
@@ -80,7 +81,7 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
         />
       </label>
       {failed && <p role="alert">Ziel konnte nicht gespeichert werden.</p>}
-      <button type="button" onClick={switchToCalculated}>
+      <button type="button" className={buttonSecondaryClass} onClick={switchToCalculated}>
         Berechnen lassen
       </button>
     </div>
