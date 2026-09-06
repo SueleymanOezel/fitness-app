@@ -36,6 +36,7 @@ describe('ui-classes', () => {
       expect(cls).toContain('active:scale-[0.97]')
       expect(cls).toContain('focus-visible:ring-2')
       expect(cls).toContain('focus-visible:ring-accent')
+      expect(cls).toContain('focus-visible:ring-offset-2')
       expect(cls).toContain('focus-visible:ring-offset-bg')
     }
   })
