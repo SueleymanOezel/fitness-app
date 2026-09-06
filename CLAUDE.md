@@ -217,7 +217,7 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Stand nach Task 5 und Fix-Welle: 735 Tests grün** (104 Dateien), Lint ohne Fehler und Warnungen, `tsc -b --noEmit` sauber, `npm run build` erfolgreich (mit echter `.env`: Entry-Chunk 999,89 kB / 272,58 kB gzip). Keine Migration in diesem Plan, `docs/domaenenmodell.md` unverändert (letzte Migration bleibt `0007`).
 
-**Noch offen:** Wiki synchronisieren (noch nicht gemacht für Plan 2c).
+**Wiki synchronisiert** (06.09.2026, Commit `39b8b21`): neue Seite `Phase-6-Plan-2c-Koerper`, `Home`/`_Sidebar` verlinkt und der Phase-6-Status-Absatz um Plan 2c ergänzt. `Domain-Model.md` unverändert (Plan fasst kein Schema an).
 
 ## Phase 4 – Körperbereich (abgeschlossen)
 
