@@ -10,7 +10,7 @@ export default function ZeitraumSwitch({
   onChange: (zeitraum: Zeitraum) => void
 }) {
   return (
-    <div>
+    <div className="flex flex-wrap gap-2">
       {ZEITRAEUME.map((zeitraum) => (
         <Chip key={String(zeitraum.wert)} active={zeitraum.wert === wert} onClick={() => onChange(zeitraum.wert)}>
           {zeitraum.label}

@@ -33,9 +33,12 @@ export default function MealSectionCaloriesChart({
           <XAxis dataKey="name" />
           <YAxis />
           <Tooltip formatter={(wert?: ValueType) => [`${wert} kcal`, 'Kalorien']} />
-          <Bar dataKey="kalorien">
-            {punkte.map((punkt, index) => (
-              <Cell key={punkt.name} fill={CHART_PALETTE[index % CHART_PALETTE.length]} />
+          {/* key=index statt punkt.name: Abschnittsnamen sind frei editierbarer
+              Profiltext, zwei gleich benannte Abschnitte waeren sonst kein
+              eindeutiger React-Key. */}
+          <Bar dataKey="kalorien" fill={CHART_PALETTE[0]}>
+            {punkte.map((_punkt, index) => (
+              <Cell key={index} fill={CHART_PALETTE[index % CHART_PALETTE.length]} />
             ))}
           </Bar>
         </BarChart>

@@ -9,6 +9,12 @@ describe('ZeitraumSwitch', () => {
     expect(screen.getByRole('button', { name: '30 Tage' })).toHaveAttribute('aria-pressed', 'false')
   })
 
+  it('renders as rounded Chips with distinct active/inactive backgrounds', () => {
+    render(<ZeitraumSwitch wert={90} onChange={vi.fn()} />)
+    expect(screen.getByRole('button', { name: '90 Tage' })).toHaveClass('rounded-full', 'bg-accent')
+    expect(screen.getByRole('button', { name: '30 Tage' })).toHaveClass('rounded-full', 'bg-surface')
+  })
+
   it('calls onChange with the picked value', () => {
     const onChange = vi.fn()
     render(<ZeitraumSwitch wert={90} onChange={onChange} />)

@@ -29,7 +29,8 @@ export type MakroTagEintrag = MakroEintrag & { zeitpunkt: string }
 export type MakroAnteil = { makro: string; anteil: number; gramm: number }
 
 const KCAL_JE_GRAMM = { eiweiss: 4, fett: 9, kohlenhydrate: 4 } as const
-const MAKRO_LABEL = { eiweiss: 'Eiweiß', fett: 'Fett', kohlenhydrate: 'Kohlenhydrate' } as const
+/** Exportiert, damit E2s Farbzuordnung dieselben Labels verwendet statt sie zu kopieren. */
+export const MAKRO_LABEL = { eiweiss: 'Eiweiß', fett: 'Fett', kohlenhydrate: 'Kohlenhydrate' } as const
 
 /**
  * E2: heutige Makro-Anteile an der Energie, nicht am Gramm-Gewicht.

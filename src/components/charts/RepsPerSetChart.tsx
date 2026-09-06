@@ -13,7 +13,7 @@ import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-anal
 import { wiederholungenJeSatz } from '../../lib/analysis/training-charts'
 import { WIEDERHOLUNGEN_JE_SATZ_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
-import { CHART_MINT, CHART_BLUE, CHART_GREEN, CHART_ORANGE, CHART_VIOLET } from '../../lib/analysis/chart-colors'
+import { CHART_MINT, CHART_PALETTE } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 import ExerciseSelect from './ExerciseSelect'
 import { useUebungsauswahl } from './useUebungsauswahl'
@@ -24,8 +24,9 @@ export const TITEL = WIEDERHOLUNGEN_JE_SATZ_TITEL
 // danach wiederholt sich die Reihe, statt dass eine Linie unsichtbar wird.
 // Zyklus aus derselben 5er-Design-Palette wie T6/E4 (Ruling: der Spec-Satz
 // "T5 -> Mint" meint keine Einzelfarbe, siehe Plan-2d-Rationale zu T5) —
-// Mint wiederholt sich fuer eine sechste Linie.
-const FARBEN = [CHART_MINT, CHART_BLUE, CHART_GREEN, CHART_ORANGE, CHART_VIOLET, CHART_MINT]
+// aus CHART_PALETTE importiert statt eigener Kopie, damit T5 nicht von T6/E4
+// abweichen kann. Mint wiederholt sich fuer eine sechste Linie.
+const FARBEN = [...CHART_PALETTE, CHART_MINT]
 
 export default function RepsPerSetChart({
   sessions,

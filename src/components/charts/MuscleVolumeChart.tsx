@@ -26,10 +26,11 @@ export default function MuscleVolumeChart({
           <XAxis dataKey="muskelgruppe" />
           <YAxis />
           <Tooltip formatter={(wert?: ValueType) => [`${wert} kg`, 'Volumen']} />
-          <Bar dataKey="volumen">
-            {/* Reihenfolge nach erstem Auftreten in den Daten (Spec-Vorgabe),
-                nicht nach Namen — volumenJeMuskelgruppe liefert diese Reihenfolge
-                bereits, hier nur per Index eingefaerbt. */}
+          <Bar dataKey="volumen" fill={CHART_PALETTE[0]}>
+            {/* Keine feste Bedeutung je Position (anders als E2) — nur "gut
+                unterscheidbar". volumenJeMuskelgruppe sortiert nach Volumen
+                absteigend, die Farbe je Balken folgt dieser Reihenfolge per
+                Index und kann sich deshalb zwischen Zeitraeumen aendern. */}
             {punkte.map((punkt, index) => (
               <Cell key={punkt.muskelgruppe} fill={CHART_PALETTE[index % CHART_PALETTE.length]} />
             ))}
