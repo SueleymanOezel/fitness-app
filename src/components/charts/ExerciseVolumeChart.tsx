@@ -5,6 +5,7 @@ import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-anal
 import { volumenJeSession } from '../../lib/analysis/training-charts'
 import { VOLUMEN_JE_UEBUNG_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
+import { CHART_MINT } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 import ExerciseSelect from './ExerciseSelect'
 import { useUebungsauswahl } from './useUebungsauswahl'
@@ -49,7 +50,7 @@ export default function ExerciseVolumeChart({
           <XAxis dataKey="label" />
           <YAxis />
           <Tooltip formatter={(wert?: ValueType) => [`${wert} kg`, 'Volumen']} />
-          <Bar dataKey="wert" fill="#8884d8" />
+          <Bar dataKey="wert" fill={CHART_MINT} />
         </BarChart>
       </ResponsiveContainer>
     </ChartFrame>

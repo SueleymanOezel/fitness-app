@@ -13,6 +13,7 @@ import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-anal
 import { kraftverlauf } from '../../lib/analysis/training-charts'
 import { KRAFTVERLAUF_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
+import { CHART_MINT } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 import ExerciseSelect from './ExerciseSelect'
 import { useUebungsauswahl } from './useUebungsauswahl'
@@ -59,7 +60,7 @@ export default function StrengthChart({
               Kilo, eine Achse ab 0 macht daraus eine Gerade. */}
           <YAxis domain={['dataMin - 5', 'dataMax + 5']} />
           <Tooltip formatter={(wert?: ValueType) => [`${wert} kg`, 'geschätztes 1RM']} />
-          <Line type="monotone" dataKey="wert" stroke="#8884d8" dot={false} />
+          <Line type="monotone" dataKey="wert" stroke={CHART_MINT} dot={false} />
         </LineChart>
       </ResponsiveContainer>
     </ChartFrame>

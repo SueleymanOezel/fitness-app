@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { cardClass } from '../../lib/ui-classes'
 
 /**
  * Shared shell for every chart: title, the dashboard checkbox, and the empty
@@ -25,7 +26,7 @@ export default function ChartFrame({
   children: ReactNode
 }) {
   return (
-    <section>
+    <section className={cardClass}>
       <h2>{titel}</h2>
       {picker}
       {vorspann}

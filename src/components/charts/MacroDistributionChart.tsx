@@ -3,6 +3,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   LabelList,
   ResponsiveContainer,
   Tooltip,
@@ -11,13 +12,25 @@ import {
 } from 'recharts'
 import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 import type { RenderableText } from 'recharts/types/component/Text'
-import { makroAnteileHeute } from '../../lib/analysis/nutrition-charts'
+import { makroAnteileHeute, MAKRO_LABEL } from '../../lib/analysis/nutrition-charts'
 import type { AnalysisFoodEntry } from '../../hooks/use-nutrition-analysis'
 import { MAKRO_VERTEILUNG_HEUTE_TITEL } from '../../lib/analysis/chart-titles'
 import { localDay } from '../../lib/local-time'
+import { CHART_BLUE, CHART_GREEN, CHART_MINT } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = MAKRO_VERTEILUNG_HEUTE_TITEL
+
+// Nach Namen, nicht nach Reihenfolge: makroAnteileHeute liefert die drei
+// Makros in fester Reihenfolge, aber die Zuordnung soll auch dann stimmen,
+// falls sich das je aendert. Ueber MAKRO_LABEL statt eigener Literale
+// verknuepft, damit eine Umbenennung dort einen Typfehler hier auslöst statt
+// still auf einen Fallback zu laufen.
+const MAKRO_FARBEN: Record<string, string> = {
+  [MAKRO_LABEL.eiweiss]: CHART_MINT,
+  [MAKRO_LABEL.kohlenhydrate]: CHART_BLUE,
+  [MAKRO_LABEL.fett]: CHART_GREEN,
+}
 
 export default function MacroDistributionChart({
   entries,
@@ -45,7 +58,10 @@ export default function MacroDistributionChart({
               a later frame, so the gram labels would flash in after a delay (and
               never appear at all in a synchronous jsdom test). The label is the
               whole point of this bar, so it must be there from the first paint. */}
-          <Bar dataKey="anteil" fill="#8884d8" isAnimationActive={false}>
+          <Bar dataKey="anteil" fill={CHART_MINT} isAnimationActive={false}>
+            {anteile.map((eintrag) => (
+              <Cell key={eintrag.makro} fill={MAKRO_FARBEN[eintrag.makro]} />
+            ))}
             {/* Der Gramm-Wert, nicht der Energie-Anteil: die Balkenhoehe ist
                 Energie, die Beschriftung bleibt in der vertrauten Einheit aus
                 DailySummary. */}

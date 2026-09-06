@@ -4,6 +4,7 @@ import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 import { wochenschnitt } from '../../lib/analysis/nutrition-charts'
 import type { AnalysisFoodEntry } from '../../hooks/use-nutrition-analysis'
 import { WOCHENSCHNITT_TITEL } from '../../lib/analysis/chart-titles'
+import { CHART_MINT } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = WOCHENSCHNITT_TITEL
@@ -25,7 +26,7 @@ export default function WeeklyAverageChart({
           <XAxis dataKey="woche" />
           <YAxis />
           <Tooltip formatter={(wert?: ValueType) => [`${wert} kcal`, 'Schnitt je Tag']} />
-          <Bar dataKey="schnitt" fill="#8884d8" />
+          <Bar dataKey="schnitt" fill={CHART_MINT} />
         </BarChart>
       </ResponsiveContainer>
     </ChartFrame>

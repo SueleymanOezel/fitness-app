@@ -14,6 +14,7 @@ import type { AnalysisSession } from '../../hooks/use-training-analysis'
 import { dauerUndKalorien } from '../../lib/analysis/training-charts'
 import { DAUER_UND_KALORIEN_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
+import { CHART_BLUE, CHART_MINT } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = DAUER_UND_KALORIEN_TITEL
@@ -41,13 +42,13 @@ export default function SessionLoadChart({
           <YAxis yAxisId="minuten" />
           <YAxis yAxisId="kalorien" orientation="right" />
           <Tooltip />
-          <Bar yAxisId="minuten" dataKey="minuten" name="Minuten" fill="#8884d8" />
+          <Bar yAxisId="minuten" dataKey="minuten" name="Minuten" fill={CHART_MINT} />
           <Line
             yAxisId="kalorien"
             type="monotone"
             dataKey="kalorien"
             name="kcal"
-            stroke="#82ca9d"
+            stroke={CHART_BLUE}
             dot={false}
           />
           <Legend />

@@ -4,6 +4,7 @@ import { makroVerlauf } from '../../lib/analysis/nutrition-charts'
 import type { AnalysisFoodEntry } from '../../hooks/use-nutrition-analysis'
 import { MAKRO_VERLAUF_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
+import { CHART_BLUE, CHART_GREEN, CHART_MINT } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = MAKRO_VERLAUF_TITEL
@@ -25,13 +26,13 @@ export default function MacroTrendChart({
           <XAxis dataKey="label" />
           <YAxis unit=" g" />
           <Tooltip />
-          <Line type="monotone" dataKey="eiweiss" name="Eiweiß (g)" stroke="#8884d8" dot={false} />
-          <Line type="monotone" dataKey="fett" name="Fett (g)" stroke="#ff7300" dot={false} />
+          <Line type="monotone" dataKey="eiweiss" name="Eiweiß (g)" stroke={CHART_MINT} dot={false} />
+          <Line type="monotone" dataKey="fett" name="Fett (g)" stroke={CHART_GREEN} dot={false} />
           <Line
             type="monotone"
             dataKey="kohlenhydrate"
             name="Kohlenhydrate (g)"
-            stroke="#82ca9d"
+            stroke={CHART_BLUE}
             dot={false}
           />
           <Legend />

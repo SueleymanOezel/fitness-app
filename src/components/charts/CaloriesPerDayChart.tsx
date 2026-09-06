@@ -14,6 +14,7 @@ import { kalorienJeTag } from '../../lib/analysis/nutrition-charts'
 import type { AnalysisFoodEntry } from '../../hooks/use-nutrition-analysis'
 import { KALORIEN_PRO_TAG_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
+import { CHART_GRID, CHART_MINT } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = KALORIEN_PRO_TAG_TITEL
@@ -48,12 +49,12 @@ export default function CaloriesPerDayChart({
             // case this chart exists for.
             <ReferenceLine
               y={ziel}
-              stroke="#82ca9d"
+              stroke={CHART_GRID}
               label={`Ziel ${ziel} kcal`}
               ifOverflow="extendDomain"
             />
           )}
-          <Line type="monotone" dataKey="kalorien" stroke="#8884d8" dot={false} />
+          <Line type="monotone" dataKey="kalorien" stroke={CHART_MINT} dot={false} />
         </LineChart>
       </ResponsiveContainer>
     </ChartFrame>

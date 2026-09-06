@@ -45,12 +45,12 @@ export default function BodyChartList({ ids, rows, kalorien, fotos, auswahl }: B
   }
 
   return (
-    <>
+    <div className="space-y-4">
       {ids.map((id) => (
         <Suspense key={id} fallback={<p>Lädt…</p>}>
           {graph(id)}
         </Suspense>
       ))}
-    </>
+    </div>
   )
 }

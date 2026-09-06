@@ -14,6 +14,7 @@ import { aenderungsrate } from '../../lib/analysis/body-charts'
 import type { BodyMetricRow } from '../../lib/body-metrics'
 import { AENDERUNGSRATE_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
+import { CHART_GRID, CHART_MINT } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = AENDERUNGSRATE_TITEL
@@ -40,9 +41,9 @@ export default function WeightChangeRateChart({
           {/* extendDomain: sonst verwirft Recharts die Linie, sobald alle Raten
               auf derselben Seite der Null liegen — also genau dann, wenn die
               Null die Aussage des Graphen traegt. */}
-          <ReferenceLine y={0} stroke="#888" ifOverflow="extendDomain" />
+          <ReferenceLine y={0} stroke={CHART_GRID} ifOverflow="extendDomain" />
           <Tooltip formatter={(wert?: ValueType) => [`${wert} kg/Woche`, '']} />
-          <Line type="monotone" dataKey="rate" name="kg/Woche" stroke="#8884d8" dot={false} />
+          <Line type="monotone" dataKey="rate" name="kg/Woche" stroke={CHART_MINT} dot={false} />
         </LineChart>
       </ResponsiveContainer>
     </ChartFrame>

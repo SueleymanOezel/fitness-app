@@ -13,18 +13,20 @@ import { UMFANG_FIELDS, umfaengeVerlauf, type UmfangFeld } from '../../lib/analy
 import { FIELD_LABELS, type BodyMetricRow } from '../../lib/body-metrics'
 import { UMFAENGE_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
+import { CHART_BLUE, CHART_GREEN, CHART_MINT, CHART_ORANGE, CHART_VIOLET } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = UMFAENGE_TITEL
 
 /** Feste Farbe je Umfang: eine wechselnde Zuordnung waere zwischen zwei
- *  Zeitraeumen nicht wiedererkennbar. */
+ *  Zeitraeumen nicht wiedererkennbar. Reihenfolge exakt wie im Design-Spec
+ *  (Bauch/Bein/Arm/Ruecken/Brust -> Mint/Blau/Gruen/Orange/Violett). */
 const FARBEN: Record<UmfangFeld, string> = {
-  bauchumfang: '#8884d8',
-  beinumfang: '#82ca9d',
-  armumfang: '#ff7300',
-  ruckenumfang: '#0088fe',
-  brustumfang: '#d0468c',
+  bauchumfang: CHART_MINT,
+  beinumfang: CHART_BLUE,
+  armumfang: CHART_GREEN,
+  ruckenumfang: CHART_ORANGE,
+  brustumfang: CHART_VIOLET,
 }
 
 export default function BodyMeasurementsChart({
