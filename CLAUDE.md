@@ -250,7 +250,11 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 Nach der Fix-Welle erneut manuell im echten Chrome-Tab gegen die reale `TrainingChartList` geprüft (nicht nur Einzelcharts wie beim ersten Durchlauf): 18px sichtbarer Abstand zwischen den drei Karten (`space-y-4` greift), 9px Abstand zwischen den vier Chips (`gap-2` greift), beides per `getBoundingClientRect()` bestätigt, Konsole weiterhin sauber. **739/739 Tests grün** (105 Dateien, ein neuer Test durch die Chip-Assertion), Lint/Typecheck sauber.
 
-**Noch offen:** Scoped Re-Review der Fix-Welle, Codex/GPT-5.6-Sol-Zweitmeinung, danach Merge, Deploy und Wiki-Sync — diesen Abschnitt nach jedem Schritt nachziehen.
+**Scoped Re-Review bestätigte alle 9 Findings ADDRESSED, keine neue Regression** — unabhängig selbst Lint/Typecheck/Testsuite gefahren (105 Dateien, 739 Tests grün), nicht nur die Commit-Message vertraut.
+
+**Zusätzlich unabhängig von Codex (GPT-5.6-Sol) gegengeprüft** (siehe „Codex/GPT als Zweitmeinung" oben) — `codex review -c model="gpt-5.6-sol" --base origin/master` auf dem finalen, bereits gefixten Stand: „The changes consistently apply the shared card and chip styling and centralize chart colors without altering chart data behavior. No actionable regressions were identified." Deckt sich mit dem Opus-Verdict nach der Fix-Welle — zwei unabhängige Modelle, gleiches Ergebnis.
+
+**Noch offen:** Merge, Deploy und Wiki-Sync — diesen Abschnitt nach jedem Schritt nachziehen.
 
 ## Phase 4 – Körperbereich (abgeschlossen)
 
