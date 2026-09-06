@@ -228,7 +228,7 @@ git commit -m "fix: text-muted und neuen on-bright Token auf WCAG-AA-Kontrast br
 
 **Interfaces:**
 - Consumes: `text-on-bright`-Utility aus Task 2.
-- Produces: `buttonPrimaryClass`/`buttonSecondaryClass` mit Motion-Klassen und (nur `buttonPrimaryClass`) `text-on-bright` statt `text-text`. Keine Signaturänderung — beide bleiben einfache exportierte Strings, wie von jeder Aufrufstelle (`HomePage`, `NutritionEntriesPage`, etc.) unverändert konsumiert.
+- Produces: `buttonPrimaryClass`/`buttonSecondaryClass` mit Motion-Klassen und (nur `buttonPrimaryClass`) `text-on-bright` statt `text-text`. Keine Signaturänderung an beiden — bleiben einfache exportierte Strings, wie von jeder Aufrufstelle (`HomePage`, `NutritionEntriesPage`, etc.) unverändert konsumiert. Zusätzlich neu: `export const interactiveClass` (ohne `focus-visible:ring-offset-*`, das bestimmt jeder Aufrufer selbst) — Task 4 (`Chip`) und Task 6 (`BottomNav`) importieren genau diesen Namen aus `./ui-classes`, statt dieselbe Klassenliste ein drittes und viertes Mal zu tippen.
 
 - [ ] **Step 1: Schreibe die fehlschlagenden Tests**
 
@@ -237,7 +237,7 @@ In `src/lib/ui-classes.test.ts`, die bestehende Datei um diese Erweiterungen erg
 ```ts
 // src/lib/ui-classes.test.ts
 import { describe, expect, it } from 'vitest'
-import { buttonPrimaryClass, buttonSecondaryClass, cardClass } from './ui-classes'
+import { buttonPrimaryClass, buttonSecondaryClass, cardClass, interactiveClass } from './ui-classes'
 
 describe('ui-classes', () => {
   it('gives every card the same rounded surface treatment', () => {
@@ -274,7 +274,14 @@ describe('ui-classes', () => {
       expect(cls).toContain('active:scale-[0.97]')
       expect(cls).toContain('focus-visible:ring-2')
       expect(cls).toContain('focus-visible:ring-accent')
+      expect(cls).toContain('focus-visible:ring-offset-bg')
     }
+  })
+
+  it('exports the shared interactive-state classes for other components to reuse', () => {
+    expect(interactiveClass).toContain('transition')
+    expect(interactiveClass).toContain('active:scale-[0.97]')
+    expect(interactiveClass).not.toContain('ring-offset')
   })
 })
 ```
@@ -303,15 +310,21 @@ zu:
  * motion-safe:-Zweigs: der Zustandswechsel selbst (Farbe, Skalierung) soll
  * unter prefers-reduced-motion bestehen bleiben, nur ohne animierten
  * Uebergang dazwischen — siehe Spec, Abschnitt "Motion".
+ *
+ * Exportiert (nicht nur hier verwendet): Chip und BottomNav brauchen
+ * dieselbe Hover/Press/Fokus-Basis, nur mit einer anderen
+ * focus-visible:ring-offset-Farbe (die haengt davon ab, auf welchem
+ * Hintergrund das Element sitzt) — die traegt jeder Aufrufer selbst bei,
+ * statt die ganze Liste ein drittes/viertes Mal zu tippen.
  */
-const interactiveClass =
-  'transition duration-150 motion-reduce:transition-none hover:brightness-110 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
+export const interactiveClass =
+  'transition duration-150 motion-reduce:transition-none hover:brightness-110 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2'
 
 export const buttonPrimaryClass =
-  `w-full rounded-2xl border-0 m-0 bg-accent px-4 py-3 font-semibold text-on-bright disabled:opacity-50 ${interactiveClass}`
+  `w-full rounded-2xl border-0 m-0 bg-accent px-4 py-3 font-semibold text-on-bright disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-bg`
 
 export const buttonSecondaryClass =
-  `rounded-2xl border-0 m-0 bg-surface px-4 py-3 font-semibold text-text disabled:opacity-50 ${interactiveClass}`
+  `rounded-2xl border-0 m-0 bg-surface px-4 py-3 font-semibold text-text disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-bg`
 ```
 
 - [ ] **Step 4: Lauf die Tests erneut, um das Bestehen zu bestätigen**
@@ -345,7 +358,7 @@ git commit -m "feat: Hover/Press/Fokus-Feedback und on-bright Text auf beiden Bu
 - Modify: `src/components/Chip.test.tsx`
 
 **Interfaces:**
-- Consumes: `text-on-bright`-Utility aus Task 2.
+- Consumes: `text-on-bright`-Utility aus Task 2, `interactiveClass` aus `../lib/ui-classes` (Task 3).
 - Produces: `Chip` mit unveränderter Props-Signatur (`ChipProps`), nur geänderten CSS-Klassen im aktiven Zustand plus Motion-Klassen in beiden Zuständen.
 
 - [ ] **Step 1: Schreibe die fehlschlagenden Tests**
@@ -425,12 +438,14 @@ export default function Chip({ active, className = '', ...props }: ChipProps) {
 ```
 zu:
 ```tsx
+import { interactiveClass } from '../lib/ui-classes'
+
 export default function Chip({ active, className = '', ...props }: ChipProps) {
   return (
     <button
       type="button"
       aria-pressed={active}
-      className={`rounded-full border-0 m-0 px-4 py-2 font-medium transition duration-150 motion-reduce:transition-none hover:brightness-110 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${
+      className={`rounded-full border-0 m-0 px-4 py-2 font-medium ${interactiveClass} focus-visible:ring-offset-bg ${
         active ? 'bg-accent text-on-bright' : 'bg-surface text-text-muted'
       } ${className}`}
       {...props}
@@ -438,6 +453,8 @@ export default function Chip({ active, className = '', ...props }: ChipProps) {
   )
 }
 ```
+
+Der bestehende `import type { ButtonHTMLAttributes } from 'react'` bleibt unverändert stehen, der neue Import kommt darunter.
 
 - [ ] **Step 4: Lauf die Tests erneut, um das Bestehen zu bestätigen**
 
@@ -601,7 +618,7 @@ git commit -m "feat: on-bright Text und Einblend-Uebergang auf dem Danger-Toast"
 - Modify: `src/components/BottomNav.test.tsx`
 
 **Interfaces:**
-- Consumes: `text-text-muted`-Utility aus Task 2 (bereits vorhanden, jetzt mit korrigiertem Kontrastwert — hier keine Code-Änderung nötig, nur zur Vollständigkeit als konsumierter Fix genannt).
+- Consumes: `text-text-muted`-Utility aus Task 2 (bereits vorhanden, jetzt mit korrigiertem Kontrastwert — hier keine Code-Änderung nötig, nur zur Vollständigkeit als konsumierter Fix genannt), `interactiveClass` aus `../lib/ui-classes` (Task 3).
 - Produces: `BottomNav` unverändert in Struktur/Props; die `NavLink`-`className`-Funktion bekommt Motion-Klassen ergänzt.
 
 - [ ] **Step 1: Schreibe den fehlschlagenden Test**
@@ -640,10 +657,24 @@ In `src/components/BottomNav.tsx`:
 zu:
 ```tsx
           className={({ isActive }) =>
-            `flex h-11 w-11 items-center justify-center rounded-full transition duration-150 motion-reduce:transition-none hover:brightness-110 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised ${
+            `flex h-11 w-11 items-center justify-center rounded-full ${interactiveClass} focus-visible:ring-offset-surface-raised ${
               isActive ? 'text-accent' : 'text-text-muted'
             }`
           }
+```
+
+Und am Dateikopf den Import ergänzen:
+
+Ändere:
+```tsx
+import { Activity, Dumbbell, House, UtensilsCrossed } from 'lucide-react'
+import { NavLink } from 'react-router-dom'
+```
+zu:
+```tsx
+import { Activity, Dumbbell, House, UtensilsCrossed } from 'lucide-react'
+import { NavLink } from 'react-router-dom'
+import { interactiveClass } from '../lib/ui-classes'
 ```
 
 `focus-visible:ring-offset-surface-raised` statt `-offset-bg` wie bei Buttons/Chip: der Fokusring sitzt hier auf der Nav-Pille (`bg-surface-raised`), nicht auf dem Seitenhintergrund — ein `-offset-bg` würde am Pillenrand einen sichtbaren Farbsprung erzeugen.
