@@ -50,8 +50,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {toast && (
         <p
           role="alert"
-          className={`fixed inset-x-4 top-4 rounded-2xl px-4 py-3 font-medium ${
-            toast.type === 'success' ? 'bg-success text-success-ink' : 'bg-danger text-text'
+          className={`fixed inset-x-4 top-4 rounded-2xl px-4 py-3 font-medium motion-safe:animate-[toast-in_200ms_ease-out] ${
+            toast.type === 'success' ? 'bg-success text-success-ink' : 'bg-danger text-on-bright'
           }`}
         >
           {toast.message}
