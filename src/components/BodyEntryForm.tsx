@@ -10,6 +10,7 @@ import {
   type BodyMetricValues,
 } from '../lib/body-metrics'
 import { ProfileWeightSyncError } from '../hooks/use-body-metrics'
+import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 
 function inputFrom(entry: BodyMetricRow | undefined): BodyMetricInput {
   if (!entry) return EMPTY_INPUT
@@ -68,35 +69,37 @@ export default function BodyEntryForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <label>
-        Datum
-        <input
-          type="date"
-          value={datum}
-          // A future date — or 0007-08-24 from a mistyped year — would sort to
-          // the top of the history and hold profiles.aktuelles_gewicht there.
-          max={today()}
-          onChange={(event) => setDatum(event.target.value)}
-        />
-      </label>
-      {MEASUREMENT_FIELDS.map((field) => (
-        <label key={field}>
-          {FIELD_LABELS[field]}
+      <div className={cardClass}>
+        <label>
+          Datum
           <input
-            type="number"
-            // Every one of these columns is numeric: without step="any" the
-            // browser rejects 82,5 and aborts the submit before we see it.
-            step="any"
-            value={draft[field]}
-            onChange={(event) => setDraft({ ...draft, [field]: event.target.value })}
+            type="date"
+            value={datum}
+            // A future date — or 0007-08-24 from a mistyped year — would sort to
+            // the top of the history and hold profiles.aktuelles_gewicht there.
+            max={today()}
+            onChange={(event) => setDatum(event.target.value)}
           />
         </label>
-      ))}
+        {MEASUREMENT_FIELDS.map((field) => (
+          <label key={field}>
+            {FIELD_LABELS[field]}
+            <input
+              type="number"
+              // Every one of these columns is numeric: without step="any" the
+              // browser rejects 82,5 and aborts the submit before we see it.
+              step="any"
+              value={draft[field]}
+              onChange={(event) => setDraft({ ...draft, [field]: event.target.value })}
+            />
+          </label>
+        ))}
+      </div>
       {error !== '' && <p role="alert">{error}</p>}
-      <button type="submit" disabled={saving}>
+      <button type="submit" className={buttonPrimaryClass} disabled={saving}>
         Speichern
       </button>
-      <button type="button" onClick={onClose}>
+      <button type="button" className={buttonSecondaryClass} onClick={onClose}>
         Abbrechen
       </button>
     </form>

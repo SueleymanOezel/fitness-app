@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import BodyPhotosPage from './BodyPhotosPage'
+import { renderWithProviders } from '../test-render'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -32,11 +32,7 @@ function photosResult(overrides: Record<string, unknown> = {}) {
 }
 
 function renderPage() {
-  return render(
-    <MemoryRouter>
-      <BodyPhotosPage />
-    </MemoryRouter>,
-  )
+  return renderWithProviders(<BodyPhotosPage />)
 }
 
 const file = new File(['x'], 'foto.jpg', { type: 'image/jpeg' })
@@ -52,6 +48,21 @@ describe('BodyPhotosPage', () => {
       'src',
       'https://signed.example/a',
     )
+  })
+
+  it('wraps each photo in the card-in-list markup', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyPhotos.mockReturnValue(photosResult())
+
+    renderPage()
+
+    // The li must never carry cardClass directly — index.css's transition rule
+    // for bare <li> elements (display:flex/justify-content:center/border-bottom)
+    // would clobber the card look. cardClass belongs on the nested div only.
+    const li = screen.getByText('24.08.2026').closest('li')
+    expect(li).toHaveClass('block', 'border-b-0')
+    const card = screen.getByText('24.08.2026').closest('div')
+    expect(card).toHaveClass('bg-surface', 'rounded-3xl')
   })
 
   it('says so instead of showing a broken image when no link could be signed', () => {

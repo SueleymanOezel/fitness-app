@@ -4,6 +4,8 @@ import { useSession } from '../hooks/use-session'
 import { useBodyPhotos } from '../hooks/use-body-photos'
 import type { BodyPhoto } from '../hooks/use-body-photos'
 import { today } from '../lib/body-metrics'
+import { cardClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { useToast } from '../components/ToastProvider'
 
 function formatDate(iso: string) {
   const [year, month, day] = iso.split('-')
@@ -29,8 +31,8 @@ export default function BodyPhotosPage() {
 function Photos({ userId }: { userId: string }) {
   const { photos, loading, error, uploadPhoto, deletePhoto } = useBodyPhotos(userId)
   const [datum, setDatum] = useState(today())
-  const [actionError, setActionError] = useState('')
   const [busy, setBusy] = useState(false)
+  const showToast = useToast()
 
   if (loading) {
     return (
@@ -47,23 +49,21 @@ function Photos({ userId }: { userId: string }) {
     event.target.value = ''
     if (!file) return
 
-    setActionError('')
     setBusy(true)
     try {
       await uploadPhoto(file, datum)
     } catch {
-      setActionError('Foto konnte nicht hochgeladen werden.')
+      showToast('Foto konnte nicht hochgeladen werden.', 'error')
     } finally {
       setBusy(false)
     }
   }
 
   async function remove(photo: BodyPhoto) {
-    setActionError('')
     try {
       await deletePhoto(photo)
     } catch {
-      setActionError('Foto konnte nicht gelöscht werden.')
+      showToast('Foto konnte nicht gelöscht werden.', 'error')
     }
   }
 
@@ -72,36 +72,39 @@ function Photos({ userId }: { userId: string }) {
       <h1>Fortschrittsfotos</h1>
       {error && <p role="alert">Fotos konnten nicht geladen werden.</p>}
 
-      <label>
-        Datum
-        <input type="date" value={datum} onChange={(event) => setDatum(event.target.value)} />
-      </label>
-      <label>
-        Foto
-        <input type="file" accept="image/*" disabled={busy} onChange={choose} />
-      </label>
+      <div className={cardClass}>
+        <label>
+          Datum
+          <input type="date" value={datum} onChange={(event) => setDatum(event.target.value)} />
+        </label>
+        <label>
+          Foto
+          <input type="file" accept="image/*" disabled={busy} onChange={choose} />
+        </label>
+      </div>
 
-      {actionError !== '' && <p role="alert">{actionError}</p>}
       {photos.length === 0 && <p>Noch keine Fotos.</p>}
 
-      <ul role="list">
+      <ul role="list" className="space-y-4">
         {photos.map((photo) => (
-          <li key={photo.id}>
-            <span>{formatDate(photo.datum)}</span>
-            {photo.url == null ? (
-              // A signed link can fail on its own; a bare <img> would just show
-              // a broken image and say nothing about why.
-              <span>Bild nicht verfügbar</span>
-            ) : (
-              <img
-                src={photo.url}
-                alt={`Fortschrittsfoto vom ${formatDate(photo.datum)}`}
-                loading="lazy"
-              />
-            )}
-            <button type="button" onClick={() => remove(photo)}>
-              Löschen
-            </button>
+          <li key={photo.id} className="block border-b-0">
+            <div className={`${cardClass} w-full`}>
+              <span>{formatDate(photo.datum)}</span>
+              {photo.url == null ? (
+                // A signed link can fail on its own; a bare <img> would just show
+                // a broken image and say nothing about why.
+                <span>Bild nicht verfügbar</span>
+              ) : (
+                <img
+                  src={photo.url}
+                  alt={`Fortschrittsfoto vom ${formatDate(photo.datum)}`}
+                  loading="lazy"
+                />
+              )}
+              <button type="button" className={buttonSecondaryClass} onClick={() => remove(photo)}>
+                Löschen
+              </button>
+            </div>
           </li>
         ))}
       </ul>

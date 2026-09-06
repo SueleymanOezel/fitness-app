@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { cleanup, fireEvent, screen } from '@testing-library/react'
 import BodyPage from './BodyPage'
 import { ProfileWeightSyncError } from '../hooks/use-body-metrics'
+import { renderWithProviders } from '../test-render'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -52,11 +52,7 @@ function metricsResult(overrides: Record<string, unknown> = {}) {
 }
 
 function zeigeDashboard() {
-  return render(
-    <MemoryRouter>
-      <BodyPage />
-    </MemoryRouter>,
-  )
+  return renderWithProviders(<BodyPage />)
 }
 
 describe('BodyPage', () => {
@@ -68,6 +64,21 @@ describe('BodyPage', () => {
 
     expect(screen.getByText('82,5 kg')).toBeInTheDocument()
     expect(screen.getByText(/24\.08\./)).toBeInTheDocument()
+  })
+
+  it('wraps each measurement in the card-in-list markup', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult())
+
+    zeigeDashboard()
+
+    // The li must never carry cardClass directly — index.css's transition rule
+    // for bare <li> elements (display:flex/justify-content:center/border-bottom)
+    // would clobber the card look. cardClass belongs on the nested div only.
+    const li = screen.getByText('82,5 kg').closest('li')
+    expect(li).toHaveClass('block', 'border-b-0')
+    const card = screen.getByText('82,5 kg').closest('div')
+    expect(card).toHaveClass('bg-surface', 'rounded-3xl')
   })
 
   it('shows the change against the previous entry that carried the value', () => {
@@ -121,6 +132,29 @@ describe('BodyPage', () => {
     expect(screen.getByLabelText('Datum')).toHaveValue('2026-08-24')
     expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(82.5)
     expect(screen.getByLabelText('Bauchumfang (cm)')).toHaveValue(88)
+  })
+
+  it('resets the entry form on reopen instead of showing the last attempt', () => {
+    // Deviation from the brief's literal test text: without pinning the
+    // system time, today() resolves to the real current date, which will
+    // essentially never equal the fixed '2026-08-24' row below, so the
+    // reopened form's prefill assertion would fail regardless of whether the
+    // Dialog reset logic is correct. Pinned the same way the sibling
+    // "prefills the form" test above already does, against the same row data.
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 7, 24, 19, 0, 0))
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult())
+
+    zeigeDashboard()
+    fireEvent.click(screen.getByRole('button', { name: 'Heute eintragen' }))
+    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '77' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }))
+
+    expect(screen.queryByLabelText('Gewicht (kg)')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Heute eintragen' }))
+    expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(82.5)
   })
 
   it('reports a failed load instead of showing an empty body area', () => {
