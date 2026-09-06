@@ -21,6 +21,16 @@
 - React-Komponenten: PascalCase (z. B. WorkoutSession.tsx)
 - Standard-React-Projektstruktur verwenden
 
+## Design-Workflow
+
+Ab 06.09.2026: Jede design-bezogene Aufgabe für diese App (neue UI, Redesign, visuelle Politur, Interaktion/Animation, 3D-Elemente) läuft über fünf installierte Claude-Code-Skills, nicht freihändig mit selbst erfundenen Tokens/Layouts. Grund: Das Referenzvideo aus Phase 6 war eine gute Vorlage, das umgesetzte Ergebnis wirkt dem Nutzer aber zu langweilig und zu wenig interaktiv — Phase 6 wird mit diesen Skills überarbeitet, sobald das entschieden ist (siehe Status weiter unten).
+
+- **impeccable** (`~/.claude/skills/impeccable`) — Haupt-Skill für Redesign, Kritik, Audit, Politur: Modi wie `redesign`, `critique`, `audit`, `bolder`, `delight`, `distill`, `harden`, `clarify`, `animate`, `colorize`, `adapt`. Erster Anlaufpunkt für jede Design-Aufgabe.
+- **taste-skill** (installiert als Plugin `taste-skill@taste-skill`) — gegen generisches/langweiliges KI-Design, liefert konkrete Stilrichtungen (brutalist, minimalist, soft, ...) statt eines gemittelten Standardlooks.
+- **awesome-design-md** (Referenz-Checkout unter `~/.claude/skill-sources/awesome-design-md/design-md/<marke>/DESIGN.md`) — echte Marken-Designsysteme als Ausgangspunkt/Inspiration statt komplett selbst erfundener Tokens.
+- **img2threejs** (`~/.claude/skills/img2threejs`) — für interaktive, prozedurale 3D-Elemente, falls gewünscht.
+- **playwright-cli** (`~/.claude/skills/playwright-cli`, CLI `@playwright/cli` global installiert) — Browser-Automatisierung zur visuellen Iteration/Verifikation während der Design-Arbeit.
+
 ## Wettbewerber-Referenzen
 
 Keine Namen von Drittanbieter-Apps/-Produkten (z. B. konkrete Konkurrenz-Apps aus Fitness/Ernährung) in Dokumentation, Code, Commit-Messages oder dem GitHub-Wiki erwähnen — bleibt intern zwischen Nutzer und Claude. In Docs stattdessen neutral umschreiben (z. B. "etablierte Ernährungs-Tracking-Apps").
