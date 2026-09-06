@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 import type { AnalysisSet } from '../../hooks/use-training-analysis'
 import { volumenJeMuskelgruppe } from '../../lib/analysis/training-charts'
 import { VOLUMEN_JE_MUSKELGRUPPE_TITEL } from '../../lib/analysis/chart-titles'
+import { CHART_PALETTE } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = VOLUMEN_JE_MUSKELGRUPPE_TITEL
@@ -25,7 +26,14 @@ export default function MuscleVolumeChart({
           <XAxis dataKey="muskelgruppe" />
           <YAxis />
           <Tooltip formatter={(wert?: ValueType) => [`${wert} kg`, 'Volumen']} />
-          <Bar dataKey="volumen" fill="#8884d8" />
+          <Bar dataKey="volumen">
+            {/* Reihenfolge nach erstem Auftreten in den Daten (Spec-Vorgabe),
+                nicht nach Namen — volumenJeMuskelgruppe liefert diese Reihenfolge
+                bereits, hier nur per Index eingefaerbt. */}
+            {punkte.map((punkt, index) => (
+              <Cell key={punkt.muskelgruppe} fill={CHART_PALETTE[index % CHART_PALETTE.length]} />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </ChartFrame>
