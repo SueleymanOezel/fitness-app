@@ -87,7 +87,7 @@ Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer 
 
 **Aktueller Stand:** Phase 1, 2 und 3 sind gemerged, deployed und manuell gegen Produktion verifiziert; die kosmetischen Nacharbeiten am Layout ebenfalls (PR #22/#23, Merge-Commit `5b79651`). **Phase 4 (Körperbereich) ist gemerged und gegen Produktion verifiziert** (PR #26, Merge-Commit `63aced2`) — Details im eigenen Abschnitt weiter unten. **Phase 5 (Analysebereich) ist ebenfalls vollständig gemerged und verifiziert** — Details im eigenen Abschnitt weiter unten. Dazu gibt es eine Profilseite unter `/profile`, erreichbar über das Icon im Header. Der Ernährungsbereich hat eine eigene Eintragsliste unter `/nutrition/entries`, nach Mahlzeiten-Abschnitten gegliedert (PR #20, Merge-Commit `752587c`; Phase 3: PR #21, `7420145`).
 
-**Genau hier weitermachen (Stand 06.09.2026):** Hosting ist erledigt, App heißt jetzt **VitaLoop** (siehe „Hosting" im Tech-Stack oben) — dauerhaft erreichbar unter `https://vitaloop.web.app`. **Phase 6 (Design), Plan 1 (Fundament), Plan 2a (Training) und Plan 2b (Ernährung) sind vollständig umgesetzt, reviewt, gemerged und live deployed** (PR #40/#41/#42). **Plan 2c (Körper) ist vollständig umgesetzt** — alle 4 Tasks fertig, einzeln reviewt, 732 Tests grün, manuelle Browser-Verifikation (7/7 Punkte) abgeschlossen — **noch nicht gemerged, Whole-Branch-Review aussteht.** Details im eigenen Abschnitt „Plan 2c" weiter unten. Danach folgt 2d (Analyse-Seiten), noch nicht geschrieben. Härtung rückt auf Phase 7.
+**Genau hier weitermachen (Stand 06.09.2026):** Hosting ist erledigt, App heißt jetzt **VitaLoop** (siehe „Hosting" im Tech-Stack oben) — dauerhaft erreichbar unter `https://vitaloop.web.app`. **Phase 6 (Design), Plan 1 (Fundament), Plan 2a (Training), Plan 2b (Ernährung) und Plan 2c (Körper) sind vollständig umgesetzt, reviewt, gemerged und live deployed** (PR #40/#41/#42/#43, alle CI-Checks grün). Details im eigenen Abschnitt „Plan 2c" weiter unten. Danach folgt 2d (Analyse-Seiten), noch nicht geschrieben — **letzter fehlender Bereichs-Plan der Phase.** Härtung rückt auf Phase 7.
 
 **Mahlzeiten-Abschnitte (gemerged, alle 9 Tasks fertig):** Einträge auf `/nutrition/entries` sind nach Mahlzeiten gegliedert — sechs feste Slots, vier davon vorbelegt (Frühstück, Mittagessen, Abendessen, Snacks), die restlichen zwei optional und nur sichtbar, sobald sie einen Namen oder Einträge haben. Die Namen stehen im Profil unter „Mahlzeiten"; welchem Abschnitt ein Eintrag zugeordnet ist, ergibt sich daraus, in welchem Abschnitt er erfasst wurde. Alt-Einträge von vor der Migration stehen unter „Ohne Zuordnung" und lassen sich über „Bearbeiten" nachträglich einsortieren. Das Ernährungs-Dashboard zeigt die Kalorien je Abschnitt als Link zur Eintragsliste. Enthält Migration `0003_meal_sections.sql` (fügt nur Spalten hinzu; bestehende Zeilen bekommen `mahlzeit = null`). Spec: `docs/superpowers/specs/2026-08-20-mahlzeiten-abschnitte-design.md`, Plan: `docs/superpowers/plans/2026-08-20-mahlzeiten-abschnitte-plan.md`.
 
@@ -99,7 +99,7 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 3. **Kalorienberechnung je Übung mit eigener Dauer** statt eines MET-Durchschnitts über die ganze Session.
 4. **Schwierigkeitsgrad-Import** aus free-exercise-db (`level`-Feld wird beim Import derzeit verworfen).
 
-## Phase 6 – Design (in Arbeit — Plan 1, Plan 2a und Plan 2b gemerged, Plan 2c umgesetzt und reviewt)
+## Phase 6 – Design (in Arbeit — Plan 1, Plan 2a, Plan 2b und Plan 2c gemerged)
 
 **Ziel:** komplettes visuelles und teilweise strukturelles Redesign für Training, Ernährung, Körper und die drei Analyse-Seiten, nach dem Vorbild eines vom Nutzer bereitgestellten Referenzvideos. Home-Dashboard bleibt bewusst außen vor (eigenes künftiges Vorhaben, braucht erst ein Datenmodell für Trainingstag/Restday).
 
@@ -192,9 +192,9 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Wiki synchronisiert** (06.09.2026, Commit `a0d307b`): nicht nur Plan 2b, sondern der komplette Phase-6-Rückstand — Design-Spec, Plan 1 (Fundament) und Plan 2a (Training) waren trotz Merge nie gespiegelt worden. Vier neue Seiten (`Phase-6-Design-Spec`, `Phase-6-Plan-1-Fundament`, `Phase-6-Plan-2a-Training`, `Phase-6-Plan-2b-Ernaehrungsbereich`), `Home`/`_Sidebar` verlinkt und der Status-Absatz ergänzt. `Domain-Model.md` unverändert (keiner der drei Pläne fasst das Schema an).
 
-**Aufteilung wie bei Phase 5:** Plan 1 (Fundament) — **fertig und gemerged** —, Plan 2a (Training) — **fertig und gemerged** —, Plan 2b (Ernährung) — **fertig und gemerged** —, Plan 2c (Körper) — **umgesetzt und reviewt, Merge aussteht** —, danach Plan 2d (Analyse-Seiten), noch nicht geschrieben.
+**Aufteilung wie bei Phase 5:** Plan 1 (Fundament) — **fertig und gemerged** —, Plan 2a (Training) — **fertig und gemerged** —, Plan 2b (Ernährung) — **fertig und gemerged** —, Plan 2c (Körper) — **fertig und gemerged** —, danach Plan 2d (Analyse-Seiten) — **letzter fehlender Bereichs-Plan, noch nicht geschrieben.**
 
-## Plan 2c – Körperbereich im neuen Design (umgesetzt und reviewt, Merge aussteht)
+## Plan 2c – Körperbereich im neuen Design (gemerged, PR #43)
 
 **Plan:** `docs/superpowers/plans/2026-09-06-phase6-plan2c-koerper-plan.md`, Commit `27ab45a` auf `master`, 5 Tasks. Dashboard (`BodyPage`, 2-spaltige Karten-Grid für die sieben Messwerte, „Heute eintragen" als Dialog), Verlaufsliste (`BodyEntriesPage`, Karten-in-Liste, „Bearbeiten" als ein geteilter Dialog statt einem je Zeile) und Fotoseite (`BodyPhotosPage`, Formularfeld- und Foto-Karten) verwenden jetzt die in Plan 1 gebauten Bausteine. Umgesetzt per `superpowers:subagent-driven-development`, isolierter Worktree/Branch `worktree-phase6-plan2c-koerper`.
 
@@ -202,17 +202,22 @@ Offene Folgevorhaben (noch nicht umgesetzt):
 
 **Design-Entscheidung: ein geteilter Bearbeiten-Dialog statt einem je Zeile** in `BodyEntriesPage` — `editingId` erlaubt ohnehin nur eine offene Bearbeitung gleichzeitig, ein natives `<dialog>` je Zeile wäre unnötige Vervielfachung. Vom Reviewer explizit als stale-state-sicher verifiziert (`editingId` als Singleton garantiert höchstens einen `editingEntry`).
 
-**Alle 4 Tasks, je einzeln reviewt:**
+**Alle 5 Tasks, je einzeln reviewt:**
 - Task 1 (`BodyEntryForm`, Karten-Wrapper und Buttons): Commit `741cb3a`, Review clean.
 - Task 2 (`BodyPage`-Dashboard, 2-spaltige Karten-Grid, „Heute eintragen" als Dialog): Commit `f5fe0ce`, Review clean. **Echte Plan-Lücke gefunden und behoben:** der geplante Reset-bei-Wiedereröffnen-Test nutzte `today()` ohne Fake-Timer-Pinning, während die Test-Fixture ein festes Datum (`'2026-08-24'`) trägt — mit dem echten Systemdatum (06.09.2026) wäre der Test unabhängig vom eigentlichen Dialog-Fix fehlgeschlagen. Implementer hat `vi.useFakeTimers()`/`vi.setSystemTime(...)` nach dem Muster des direkt benachbarten bestehenden Tests ergänzt.
 - Task 3 (`BodyEntriesPage`, Karten, geteilter Bearbeiten-Dialog, Toast): Commit `9d38cbd`, Review clean.
 - Task 4 (`BodyPhotosPage`, Formular-Karte, Foto-Karten, Toast): Commit `ee10860`, Review clean.
+- Task 5 (Abschluss): Bundle gemessen, `docs/domaenenmodell.md` geprüft (keine Änderung nötig), manuelle Browser-Verifikation (siehe unten), Status hier nachgezogen.
 
 **Manuelle Browser-Verifikation (alle 7 Punkte grün, keine Funde):** über eine Wegwerf-Testseite (`TestPlayPage.tsx` + temporäre Route in `App.tsx`, beide nicht committet, nach der Prüfung entfernt) im echten Chrome-Tab geprüft. 2-spaltige Messwerte-Grid ohne sichtbaren Rahmen; „Heute eintragen"-Dialog zentriert mit verschwommenem Hintergrund (die Plan-1-Regressionsklasse tritt hier nicht erneut auf), Formular als Karte, „Speichern" als voller Hauptbutton; Verlaufskarten mit geteiltem Bearbeiten-Dialog ebenso zentriert und vorbelegt; ein simulierter Löschfehler zeigt einen echten Toast (`position:fixed`, `top:18px`, sichtbar per `getComputedStyle` bestätigt); alle zehn Karten im Dashboard/Verlauf/Fotos programmatisch gegengeprüft (`border-bottom-width: 0px`, `border-radius: 27px`, korrekter `bg-surface`-Hintergrund); Konsole durchgängig ohne Fehler oder Warnungen.
 
-**Stand nach Task 4 und Verifikation: 732 Tests grün** (104 Dateien), Lint ohne Fehler und Warnungen, `tsc -b --noEmit` sauber, `npm run build` erfolgreich. Entry-Chunk `dist/assets/index-vwdkMeJz.js` 235,36 kB (75,50 kB gzip), CSS `dist/assets/index-Th1NYJg3.css` 16,02 kB (4,02 kB gzip) — kein echter Vergleichswert zur `master`-Baseline (Worktree ohne `.env`, wie bei allen vorherigen Design-Plänen). Keine Migration in diesem Plan, `docs/domaenenmodell.md` unverändert (letzte Migration bleibt `0007`).
+**Whole-Branch-Review (Opus) und eine Fix-Welle abgeschlossen:** Verdict „Ready to merge? With fixes" — kein Critical, 1 Important (kein Test sperrte das Karten-in-Liste-Markup auf `BodyPage`/`BodyEntriesPage`/`BodyPhotosPage` — identische Lücke wie bei Plan 2bs Whole-Branch-Review, dort für `FoodEntryList` behoben), 3 Minor bewusst geparkt (`BodyEntriesPage`s Dialog-open-Bedingung doppelt ausgedrückt statt einer Quelle — kein demonstrierter Bug; Toast-vor-`onClose`-Reihenfolge funktioniert heute, aber ohne Fragilitäts-Kommentar für einen künftigen `await`; ein Tippfehler „Alle 4 Tasks" statt 5 in dieser Doku selbst — hier korrigiert). Das Important-Finding behoben (Commit `9892fe1` — je eine strukturelle Assertion in den drei Test-Dateien nach dem Muster von `FoodEntryList.test.tsx`), Scoped Re-Review bestätigte ADDRESSED für alle drei Seiten ohne neue Breakage, keine Tautologien (beide Regressionsrichtungen abgedeckt).
 
-**Noch offen:** Whole-Branch-Review (stärkstes Modell) auf dem gesamten Branch, danach PR und Merge — noch nicht durchgeführt. Worktree/Branch `worktree-phase6-plan2c-koerper` bleibt bis dahin bestehen.
+**PR #43 gegen `master` gemergt** (Merge-Commit `066803d`, alle vier CI-Checks grün: build-test, npm-audit, semgrep, zap-baseline), Worktree und Branch entfernt. **Live deployed** (`npm ci && npm run build && firebase deploy --only hosting:vitaloop`, Asset-Hash `index-BrxTVW_f.js` auf `https://vitaloop.web.app` verifiziert).
+
+**Stand nach Task 5 und Fix-Welle: 735 Tests grün** (104 Dateien), Lint ohne Fehler und Warnungen, `tsc -b --noEmit` sauber, `npm run build` erfolgreich (mit echter `.env`: Entry-Chunk 999,89 kB / 272,58 kB gzip). Keine Migration in diesem Plan, `docs/domaenenmodell.md` unverändert (letzte Migration bleibt `0007`).
+
+**Noch offen:** Wiki synchronisieren (noch nicht gemacht für Plan 2c).
 
 ## Phase 4 – Körperbereich (abgeschlossen)
 
