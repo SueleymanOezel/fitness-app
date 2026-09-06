@@ -36,6 +36,18 @@ describe('ToastProvider', () => {
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent('Speichern fehlgeschlagen')
     expect(alert.className).toContain('bg-danger')
+    expect(alert.className).toContain('text-on-bright')
+  })
+
+  it('gives every toast an entrance transition, skipped under reduced motion', async () => {
+    render(
+      <ToastProvider>
+        <TriggerButton message="Eintrag gespeichert" type="success" />
+      </ToastProvider>,
+    )
+    screen.getByRole('button', { name: 'ausloesen' }).click()
+    const alert = await screen.findByRole('alert')
+    expect(alert.className).toContain('motion-safe:animate-[toast-in_200ms_ease-out]')
   })
 
   it('removes the toast on its own after a few seconds', async () => {

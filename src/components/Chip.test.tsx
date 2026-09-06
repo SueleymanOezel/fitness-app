@@ -26,4 +26,20 @@ describe('Chip', () => {
     fireEvent.click(screen.getByRole('button', { name: '30 Tage' }))
     expect(onClick).toHaveBeenCalledOnce()
   })
+
+  it('gives the active chip on-bright text and both states hover/press/focus feedback', () => {
+    const { rerender } = render(<Chip active>90 Tage</Chip>)
+    const active = screen.getByRole('button', { name: '90 Tage' })
+    expect(active.className).toContain('text-on-bright')
+    expect(active.className).toContain('transition')
+    expect(active.className).toContain('motion-safe:active:scale-[0.97]')
+    expect(active.className).toContain('focus-visible:ring-2')
+    expect(active.className).toContain('focus-visible:ring-offset-2')
+    expect(active.className).toContain('focus-visible:ring-offset-bg')
+
+    rerender(<Chip active={false}>90 Tage</Chip>)
+    const inactive = screen.getByRole('button', { name: '90 Tage' })
+    expect(inactive.className).not.toContain('text-on-bright')
+    expect(inactive.className).toContain('transition')
+  })
 })

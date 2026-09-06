@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buttonPrimaryClass, buttonSecondaryClass, cardClass } from './ui-classes'
+import { buttonPrimaryClass, buttonSecondaryClass, cardClass, interactiveClass } from './ui-classes'
 
 describe('ui-classes', () => {
   it('gives every card the same rounded surface treatment', () => {
@@ -21,5 +21,29 @@ describe('ui-classes', () => {
     expect(buttonSecondaryClass).toContain('rounded-2xl')
     expect(buttonSecondaryClass).toContain('border-0')
     expect(buttonSecondaryClass).toContain('m-0')
+  })
+
+  it('gives the primary button on-bright text instead of the near-white default, for AA contrast on accent', () => {
+    expect(buttonPrimaryClass).toContain('text-on-bright')
+    expect(buttonPrimaryClass).not.toContain('text-text ')
+  })
+
+  it('gives both buttons hover, press and focus-visible feedback', () => {
+    for (const cls of [buttonPrimaryClass, buttonSecondaryClass]) {
+      expect(cls).toContain('transition')
+      expect(cls).toContain('motion-reduce:transition-none')
+      expect(cls).toContain('hover:brightness-110')
+      expect(cls).toContain('motion-safe:active:scale-[0.97]')
+      expect(cls).toContain('focus-visible:ring-2')
+      expect(cls).toContain('focus-visible:ring-accent')
+      expect(cls).toContain('focus-visible:ring-offset-2')
+      expect(cls).toContain('focus-visible:ring-offset-bg')
+    }
+  })
+
+  it('exports the shared interactive-state classes for other components to reuse', () => {
+    expect(interactiveClass).toContain('transition')
+    expect(interactiveClass).toContain('motion-safe:active:scale-[0.97]')
+    expect(interactiveClass).not.toContain('ring-offset')
   })
 })
