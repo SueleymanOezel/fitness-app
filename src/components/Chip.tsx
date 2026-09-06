@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes } from 'react'
+import { interactiveClass } from '../lib/ui-classes'
 
 export type ChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   active: boolean
@@ -14,8 +15,8 @@ export default function Chip({ active, className = '', ...props }: ChipProps) {
     <button
       type="button"
       aria-pressed={active}
-      className={`rounded-full border-0 m-0 px-4 py-2 font-medium ${
-        active ? 'bg-accent text-text' : 'bg-surface text-text-muted'
+      className={`rounded-full border-0 m-0 px-4 py-2 font-medium ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${
+        active ? 'bg-accent text-on-bright' : 'bg-surface text-text-muted'
       } ${className}`}
       {...props}
     />
