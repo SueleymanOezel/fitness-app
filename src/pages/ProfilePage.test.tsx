@@ -167,6 +167,21 @@ describe('ProfilePage', () => {
     expect(screen.getByLabelText('Mahlzeit 5')).toHaveValue('')
   })
 
+  it('wraps the form fields in a card and styles the primary/secondary buttons', async () => {
+    await renderPage()
+
+    expect(screen.getByLabelText('Name').closest('div')).toHaveClass('bg-surface', 'rounded-3xl')
+    expect(screen.getByRole('button', { name: 'Speichern' })).toHaveClass('bg-accent')
+    expect(screen.getByRole('button', { name: 'Logout' })).not.toHaveClass('bg-accent')
+    expect(screen.getByRole('button', { name: 'Logout' })).toHaveClass('rounded-2xl')
+  })
+
+  it('constrains the meal-section hint text to a readable line length', async () => {
+    await renderPage()
+
+    expect(screen.getByText(/Leere Felder werden nicht angezeigt/)).toHaveClass('max-w-prose')
+  })
+
   it('saves renamed and newly added sections', async () => {
     const result = await renderPage()
 
