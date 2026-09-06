@@ -20,7 +20,7 @@ export const cardClass = 'bg-surface rounded-3xl p-6'
  * statt die ganze Liste ein drittes/viertes Mal zu tippen.
  */
 export const interactiveClass =
-  'transition duration-150 motion-reduce:transition-none hover:brightness-110 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
+  'transition duration-150 motion-reduce:transition-none hover:brightness-110 motion-safe:active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
 
 export const buttonPrimaryClass =
   `w-full rounded-2xl border-0 m-0 bg-accent px-4 py-3 font-semibold text-on-bright disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`

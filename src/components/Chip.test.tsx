@@ -32,7 +32,7 @@ describe('Chip', () => {
     const active = screen.getByRole('button', { name: '90 Tage' })
     expect(active.className).toContain('text-on-bright')
     expect(active.className).toContain('transition')
-    expect(active.className).toContain('active:scale-[0.97]')
+    expect(active.className).toContain('motion-safe:active:scale-[0.97]')
     expect(active.className).toContain('focus-visible:ring-2')
     expect(active.className).toContain('focus-visible:ring-offset-2')
     expect(active.className).toContain('focus-visible:ring-offset-bg')

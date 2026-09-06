@@ -33,7 +33,7 @@ describe('ui-classes', () => {
       expect(cls).toContain('transition')
       expect(cls).toContain('motion-reduce:transition-none')
       expect(cls).toContain('hover:brightness-110')
-      expect(cls).toContain('active:scale-[0.97]')
+      expect(cls).toContain('motion-safe:active:scale-[0.97]')
       expect(cls).toContain('focus-visible:ring-2')
       expect(cls).toContain('focus-visible:ring-accent')
       expect(cls).toContain('focus-visible:ring-offset-2')
@@ -43,7 +43,7 @@ describe('ui-classes', () => {
 
   it('exports the shared interactive-state classes for other components to reuse', () => {
     expect(interactiveClass).toContain('transition')
-    expect(interactiveClass).toContain('active:scale-[0.97]')
+    expect(interactiveClass).toContain('motion-safe:active:scale-[0.97]')
     expect(interactiveClass).not.toContain('ring-offset')
   })
 })
