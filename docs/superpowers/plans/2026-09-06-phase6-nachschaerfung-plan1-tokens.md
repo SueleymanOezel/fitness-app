@@ -403,6 +403,8 @@ describe('Chip', () => {
     expect(active.className).toContain('transition')
     expect(active.className).toContain('active:scale-[0.97]')
     expect(active.className).toContain('focus-visible:ring-2')
+    expect(active.className).toContain('focus-visible:ring-offset-2')
+    expect(active.className).toContain('focus-visible:ring-offset-bg')
 
     rerender(<Chip active={false}>90 Tage</Chip>)
     const inactive = screen.getByRole('button', { name: '90 Tage' })
@@ -445,7 +447,7 @@ export default function Chip({ active, className = '', ...props }: ChipProps) {
     <button
       type="button"
       aria-pressed={active}
-      className={`rounded-full border-0 m-0 px-4 py-2 font-medium ${interactiveClass} focus-visible:ring-offset-bg ${
+      className={`rounded-full border-0 m-0 px-4 py-2 font-medium ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${
         active ? 'bg-accent text-on-bright' : 'bg-surface text-text-muted'
       } ${className}`}
       {...props}
@@ -453,6 +455,8 @@ export default function Chip({ active, className = '', ...props }: ChipProps) {
   )
 }
 ```
+
+`interactiveClass` selbst enthält bewusst kein `ring-offset` (siehe Task 3, Ruling in der Ledger nach dessen Fix-Runde 1) — jeder Aufrufer setzt Breite (`ring-offset-2`) und Farbe (`ring-offset-bg`/`-surface-raised`) zusammen.
 
 Der bestehende `import type { ButtonHTMLAttributes } from 'react'` bleibt unverändert stehen, der neue Import kommt darunter.
 
@@ -634,6 +638,8 @@ In `src/components/BottomNav.test.tsx`, den bestehenden zweiten Test unveränder
     expect(home.className).toContain('hover:brightness-110')
     expect(home.className).toContain('active:scale-[0.97]')
     expect(home.className).toContain('focus-visible:ring-2')
+    expect(home.className).toContain('focus-visible:ring-offset-2')
+    expect(home.className).toContain('focus-visible:ring-offset-surface-raised')
   })
 ```
 
@@ -657,7 +663,7 @@ In `src/components/BottomNav.tsx`:
 zu:
 ```tsx
           className={({ isActive }) =>
-            `flex h-11 w-11 items-center justify-center rounded-full ${interactiveClass} focus-visible:ring-offset-surface-raised ${
+            `flex h-11 w-11 items-center justify-center rounded-full ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised ${
               isActive ? 'text-accent' : 'text-text-muted'
             }`
           }
