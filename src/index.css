@@ -6,6 +6,12 @@
  * docs/superpowers/specs/2026-09-05-phase6-referenzdesign-analyse.md — not
  * approximated. Dark mode only, no light variant (decided in the Phase 6
  * design spec, docs/superpowers/specs/2026-09-05-phase6-design-design.md).
+ *
+ * --color-text-muted and --color-on-bright were corrected post-launch for
+ * WCAG AA contrast failures found by an impeccable critique; see
+ * docs/superpowers/specs/2026-09-06-phase6-nachschaerfung-design.md and
+ * src/lib/contrast.test.ts for the exact ratios. Every other token here is
+ * still the original pixel-sampled value.
  */
 @theme {
   --color-bg: #181920;
@@ -18,7 +24,15 @@
   --color-danger: #f27a6b;
 
   --color-text: #fefeff;
-  --color-text-muted: #5e5f66;
+  --color-text-muted: #90919a;
+  /*
+   * Textfarbe fuer Text auf hellen/gesaettigten Flaechen (Accent-Buttons,
+   * aktiver Chip, Danger-Toast) — #fefeff auf #8766ed/#f27a6b faellt unter
+   * WCAG-AA-Textkontrast (4.5:1), siehe src/lib/contrast.test.ts. Die
+   * Akzent-/Danger-Farbe selbst bleibt unveraendert, nur die Textfarbe
+   * darauf wechselt von hell auf dunkel.
+   */
+  --color-on-bright: #0d0e12;
 
   --color-chart-mint: #6efde6;
   --color-chart-blue: #4f6ca5;
