@@ -7,8 +7,23 @@
  */
 export const cardClass = 'bg-surface rounded-3xl p-6'
 
+/**
+ * transition + motion-reduce:transition-none statt eines separaten
+ * motion-safe:-Zweigs: der Zustandswechsel selbst (Farbe, Skalierung) soll
+ * unter prefers-reduced-motion bestehen bleiben, nur ohne animierten
+ * Uebergang dazwischen — siehe Spec, Abschnitt "Motion".
+ *
+ * Exportiert (nicht nur hier verwendet): Chip und BottomNav brauchen
+ * dieselbe Hover/Press/Fokus-Basis, nur mit einer anderen
+ * focus-visible:ring-offset-Farbe (die haengt davon ab, auf welchem
+ * Hintergrund das Element sitzt) — die traegt jeder Aufrufer selbst bei,
+ * statt die ganze Liste ein drittes/viertes Mal zu tippen.
+ */
+export const interactiveClass =
+  'transition duration-150 motion-reduce:transition-none hover:brightness-110 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
+
 export const buttonPrimaryClass =
-  'w-full rounded-2xl border-0 m-0 bg-accent px-4 py-3 font-semibold text-text disabled:opacity-50'
+  `w-full rounded-2xl border-0 m-0 bg-accent px-4 py-3 font-semibold text-on-bright disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-bg`
 
 export const buttonSecondaryClass =
-  'rounded-2xl border-0 m-0 bg-surface px-4 py-3 font-semibold text-text disabled:opacity-50'
+  `rounded-2xl border-0 m-0 bg-surface px-4 py-3 font-semibold text-text disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-bg`
