@@ -63,6 +63,21 @@ describe('BodyEntriesPage', () => {
     expect(screen.getByText('17.08.2026')).toBeInTheDocument()
   })
 
+  it('wraps each entry in the card-in-list markup', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult())
+
+    renderPage()
+
+    // The li must never carry cardClass directly — index.css's transition rule
+    // for bare <li> elements (display:flex/justify-content:center/border-bottom)
+    // would clobber the card look. cardClass belongs on the nested div only.
+    const li = screen.getByText('24.08.2026').closest('li')
+    expect(li).toHaveClass('block', 'border-b-0')
+    const card = screen.getByText('24.08.2026').closest('div')
+    expect(card).toHaveClass('bg-surface', 'rounded-3xl')
+  })
+
   it('says so instead of showing an empty list when nothing was recorded', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseBodyMetrics.mockReturnValue(metricsResult({ rows: [] }))

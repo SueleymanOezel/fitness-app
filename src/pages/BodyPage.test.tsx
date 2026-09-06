@@ -66,6 +66,21 @@ describe('BodyPage', () => {
     expect(screen.getByText(/24\.08\./)).toBeInTheDocument()
   })
 
+  it('wraps each measurement in the card-in-list markup', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult())
+
+    zeigeDashboard()
+
+    // The li must never carry cardClass directly — index.css's transition rule
+    // for bare <li> elements (display:flex/justify-content:center/border-bottom)
+    // would clobber the card look. cardClass belongs on the nested div only.
+    const li = screen.getByText('82,5 kg').closest('li')
+    expect(li).toHaveClass('block', 'border-b-0')
+    const card = screen.getByText('82,5 kg').closest('div')
+    expect(card).toHaveClass('bg-surface', 'rounded-3xl')
+  })
+
   it('shows the change against the previous entry that carried the value', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseBodyMetrics.mockReturnValue(metricsResult())
