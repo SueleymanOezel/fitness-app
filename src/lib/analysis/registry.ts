@@ -25,6 +25,7 @@ import {
   FOTOS_TITEL as PHOTOS,
   AKTIVITAETSRASTER_TITEL as ACTIVITY_GRID,
   WOCHEN_KURZFORM_TITEL as WEEKLY_SUMMARY,
+  TRENDS_TITEL as TRENDS,
 } from './chart-titles'
 
 export type Bereich = 'training' | 'nutrition' | 'body' | 'home'
@@ -68,6 +69,7 @@ export const K4 = 'K4'
 export const K5 = 'K5'
 export const H1 = 'H1'
 export const H2 = 'H2'
+export const H3 = 'H3'
 
 export const CHARTS: ChartDef[] = [
   { id: T1, bereich: 'training', titel: TRAINING_FREQUENCY },
@@ -91,6 +93,7 @@ export const CHARTS: ChartDef[] = [
   { id: K5, bereich: 'body', titel: PHOTOS },
   { id: H1, bereich: 'home', titel: ACTIVITY_GRID },
   { id: H2, bereich: 'home', titel: WEEKLY_SUMMARY },
+  { id: H3, bereich: 'home', titel: TRENDS },
 ]
 
 export const CHART_IDS = CHARTS.map((chart) => chart.id)
