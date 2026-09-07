@@ -24,6 +24,7 @@ import {
   GEWICHT_UEBER_KALORIEN_TITEL as WEIGHT_VS_CALORIES,
   FOTOS_TITEL as PHOTOS,
   AKTIVITAETSRASTER_TITEL as ACTIVITY_GRID,
+  WOCHEN_KURZFORM_TITEL as WEEKLY_SUMMARY,
 } from './chart-titles'
 
 export type Bereich = 'training' | 'nutrition' | 'body' | 'home'
@@ -66,6 +67,7 @@ export const K3 = 'K3'
 export const K4 = 'K4'
 export const K5 = 'K5'
 export const H1 = 'H1'
+export const H2 = 'H2'
 
 export const CHARTS: ChartDef[] = [
   { id: T1, bereich: 'training', titel: TRAINING_FREQUENCY },
@@ -88,6 +90,7 @@ export const CHARTS: ChartDef[] = [
   { id: K4, bereich: 'body', titel: WEIGHT_VS_CALORIES },
   { id: K5, bereich: 'body', titel: PHOTOS },
   { id: H1, bereich: 'home', titel: ACTIVITY_GRID },
+  { id: H2, bereich: 'home', titel: WEEKLY_SUMMARY },
 ]
 
 export const CHART_IDS = CHARTS.map((chart) => chart.id)
