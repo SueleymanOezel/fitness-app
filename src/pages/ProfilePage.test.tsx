@@ -149,7 +149,9 @@ describe('ProfilePage', () => {
     const result = await renderPage(profileResult({ profile: null, error: true }))
 
     expect(screen.getByRole('alert')).toHaveTextContent('konnte nicht geladen werden')
-    screen.getByRole('button', { name: 'Erneut versuchen' }).click()
+    const retry = screen.getByRole('button', { name: 'Erneut versuchen' })
+    expect(retry).toHaveClass('rounded-2xl')
+    retry.click()
     expect(result.reload).toHaveBeenCalled()
   })
 
@@ -165,6 +167,24 @@ describe('ProfilePage', () => {
     expect(screen.getByLabelText('Mahlzeit 1')).toHaveValue('Frühstück')
     expect(screen.getByLabelText('Mahlzeit 4')).toHaveValue('Snacks')
     expect(screen.getByLabelText('Mahlzeit 5')).toHaveValue('')
+  })
+
+  it('wraps the form fields in a card and styles the primary/secondary buttons', async () => {
+    await renderPage()
+
+    expect(screen.getByLabelText('Name').closest('div')).toHaveClass('bg-surface', 'rounded-3xl')
+    expect(screen.getByRole('button', { name: 'Speichern' })).toHaveClass('bg-accent')
+    expect(screen.getByRole('button', { name: 'Logout' })).not.toHaveClass('bg-accent')
+    expect(screen.getByRole('button', { name: 'Logout' })).toHaveClass('rounded-2xl')
+  })
+
+  it('constrains the meal-section hint text to a readable line length', async () => {
+    await renderPage()
+
+    expect(screen.getByText(/Leere Felder werden nicht angezeigt/)).toHaveClass(
+      'max-w-prose',
+      'mx-auto',
+    )
   })
 
   it('saves renamed and newly added sections', async () => {

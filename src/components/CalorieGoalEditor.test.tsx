@@ -35,6 +35,18 @@ describe('CalorieGoalEditor', () => {
     expect(screen.getByText(/Profil vervollständigen/)).toBeInTheDocument()
   })
 
+  it('wraps the calculated-goal view in a card and gives the toggle a secondary style', () => {
+    render(<CalorieGoalEditor profile={calculableProfile} onUpdate={vi.fn()} />)
+
+    expect(screen.getByText(/Berechnetes Tagesziel/).closest('div')).toHaveClass(
+      'bg-surface',
+      'rounded-3xl',
+    )
+    const toggle = screen.getByRole('button', { name: 'Manuell festlegen' })
+    expect(toggle).toHaveClass('rounded-2xl')
+    expect(toggle).not.toHaveClass('bg-accent')
+  })
+
   it('switches to manual mode and saves the entered value once, on blur', () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined)
     render(<CalorieGoalEditor profile={calculableProfile} onUpdate={onUpdate} />)
@@ -64,5 +76,18 @@ describe('CalorieGoalEditor', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Berechnen lassen' }))
     expect(onUpdate).toHaveBeenCalledWith({ taegliches_kalorienziel: null })
+  })
+
+  it('wraps the manual-goal view in a card too', () => {
+    const manualProfile = { ...calculableProfile, taegliches_kalorienziel: 1800 }
+    render(<CalorieGoalEditor profile={manualProfile} onUpdate={vi.fn()} />)
+
+    expect(screen.getByLabelText('Tagesziel (kcal)').closest('div')).toHaveClass(
+      'bg-surface',
+      'rounded-3xl',
+    )
+    const toggle = screen.getByRole('button', { name: 'Berechnen lassen' })
+    expect(toggle).toHaveClass('rounded-2xl')
+    expect(toggle).not.toHaveClass('bg-accent')
   })
 })

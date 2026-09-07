@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useSession } from '../hooks/use-session'
 import { useProfile, type Profile } from '../hooks/use-profile'
 import CalorieGoalEditor from '../components/CalorieGoalEditor'
+import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 
 type Draft = {
   name: string
@@ -155,7 +156,7 @@ function ProfileForm({ userId }: { userId: string }) {
       <div>
         <h1>Profil</h1>
         <p role="alert">Profil konnte nicht geladen werden.</p>
-        <button type="button" onClick={() => reload()}>
+        <button type="button" className={buttonSecondaryClass} onClick={() => reload()}>
           Erneut versuchen
         </button>
       </div>
@@ -202,111 +203,113 @@ function LoadedProfileForm({
     <div>
       <h1>Profil</h1>
       <form onSubmit={handleSubmit}>
-        <label>
-          Name
-          <input value={draft.name} onChange={(event) => set('name', event.target.value)} />
-        </label>
-        <label>
-          Alter (Jahre)
-          <input
-            type="number"
-            value={draft.alter}
-            onChange={(event) => set('alter', event.target.value)}
-          />
-        </label>
-        <label>
-          Größe (cm)
-          <input
-            type="number"
-            step="any"
-            value={draft.groesse}
-            onChange={(event) => set('groesse', event.target.value)}
-          />
-        </label>
-        <label>
-          Gewicht (kg)
-          <input
-            type="number"
-            step="any"
-            value={draft.aktuelles_gewicht}
-            onChange={(event) => set('aktuelles_gewicht', event.target.value)}
-          />
-        </label>
-        <label>
-          Geschlecht
-          <select
-            value={draft.geschlecht}
-            onChange={(event) => set('geschlecht', event.target.value)}
-          >
-            <option value="">bitte wählen</option>
-            {GESCHLECHT.map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Aktivitätslevel
-          <select
-            value={draft.aktivitaetslevel}
-            onChange={(event) => set('aktivitaetslevel', event.target.value)}
-          >
-            <option value="">bitte wählen</option>
-            {AKTIVITAET.map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Ziel
-          <select value={draft.ziel} onChange={(event) => set('ziel', event.target.value)}>
-            <option value="">bitte wählen</option>
-            {ZIEL.map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Ziel-Delta (kcal)
-          <input
-            type="number"
-            step="any"
-            value={draft.ziel_delta_kcal}
-            onChange={(event) => set('ziel_delta_kcal', event.target.value)}
-          />
-        </label>
+        <div className={cardClass}>
+          <label>
+            Name
+            <input value={draft.name} onChange={(event) => set('name', event.target.value)} />
+          </label>
+          <label>
+            Alter (Jahre)
+            <input
+              type="number"
+              value={draft.alter}
+              onChange={(event) => set('alter', event.target.value)}
+            />
+          </label>
+          <label>
+            Größe (cm)
+            <input
+              type="number"
+              step="any"
+              value={draft.groesse}
+              onChange={(event) => set('groesse', event.target.value)}
+            />
+          </label>
+          <label>
+            Gewicht (kg)
+            <input
+              type="number"
+              step="any"
+              value={draft.aktuelles_gewicht}
+              onChange={(event) => set('aktuelles_gewicht', event.target.value)}
+            />
+          </label>
+          <label>
+            Geschlecht
+            <select
+              value={draft.geschlecht}
+              onChange={(event) => set('geschlecht', event.target.value)}
+            >
+              <option value="">bitte wählen</option>
+              {GESCHLECHT.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Aktivitätslevel
+            <select
+              value={draft.aktivitaetslevel}
+              onChange={(event) => set('aktivitaetslevel', event.target.value)}
+            >
+              <option value="">bitte wählen</option>
+              {AKTIVITAET.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Ziel
+            <select value={draft.ziel} onChange={(event) => set('ziel', event.target.value)}>
+              <option value="">bitte wählen</option>
+              {ZIEL.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Ziel-Delta (kcal)
+            <input
+              type="number"
+              step="any"
+              value={draft.ziel_delta_kcal}
+              onChange={(event) => set('ziel_delta_kcal', event.target.value)}
+            />
+          </label>
 
-        <fieldset>
-          <legend>Mahlzeiten</legend>
-          <p>
-            Leere Felder werden nicht angezeigt. Die ersten vier Mahlzeiten lassen sich
-            umbenennen, aber nicht entfernen.
-          </p>
-          {(
-            [
-              [1, 'mahlzeit_1_name'],
-              [2, 'mahlzeit_2_name'],
-              [3, 'mahlzeit_3_name'],
-              [4, 'mahlzeit_4_name'],
-              [5, 'mahlzeit_5_name'],
-              [6, 'mahlzeit_6_name'],
-            ] as const
-          ).map(([slot, field]) => (
-            <label key={slot}>
-              {`Mahlzeit ${slot}`}
-              <input
-                maxLength={MAX_SECTION_NAME_LENGTH}
-                value={draft[field]}
-                onChange={(event) => set(field, event.target.value)}
-              />
-            </label>
-          ))}
-        </fieldset>
+          <fieldset>
+            <legend>Mahlzeiten</legend>
+            <p className="max-w-prose mx-auto">
+              Leere Felder werden nicht angezeigt. Die ersten vier Mahlzeiten lassen sich
+              umbenennen, aber nicht entfernen.
+            </p>
+            {(
+              [
+                [1, 'mahlzeit_1_name'],
+                [2, 'mahlzeit_2_name'],
+                [3, 'mahlzeit_3_name'],
+                [4, 'mahlzeit_4_name'],
+                [5, 'mahlzeit_5_name'],
+                [6, 'mahlzeit_6_name'],
+              ] as const
+            ).map(([slot, field]) => (
+              <label key={slot}>
+                {`Mahlzeit ${slot}`}
+                <input
+                  maxLength={MAX_SECTION_NAME_LENGTH}
+                  value={draft[field]}
+                  onChange={(event) => set(field, event.target.value)}
+                />
+              </label>
+            ))}
+          </fieldset>
+        </div>
 
         {status === 'invalid' && (
           <p role="alert">
@@ -319,7 +322,9 @@ function LoadedProfileForm({
         {status === 'failed' && <p role="alert">Profil konnte nicht gespeichert werden.</p>}
         {status === 'saved' && <p role="status">Gespeichert.</p>}
 
-        <button type="submit">Speichern</button>
+        <button type="submit" className={buttonPrimaryClass}>
+          Speichern
+        </button>
       </form>
 
       <h2>Tagesziel</h2>
@@ -327,6 +332,7 @@ function LoadedProfileForm({
 
       <button
         type="button"
+        className={buttonSecondaryClass}
         onClick={() => {
           supabase.auth.signOut().catch(() => {
             /* signOut failed network-side; ProtectedRoute re-checks the session on the next render anyway */
