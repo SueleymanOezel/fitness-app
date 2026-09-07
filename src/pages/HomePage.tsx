@@ -6,7 +6,7 @@ import { effectiveCalorieGoal } from '../lib/nutrition-goal'
 import DailySummary from '../components/DailySummary'
 import { useActiveTrainingDay } from '../hooks/use-active-training-day'
 import { useBodyMetrics } from '../hooks/use-body-metrics'
-import { changeSince } from '../lib/body-change'
+import { changeSince, latestValue } from '../lib/body-change'
 import { useChartSelection } from '../components/charts/ChartPicker'
 import HomeChartList from '../components/charts/HomeChartList'
 import { chartsFor } from '../lib/analysis/registry'
@@ -55,15 +55,17 @@ function Dashboard({ userId }: { userId: string }) {
   // zeigt die Kalorien dann trotzdem an, nur ohne Restwert gegen ein Ziel. Ein
   // Bereich, der nicht laedt, soll die anderen zwei nicht mit sperren.
   const goal = profile ? effectiveCalorieGoal(profile) : null
+  const gewichtAktuell = latestValue(rows, 'gewicht')
   const gewichtsAenderung = changeSince(rows, 'gewicht')
 
   return (
-    <div>
+    <div className="space-y-4">
       <h1>Home</h1>
       <DailySummary entries={entries} goal={goal} />
       <div className={cardClass}>
         <h2>Training</h2>
         {plan == null && <p>Kein aktiver Plan.</p>}
+        {plan != null && day == null && <p>{`Plan „${plan.name}“ hat noch keine Tage.`}</p>}
         {plan != null && day != null && <p>{`${plan.name} — ${day.name}`}</p>}
         <Link to="/training">Zum Trainingsbereich</Link>
       </div>
@@ -71,9 +73,17 @@ function Dashboard({ userId }: { userId: string }) {
         <h2>Gewicht</h2>
         {rowsError && <p role="alert">Gewichtsdaten konnten nicht geladen werden.</p>}
         <p>
-          {gewichtsAenderung == null
+          {gewichtAktuell == null
             ? 'Keine Messwerte.'
-            : `${gewichtsAenderung.delta < 0 ? '−' : '+'}${formatValue(Math.abs(gewichtsAenderung.delta))} kg seit dem letzten Eintrag`}
+            : // latestValue may find a weight without a prior entry to compare
+              // against — changeSince is then null, and the card must still show
+              // the current value instead of collapsing to "Keine Messwerte.",
+              // which is what a first-time weigh-in would otherwise wrongly say.
+              `${formatValue(gewichtAktuell.value)} kg${
+                gewichtsAenderung == null
+                  ? ''
+                  : ` (${gewichtsAenderung.delta < 0 ? '−' : '+'}${formatValue(Math.abs(gewichtsAenderung.delta))} kg seit dem letzten Eintrag)`
+              }`}
         </p>
         <Link to="/body">Zum Körperbereich</Link>
       </div>
