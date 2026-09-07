@@ -74,6 +74,8 @@ describe('ExercisesPage', () => {
 
     expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
     expect(screen.queryByText('Kniebeuge')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'chest' })).toHaveClass('bg-accent')
+    expect(screen.getByRole('button', { name: 'Alle' })).toHaveClass('bg-surface')
   })
 
   it('resets the muscle-group filter with the Alle chip', async () => {

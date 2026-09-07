@@ -182,13 +182,13 @@ describe('NutritionEntriesPage', () => {
     const mittagessenButton = within(mittagessenHeading.closest('section') as HTMLElement).getByRole('button', {
       name: '+ Hinzufügen',
     })
-    expect(mittagessenButton).not.toHaveClass('bg-accent')
+    expect(mittagessenButton).toHaveClass('bg-surface')
 
     const abendessenHeading = screen.getByRole('heading', { name: /Abendessen/ })
     const abendessenButton = within(abendessenHeading.closest('section') as HTMLElement).getByRole('button', {
       name: '+ Hinzufügen',
     })
-    expect(abendessenButton).not.toHaveClass('bg-accent')
+    expect(abendessenButton).toHaveClass('bg-surface')
   })
 
   it('files a new entry under the section it was added from', async () => {
