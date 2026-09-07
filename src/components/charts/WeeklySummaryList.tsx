@@ -6,9 +6,13 @@ import ChartFrame from './ChartFrame'
 
 export const TITEL = WOCHEN_KURZFORM_TITEL
 
-/** U+2212 Minuszeichen statt Bindestrich, wie auf BodyPage — laeuft mit Ziffern fluchtend. */
+/**
+ * U+2212 Minuszeichen statt Bindestrich, wie auf BodyPage — laeuft mit Ziffern fluchtend.
+ * `toLocaleString('de-DE')` statt Template-Interpolation, sonst haette ein
+ * gebrochener Wert wie -0.5 einen englischen Punkt statt Komma gezeigt.
+ */
 function vorzeichen(wert: number) {
-  return `${wert < 0 ? '−' : '+'}${Math.abs(wert)}`
+  return `${wert < 0 ? '−' : '+'}${Math.abs(wert).toLocaleString('de-DE', { maximumFractionDigits: 1 })}`
 }
 
 /**
@@ -35,7 +39,7 @@ export default function WeeklySummaryList({
         {zeilen.map((zeile) => (
           <li key={zeile.woche}>
             <strong>{zeile.woche}</strong>{' '}
-            {`${zeile.trainingseinheiten} Trainingseinheiten`}
+            {`${zeile.trainingseinheiten} ${zeile.trainingseinheiten === 1 ? 'Trainingseinheit' : 'Trainingseinheiten'}`}
             {zeile.kalorienschnitt != null && ` · Ø ${zeile.kalorienschnitt} kcal`}
             {zeile.gewichtsAenderung != null && ` · ${vorzeichen(zeile.gewichtsAenderung)} kg`}
           </li>

@@ -30,7 +30,7 @@ export default function ActivityGridChart({
     <ChartFrame titel={TITEL} leer={raster.length < 1} picker={picker}>
       <ul role="list" className="grid grid-cols-7 gap-1" data-testid="aktivitaetsraster">
         {raster.map((tag) => (
-          <li key={tag.datum} className="block border-b-0">
+          <li key={tag.datum} className="block border-b-0 p-0">
             <div
               className={`aspect-square rounded ${
                 tag.status === 'trainingstag' ? 'bg-accent' : 'bg-surface border border-text-muted'

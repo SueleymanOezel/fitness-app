@@ -62,6 +62,7 @@ function Dashboard({ userId }: { userId: string }) {
     <div className="space-y-4">
       <h1>Home</h1>
       <DailySummary entries={entries} goal={goal} />
+      <Link to="/nutrition">Zum Ernährungsbereich</Link>
       <div className={cardClass}>
         <h2>Training</h2>
         {plan == null && <p>Kein aktiver Plan.</p>}

@@ -22,9 +22,10 @@ describe('ActivityGridChart', () => {
     const trainingszellen = [...zellen].filter((zelle) => zelle.getAttribute('data-status') === 'trainingstag')
     expect(trainingszellen).toHaveLength(1)
     expect(trainingszellen[0]).toHaveAttribute('title', '2026-08-24')
+    expect(trainingszellen[0]).toHaveClass('bg-accent')
   })
 
-  it('shows the empty state with no sessions in the range', () => {
+  it('renders all-restday cells when there are no sessions in the range', () => {
     render(<ActivityGridChart sessions={[]} zeitraum={30} />)
     const raster = screen.getByTestId('aktivitaetsraster')
     // Even with no sessions, we show all 31 days as restdays, which is not "empty"
@@ -32,5 +33,6 @@ describe('ActivityGridChart', () => {
     expect(zellen.length).toBe(31)
     const restdayzellen = [...zellen].filter((zelle) => zelle.getAttribute('data-status') === 'restday')
     expect(restdayzellen).toHaveLength(31)
+    expect(restdayzellen[0]).toHaveClass('bg-surface')
   })
 })
