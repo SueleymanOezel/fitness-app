@@ -156,7 +156,7 @@ function ProfileForm({ userId }: { userId: string }) {
       <div>
         <h1>Profil</h1>
         <p role="alert">Profil konnte nicht geladen werden.</p>
-        <button type="button" onClick={() => reload()}>
+        <button type="button" className={buttonSecondaryClass} onClick={() => reload()}>
           Erneut versuchen
         </button>
       </div>
@@ -285,7 +285,7 @@ function LoadedProfileForm({
 
           <fieldset>
             <legend>Mahlzeiten</legend>
-            <p className="max-w-prose">
+            <p className="max-w-prose mx-auto">
               Leere Felder werden nicht angezeigt. Die ersten vier Mahlzeiten lassen sich
               umbenennen, aber nicht entfernen.
             </p>

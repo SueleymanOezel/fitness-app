@@ -86,6 +86,8 @@ describe('CalorieGoalEditor', () => {
       'bg-surface',
       'rounded-3xl',
     )
-    expect(screen.getByRole('button', { name: 'Berechnen lassen' })).not.toHaveClass('bg-accent')
+    const toggle = screen.getByRole('button', { name: 'Berechnen lassen' })
+    expect(toggle).toHaveClass('rounded-2xl')
+    expect(toggle).not.toHaveClass('bg-accent')
   })
 })

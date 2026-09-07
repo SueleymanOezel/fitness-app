@@ -149,7 +149,9 @@ describe('ProfilePage', () => {
     const result = await renderPage(profileResult({ profile: null, error: true }))
 
     expect(screen.getByRole('alert')).toHaveTextContent('konnte nicht geladen werden')
-    screen.getByRole('button', { name: 'Erneut versuchen' }).click()
+    const retry = screen.getByRole('button', { name: 'Erneut versuchen' })
+    expect(retry).toHaveClass('rounded-2xl')
+    retry.click()
     expect(result.reload).toHaveBeenCalled()
   })
 
@@ -179,7 +181,10 @@ describe('ProfilePage', () => {
   it('constrains the meal-section hint text to a readable line length', async () => {
     await renderPage()
 
-    expect(screen.getByText(/Leere Felder werden nicht angezeigt/)).toHaveClass('max-w-prose')
+    expect(screen.getByText(/Leere Felder werden nicht angezeigt/)).toHaveClass(
+      'max-w-prose',
+      'mx-auto',
+    )
   })
 
   it('saves renamed and newly added sections', async () => {
