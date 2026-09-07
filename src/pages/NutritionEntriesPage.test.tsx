@@ -169,6 +169,28 @@ describe('NutritionEntriesPage', () => {
     expect(screen.getByRole('heading', { name: /Mittagessen/ })).toHaveTextContent('50 kcal')
   })
 
+  it('gives only the first section a primary add button, the rest secondary', async () => {
+    await renderPage(entriesResult({ entries: [] }))
+
+    const fruehstueckHeading = screen.getByRole('heading', { name: /Frühstück/ })
+    const fruehstueckButton = within(fruehstueckHeading.closest('section') as HTMLElement).getByRole('button', {
+      name: '+ Hinzufügen',
+    })
+    expect(fruehstueckButton).toHaveClass('bg-accent')
+
+    const mittagessenHeading = screen.getByRole('heading', { name: /Mittagessen/ })
+    const mittagessenButton = within(mittagessenHeading.closest('section') as HTMLElement).getByRole('button', {
+      name: '+ Hinzufügen',
+    })
+    expect(mittagessenButton).toHaveClass('bg-surface')
+
+    const abendessenHeading = screen.getByRole('heading', { name: /Abendessen/ })
+    const abendessenButton = within(abendessenHeading.closest('section') as HTMLElement).getByRole('button', {
+      name: '+ Hinzufügen',
+    })
+    expect(abendessenButton).toHaveClass('bg-surface')
+  })
+
   it('files a new entry under the section it was added from', async () => {
     const result = await renderPage(entriesResult({ entries: [] }))
 

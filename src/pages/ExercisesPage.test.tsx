@@ -53,6 +53,87 @@ describe('ExercisesPage', () => {
     expect(screen.queryByText('Kniebeuge')).not.toBeInTheDocument()
   })
 
+  it('filters by muscle group when a chip is selected', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(
+      exercisesResult({
+        exercises: [
+          exercise,
+          { ...exercise, id: 'ex2', name: 'Kniebeuge', muskelgruppen_primaer: ['quadriceps'] },
+        ],
+      }),
+    )
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
+    expect(screen.getByText('Kniebeuge')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'chest' }))
+
+    expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
+    expect(screen.queryByText('Kniebeuge')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'chest' })).toHaveClass('bg-accent')
+    expect(screen.getByRole('button', { name: 'Alle' })).toHaveClass('bg-surface')
+  })
+
+  it('resets the muscle-group filter with the Alle chip', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(
+      exercisesResult({
+        exercises: [
+          exercise,
+          { ...exercise, id: 'ex2', name: 'Kniebeuge', muskelgruppen_primaer: ['quadriceps'] },
+        ],
+      }),
+    )
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'chest' }))
+    expect(screen.queryByText('Kniebeuge')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Alle' }))
+    expect(screen.getByText('Kniebeuge')).toBeInTheDocument()
+  })
+
+  it('combines the muscle-group filter with the name search', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(
+      exercisesResult({
+        exercises: [
+          exercise,
+          { ...exercise, id: 'ex2', name: 'Schrägbankdrücken', muskelgruppen_primaer: ['chest'] },
+        ],
+      }),
+    )
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'chest' }))
+    fireEvent.change(screen.getByLabelText('Suche'), { target: { value: 'Schräg' } })
+
+    expect(screen.queryByText('Bankdrücken')).not.toBeInTheDocument()
+    expect(screen.getByText('Schrägbankdrücken')).toBeInTheDocument()
+  })
+
+  it('hides the filter row when no exercise has a muscle group', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(
+      exercisesResult({
+        exercises: [{ ...exercise, muskelgruppen_primaer: null }],
+      }),
+    )
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    expect(screen.queryByRole('button', { name: 'Alle' })).not.toBeInTheDocument()
+  })
+
   it('creates an own exercise', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     const result = exercisesResult()

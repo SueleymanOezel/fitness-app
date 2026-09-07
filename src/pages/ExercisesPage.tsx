@@ -4,6 +4,7 @@ import { useSession } from '../hooks/use-session'
 import { useExercises } from '../hooks/use-exercises'
 import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
+import Chip from '../components/Chip'
 
 export default function ExercisesPage() {
   const { session } = useSession()
@@ -24,6 +25,7 @@ export default function ExercisesPage() {
 function ExercisesList({ userId }: { userId: string }) {
   const { exercises, loading, error: loadError, createExercise } = useExercises(userId)
   const [query, setQuery] = useState('')
+  const [muskelgruppe, setMuskelgruppe] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   if (loading) {
@@ -48,11 +50,31 @@ function ExercisesList({ userId }: { userId: string }) {
     )
   }
 
-  const filtered = exercises.filter((exercise) => exercise.name.toLowerCase().includes(query.toLowerCase()))
+  const muskelgruppen = [...new Set(exercises.flatMap((exercise) => exercise.muskelgruppen_primaer ?? []))].sort(
+    (a, b) => a.localeCompare(b, 'de'),
+  )
+
+  const filtered = exercises.filter(
+    (exercise) =>
+      exercise.name.toLowerCase().includes(query.toLowerCase()) &&
+      (muskelgruppe === null || (exercise.muskelgruppen_primaer ?? []).includes(muskelgruppe)),
+  )
 
   return (
     <div>
       <h1>Übungen</h1>
+      {muskelgruppen.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <Chip active={muskelgruppe === null} onClick={() => setMuskelgruppe(null)}>
+            Alle
+          </Chip>
+          {muskelgruppen.map((gruppe) => (
+            <Chip key={gruppe} active={muskelgruppe === gruppe} onClick={() => setMuskelgruppe(gruppe)}>
+              {gruppe}
+            </Chip>
+          ))}
+        </div>
+      )}
       <label>
         Suche
         <input value={query} onChange={(event) => setQuery(event.target.value)} />
