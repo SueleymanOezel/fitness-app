@@ -7,7 +7,7 @@ import { mealSections, visibleSections, type MealSection } from '../lib/meal-sec
 import { sumKalorien } from '../lib/entry-calories'
 import FoodEntryList from '../components/FoodEntryList'
 import AddEntryFlow from '../components/AddEntryFlow'
-import { buttonPrimaryClass } from '../lib/ui-classes'
+import { buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 
 export default function NutritionEntriesPage() {
@@ -57,7 +57,7 @@ function EntriesBySection({ userId }: { userId: string }) {
   return (
     <div>
       <h1>Einträge heute</h1>
-      {sections.map((section) => {
+      {sections.map((section, index) => {
         // Bound to a const so the narrowing survives into the callback below —
         // TypeScript does not keep a property narrowing across a closure.
         const slot = section.slot
@@ -73,6 +73,7 @@ function EntriesBySection({ userId }: { userId: string }) {
             addEntry={addEntry}
             updateEntry={updateEntry}
             deleteEntry={deleteEntry}
+            isPrimaryAdd={index === 0}
           />
         )
       })}
@@ -90,6 +91,7 @@ function SectionBlock({
   addEntry,
   updateEntry,
   deleteEntry,
+  isPrimaryAdd,
 }: {
   slot: number | null
   name: string
@@ -99,6 +101,7 @@ function SectionBlock({
   addEntry: (productId: string, menge: number, mahlzeit: number | null) => Promise<void>
   updateEntry: (entryId: string, patch: EntryPatch) => Promise<void>
   deleteEntry: (entryId: string) => Promise<void>
+  isPrimaryAdd: boolean
 }) {
   const [dialogOpen, setDialogOpen] = useState(false)
 
@@ -115,7 +118,11 @@ function SectionBlock({
       {/* No add button for the unassigned group — nothing new belongs there. */}
       {slot !== null && (
         <>
-          <button type="button" className={buttonPrimaryClass} onClick={() => setDialogOpen(true)}>
+          <button
+            type="button"
+            className={isPrimaryAdd ? buttonPrimaryClass : buttonSecondaryClass}
+            onClick={() => setDialogOpen(true)}
+          >
             + Hinzufügen
           </button>
           {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
