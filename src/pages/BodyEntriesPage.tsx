@@ -10,6 +10,7 @@ import {
 import BodyEntryForm from '../components/BodyEntryForm'
 import { cardClass, buttonSecondaryClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
+import { VitaIcon } from '../components/icons/VitaIcon'
 import { useToast } from '../components/ToastProvider'
 
 function formatDate(iso: string) {
@@ -91,10 +92,16 @@ function Entries({ userId }: { userId: string }) {
                 className={buttonSecondaryClass}
                 onClick={() => setEditingId(entry.id)}
               >
-                Bearbeiten
+                <span className="inline-flex items-center justify-center gap-2">
+                  <VitaIcon name="edit" tone="mono" size={20} />
+                  Bearbeiten
+                </span>
               </button>
               <button type="button" className={buttonSecondaryClass} onClick={() => remove(entry.id)}>
-                Löschen
+                <span className="inline-flex items-center justify-center gap-2">
+                  <VitaIcon name="delete" tone="mono" size={20} />
+                  Löschen
+                </span>
               </button>
             </div>
           </li>
@@ -133,7 +140,10 @@ function Entries({ userId }: { userId: string }) {
         )}
       </Dialog>
 
-      <Link to="/body">Zurück zum Körperbereich</Link>
+      <Link to="/body" className="flex items-center justify-center gap-2">
+        <VitaIcon name="back" tone="brand" size={20} />
+        Zurück zum Körperbereich
+      </Link>
     </div>
   )
 }

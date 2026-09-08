@@ -7,6 +7,7 @@ import { useChartSelection } from '../components/charts/ChartPicker'
 import TrainingChartList from '../components/charts/TrainingChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 export default function TrainingAnalysisPage() {
   const { session } = useSession()
@@ -44,7 +45,10 @@ function Analyse({ userId }: { userId: string }) {
       ) : (
         <TrainingChartList ids={ids} sessions={sessions} sets={sets} auswahl={auswahl} />
       )}
-      <Link to="/training">Zurück zum Trainingsbereich</Link>
+      <Link to="/training" className="flex items-center justify-center gap-2">
+        <VitaIcon name="back" tone="brand" size={20} />
+        Zurück zum Trainingsbereich
+      </Link>
     </div>
   )
 }

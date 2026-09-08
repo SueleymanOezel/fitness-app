@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import { VitaIcon } from './icons/VitaIcon'
 
 /**
  * Wraps the native <dialog> element instead of building a modal from a div
@@ -43,7 +44,7 @@ export default function Dialog({
         aria-label="Schließen"
         className="mx-auto mt-4 flex h-11 w-11 items-center justify-center rounded-full bg-surface-raised text-text"
       >
-        ✕
+        <VitaIcon name="close" size={20} />
       </button>
     </dialog>
   )

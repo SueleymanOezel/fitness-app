@@ -9,6 +9,7 @@ import NutritionChartList from '../components/charts/NutritionChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
 import { effectiveCalorieGoal } from '../lib/nutrition-goal'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 export default function NutritionAnalysisPage() {
   const { session } = useSession()
@@ -55,7 +56,10 @@ function Analyse({ userId }: { userId: string }) {
           auswahl={auswahl}
         />
       )}
-      <Link to="/nutrition">Zurück zum Ernährungsbereich</Link>
+      <Link to="/nutrition" className="flex items-center justify-center gap-2">
+        <VitaIcon name="back" tone="brand" size={20} />
+        Zurück zum Ernährungsbereich
+      </Link>
     </div>
   )
 }

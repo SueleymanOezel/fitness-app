@@ -9,6 +9,7 @@ import FoodEntryList from '../components/FoodEntryList'
 import AddEntryFlow from '../components/AddEntryFlow'
 import { buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 export default function NutritionEntriesPage() {
   const { session } = useSession()
@@ -44,7 +45,8 @@ function EntriesBySection({ userId }: { userId: string }) {
       <div>
         <h1>Einträge heute</h1>
         <p role="alert">Profil konnte nicht geladen werden.</p>
-        <button type="button" onClick={() => reload()}>
+        <button type="button" className="inline-flex items-center gap-2" onClick={() => reload()}>
+          <VitaIcon name="retry" tone="brand" size={20} />
           Erneut versuchen
         </button>
       </div>
@@ -77,7 +79,10 @@ function EntriesBySection({ userId }: { userId: string }) {
           />
         )
       })}
-      <Link to="/nutrition">Zurück zur Ernährung</Link>
+      <Link to="/nutrition" className="flex items-center justify-center gap-2">
+        <VitaIcon name="back" tone="brand" size={20} />
+        Zurück zur Ernährung
+      </Link>
     </div>
   )
 }
@@ -123,7 +128,14 @@ function SectionBlock({
             className={isPrimaryAdd ? buttonPrimaryClass : buttonSecondaryClass}
             onClick={() => setDialogOpen(true)}
           >
-            + Hinzufügen
+            {/* "Eintrag hinzufügen", nicht bloss "Hinzufügen": AddEntryFlow
+                (im Dialog) hat selbst einen Absenden-Button namens
+                "Hinzufügen" — bei offenem Dialog sitzen beide im selben
+                <section>, ein gleicher Name waere dann nicht mehr eindeutig. */}
+            <span className="inline-flex items-center justify-center gap-2">
+              <VitaIcon name="add" tone="mono" size={20} />
+              Eintrag hinzufügen
+            </span>
           </button>
           {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
               rendering AddEntryFlow only while open resets its product/quantity/error

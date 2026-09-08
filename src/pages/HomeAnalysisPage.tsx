@@ -7,6 +7,7 @@ import { useChartSelection } from '../components/charts/ChartPicker'
 import HomeChartList from '../components/charts/HomeChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 export default function HomeAnalysisPage() {
   const { session } = useSession()
@@ -42,7 +43,10 @@ function Analyse({ userId }: { userId: string }) {
       ) : (
         <HomeChartList ids={ids} sessions={sessions} entries={entries} rows={rows} zeitraum={zeitraum} auswahl={auswahl} />
       )}
-      <Link to="/">Zurück zur Übersicht</Link>
+      <Link to="/" className="flex items-center justify-center gap-2">
+        <VitaIcon name="back" tone="brand" size={20} />
+        Zurück zur Übersicht
+      </Link>
     </div>
   )
 }

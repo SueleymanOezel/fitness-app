@@ -4,6 +4,7 @@ import { useSession } from '../hooks/use-session'
 import { useProfile, type Profile } from '../hooks/use-profile'
 import CalorieGoalEditor from '../components/CalorieGoalEditor'
 import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 type Draft = {
   name: string
@@ -157,7 +158,10 @@ function ProfileForm({ userId }: { userId: string }) {
         <h1>Profil</h1>
         <p role="alert">Profil konnte nicht geladen werden.</p>
         <button type="button" className={buttonSecondaryClass} onClick={() => reload()}>
-          Erneut versuchen
+          <span className="inline-flex items-center justify-center gap-2">
+            <VitaIcon name="retry" tone="mono" size={20} />
+            Erneut versuchen
+          </span>
         </button>
       </div>
     )
@@ -323,7 +327,10 @@ function LoadedProfileForm({
         {status === 'saved' && <p role="status">Gespeichert.</p>}
 
         <button type="submit" className={buttonPrimaryClass}>
-          Speichern
+          <span className="inline-flex items-center justify-center gap-2">
+            <VitaIcon name="save" tone="mono" size={20} />
+            Speichern
+          </span>
         </button>
       </form>
 
@@ -339,7 +346,10 @@ function LoadedProfileForm({
           })
         }}
       >
-        Logout
+        <span className="inline-flex items-center justify-center gap-2">
+          <VitaIcon name="logout" tone="mono" size={20} />
+          Logout
+        </span>
       </button>
     </div>
   )

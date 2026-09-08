@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useWorkoutSession } from '../hooks/use-workout-session'
 import { cardClass, buttonSecondaryClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 export default function TrainingHistoryDetailPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -38,7 +39,10 @@ function Detail({ sessionId }: { sessionId: string }) {
       <div>
         <h1>Trainingseinheit</h1>
         <p role="alert">Diese Trainingseinheit gibt es nicht mehr.</p>
-        <Link to="/training/history">Zurück zur Historie</Link>
+        <Link to="/training/history" className="flex items-center justify-center gap-2">
+          <VitaIcon name="back" tone="brand" size={20} />
+          Zurück zur Historie
+        </Link>
       </div>
     )
   }
@@ -113,9 +117,15 @@ function Detail({ sessionId }: { sessionId: string }) {
           navigate('/training/history')
         }}
       >
-        Session löschen
+        <span className="inline-flex items-center justify-center gap-2">
+          <VitaIcon name="delete" tone="mono" size={20} />
+          Session löschen
+        </span>
       </button>
-      <Link to="/training/history">Zurück zur Historie</Link>
+      <Link to="/training/history" className="flex items-center justify-center gap-2">
+        <VitaIcon name="back" tone="brand" size={20} />
+        Zurück zur Historie
+      </Link>
     </div>
   )
 }

@@ -4,6 +4,7 @@ import ManualProductForm from './ManualProductForm'
 import { findOrFetchProductByBarcode, type Product } from '../lib/product-lookup'
 import { isValidBarcode } from '../lib/open-food-facts'
 import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { VitaIcon } from './icons/VitaIcon'
 
 type Step = 'idle' | 'scanning' | 'looking-up' | 'manual-entry'
 
@@ -89,10 +90,16 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
   return (
     <div className={cardClass}>
       <button type="button" className={buttonPrimaryClass} onClick={() => setStep('scanning')}>
-        Barcode scannen
+        <span className="inline-flex items-center justify-center gap-2">
+          <VitaIcon name="scan" tone="mono" size={20} />
+          Barcode scannen
+        </span>
       </button>
       <button type="button" className={buttonSecondaryClass} onClick={() => setStep('manual-entry')}>
-        Manuell hinzufügen
+        <span className="inline-flex items-center justify-center gap-2">
+          <VitaIcon name="add" tone="mono" size={20} />
+          Manuell hinzufügen
+        </span>
       </button>
       <form onSubmit={handleTypedBarcode}>
         <label>
@@ -105,7 +112,10 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
           />
         </label>
         <button type="submit" className={buttonSecondaryClass}>
-          Suchen
+          <span className="inline-flex items-center justify-center gap-2">
+            <VitaIcon name="search" tone="mono" size={20} />
+            Suchen
+          </span>
         </button>
       </form>
       {error && <p role="alert">{error}</p>}
