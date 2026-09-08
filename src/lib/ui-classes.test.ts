@@ -47,9 +47,10 @@ describe('ui-classes', () => {
     }
   })
 
-  it('gives text inputs a raised look distinct from the page background, with focus feedback', () => {
-    expect(inputClass).toContain('bg-surface')
+  it('gives text inputs a raised look distinct from both the page and a card background, with focus feedback', () => {
+    expect(inputClass).toContain('bg-surface-raised')
     expect(inputClass).toContain('w-full')
+    expect(inputClass).toContain('m-0')
     expect(inputClass).toContain('rounded-2xl')
     expect(inputClass).toContain('focus-visible:ring-2')
     expect(inputClass).toContain('focus-visible:ring-accent')

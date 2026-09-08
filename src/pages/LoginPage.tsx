@@ -84,31 +84,33 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-4">
-      <img src="/logo.png" alt="VitaLoop" className="h-28 w-auto" />
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4">
+      <img src="/logo.webp" alt="VitaLoop" className="h-28 w-auto" />
       <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-        <h1 className="text-center text-lg font-semibold">
+        <h1 className="m-0 text-center text-lg font-semibold">
           {mode === 'login' ? 'Login' : 'Registrieren'}
         </h1>
-        <div>
+        <div className="text-left">
           <label className="mb-1 block text-sm text-text-muted" htmlFor="email">
             E-Mail
           </label>
           <input
             id="email"
             type="email"
+            autoComplete="email"
             className={inputClass}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
         </div>
-        <div>
+        <div className="text-left">
           <label className="mb-1 block text-sm text-text-muted" htmlFor="password">
             Passwort
           </label>
           <input
             id="password"
             type="password"
+            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
             className={inputClass}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -127,7 +129,7 @@ export default function LoginPage() {
         </button>
         <button
           type="button"
-          className="w-full border-0 bg-transparent text-center text-sm text-text-muted underline-offset-2 hover:underline"
+          className="w-full m-0 border-0 bg-transparent text-center text-sm text-text-muted underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           onClick={toggleMode}
         >
           {mode === 'login' ? 'Noch keinen Account? Registrieren' : 'Schon registriert? Einloggen'}
