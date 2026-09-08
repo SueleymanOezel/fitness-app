@@ -206,3 +206,10 @@ erDiagram
 - K5 beschriftet ein Foto mit dem Gewicht **desselben** Tages. `body_metrics` hat je Nutzer und Tag höchstens eine Zeile (`unique (user_id, datum)`), die Zuordnung ist damit eindeutig; ein Foto ohne Wiegung an diesem Tag bleibt sichtbar und trägt kein Gewicht.
 - K3 leitet die Änderungsrate aus derselben Trendlinie ab, die K1 zeichnet (zeitgewichteter EWMA, Halbwertszeit sieben Tage), nicht aus den Rohgewichten.
 - Quelle: `supabase/migrations/0001_initial_schema.sql` (Stand Phase 2 + Mahlzeiten-Abschnitte + Phase 3 (Trainingsbereich) + Analysefelder, inkl. `0002_nutrition_profile_fields.sql`, `0003_meal_sections.sql`, `0004_training_days.sql`, `0005_analysis_fields.sql`, `0006_body_photos_bucket.sql` und `0007_analyse_auswahl.sql`).
+
+## Home-Bereich (Home-Dashboard, H1–H3)
+
+- **Keine neue Migration.** `day_status` und `health_sync_data` bleiben ungenutzte Tabellen — Trainingstag/Restday wird live aus `workout_sessions.beendet_am` abgeleitet (`aktivitaetsraster` in `src/lib/analysis/home-charts.ts`), nicht aus einer vorab gepflegten Kalendertabelle.
+- `useHomeAnalysis(userId, zeitraum)` schreibt keine eigene Abfrage — komponiert stattdessen `useTrainingAnalysis`/`useNutritionAnalysis`/`useBodyAnalysis` und reicht deren `sessions`/`entries`/`rows` durch. Bewusste Folge (wie bei Plan 2c/K1-K5 schon dokumentiert): sobald ein Home-Graph angehakt ist, feuern alle Abfragen, die die drei Bereichs-Hooks je einzeln schon auslösen — kein neuer Verzweigungscode im Hook selbst.
+- H1 (Aktivitätsraster) und H2 (Wochen-Kurzform) sind reine Listen-/Grid-Ansichten, kein Recharts. H3 (Trends) ist der einzige Home-Graph mit Recharts (zwei Sparklines: Gewichtstrend aus `gewichtsTrend(rows)`, Kalorien aus `kalorienJeTag(entries)`), Farben literal aus `chart-colors.ts` wie bei allen anderen Graphen seit Plan 2d.
+- Die Dashboard-Statuskarten (Kalorien heute, aktiver Trainingstag, Gewichtsänderung) sind **kein** Teil der Analyse-Registry — sie lesen direkt aus `useProfile`/`useFoodEntries`/`useActiveTrainingDay`/`useBodyMetrics`, unabhängig davon, ob ein Home-Graph angehakt ist.

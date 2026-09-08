@@ -24,6 +24,7 @@ import TrainingHistoryDetailPage from './pages/TrainingHistoryDetailPage'
 const TrainingAnalysisPage = lazy(() => import('./pages/TrainingAnalysisPage'))
 const NutritionAnalysisPage = lazy(() => import('./pages/NutritionAnalysisPage'))
 const BodyAnalysisPage = lazy(() => import('./pages/BodyAnalysisPage'))
+const HomeAnalysisPage = lazy(() => import('./pages/HomeAnalysisPage'))
 
 export default function App() {
   return (
@@ -40,6 +41,14 @@ export default function App() {
           }
         >
           <Route path="/" element={<HomePage />} />
+          <Route
+            path="/home/analyse"
+            element={
+              <Suspense fallback={<p>Lädt…</p>}>
+                <HomeAnalysisPage />
+              </Suspense>
+            }
+          />
           <Route path="/training" element={<TrainingPage />} />
           <Route path="/training/plans" element={<TrainingPlansPage />} />
           <Route path="/training/plans/:planId" element={<TrainingPlanEditPage />} />
