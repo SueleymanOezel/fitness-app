@@ -18,6 +18,7 @@ import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 import { cardClass, buttonPrimaryClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import { useToast } from '../components/ToastProvider'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 /** German notation: comma as the decimal mark, at most one place. */
 function formatValue(value: number) {
@@ -96,7 +97,10 @@ function Dashboard({ userId }: { userId: string }) {
       </ul>
 
       <button type="button" className={buttonPrimaryClass} onClick={() => setFormOpen(true)}>
-        Heute eintragen
+        <span className="inline-flex items-center justify-center gap-2">
+          <VitaIcon name="measurement" tone="mono" size={20} />
+          Heute eintragen
+        </span>
       </button>
       {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
           rendering the form only while open forces a fresh prefill from the
@@ -135,9 +139,18 @@ function Dashboard({ userId }: { userId: string }) {
       </Dialog>
 
       <DashboardBodyCharts userId={userId} auswahl={auswahl.auswahl} />
-      <Link to="/body/analyse">Analyse</Link>
-      <Link to="/body/entries">Verlauf</Link>
-      <Link to="/body/photos">Fortschrittsfotos</Link>
+      <Link to="/body/analyse" className="inline-flex items-center gap-2">
+        <VitaIcon name="analysis" tone="brand" size={20} />
+        Analyse
+      </Link>
+      <Link to="/body/entries" className="inline-flex items-center gap-2">
+        <VitaIcon name="history" tone="brand" size={20} />
+        Verlauf
+      </Link>
+      <Link to="/body/photos" className="inline-flex items-center gap-2">
+        <VitaIcon name="photos" tone="brand" size={20} />
+        Fortschrittsfotos
+      </Link>
     </div>
   )
 }

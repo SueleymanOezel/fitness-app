@@ -10,6 +10,7 @@ import { chartsFor } from '../lib/analysis/registry'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 import { buttonPrimaryClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 export default function TrainingPage() {
   const { session } = useSession()
@@ -71,15 +72,30 @@ function Dashboard({ userId }: { userId: string }) {
           <p>{plan.name}</p>
           <p>{day.name}</p>
           <button type="button" className={buttonPrimaryClass} disabled={starting} onClick={() => start(day.id)}>
-            Training starten
+            <span className="inline-flex items-center justify-center gap-2">
+              <VitaIcon name="start" tone="mono" size={20} />
+              Training starten
+            </span>
           </button>
         </>
       )}
-      <Link to="/training/plans">Meine Pläne</Link>
-      <Link to="/training/exercises">Übungen</Link>
-      <Link to="/training/history">Trainingshistorie</Link>
+      <Link to="/training/plans" className="inline-flex items-center gap-2">
+        <VitaIcon name="plans" tone="brand" size={20} />
+        Meine Pläne
+      </Link>
+      <Link to="/training/exercises" className="inline-flex items-center gap-2">
+        <VitaIcon name="exercises" tone="brand" size={20} />
+        Übungen
+      </Link>
+      <Link to="/training/history" className="inline-flex items-center gap-2">
+        <VitaIcon name="history" tone="brand" size={20} />
+        Trainingshistorie
+      </Link>
       <DashboardTrainingCharts userId={userId} auswahl={auswahl.auswahl} />
-      <Link to="/training/analyse">Analyse</Link>
+      <Link to="/training/analyse" className="inline-flex items-center gap-2">
+        <VitaIcon name="analysis" tone="brand" size={20} />
+        Analyse
+      </Link>
     </div>
   )
 }

@@ -6,6 +6,7 @@ import type { BodyPhoto } from '../hooks/use-body-photos'
 import { today } from '../lib/body-metrics'
 import { cardClass, buttonSecondaryClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 function formatDate(iso: string) {
   const [year, month, day] = iso.split('-')
@@ -102,14 +103,20 @@ function Photos({ userId }: { userId: string }) {
                 />
               )}
               <button type="button" className={buttonSecondaryClass} onClick={() => remove(photo)}>
-                Löschen
+                <span className="inline-flex items-center justify-center gap-2">
+                  <VitaIcon name="delete" tone="mono" size={20} />
+                  Löschen
+                </span>
               </button>
             </div>
           </li>
         ))}
       </ul>
 
-      <Link to="/body">Zurück zum Körperbereich</Link>
+      <Link to="/body" className="inline-flex items-center gap-2">
+        <VitaIcon name="back" tone="brand" size={20} />
+        Zurück zum Körperbereich
+      </Link>
     </div>
   )
 }

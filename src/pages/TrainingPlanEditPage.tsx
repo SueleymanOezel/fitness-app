@@ -6,6 +6,7 @@ import { useExercises } from '../hooks/use-exercises'
 import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import { useToast } from '../components/ToastProvider'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 export default function TrainingPlanEditPage() {
   const { session } = useSession()
@@ -55,7 +56,10 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
       <div>
         <h1>Plan bearbeiten</h1>
         <p role="alert">Diesen Plan gibt es nicht mehr.</p>
-        <Link to="/training/plans">Zurück zu meinen Plänen</Link>
+        <Link to="/training/plans" className="inline-flex items-center gap-2">
+          <VitaIcon name="back" tone="brand" size={20} />
+          Zurück zu meinen Plänen
+        </Link>
       </div>
     )
   }
@@ -109,11 +113,17 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
           <input value={newDayName} onChange={(event) => setNewDayName(event.target.value)} />
         </label>
         <button type="submit" className={buttonPrimaryClass}>
-          Tag hinzufügen
+          <span className="inline-flex items-center justify-center gap-2">
+            <VitaIcon name="add" tone="mono" size={20} />
+            Tag hinzufügen
+          </span>
         </button>
       </form>
       {dayNameError !== '' && <p role="alert">{dayNameError}</p>}
-      <Link to="/training/plans">Zurück zu meinen Plänen</Link>
+      <Link to="/training/plans" className="inline-flex items-center gap-2">
+        <VitaIcon name="back" tone="brand" size={20} />
+        Zurück zu meinen Plänen
+      </Link>
     </div>
   )
 }
@@ -185,14 +195,20 @@ function DayBlock({
                 </button>
               )}
               <button type="button" className={buttonSecondaryClass} onClick={() => onRemoveExercise(row.id)}>
-                Entfernen
+                <span className="inline-flex items-center justify-center gap-2">
+                  <VitaIcon name="delete" tone="mono" size={20} />
+                  Entfernen
+                </span>
               </button>
             </div>
           </li>
         ))}
       </ul>
       <button type="button" className={buttonPrimaryClass} onClick={() => setPickerOpen(true)}>
-        Übung hinzufügen
+        <span className="inline-flex items-center justify-center gap-2">
+          <VitaIcon name="add" tone="mono" size={20} />
+          Übung hinzufügen
+        </span>
       </button>
       {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
           rendering the picker only while open resets the search field each

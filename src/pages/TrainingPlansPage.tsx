@@ -4,6 +4,7 @@ import { useSession } from '../hooks/use-session'
 import { useWorkoutPlans } from '../hooks/use-workout-plans'
 import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 export default function TrainingPlansPage() {
   const { session } = useSession()
@@ -72,7 +73,10 @@ function PlansList({ userId }: { userId: string }) {
                 className={buttonSecondaryClass}
                 onClick={() => run(() => deletePlan(plan.id), 'Löschen fehlgeschlagen.')}
               >
-                Löschen
+                <span className="inline-flex items-center justify-center gap-2">
+                  <VitaIcon name="delete" tone="mono" size={20} />
+                  Löschen
+                </span>
               </button>
             </div>
           </li>
@@ -96,11 +100,17 @@ function PlansList({ userId }: { userId: string }) {
           <input value={name} onChange={(event) => setName(event.target.value)} />
         </label>
         <button type="submit" className={buttonPrimaryClass}>
-          Anlegen
+          <span className="inline-flex items-center justify-center gap-2">
+            <VitaIcon name="add" tone="mono" size={20} />
+            Anlegen
+          </span>
         </button>
       </form>
       {nameError !== '' && <p role="alert">{nameError}</p>}
-      <Link to="/training">Zurück zum Training</Link>
+      <Link to="/training" className="inline-flex items-center gap-2">
+        <VitaIcon name="back" tone="brand" size={20} />
+        Zurück zum Training
+      </Link>
     </div>
   )
 }

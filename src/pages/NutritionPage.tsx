@@ -11,6 +11,7 @@ import NutritionChartList from '../components/charts/NutritionChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 export default function NutritionPage() {
   const { session } = useSession()
@@ -47,7 +48,8 @@ function NutritionDashboard({ userId }: { userId: string }) {
       <div>
         <h1>Ernährung</h1>
         <p role="alert">Profil konnte nicht geladen werden.</p>
-        <button type="button" onClick={() => reload()}>
+        <button type="button" className="inline-flex items-center gap-2" onClick={() => reload()}>
+          <VitaIcon name="retry" tone="brand" size={20} />
           Erneut versuchen
         </button>
       </div>
@@ -65,7 +67,10 @@ function NutritionDashboard({ userId }: { userId: string }) {
           Für ein Tagesziel <Link to="/profile">Profil vervollständigen</Link>.
         </p>
       )}
-      <Link to="/profile">Ziel im Profil anpassen</Link>
+      <Link to="/profile" className="inline-flex items-center gap-2">
+        <VitaIcon name="goal" tone="brand" size={20} />
+        Ziel im Profil anpassen
+      </Link>
       <ul role="list">
         {visibleSections(profile, entries).map((section) => {
           const sectionEntries = entries.filter((entry) => entry.mahlzeit === section.slot)
@@ -78,9 +83,15 @@ function NutritionDashboard({ userId }: { userId: string }) {
           )
         })}
       </ul>
-      <Link to="/nutrition/entries">Einträge ansehen</Link>
+      <Link to="/nutrition/entries" className="inline-flex items-center gap-2">
+        <VitaIcon name="entries" tone="brand" size={20} />
+        Einträge ansehen
+      </Link>
       <DashboardNutritionCharts userId={userId} auswahl={auswahl.auswahl} ziel={goal} profile={profile} />
-      <Link to="/nutrition/analyse">Analyse</Link>
+      <Link to="/nutrition/analyse" className="inline-flex items-center gap-2">
+        <VitaIcon name="analysis" tone="brand" size={20} />
+        Analyse
+      </Link>
     </div>
   )
 }

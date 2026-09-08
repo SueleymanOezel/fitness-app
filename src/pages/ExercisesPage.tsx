@@ -5,6 +5,7 @@ import { useExercises } from '../hooks/use-exercises'
 import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import Chip from '../components/Chip'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 export default function ExercisesPage() {
   const { session } = useSession()
@@ -45,7 +46,10 @@ function ExercisesList({ userId }: { userId: string }) {
       <div>
         <h1>Übungen</h1>
         <p role="alert">Übungen konnten nicht geladen werden.</p>
-        <Link to="/training">Zurück zum Training</Link>
+        <Link to="/training" className="inline-flex items-center gap-2">
+          <VitaIcon name="back" tone="brand" size={20} />
+          Zurück zum Training
+        </Link>
       </div>
     )
   }
@@ -87,7 +91,10 @@ function ExercisesList({ userId }: { userId: string }) {
         ))}
       </ul>
       <button type="button" className={buttonPrimaryClass} onClick={() => setDialogOpen(true)}>
-        Eigene Übung anlegen
+        <span className="inline-flex items-center justify-center gap-2">
+          <VitaIcon name="add" tone="mono" size={20} />
+          Eigene Übung anlegen
+        </span>
       </button>
       {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
           rendering the form only while open forces a fresh instance (blank
@@ -104,7 +111,10 @@ function ExercisesList({ userId }: { userId: string }) {
           />
         )}
       </Dialog>
-      <Link to="/training">Zurück zum Training</Link>
+      <Link to="/training" className="inline-flex items-center gap-2">
+        <VitaIcon name="back" tone="brand" size={20} />
+        Zurück zum Training
+      </Link>
     </div>
   )
 }
@@ -159,7 +169,10 @@ function NewExerciseForm({
       </div>
       {error !== '' && <p role="alert">{error}</p>}
       <button type="submit" className={buttonPrimaryClass} disabled={saving}>
-        Speichern
+        <span className="inline-flex items-center justify-center gap-2">
+          <VitaIcon name="save" tone="mono" size={20} />
+          Speichern
+        </span>
       </button>
       <button type="button" className={buttonSecondaryClass} onClick={onCancel}>
         Abbrechen

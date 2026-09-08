@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutHistory } from '../hooks/use-workout-history'
 import { cardClass } from '../lib/ui-classes'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 export default function TrainingHistoryPage() {
   const { session } = useSession()
@@ -54,7 +55,10 @@ function HistoryList({ userId }: { userId: string }) {
           ))}
         </ul>
       )}
-      <Link to="/training">Zurück zum Training</Link>
+      <Link to="/training" className="inline-flex items-center gap-2">
+        <VitaIcon name="back" tone="brand" size={20} />
+        Zurück zum Training
+      </Link>
     </div>
   )
 }

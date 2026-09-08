@@ -13,6 +13,7 @@ import { chartsFor } from '../lib/analysis/registry'
 import { useHomeAnalysis } from '../hooks/use-home-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 import { cardClass } from '../lib/ui-classes'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 /** German notation: comma as the decimal mark, at most one place. */
 function formatValue(value: number) {
@@ -62,16 +63,28 @@ function Dashboard({ userId }: { userId: string }) {
     <div className="space-y-4">
       <h1>Home</h1>
       <DailySummary entries={entries} goal={goal} />
-      <Link to="/nutrition">Zum Ernährungsbereich</Link>
+      <Link to="/nutrition" className="inline-flex items-center gap-2">
+        <VitaIcon name="nutrition" tone="brand" size={20} />
+        Zum Ernährungsbereich
+      </Link>
       <div className={cardClass}>
-        <h2>Training</h2>
+        <h2 className="flex items-center gap-2">
+          <VitaIcon name="training" tone="brand" />
+          Training
+        </h2>
         {plan == null && <p>Kein aktiver Plan.</p>}
         {plan != null && day == null && <p>{`Plan „${plan.name}“ hat noch keine Tage.`}</p>}
         {plan != null && day != null && <p>{`${plan.name} — ${day.name}`}</p>}
-        <Link to="/training">Zum Trainingsbereich</Link>
+        <Link to="/training" className="inline-flex items-center gap-2">
+          <VitaIcon name="training" tone="brand" size={20} />
+          Zum Trainingsbereich
+        </Link>
       </div>
       <div className={cardClass}>
-        <h2>Gewicht</h2>
+        <h2 className="flex items-center gap-2">
+          <VitaIcon name="body" tone="brand" />
+          Gewicht
+        </h2>
         {rowsError && <p role="alert">Gewichtsdaten konnten nicht geladen werden.</p>}
         <p>
           {gewichtAktuell == null
@@ -86,10 +99,16 @@ function Dashboard({ userId }: { userId: string }) {
                   : ` (${gewichtsAenderung.delta < 0 ? '−' : '+'}${formatValue(Math.abs(gewichtsAenderung.delta))} kg seit dem letzten Eintrag)`
               }`}
         </p>
-        <Link to="/body">Zum Körperbereich</Link>
+        <Link to="/body" className="inline-flex items-center gap-2">
+          <VitaIcon name="body" tone="brand" size={20} />
+          Zum Körperbereich
+        </Link>
       </div>
       <DashboardHomeCharts userId={userId} auswahl={auswahl.auswahl} />
-      <Link to="/home/analyse">Analyse</Link>
+      <Link to="/home/analyse" className="inline-flex items-center gap-2">
+        <VitaIcon name="analysis" tone="brand" size={20} />
+        Analyse
+      </Link>
     </div>
   )
 }

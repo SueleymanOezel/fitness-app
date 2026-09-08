@@ -10,6 +10,7 @@ import {
 import { cardClass, buttonPrimaryClass } from '../lib/ui-classes'
 import Chip from '../components/Chip'
 import { useToast } from '../components/ToastProvider'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 export default function WorkoutSessionPage() {
   const { session } = useSession()
@@ -57,7 +58,10 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
       <div>
         <h1>Training</h1>
         <p role="alert">Dieses Training gibt es nicht mehr.</p>
-        <Link to="/training">Zurück zum Training</Link>
+        <Link to="/training" className="inline-flex items-center gap-2">
+          <VitaIcon name="back" tone="brand" size={20} />
+          Zurück zum Training
+        </Link>
       </div>
     )
   }
@@ -71,7 +75,10 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
         <h1>Training</h1>
         <p role="alert">Dieses Training ist bereits abgeschlossen.</p>
         <Link to={`/training/history/${session.id}`}>Zur Trainingseinheit</Link>
-        <Link to="/training">Zurück zum Training</Link>
+        <Link to="/training" className="inline-flex items-center gap-2">
+          <VitaIcon name="back" tone="brand" size={20} />
+          Zurück zum Training
+        </Link>
       </div>
     )
   }
@@ -146,7 +153,10 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
       <p>{gewichtKg === null ? '—' : `${gewichtKg} kg`}</p>
       {gewichtKg === null && <p>Ohne Gewicht im Profil lässt sich der Verbrauch nicht berechnen.</p>}
       <button type="button" className={buttonPrimaryClass} disabled={gewichtKg === null} onClick={complete}>
-        Training abschließen
+        <span className="inline-flex items-center justify-center gap-2">
+          <VitaIcon name="save" tone="mono" size={20} />
+          Training abschließen
+        </span>
       </button>
     </div>
   )
@@ -240,7 +250,10 @@ function SetForm({
         </fieldset>
       </div>
       <button type="submit" className={buttonPrimaryClass}>
-        Satz abschließen
+        <span className="inline-flex items-center justify-center gap-2">
+          <VitaIcon name="start" tone="mono" size={20} />
+          Satz abschließen
+        </span>
       </button>
     </form>
   )

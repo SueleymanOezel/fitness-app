@@ -1,12 +1,12 @@
-import { Activity, Dumbbell, House, UtensilsCrossed } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { interactiveClass } from '../lib/ui-classes'
+import { VitaIcon, type VitaIconName } from './icons/VitaIcon'
 
-const tabs = [
-  { to: '/', label: 'Home', Icon: House, end: true },
-  { to: '/training', label: 'Training', Icon: Dumbbell, end: false },
-  { to: '/nutrition', label: 'Ernährung', Icon: UtensilsCrossed, end: false },
-  { to: '/body', label: 'Körper', Icon: Activity, end: false },
+const tabs: { to: string; label: string; icon: VitaIconName; end: boolean }[] = [
+  { to: '/', label: 'Home', icon: 'home', end: true },
+  { to: '/training', label: 'Training', icon: 'training', end: false },
+  { to: '/nutrition', label: 'Ernährung', icon: 'nutrition', end: false },
+  { to: '/body', label: 'Körper', icon: 'body', end: false },
 ]
 
 /**
@@ -21,7 +21,7 @@ export default function BottomNav() {
       className="sticky bottom-4 mx-4 flex justify-around rounded-full bg-surface-raised p-2"
       style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
     >
-      {tabs.map(({ to, label, Icon, end }) => (
+      {tabs.map(({ to, label, icon, end }) => (
         <NavLink
           key={to}
           to={to}
@@ -33,7 +33,7 @@ export default function BottomNav() {
             }`
           }
         >
-          <Icon aria-hidden="true" />
+          {({ isActive }) => <VitaIcon name={icon} tone={isActive ? 'brand' : 'mono'} />}
         </NavLink>
       ))}
     </nav>

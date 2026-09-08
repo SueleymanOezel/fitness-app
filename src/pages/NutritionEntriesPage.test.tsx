@@ -174,19 +174,19 @@ describe('NutritionEntriesPage', () => {
 
     const fruehstueckHeading = screen.getByRole('heading', { name: /Frühstück/ })
     const fruehstueckButton = within(fruehstueckHeading.closest('section') as HTMLElement).getByRole('button', {
-      name: '+ Hinzufügen',
+      name: 'Eintrag hinzufügen',
     })
     expect(fruehstueckButton).toHaveClass('bg-accent')
 
     const mittagessenHeading = screen.getByRole('heading', { name: /Mittagessen/ })
     const mittagessenButton = within(mittagessenHeading.closest('section') as HTMLElement).getByRole('button', {
-      name: '+ Hinzufügen',
+      name: 'Eintrag hinzufügen',
     })
     expect(mittagessenButton).toHaveClass('bg-surface')
 
     const abendessenHeading = screen.getByRole('heading', { name: /Abendessen/ })
     const abendessenButton = within(abendessenHeading.closest('section') as HTMLElement).getByRole('button', {
-      name: '+ Hinzufügen',
+      name: 'Eintrag hinzufügen',
     })
     expect(abendessenButton).toHaveClass('bg-surface')
   })
@@ -201,7 +201,7 @@ describe('NutritionEntriesPage', () => {
     const section = within(mittagessenSection as HTMLElement)
 
     // The capture flow starts collapsed; open this section's own flow only.
-    fireEvent.click(section.getByRole('button', { name: '+ Hinzufügen' }))
+    fireEvent.click(section.getByRole('button', { name: 'Eintrag hinzufügen' }))
 
     fireEvent.change(section.getByLabelText('Barcode-Nummer eingeben'), {
       target: { value: '8076809580144' },
@@ -218,11 +218,11 @@ describe('NutritionEntriesPage', () => {
   it('collapses the capture flow behind a button and does not offer one for unassigned entries', async () => {
     await renderPage(entriesResult({ entries: [{ ...entry, mahlzeit: null }] }))
 
-    // Collapsed by default: no capture form visible until "+ Hinzufügen" is clicked.
+    // Collapsed by default: no capture form visible until "Eintrag hinzufügen" is clicked.
     expect(screen.queryByRole('button', { name: 'Barcode scannen' })).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Barcode-Nummer eingeben')).not.toBeInTheDocument()
 
-    const addButtons = screen.getAllByRole('button', { name: '+ Hinzufügen' })
+    const addButtons = screen.getAllByRole('button', { name: 'Eintrag hinzufügen' })
     // One per named section (Frühstück, Mittagessen, Abendessen, Snacks) — none
     // for "Ohne Zuordnung", which has no add button at all.
     expect(addButtons).toHaveLength(4)
@@ -231,7 +231,7 @@ describe('NutritionEntriesPage', () => {
     const unassignedSection = unassignedHeading.closest('section')
     expect(unassignedSection).not.toBeNull()
     expect(
-      within(unassignedSection as HTMLElement).queryByRole('button', { name: '+ Hinzufügen' }),
+      within(unassignedSection as HTMLElement).queryByRole('button', { name: 'Eintrag hinzufügen' }),
     ).not.toBeInTheDocument()
   })
 
@@ -243,7 +243,7 @@ describe('NutritionEntriesPage', () => {
     expect(fruehstueckSection).not.toBeNull()
     const section = within(fruehstueckSection as HTMLElement)
 
-    fireEvent.click(section.getByRole('button', { name: '+ Hinzufügen' }))
+    fireEvent.click(section.getByRole('button', { name: 'Eintrag hinzufügen' }))
     fireEvent.change(section.getByLabelText('Barcode-Nummer eingeben'), {
       target: { value: '8076809580144' },
     })
@@ -254,7 +254,7 @@ describe('NutritionEntriesPage', () => {
 
     await waitFor(() => expect(result.addEntry).toHaveBeenCalled())
     await waitFor(() =>
-      expect(section.getByRole('button', { name: '+ Hinzufügen' })).toBeInTheDocument(),
+      expect(section.getByRole('button', { name: 'Eintrag hinzufügen' })).toBeInTheDocument(),
     )
     expect(section.queryByLabelText('Barcode-Nummer eingeben')).not.toBeInTheDocument()
   })
@@ -274,7 +274,7 @@ describe('NutritionEntriesPage', () => {
     expect(fruehstueckSection).not.toBeNull()
     const section = within(fruehstueckSection as HTMLElement)
 
-    fireEvent.click(section.getByRole('button', { name: '+ Hinzufügen' }))
+    fireEvent.click(section.getByRole('button', { name: 'Eintrag hinzufügen' }))
     fireEvent.change(section.getByLabelText('Barcode-Nummer eingeben'), { target: { value: '123' } })
     // '123' is not a valid barcode length — this leaves an inline error and no lookup call.
     fireEvent.click(section.getByRole('button', { name: 'Suchen' }))
@@ -287,7 +287,7 @@ describe('NutritionEntriesPage', () => {
     fireEvent.click(section.getByRole('button', { name: 'Schließen' }))
     expect(section.queryByLabelText('Barcode-Nummer eingeben')).not.toBeInTheDocument()
 
-    fireEvent.click(section.getByRole('button', { name: '+ Hinzufügen' }))
+    fireEvent.click(section.getByRole('button', { name: 'Eintrag hinzufügen' }))
     expect(section.queryByRole('alert')).not.toBeInTheDocument()
     expect(section.getByLabelText('Barcode-Nummer eingeben')).toHaveValue('')
   })

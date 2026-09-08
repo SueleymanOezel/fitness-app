@@ -7,6 +7,7 @@ import { useChartSelection } from '../components/charts/ChartPicker'
 import BodyChartList from '../components/charts/BodyChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
+import { VitaIcon } from '../components/icons/VitaIcon'
 
 export default function BodyAnalysisPage() {
   const { session } = useSession()
@@ -42,7 +43,10 @@ function Analyse({ userId }: { userId: string }) {
       ) : (
         <BodyChartList ids={ids} rows={rows} kalorien={kalorien} fotos={fotos} auswahl={auswahl} />
       )}
-      <Link to="/body">Zurück zum Körperbereich</Link>
+      <Link to="/body" className="inline-flex items-center gap-2">
+        <VitaIcon name="back" tone="brand" size={20} />
+        Zurück zum Körperbereich
+      </Link>
     </div>
   )
 }

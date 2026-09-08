@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import ProductPicker from './ProductPicker'
 import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { VitaIcon } from './icons/VitaIcon'
 import { parseNutrients, type Nutrients } from '../lib/nutrients'
 import { saveProductEdit } from '../lib/product-edit'
 import { fromLocalInputValue, toLocalInputValue } from '../lib/local-time'
@@ -232,7 +233,10 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
 
       {error && <p role="alert">{error}</p>}
       <button type="submit" className={buttonPrimaryClass}>
-        Speichern
+        <span className="inline-flex items-center justify-center gap-2">
+          <VitaIcon name="save" tone="mono" size={20} />
+          Speichern
+        </span>
       </button>
       <button type="button" className={buttonSecondaryClass} onClick={onClose}>
         Abbrechen

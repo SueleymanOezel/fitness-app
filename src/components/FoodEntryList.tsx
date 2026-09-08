@@ -2,6 +2,7 @@ import { useState } from 'react'
 import FoodEntryEditForm from './FoodEntryEditForm'
 import { cardClass, buttonSecondaryClass } from '../lib/ui-classes'
 import Dialog from './Dialog'
+import { VitaIcon } from './icons/VitaIcon'
 import { useToast } from './ToastProvider'
 import type { MealSection } from '../lib/meal-sections'
 import type { EntryPatch, FoodEntry } from '../hooks/use-food-entries'
@@ -56,7 +57,10 @@ function FoodEntryRow({
         <span>{`${entry.menge} g`}</span>
         {kalorien != null && <span>{`${kalorien} kcal`}</span>}
         <button type="button" className={buttonSecondaryClass} onClick={() => setEditing(true)}>
-          Bearbeiten
+          <span className="inline-flex items-center justify-center gap-2">
+            <VitaIcon name="edit" tone="mono" size={20} />
+            Bearbeiten
+          </span>
         </button>
         <button
           type="button"
@@ -65,7 +69,10 @@ function FoodEntryRow({
             onDelete(entry.id).catch(() => showToast('Eintrag konnte nicht gelöscht werden.', 'error'))
           }}
         >
-          Löschen
+          <span className="inline-flex items-center justify-center gap-2">
+            <VitaIcon name="delete" tone="mono" size={20} />
+            Löschen
+          </span>
         </button>
       </div>
       {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
