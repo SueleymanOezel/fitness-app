@@ -27,3 +27,6 @@ export const buttonPrimaryClass =
 
 export const buttonSecondaryClass =
   `rounded-2xl border-0 m-0 bg-surface px-4 py-3 font-semibold text-text disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
+
+export const inputClass =
+  'w-full rounded-2xl border border-text-muted/30 bg-surface px-4 py-3 text-text placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'

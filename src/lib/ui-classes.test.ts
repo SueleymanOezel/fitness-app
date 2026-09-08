@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { buttonPrimaryClass, buttonSecondaryClass, cardClass, interactiveClass } from './ui-classes'
+import {
+  buttonPrimaryClass,
+  buttonSecondaryClass,
+  cardClass,
+  inputClass,
+  interactiveClass,
+} from './ui-classes'
 
 describe('ui-classes', () => {
   it('gives every card the same rounded surface treatment', () => {
@@ -39,6 +45,14 @@ describe('ui-classes', () => {
       expect(cls).toContain('focus-visible:ring-offset-2')
       expect(cls).toContain('focus-visible:ring-offset-bg')
     }
+  })
+
+  it('gives text inputs a raised look distinct from the page background, with focus feedback', () => {
+    expect(inputClass).toContain('bg-surface')
+    expect(inputClass).toContain('w-full')
+    expect(inputClass).toContain('rounded-2xl')
+    expect(inputClass).toContain('focus-visible:ring-2')
+    expect(inputClass).toContain('focus-visible:ring-accent')
   })
 
   it('exports the shared interactive-state classes for other components to reuse', () => {
