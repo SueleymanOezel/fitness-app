@@ -27,3 +27,12 @@ export const buttonPrimaryClass =
 
 export const buttonSecondaryClass =
   `rounded-2xl border-0 m-0 bg-surface px-4 py-3 font-semibold text-text disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
+
+/**
+ * bg-surface-raised statt bg-surface: ein Feld muss sich auch abheben, wenn
+ * es (wie ueberall ausser /login) in einer cardClass-Karte liegt — bg-surface
+ * waere dort mit der Karte selbst identisch und damit unsichtbar, exakt der
+ * Bug, der beim Google-Button auf /login zuerst auffiel.
+ */
+export const inputClass =
+  'w-full rounded-2xl m-0 border border-text-muted/30 bg-surface-raised px-4 py-3 text-text placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'

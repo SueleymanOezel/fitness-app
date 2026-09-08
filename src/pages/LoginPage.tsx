@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { buttonPrimaryClass, buttonSecondaryClass, inputClass } from '../lib/ui-classes'
 
 type Mode = 'login' | 'signup'
 
@@ -83,30 +84,57 @@ export default function LoginPage() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h1>{mode === 'login' ? 'Login' : 'Registrieren'}</h1>
-      <label>
-        E-Mail
-        <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
-      </label>
-      <label>
-        Passwort
-        <input
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
-      </label>
-      {error && <p role="alert">{error}</p>}
-      <button type="submit" disabled={submitting}>
-        {mode === 'login' ? 'Einloggen' : 'Registrieren'}
-      </button>
-      <button type="button" onClick={toggleMode}>
-        {mode === 'login' ? 'Noch keinen Account? Registrieren' : 'Schon registriert? Einloggen'}
-      </button>
-      <button type="button" onClick={handleGoogleSignIn}>
-        Mit Google anmelden
-      </button>
-    </form>
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4">
+      <img src="/logo.webp" alt="VitaLoop" className="h-28 w-auto" />
+      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
+        <h1 className="m-0 text-center text-lg font-semibold">
+          {mode === 'login' ? 'Login' : 'Registrieren'}
+        </h1>
+        <div className="text-left">
+          <label className="mb-1 block text-sm text-text-muted" htmlFor="email">
+            E-Mail
+          </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            className={inputClass}
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
+        </div>
+        <div className="text-left">
+          <label className="mb-1 block text-sm text-text-muted" htmlFor="password">
+            Passwort
+          </label>
+          <input
+            id="password"
+            type="password"
+            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            className={inputClass}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+          />
+        </div>
+        {error && (
+          <p role="alert" className="text-sm text-danger">
+            {error}
+          </p>
+        )}
+        <button type="submit" disabled={submitting} className={buttonPrimaryClass}>
+          {mode === 'login' ? 'Einloggen' : 'Registrieren'}
+        </button>
+        <button type="button" className={`w-full ${buttonSecondaryClass}`} onClick={handleGoogleSignIn}>
+          Mit Google anmelden
+        </button>
+        <button
+          type="button"
+          className="w-full m-0 border-0 bg-transparent text-center text-sm text-text-muted underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          onClick={toggleMode}
+        >
+          {mode === 'login' ? 'Noch keinen Account? Registrieren' : 'Schon registriert? Einloggen'}
+        </button>
+      </form>
+    </div>
   )
 }
