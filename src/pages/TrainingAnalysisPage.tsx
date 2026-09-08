@@ -45,7 +45,7 @@ function Analyse({ userId }: { userId: string }) {
       ) : (
         <TrainingChartList ids={ids} sessions={sessions} sets={sets} auswahl={auswahl} />
       )}
-      <Link to="/training" className="inline-flex items-center gap-2">
+      <Link to="/training" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Trainingsbereich
       </Link>

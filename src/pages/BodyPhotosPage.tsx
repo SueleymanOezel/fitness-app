@@ -113,7 +113,7 @@ function Photos({ userId }: { userId: string }) {
         ))}
       </ul>
 
-      <Link to="/body" className="inline-flex items-center gap-2">
+      <Link to="/body" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Körperbereich
       </Link>

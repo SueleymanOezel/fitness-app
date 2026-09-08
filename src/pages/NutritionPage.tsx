@@ -67,7 +67,7 @@ function NutritionDashboard({ userId }: { userId: string }) {
           Für ein Tagesziel <Link to="/profile">Profil vervollständigen</Link>.
         </p>
       )}
-      <Link to="/profile" className="inline-flex items-center gap-2">
+      <Link to="/profile" className="flex items-center justify-center gap-2">
         <VitaIcon name="goal" tone="brand" size={20} />
         Ziel im Profil anpassen
       </Link>
@@ -83,12 +83,12 @@ function NutritionDashboard({ userId }: { userId: string }) {
           )
         })}
       </ul>
-      <Link to="/nutrition/entries" className="inline-flex items-center gap-2">
+      <Link to="/nutrition/entries" className="flex items-center justify-center gap-2">
         <VitaIcon name="entries" tone="brand" size={20} />
         Einträge ansehen
       </Link>
       <DashboardNutritionCharts userId={userId} auswahl={auswahl.auswahl} ziel={goal} profile={profile} />
-      <Link to="/nutrition/analyse" className="inline-flex items-center gap-2">
+      <Link to="/nutrition/analyse" className="flex items-center justify-center gap-2">
         <VitaIcon name="analysis" tone="brand" size={20} />
         Analyse
       </Link>

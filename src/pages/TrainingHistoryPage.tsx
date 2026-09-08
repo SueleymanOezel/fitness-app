@@ -55,7 +55,7 @@ function HistoryList({ userId }: { userId: string }) {
           ))}
         </ul>
       )}
-      <Link to="/training" className="inline-flex items-center gap-2">
+      <Link to="/training" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Training
       </Link>

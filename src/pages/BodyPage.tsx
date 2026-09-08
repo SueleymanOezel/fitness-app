@@ -139,15 +139,15 @@ function Dashboard({ userId }: { userId: string }) {
       </Dialog>
 
       <DashboardBodyCharts userId={userId} auswahl={auswahl.auswahl} />
-      <Link to="/body/analyse" className="inline-flex items-center gap-2">
+      <Link to="/body/analyse" className="flex items-center justify-center gap-2">
         <VitaIcon name="analysis" tone="brand" size={20} />
         Analyse
       </Link>
-      <Link to="/body/entries" className="inline-flex items-center gap-2">
+      <Link to="/body/entries" className="flex items-center justify-center gap-2">
         <VitaIcon name="history" tone="brand" size={20} />
         Verlauf
       </Link>
-      <Link to="/body/photos" className="inline-flex items-center gap-2">
+      <Link to="/body/photos" className="flex items-center justify-center gap-2">
         <VitaIcon name="photos" tone="brand" size={20} />
         Fortschrittsfotos
       </Link>

@@ -79,20 +79,20 @@ function Dashboard({ userId }: { userId: string }) {
           </button>
         </>
       )}
-      <Link to="/training/plans" className="inline-flex items-center gap-2">
+      <Link to="/training/plans" className="flex items-center justify-center gap-2">
         <VitaIcon name="plans" tone="brand" size={20} />
         Meine Pläne
       </Link>
-      <Link to="/training/exercises" className="inline-flex items-center gap-2">
+      <Link to="/training/exercises" className="flex items-center justify-center gap-2">
         <VitaIcon name="exercises" tone="brand" size={20} />
         Übungen
       </Link>
-      <Link to="/training/history" className="inline-flex items-center gap-2">
+      <Link to="/training/history" className="flex items-center justify-center gap-2">
         <VitaIcon name="history" tone="brand" size={20} />
         Trainingshistorie
       </Link>
       <DashboardTrainingCharts userId={userId} auswahl={auswahl.auswahl} />
-      <Link to="/training/analyse" className="inline-flex items-center gap-2">
+      <Link to="/training/analyse" className="flex items-center justify-center gap-2">
         <VitaIcon name="analysis" tone="brand" size={20} />
         Analyse
       </Link>

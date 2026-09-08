@@ -63,26 +63,26 @@ function Dashboard({ userId }: { userId: string }) {
     <div className="space-y-4">
       <h1>Home</h1>
       <DailySummary entries={entries} goal={goal} />
-      <Link to="/nutrition" className="inline-flex items-center gap-2">
+      <Link to="/nutrition" className="flex items-center justify-center gap-2">
         <VitaIcon name="nutrition" tone="brand" size={20} />
         Zum Ernährungsbereich
       </Link>
       <div className={cardClass}>
-        <h2 className="flex items-center gap-2">
-          <VitaIcon name="training" tone="brand" />
+        <h2 className="flex items-center justify-center gap-2">
+          <VitaIcon name="training" tone="brand" size={28} />
           Training
         </h2>
         {plan == null && <p>Kein aktiver Plan.</p>}
         {plan != null && day == null && <p>{`Plan „${plan.name}“ hat noch keine Tage.`}</p>}
         {plan != null && day != null && <p>{`${plan.name} — ${day.name}`}</p>}
-        <Link to="/training" className="inline-flex items-center gap-2">
+        <Link to="/training" className="flex items-center justify-center gap-2">
           <VitaIcon name="training" tone="brand" size={20} />
           Zum Trainingsbereich
         </Link>
       </div>
       <div className={cardClass}>
-        <h2 className="flex items-center gap-2">
-          <VitaIcon name="body" tone="brand" />
+        <h2 className="flex items-center justify-center gap-2">
+          <VitaIcon name="body" tone="brand" size={28} />
           Gewicht
         </h2>
         {rowsError && <p role="alert">Gewichtsdaten konnten nicht geladen werden.</p>}
@@ -99,13 +99,13 @@ function Dashboard({ userId }: { userId: string }) {
                   : ` (${gewichtsAenderung.delta < 0 ? '−' : '+'}${formatValue(Math.abs(gewichtsAenderung.delta))} kg seit dem letzten Eintrag)`
               }`}
         </p>
-        <Link to="/body" className="inline-flex items-center gap-2">
+        <Link to="/body" className="flex items-center justify-center gap-2">
           <VitaIcon name="body" tone="brand" size={20} />
           Zum Körperbereich
         </Link>
       </div>
       <DashboardHomeCharts userId={userId} auswahl={auswahl.auswahl} />
-      <Link to="/home/analyse" className="inline-flex items-center gap-2">
+      <Link to="/home/analyse" className="flex items-center justify-center gap-2">
         <VitaIcon name="analysis" tone="brand" size={20} />
         Analyse
       </Link>

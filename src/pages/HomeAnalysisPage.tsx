@@ -43,7 +43,7 @@ function Analyse({ userId }: { userId: string }) {
       ) : (
         <HomeChartList ids={ids} sessions={sessions} entries={entries} rows={rows} zeitraum={zeitraum} auswahl={auswahl} />
       )}
-      <Link to="/" className="inline-flex items-center gap-2">
+      <Link to="/" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zur Übersicht
       </Link>

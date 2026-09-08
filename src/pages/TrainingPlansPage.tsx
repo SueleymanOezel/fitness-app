@@ -107,7 +107,7 @@ function PlansList({ userId }: { userId: string }) {
         </button>
       </form>
       {nameError !== '' && <p role="alert">{nameError}</p>}
-      <Link to="/training" className="inline-flex items-center gap-2">
+      <Link to="/training" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Training
       </Link>

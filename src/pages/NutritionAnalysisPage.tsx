@@ -56,7 +56,7 @@ function Analyse({ userId }: { userId: string }) {
           auswahl={auswahl}
         />
       )}
-      <Link to="/nutrition" className="inline-flex items-center gap-2">
+      <Link to="/nutrition" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Ernährungsbereich
       </Link>

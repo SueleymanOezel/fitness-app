@@ -39,7 +39,7 @@ function Detail({ sessionId }: { sessionId: string }) {
       <div>
         <h1>Trainingseinheit</h1>
         <p role="alert">Diese Trainingseinheit gibt es nicht mehr.</p>
-        <Link to="/training/history" className="inline-flex items-center gap-2">
+        <Link to="/training/history" className="flex items-center justify-center gap-2">
           <VitaIcon name="back" tone="brand" size={20} />
           Zurück zur Historie
         </Link>
@@ -122,7 +122,7 @@ function Detail({ sessionId }: { sessionId: string }) {
           Session löschen
         </span>
       </button>
-      <Link to="/training/history" className="inline-flex items-center gap-2">
+      <Link to="/training/history" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zur Historie
       </Link>

@@ -56,7 +56,7 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
       <div>
         <h1>Plan bearbeiten</h1>
         <p role="alert">Diesen Plan gibt es nicht mehr.</p>
-        <Link to="/training/plans" className="inline-flex items-center gap-2">
+        <Link to="/training/plans" className="flex items-center justify-center gap-2">
           <VitaIcon name="back" tone="brand" size={20} />
           Zurück zu meinen Plänen
         </Link>
@@ -120,7 +120,7 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
         </button>
       </form>
       {dayNameError !== '' && <p role="alert">{dayNameError}</p>}
-      <Link to="/training/plans" className="inline-flex items-center gap-2">
+      <Link to="/training/plans" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zu meinen Plänen
       </Link>

@@ -58,7 +58,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
       <div>
         <h1>Training</h1>
         <p role="alert">Dieses Training gibt es nicht mehr.</p>
-        <Link to="/training" className="inline-flex items-center gap-2">
+        <Link to="/training" className="flex items-center justify-center gap-2">
           <VitaIcon name="back" tone="brand" size={20} />
           Zurück zum Training
         </Link>
@@ -75,7 +75,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
         <h1>Training</h1>
         <p role="alert">Dieses Training ist bereits abgeschlossen.</p>
         <Link to={`/training/history/${session.id}`}>Zur Trainingseinheit</Link>
-        <Link to="/training" className="inline-flex items-center gap-2">
+        <Link to="/training" className="flex items-center justify-center gap-2">
           <VitaIcon name="back" tone="brand" size={20} />
           Zurück zum Training
         </Link>

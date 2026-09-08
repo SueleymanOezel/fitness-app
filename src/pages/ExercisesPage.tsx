@@ -46,7 +46,7 @@ function ExercisesList({ userId }: { userId: string }) {
       <div>
         <h1>Übungen</h1>
         <p role="alert">Übungen konnten nicht geladen werden.</p>
-        <Link to="/training" className="inline-flex items-center gap-2">
+        <Link to="/training" className="flex items-center justify-center gap-2">
           <VitaIcon name="back" tone="brand" size={20} />
           Zurück zum Training
         </Link>
@@ -111,7 +111,7 @@ function ExercisesList({ userId }: { userId: string }) {
           />
         )}
       </Dialog>
-      <Link to="/training" className="inline-flex items-center gap-2">
+      <Link to="/training" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Training
       </Link>
