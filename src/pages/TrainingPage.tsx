@@ -131,7 +131,6 @@ function DashboardTrainingChartsData({ userId, ids }: { userId: string; ids: str
       ids={ids}
       sessions={sessions}
       sets={sets}
-      leerCta={{ label: 'Training starten', to: '/training' }}
     />
   )
 }

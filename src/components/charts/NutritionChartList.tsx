@@ -35,29 +35,29 @@ export default function NutritionChartList({
   auswahl,
   leerCta,
 }: NutritionChartListProps) {
-  function graph(id: string): ReactNode {
+  function graph(id: string, cta?: { label: string; to: string }): ReactNode {
     const picker = auswahl ? <ChartPicker id={id} auswahl={auswahl} /> : undefined
     switch (id) {
       case E1:
-        return <CaloriesPerDayChart entries={entries} ziel={ziel} picker={picker} leerCta={leerCta} />
+        return <CaloriesPerDayChart entries={entries} ziel={ziel} picker={picker} leerCta={cta} />
       case E2:
-        return <MacroDistributionChart entries={entries} picker={picker} leerCta={leerCta} />
+        return <MacroDistributionChart entries={entries} picker={picker} leerCta={cta} />
       case E3:
-        return <MacroTrendChart entries={entries} picker={picker} leerCta={leerCta} />
+        return <MacroTrendChart entries={entries} picker={picker} leerCta={cta} />
       case E4:
         return (
           <MealSectionCaloriesChart
             entries={entries}
             profile={profile}
             picker={picker}
-            leerCta={leerCta}
+            leerCta={cta}
           />
         )
       case E5:
-        return <WeeklyAverageChart entries={entries} picker={picker} leerCta={leerCta} />
+        return <WeeklyAverageChart entries={entries} picker={picker} leerCta={cta} />
       case E6:
         return (
-          <CalorieBalanceChart entries={entries} sessions={sessions} picker={picker} leerCta={leerCta} />
+          <CalorieBalanceChart entries={entries} sessions={sessions} picker={picker} leerCta={cta} />
         )
       default:
         // Eine ID ohne Komponente ist kein Fehler, den der Nutzer sehen muss:
@@ -68,9 +68,9 @@ export default function NutritionChartList({
 
   return (
     <div className="space-y-4">
-      {ids.map((id) => (
+      {ids.map((id, index) => (
         <Suspense key={id} fallback={<p>Lädt…</p>}>
-          {graph(id)}
+          {graph(id, index === 0 ? leerCta : undefined)}
         </Suspense>
       ))}
     </div>

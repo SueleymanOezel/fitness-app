@@ -34,18 +34,18 @@ export default function TrainingChartList({
 }: TrainingChartListProps) {
   const analyse = auswahl != null
 
-  function graph(id: string): ReactNode {
+  function graph(id: string, cta?: { label: string; to: string }): ReactNode {
     const picker = auswahl ? <ChartPicker id={id} auswahl={auswahl} /> : undefined
     switch (id) {
       case T1:
-        return <TrainingFrequencyChart sessions={sessions} picker={picker} leerCta={leerCta} />
+        return <TrainingFrequencyChart sessions={sessions} picker={picker} leerCta={cta} />
       case T2:
         return (
           <StrengthChart
             sessions={sessions}
             sets={sets}
             picker={picker}
-            leerCta={leerCta}
+            leerCta={cta}
             mitUebungsauswahl={analyse}
           />
         )
@@ -55,7 +55,7 @@ export default function TrainingChartList({
             sessions={sessions}
             sets={sets}
             picker={picker}
-            leerCta={leerCta}
+            leerCta={cta}
             mitUebungsauswahl={analyse}
           />
         )
@@ -65,7 +65,7 @@ export default function TrainingChartList({
             sessions={sessions}
             sets={sets}
             picker={picker}
-            leerCta={leerCta}
+            leerCta={cta}
             mitUebungsauswahl={analyse}
           />
         )
@@ -75,16 +75,16 @@ export default function TrainingChartList({
             sessions={sessions}
             sets={sets}
             picker={picker}
-            leerCta={leerCta}
+            leerCta={cta}
             mitUebungsauswahl={analyse}
           />
         )
       case T6:
-        return <MuscleVolumeChart sets={sets} picker={picker} leerCta={leerCta} />
+        return <MuscleVolumeChart sets={sets} picker={picker} leerCta={cta} />
       case T7:
-        return <SessionLoadChart sessions={sessions} picker={picker} leerCta={leerCta} />
+        return <SessionLoadChart sessions={sessions} picker={picker} leerCta={cta} />
       case T8:
-        return <PersonalRecordsList sessions={sessions} sets={sets} picker={picker} leerCta={leerCta} />
+        return <PersonalRecordsList sessions={sessions} sets={sets} picker={picker} leerCta={cta} />
       default:
         // Eine ID ohne Komponente ist kein Fehler, den der Nutzer sehen muss:
         // parseAuswahl haelt Unbekanntes schon fern, hier bleibt nur die Luecke.
@@ -94,9 +94,9 @@ export default function TrainingChartList({
 
   return (
     <div className="space-y-4">
-      {ids.map((id) => (
+      {ids.map((id, index) => (
         <Suspense key={id} fallback={<p>Lädt…</p>}>
-          {graph(id)}
+          {graph(id, index === 0 ? leerCta : undefined)}
         </Suspense>
       ))}
     </div>

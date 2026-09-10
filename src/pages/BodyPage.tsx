@@ -179,7 +179,6 @@ function DashboardBodyChartsData({ userId, ids }: { userId: string; ids: string[
       rows={rows}
       kalorien={kalorien}
       fotos={fotos}
-      leerCta={{ label: 'Heute eintragen', to: '/body' }}
     />
   )
 }

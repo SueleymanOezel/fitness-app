@@ -139,7 +139,6 @@ function DashboardNutritionChartsData({
       sessions={sessions}
       ziel={ziel}
       profile={profile}
-      leerCta={{ label: 'Eintragen', to: '/nutrition' }}
     />
   )
 }

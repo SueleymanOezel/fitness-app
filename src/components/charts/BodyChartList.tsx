@@ -33,21 +33,21 @@ export default function BodyChartList({
   auswahl,
   leerCta,
 }: BodyChartListProps) {
-  function graph(id: string): ReactNode {
+  function graph(id: string, cta?: { label: string; to: string }): ReactNode {
     const picker = auswahl ? <ChartPicker id={id} auswahl={auswahl} /> : undefined
     switch (id) {
       case K1:
-        return <WeightTrendChart rows={rows} picker={picker} leerCta={leerCta} />
+        return <WeightTrendChart rows={rows} picker={picker} leerCta={cta} />
       case K2:
-        return <BodyMeasurementsChart rows={rows} picker={picker} leerCta={leerCta} />
+        return <BodyMeasurementsChart rows={rows} picker={picker} leerCta={cta} />
       case K3:
-        return <WeightChangeRateChart rows={rows} picker={picker} leerCta={leerCta} />
+        return <WeightChangeRateChart rows={rows} picker={picker} leerCta={cta} />
       case K4:
         return (
-          <WeightVsCaloriesChart rows={rows} kalorien={kalorien} picker={picker} leerCta={leerCta} />
+          <WeightVsCaloriesChart rows={rows} kalorien={kalorien} picker={picker} leerCta={cta} />
         )
       case K5:
-        return <PhotoTimeline fotos={fotos} rows={rows} picker={picker} leerCta={leerCta} />
+        return <PhotoTimeline fotos={fotos} rows={rows} picker={picker} leerCta={cta} />
       default:
         // Eine ID ohne Komponente ist kein Fehler, den der Nutzer sehen muss:
         // parseAuswahl haelt Unbekanntes schon fern, hier bleibt nur die Luecke.
@@ -57,9 +57,9 @@ export default function BodyChartList({
 
   return (
     <div className="space-y-4">
-      {ids.map((id) => (
+      {ids.map((id, index) => (
         <Suspense key={id} fallback={<p>Lädt…</p>}>
-          {graph(id)}
+          {graph(id, index === 0 ? leerCta : undefined)}
         </Suspense>
       ))}
     </div>
