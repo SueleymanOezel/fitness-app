@@ -36,16 +36,18 @@ export default function MacroDistributionChart({
   entries,
   heute = localDay(new Date().toISOString()),
   picker,
+  leerCta,
 }: {
   entries: AnalysisFoodEntry[]
   /** Ueberschreibbar fuer Tests; im echten Betrieb immer der heutige Tag. */
   heute?: string
   picker?: ReactNode
+  leerCta?: { label: string; to: string }
 }) {
   const anteile = makroAnteileHeute(entries, heute)
 
   return (
-    <ChartFrame titel={TITEL} leer={anteile.length < 1} picker={picker}>
+    <ChartFrame titel={TITEL} leer={anteile.length < 1} picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={anteile}>
           <CartesianGrid strokeDasharray="3 3" />

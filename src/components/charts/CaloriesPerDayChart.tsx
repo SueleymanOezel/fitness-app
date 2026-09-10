@@ -23,10 +23,12 @@ export default function CaloriesPerDayChart({
   entries,
   ziel,
   picker,
+  leerCta,
 }: {
   entries: AnalysisFoodEntry[]
   ziel: number | null
   picker?: ReactNode
+  leerCta?: { label: string; to: string }
 }) {
   const punkte = kalorienJeTag(entries).map((punkt) => ({
     ...punkt,
@@ -34,7 +36,7 @@ export default function CaloriesPerDayChart({
   }))
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={punkte}>
           <CartesianGrid strokeDasharray="3 3" />

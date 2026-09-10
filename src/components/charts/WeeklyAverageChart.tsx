@@ -12,14 +12,16 @@ export const TITEL = WOCHENSCHNITT_TITEL
 export default function WeeklyAverageChart({
   entries,
   picker,
+  leerCta,
 }: {
   entries: AnalysisFoodEntry[]
   picker?: ReactNode
+  leerCta?: { label: string; to: string }
 }) {
   const punkte = wochenschnitt(entries)
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 1} picker={picker}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 1} picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={punkte}>
           <CartesianGrid strokeDasharray="3 3" />

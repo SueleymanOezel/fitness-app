@@ -54,6 +54,7 @@ function Analyse({ userId }: { userId: string }) {
           ziel={profile ? effectiveCalorieGoal(profile) : null}
           profile={profile}
           auswahl={auswahl}
+          leerCta={{ label: 'Eintragen', to: '/nutrition' }}
         />
       )}
       <Link to="/nutrition" className="flex items-center justify-center gap-2">

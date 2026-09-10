@@ -133,6 +133,13 @@ function DashboardNutritionChartsData({
   if (loading) return <p>Lädt…</p>
   if (error) return <p role="alert">Graph konnte nicht geladen werden.</p>
   return (
-    <NutritionChartList ids={ids} entries={entries} sessions={sessions} ziel={ziel} profile={profile} />
+    <NutritionChartList
+      ids={ids}
+      entries={entries}
+      sessions={sessions}
+      ziel={ziel}
+      profile={profile}
+      leerCta={{ label: 'Eintragen', to: '/nutrition' }}
+    />
   )
 }

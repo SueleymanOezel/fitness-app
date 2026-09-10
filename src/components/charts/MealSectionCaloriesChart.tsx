@@ -14,10 +14,12 @@ export default function MealSectionCaloriesChart({
   entries,
   profile,
   picker,
+  leerCta,
 }: {
   entries: AnalysisFoodEntry[]
   profile: MealSectionNames | null
   picker?: ReactNode
+  leerCta?: { label: string; to: string }
 }) {
   const punkte = profile ? kalorienJeAbschnitt(entries, profile) : []
   // Nicht punkte.length: die Funktion liefert immer einen Eintrag je
@@ -26,7 +28,7 @@ export default function MealSectionCaloriesChart({
   const hatDaten = punkte.some((punkt) => punkt.kalorien > 0)
 
   return (
-    <ChartFrame titel={TITEL} leer={!hatDaten} picker={picker}>
+    <ChartFrame titel={TITEL} leer={!hatDaten} picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={punkte}>
           <CartesianGrid strokeDasharray="3 3" />

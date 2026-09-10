@@ -22,6 +22,8 @@ export type NutritionChartListProps = {
   profile: MealSectionNames | null
   /** Gesetzt auf der Analyse-Seite: zeigt die Haekchen. */
   auswahl?: ReturnType<typeof useChartSelection>
+  /** Wird an jeden Chart des Bereichs durchgereicht, siehe ChartFrame. */
+  leerCta?: { label: string; to: string }
 }
 
 export default function NutritionChartList({
@@ -31,22 +33,32 @@ export default function NutritionChartList({
   ziel,
   profile,
   auswahl,
+  leerCta,
 }: NutritionChartListProps) {
   function graph(id: string): ReactNode {
     const picker = auswahl ? <ChartPicker id={id} auswahl={auswahl} /> : undefined
     switch (id) {
       case E1:
-        return <CaloriesPerDayChart entries={entries} ziel={ziel} picker={picker} />
+        return <CaloriesPerDayChart entries={entries} ziel={ziel} picker={picker} leerCta={leerCta} />
       case E2:
-        return <MacroDistributionChart entries={entries} picker={picker} />
+        return <MacroDistributionChart entries={entries} picker={picker} leerCta={leerCta} />
       case E3:
-        return <MacroTrendChart entries={entries} picker={picker} />
+        return <MacroTrendChart entries={entries} picker={picker} leerCta={leerCta} />
       case E4:
-        return <MealSectionCaloriesChart entries={entries} profile={profile} picker={picker} />
+        return (
+          <MealSectionCaloriesChart
+            entries={entries}
+            profile={profile}
+            picker={picker}
+            leerCta={leerCta}
+          />
+        )
       case E5:
-        return <WeeklyAverageChart entries={entries} picker={picker} />
+        return <WeeklyAverageChart entries={entries} picker={picker} leerCta={leerCta} />
       case E6:
-        return <CalorieBalanceChart entries={entries} sessions={sessions} picker={picker} />
+        return (
+          <CalorieBalanceChart entries={entries} sessions={sessions} picker={picker} leerCta={leerCta} />
+        )
       default:
         // Eine ID ohne Komponente ist kein Fehler, den der Nutzer sehen muss:
         // parseAuswahl haelt Unbekanntes schon fern, hier bleibt nur die Luecke.
