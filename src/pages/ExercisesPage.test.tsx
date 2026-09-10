@@ -120,6 +120,78 @@ describe('ExercisesPage', () => {
     expect(screen.getByText('Schrägbankdrücken')).toBeInTheDocument()
   })
 
+  it('filters by equipment when a chip is selected', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(
+      exercisesResult({
+        exercises: [exercise, { ...exercise, id: 'ex2', name: 'Kniebeuge', equipment: 'dumbbell' }],
+      }),
+    )
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Langhantel' }))
+
+    expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
+    expect(screen.queryByText('Kniebeuge')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Langhantel' })).toHaveClass('bg-accent')
+    expect(screen.getByRole('button', { name: 'Alle Geräte' })).toHaveClass('bg-surface')
+  })
+
+  it('resets the equipment filter with the Alle Geräte chip', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(
+      exercisesResult({
+        exercises: [exercise, { ...exercise, id: 'ex2', name: 'Kniebeuge', equipment: 'dumbbell' }],
+      }),
+    )
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Langhantel' }))
+    expect(screen.queryByText('Kniebeuge')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Alle Geräte' }))
+    expect(screen.getByText('Kniebeuge')).toBeInTheDocument()
+  })
+
+  it('combines the equipment filter with the muscle-group filter', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(
+      exercisesResult({
+        exercises: [
+          exercise,
+          { ...exercise, id: 'ex2', name: 'Kurzhantel-Kniebeuge', equipment: 'dumbbell', muskelgruppen_primaer: ['chest'] },
+        ],
+      }),
+    )
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Brust' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Langhantel' }))
+
+    expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
+    expect(screen.queryByText('Kurzhantel-Kniebeuge')).not.toBeInTheDocument()
+  })
+
+  it('hides the equipment filter row when no exercise has an equipment value', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(
+      exercisesResult({
+        exercises: [{ ...exercise, equipment: null }],
+      }),
+    )
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    expect(screen.queryByRole('button', { name: 'Alle Geräte' })).not.toBeInTheDocument()
+  })
+
   it('hides the filter row when no exercise has a muscle group', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseExercises.mockReturnValue(

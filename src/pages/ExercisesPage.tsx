@@ -7,6 +7,7 @@ import Dialog from '../components/Dialog'
 import Chip from '../components/Chip'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { muskelgruppeLabel } from '../lib/muscle-group-labels'
+import { equipmentLabel } from '../lib/equipment-labels'
 
 export default function ExercisesPage() {
   const { session } = useSession()
@@ -28,6 +29,7 @@ function ExercisesList({ userId }: { userId: string }) {
   const { exercises, loading, error: loadError, createExercise } = useExercises(userId)
   const [query, setQuery] = useState('')
   const [muskelgruppe, setMuskelgruppe] = useState<string | null>(null)
+  const [equipment, setEquipment] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   if (loading) {
@@ -59,10 +61,15 @@ function ExercisesList({ userId }: { userId: string }) {
     (a, b) => muskelgruppeLabel(a).localeCompare(muskelgruppeLabel(b), 'de'),
   )
 
+  const equipmentWerte = [...new Set(exercises.flatMap((exercise) => (exercise.equipment ? [exercise.equipment] : [])))].sort(
+    (a, b) => equipmentLabel(a).localeCompare(equipmentLabel(b), 'de'),
+  )
+
   const filtered = exercises.filter(
     (exercise) =>
       exercise.name.toLowerCase().includes(query.toLowerCase()) &&
-      (muskelgruppe === null || (exercise.muskelgruppen_primaer ?? []).includes(muskelgruppe)),
+      (muskelgruppe === null || (exercise.muskelgruppen_primaer ?? []).includes(muskelgruppe)) &&
+      (equipment === null || exercise.equipment === equipment),
   )
 
   return (
@@ -76,6 +83,18 @@ function ExercisesList({ userId }: { userId: string }) {
           {muskelgruppen.map((gruppe) => (
             <Chip key={gruppe} active={muskelgruppe === gruppe} onClick={() => setMuskelgruppe(gruppe)}>
               {muskelgruppeLabel(gruppe)}
+            </Chip>
+          ))}
+        </div>
+      )}
+      {equipmentWerte.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <Chip active={equipment === null} onClick={() => setEquipment(null)}>
+            Alle Geräte
+          </Chip>
+          {equipmentWerte.map((wert) => (
+            <Chip key={wert} active={equipment === wert} onClick={() => setEquipment(wert)}>
+              {equipmentLabel(wert)}
             </Chip>
           ))}
         </div>
