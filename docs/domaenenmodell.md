@@ -88,6 +88,9 @@ erDiagram
         text equipment
         text_array muskelgruppen_primaer
         text_array muskelgruppen_sekundaer
+        text bild_url
+        text_array anleitung
+        text schwierigkeitsgrad
         numeric met_wert
         uuid created_by FK
     }
@@ -183,6 +186,7 @@ erDiagram
 - `workout_plan_days` gibt einem Trainingsplan mehrere benannte Tage (z. B. „Push"/„Pull"/„Legs"); `workout_plan_day_exercises` hängt an einem Tag statt direkt am Plan, `workout_sessions.workout_plan_day_id` verweist auf den konkreten trainierten Tag. Welcher Tag als Nächstes ansteht, ergibt sich zur Laufzeit aus dem zuletzt **abgeschlossenen** Tag desselben Plans (Rotation, keine eigene Spalte) — kein Kalender beteiligt.
 - `gesamt_kalorien` in `workout_sessions` wird einmalig bei „Training abschließen" berechnet (MET-Durchschnitt über alle Sätze × `profiles.aktuelles_gewicht` × Dauer) und danach nicht rückwirkend neu berechnet, auch wenn sich der MET-Wert einer verwendeten Übung später ändert.
 - `exercises.met_wert` stammt beim Import aus einer Zuordnung Kategorie → MET (`src/lib/met-categories.ts`), nicht aus einem Wert je Übung. Importierte Zeilen tragen `created_by = null` und unterscheiden sich dadurch von selbst angelegten Übungen.
+- `exercises.anleitung` (Schritt-für-Schritt-Sätze) und `exercises.schwierigkeitsgrad` (`beginner`/`intermediate`/`expert`) kommen seit Migration `0008` ebenfalls aus dem Import; beide sind nullable (5 der 873 importierten Übungen haben keine Instructions in der Quelle). Übersetzung ins Deutsche passiert im Frontend (`src/lib/level-labels.ts` für den Schwierigkeitsgrad, analog zu Muskelgruppen/Geräten) mit Fallback auf den Rohwert — kein DB-Constraint.
 - `workout_plan_day_exercises` hat einen Unique-Index auf `(workout_plan_day_id, exercise_id)` — dieselbe Übung kann in einem Tag nur einmal vorkommen, sonst teilen sich zwei Zeilen im Live-Training eine `exercise_id` (gemeinsame Satzzählung, falsche `satz_nummer`).
 - `workout_sessions.workout_plan_day_id` ist `on delete set null`: eine abgeschlossene Session ist die Aufzeichnung des tatsächlich Trainierten und überlebt das Umbauen oder Löschen des Plans — sie verliert nur ihre Beschriftung.
 - Genau ein Plan je Nutzer ist aktiv. Das Umschalten macht die Funktion `activate_workout_plan(plan_id uuid)` in **einem** Statement (`security invoker`, prüft die Eigentümerschaft selbst); zwei Requests aus dem Client konnten dazwischen scheitern und gar keinen aktiven Plan hinterlassen.
@@ -205,7 +209,7 @@ erDiagram
 - Fotolinks werden nie gespeichert. `body_photos.foto_url` hält den Objektpfad im privaten Bucket; die Analyse signiert ihn beim Laden gebündelt für eine Stunde, wie die Fotoseite.
 - K5 beschriftet ein Foto mit dem Gewicht **desselben** Tages. `body_metrics` hat je Nutzer und Tag höchstens eine Zeile (`unique (user_id, datum)`), die Zuordnung ist damit eindeutig; ein Foto ohne Wiegung an diesem Tag bleibt sichtbar und trägt kein Gewicht.
 - K3 leitet die Änderungsrate aus derselben Trendlinie ab, die K1 zeichnet (zeitgewichteter EWMA, Halbwertszeit sieben Tage), nicht aus den Rohgewichten.
-- Quelle: `supabase/migrations/0001_initial_schema.sql` (Stand Phase 2 + Mahlzeiten-Abschnitte + Phase 3 (Trainingsbereich) + Analysefelder, inkl. `0002_nutrition_profile_fields.sql`, `0003_meal_sections.sql`, `0004_training_days.sql`, `0005_analysis_fields.sql`, `0006_body_photos_bucket.sql` und `0007_analyse_auswahl.sql`).
+- Quelle: `supabase/migrations/0001_initial_schema.sql` (Stand Phase 2 + Mahlzeiten-Abschnitte + Phase 3 (Trainingsbereich) + Analysefelder, inkl. `0002_nutrition_profile_fields.sql`, `0003_meal_sections.sql`, `0004_training_days.sql`, `0005_analysis_fields.sql`, `0006_body_photos_bucket.sql`, `0007_analyse_auswahl.sql` und `0008_exercise_details.sql`).
 
 ## Home-Bereich (Home-Dashboard, H1–H3)
 
