@@ -21,6 +21,7 @@ describe('contrastRatio', () => {
   const SURFACE = '#23242b'
   const SURFACE_RAISED = '#414249'
   const ACCENT = '#8766ed'
+  const ACCENT_TEXT = '#a288f1'
   const DANGER = '#f27a6b'
 
   it('confirms the old text-muted value FAILS AA text contrast against surface', () => {
@@ -43,5 +44,19 @@ describe('contrastRatio', () => {
   it('confirms the new on-bright value clears AA text contrast on both accent and danger', () => {
     expect(contrastRatio('#0d0e12', ACCENT)).toBeGreaterThanOrEqual(4.5)
     expect(contrastRatio('#0d0e12', DANGER)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('confirms the old accent value FAILS as a text/icon foreground color (P2 critique)', () => {
+    expect(contrastRatio(ACCENT, SURFACE)).toBeLessThan(4.5)
+    expect(contrastRatio(ACCENT, SURFACE_RAISED)).toBeLessThan(3)
+  })
+
+  it('confirms the new accent-text value clears AA text contrast for links on bg and surface', () => {
+    expect(contrastRatio(ACCENT_TEXT, BG)).toBeGreaterThanOrEqual(4.5)
+    expect(contrastRatio(ACCENT_TEXT, SURFACE)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('confirms the new accent-text value clears the 3:1 UI-component minimum against the nav pill', () => {
+    expect(contrastRatio(ACCENT_TEXT, SURFACE_RAISED)).toBeGreaterThanOrEqual(3)
   })
 })

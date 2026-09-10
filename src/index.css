@@ -10,8 +10,10 @@
  * --color-text-muted and --color-on-bright were corrected post-launch for
  * WCAG AA contrast failures found by an impeccable critique; see
  * docs/superpowers/specs/2026-09-06-phase6-nachschaerfung-design.md and
- * src/lib/contrast.test.ts for the exact ratios. Every other token here is
- * still the original pixel-sampled value.
+ * src/lib/contrast.test.ts for the exact ratios. --color-accent-text is a
+ * later addition for the same reason (P2 critique fix, 10.09.2026) — see the
+ * comment on that token below. Every other token here is still the original
+ * pixel-sampled value.
  */
 @theme {
   --color-bg: #181920;
@@ -22,6 +24,15 @@
   --color-success: #ebfd6e;
   --color-success-ink: #17181f;
   --color-danger: #f27a6b;
+  /*
+   * --color-accent as TEXT/ICON color (links, active nav icon) fails WCAG AA:
+   * 4.3:1 on surface (needs 4.5:1 for text), 2.45:1 on surface-raised (needs
+   * 3:1 for UI graphics) — see src/lib/contrast.test.ts. --color-accent
+   * itself stays unchanged (background for buttons/chips/charts); this is a
+   * lighter tint of the same hue (H254.6/S78.8, L66.5%->74%) used only where
+   * the accent hue is a foreground color on a dark background.
+   */
+  --color-accent-text: #a288f1;
 
   --color-text: #fefeff;
   --color-text-muted: #90919a;
@@ -137,7 +148,7 @@ body {
   }
 
   a {
-    color: var(--color-accent);
+    color: var(--color-accent-text);
     display: inline-flex;
     align-items: center;
     justify-content: center;

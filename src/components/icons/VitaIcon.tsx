@@ -223,14 +223,23 @@ export type VitaIconProps = Omit<SVGProps<SVGSVGElement>, 'children'> & {
 
 /**
  * Zwei Farb-Layer statt einer: mono laesst beide Layer currentColor tragen
- * (folgt der Textfarbe des Elternelements, z.B. text-accent/text-text-muted
+ * (folgt der Textfarbe des Elternelements, z.B. text-accent-text/text-text-muted
  * in der BottomNav), brand setzt die zwei Logo-Farben fest — fuer Stellen,
  * an denen das Icon immer markenfarbig sein soll, unabhaengig vom
  * umgebenden Text.
  */
+/*
+ * Brand-tone primary is --color-accent-text (src/index.css), not
+ * --color-accent — an SVG stroke attribute can't read a CSS custom
+ * property, so the value is duplicated here (same pattern as
+ * chart-colors.ts). Plain --color-accent (#8766ed) fails WCAG AA as a
+ * foreground color (2.45:1 against the nav pill, needs 3:1) — see
+ * src/lib/contrast.test.ts. This literal must stay in sync with
+ * --color-accent-text if that token ever changes.
+ */
 export function VitaIcon({ name, size = 24, tone = 'mono', title, ...props }: VitaIconProps) {
   const glyph = glyphs[name]
-  const primary = tone === 'brand' ? '#8766ed' : 'currentColor'
+  const primary = tone === 'brand' ? '#a288f1' : 'currentColor'
   const accent = tone === 'brand' ? '#6efde6' : 'currentColor'
 
   return (

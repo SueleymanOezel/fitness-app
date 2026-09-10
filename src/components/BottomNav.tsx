@@ -29,7 +29,7 @@ export default function BottomNav() {
           aria-label={label}
           className={({ isActive }) =>
             `flex h-11 w-11 items-center justify-center rounded-full ${interactiveClass} focus-visible:ring-text focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised ${
-              isActive ? 'text-accent' : 'text-text-muted'
+              isActive ? 'text-accent-text' : 'text-text-muted'
             }`
           }
         >
