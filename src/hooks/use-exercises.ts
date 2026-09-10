@@ -9,6 +9,8 @@ export type Exercise = {
   muskelgruppen_primaer: string[] | null
   muskelgruppen_sekundaer: string[] | null
   bild_url: string | null
+  anleitung: string[] | null
+  schwierigkeitsgrad: string | null
   met_wert: number | null
   created_by: string | null
 }
@@ -20,6 +22,9 @@ export type NewExercise = {
   equipment?: string
   muskelgruppen_primaer?: string[]
   muskelgruppen_sekundaer?: string[]
+  bild_url?: string
+  anleitung?: string[]
+  schwierigkeitsgrad?: string
 }
 
 const PAGE_SIZE = 500

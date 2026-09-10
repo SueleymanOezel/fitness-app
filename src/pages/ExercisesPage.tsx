@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
-import { useExercises } from '../hooks/use-exercises'
-import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { useExercises, type Exercise, type NewExercise } from '../hooks/use-exercises'
+import { cardClass, buttonPrimaryClass, buttonSecondaryClass, interactiveClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import Chip from '../components/Chip'
+import ExerciseDetailDialog from '../components/ExerciseDetailDialog'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { muskelgruppeLabel } from '../lib/muscle-group-labels'
 import { equipmentLabel } from '../lib/equipment-labels'
@@ -30,6 +31,7 @@ function ExercisesList({ userId }: { userId: string }) {
   const [query, setQuery] = useState('')
   const [muskelgruppe, setMuskelgruppe] = useState<string | null>(null)
   const [equipment, setEquipment] = useState<string | null>(null)
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   if (loading) {
@@ -106,7 +108,25 @@ function ExercisesList({ userId }: { userId: string }) {
       <ul role="list" className="space-y-4">
         {filtered.map((exercise) => (
           <li key={exercise.id} className="block border-b-0">
-            <div className={`${cardClass} w-full`}>{exercise.name}</div>
+            <button
+              type="button"
+              className={`${cardClass} ${interactiveClass} flex w-full items-center gap-4 text-left focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
+              onClick={() => setSelectedExercise(exercise)}
+            >
+              {exercise.bild_url ? (
+                <img
+                  src={exercise.bild_url}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  referrerPolicy="no-referrer"
+                  className="h-12 w-12 shrink-0 rounded-xl object-cover"
+                />
+              ) : (
+                <VitaIcon name="exercises" tone="mono" size={48} className="shrink-0" />
+              )}
+              <span className="flex-1 text-left">{exercise.name}</span>
+            </button>
           </li>
         ))}
       </ul>
@@ -131,6 +151,9 @@ function ExercisesList({ userId }: { userId: string }) {
           />
         )}
       </Dialog>
+      <Dialog open={selectedExercise !== null} onClose={() => setSelectedExercise(null)}>
+        {selectedExercise && <ExerciseDetailDialog exercise={selectedExercise} />}
+      </Dialog>
       <Link to="/training" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Training
@@ -143,12 +166,15 @@ function NewExerciseForm({
   onSave,
   onCancel,
 }: {
-  onSave: (input: { name: string; kategorie: string; met_wert: number }) => Promise<void>
+  onSave: (input: NewExercise) => Promise<void>
   onCancel: () => void
 }) {
   const [name, setName] = useState('')
   const [kategorie, setKategorie] = useState('')
   const [metWert, setMetWert] = useState('')
+  const [bildUrl, setBildUrl] = useState('')
+  const [schwierigkeitsgrad, setSchwierigkeitsgrad] = useState('')
+  const [anleitung, setAnleitung] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -162,8 +188,21 @@ function NewExerciseForm({
     }
     setSaving(true)
     setError('')
+    const bildUrlGetrimmt = bildUrl.trim()
+    const schwierigkeitsgradGetrimmt = schwierigkeitsgrad.trim()
+    const anleitungSchritte = anleitung
+      .split('\n')
+      .map((zeile) => zeile.trim())
+      .filter((zeile) => zeile !== '')
     try {
-      await onSave({ name: name.trim(), kategorie: kategorie.trim(), met_wert: met })
+      await onSave({
+        name: name.trim(),
+        kategorie: kategorie.trim(),
+        met_wert: met,
+        ...(bildUrlGetrimmt !== '' ? { bild_url: bildUrlGetrimmt } : {}),
+        ...(schwierigkeitsgradGetrimmt !== '' ? { schwierigkeitsgrad: schwierigkeitsgradGetrimmt } : {}),
+        ...(anleitungSchritte.length > 0 ? { anleitung: anleitungSchritte } : {}),
+      })
     } catch {
       setError('Speichern fehlgeschlagen.')
     } finally {
@@ -185,6 +224,18 @@ function NewExerciseForm({
         <label>
           MET-Wert
           <input type="number" step="any" value={metWert} onChange={(event) => setMetWert(event.target.value)} />
+        </label>
+        <label>
+          Bild-URL
+          <input value={bildUrl} onChange={(event) => setBildUrl(event.target.value)} />
+        </label>
+        <label>
+          Schwierigkeitsgrad
+          <input value={schwierigkeitsgrad} onChange={(event) => setSchwierigkeitsgrad(event.target.value)} />
+        </label>
+        <label>
+          Anleitung
+          <textarea value={anleitung} onChange={(event) => setAnleitung(event.target.value)} />
         </label>
       </div>
       {error !== '' && <p role="alert">{error}</p>}

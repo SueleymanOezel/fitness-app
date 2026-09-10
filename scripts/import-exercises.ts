@@ -13,6 +13,8 @@ type RawExercise = {
   primaryMuscles: string[]
   secondaryMuscles: string[]
   images: string[]
+  instructions: string[]
+  level: string
 }
 
 export function toExerciseRow(raw: RawExercise) {
@@ -23,6 +25,8 @@ export function toExerciseRow(raw: RawExercise) {
     muskelgruppen_primaer: raw.primaryMuscles,
     muskelgruppen_sekundaer: raw.secondaryMuscles,
     bild_url: raw.images.length > 0 ? `${IMAGE_BASE_URL}${raw.images[0]}` : null,
+    anleitung: raw.instructions.length > 0 ? raw.instructions : null,
+    schwierigkeitsgrad: raw.level,
     met_wert: metForCategory(raw.category),
     created_by: null,
   }

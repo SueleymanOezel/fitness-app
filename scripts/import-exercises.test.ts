@@ -10,6 +10,8 @@ describe('toExerciseRow', () => {
       primaryMuscles: ['abdominals'],
       secondaryMuscles: [],
       images: ['3_4_Sit-Up/0.jpg', '3_4_Sit-Up/1.jpg'],
+      instructions: ['Lie down on the floor.', 'Sit up.'],
+      level: 'beginner',
     }
 
     expect(toExerciseRow(raw)).toEqual({
@@ -19,6 +21,8 @@ describe('toExerciseRow', () => {
       muskelgruppen_primaer: ['abdominals'],
       muskelgruppen_sekundaer: [],
       bild_url: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/3_4_Sit-Up/0.jpg',
+      anleitung: ['Lie down on the floor.', 'Sit up.'],
+      schwierigkeitsgrad: 'beginner',
       met_wert: 5.0,
       created_by: null,
     })
@@ -32,6 +36,8 @@ describe('toExerciseRow', () => {
       primaryMuscles: ['abdominals'],
       secondaryMuscles: [],
       images: [],
+      instructions: [],
+      level: 'intermediate',
     }
 
     expect(toExerciseRow(raw).met_wert).toBe(8.0)
@@ -45,9 +51,41 @@ describe('toExerciseRow', () => {
       primaryMuscles: [],
       secondaryMuscles: [],
       images: [],
+      instructions: [],
+      level: 'beginner',
     }
 
     expect(toExerciseRow(raw).bild_url).toBeNull()
+  })
+
+  it('leaves anleitung null when an entry has no instructions in the source', () => {
+    const raw = {
+      name: 'X',
+      category: 'strength',
+      equipment: null,
+      primaryMuscles: [],
+      secondaryMuscles: [],
+      images: [],
+      instructions: [],
+      level: 'beginner',
+    }
+
+    expect(toExerciseRow(raw).anleitung).toBeNull()
+  })
+
+  it('passes the level straight through as schwierigkeitsgrad', () => {
+    const raw = {
+      name: 'X',
+      category: 'strength',
+      equipment: null,
+      primaryMuscles: [],
+      secondaryMuscles: [],
+      images: [],
+      instructions: ['Step 1.'],
+      level: 'expert',
+    }
+
+    expect(toExerciseRow(raw).schwierigkeitsgrad).toBe('expert')
   })
 })
 
@@ -84,6 +122,8 @@ const row = {
   muskelgruppen_primaer: [],
   muskelgruppen_sekundaer: [],
   bild_url: null,
+  anleitung: null,
+  schwierigkeitsgrad: 'beginner',
   met_wert: 5,
   created_by: null,
 }
