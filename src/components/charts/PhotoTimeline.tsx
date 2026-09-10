@@ -24,15 +24,17 @@ export default function PhotoTimeline({
   fotos,
   rows,
   picker,
+  leerCta,
 }: {
   fotos: AnalysisPhoto[]
   rows: BodyMetricRow[]
   picker?: ReactNode
+  leerCta?: { label: string; to: string }
 }) {
   const punkte = fotoZeitleiste(fotos, rows)
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 1} picker={picker}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 1} picker={picker} leerCta={leerCta}>
       <ul role="list">
         {punkte.map((punkt) => (
           <li key={punkt.id}>

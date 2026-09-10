@@ -22,9 +22,11 @@ export const TITEL = AENDERUNGSRATE_TITEL
 export default function WeightChangeRateChart({
   rows,
   picker,
+  leerCta,
 }: {
   rows: BodyMetricRow[]
   picker?: ReactNode
+  leerCta?: { label: string; to: string }
 }) {
   const punkte = aenderungsrate(rows).map((punkt) => ({
     ...punkt,
@@ -32,7 +34,7 @@ export default function WeightChangeRateChart({
   }))
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={punkte}>
           <CartesianGrid strokeDasharray="3 3" />
