@@ -223,7 +223,7 @@ export type VitaIconProps = Omit<SVGProps<SVGSVGElement>, 'children'> & {
 
 /**
  * Zwei Farb-Layer statt einer: mono laesst beide Layer currentColor tragen
- * (folgt der Textfarbe des Elternelements, z.B. text-accent/text-text-muted
+ * (folgt der Textfarbe des Elternelements, z.B. text-accent-text/text-text-muted
  * in der BottomNav), brand setzt die zwei Logo-Farben fest — fuer Stellen,
  * an denen das Icon immer markenfarbig sein soll, unabhaengig vom
  * umgebenden Text.
