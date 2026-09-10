@@ -70,11 +70,11 @@ describe('ExercisesPage', () => {
     expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
     expect(screen.getByText('Kniebeuge')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'chest' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Brust' }))
 
     expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
     expect(screen.queryByText('Kniebeuge')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'chest' })).toHaveClass('bg-accent')
+    expect(screen.getByRole('button', { name: 'Brust' })).toHaveClass('bg-accent')
     expect(screen.getByRole('button', { name: 'Alle' })).toHaveClass('bg-surface')
   })
 
@@ -92,7 +92,7 @@ describe('ExercisesPage', () => {
     const { default: ExercisesPage } = await import('./ExercisesPage')
     renderWithProviders(<ExercisesPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'chest' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Brust' }))
     expect(screen.queryByText('Kniebeuge')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Alle' }))
@@ -113,7 +113,7 @@ describe('ExercisesPage', () => {
     const { default: ExercisesPage } = await import('./ExercisesPage')
     renderWithProviders(<ExercisesPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'chest' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Brust' }))
     fireEvent.change(screen.getByLabelText('Suche'), { target: { value: 'Schräg' } })
 
     expect(screen.queryByText('Bankdrücken')).not.toBeInTheDocument()

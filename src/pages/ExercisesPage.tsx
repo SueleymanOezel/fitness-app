@@ -6,6 +6,7 @@ import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-c
 import Dialog from '../components/Dialog'
 import Chip from '../components/Chip'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import { muskelgruppeLabel } from '../lib/muscle-group-labels'
 
 export default function ExercisesPage() {
   const { session } = useSession()
@@ -55,7 +56,7 @@ function ExercisesList({ userId }: { userId: string }) {
   }
 
   const muskelgruppen = [...new Set(exercises.flatMap((exercise) => exercise.muskelgruppen_primaer ?? []))].sort(
-    (a, b) => a.localeCompare(b, 'de'),
+    (a, b) => muskelgruppeLabel(a).localeCompare(muskelgruppeLabel(b), 'de'),
   )
 
   const filtered = exercises.filter(
@@ -74,7 +75,7 @@ function ExercisesList({ userId }: { userId: string }) {
           </Chip>
           {muskelgruppen.map((gruppe) => (
             <Chip key={gruppe} active={muskelgruppe === gruppe} onClick={() => setMuskelgruppe(gruppe)}>
-              {gruppe}
+              {muskelgruppeLabel(gruppe)}
             </Chip>
           ))}
         </div>
