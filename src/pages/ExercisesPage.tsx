@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useExercises, type Exercise, type NewExercise } from '../hooks/use-exercises'
-import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { cardClass, buttonPrimaryClass, buttonSecondaryClass, interactiveClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import Chip from '../components/Chip'
 import ExerciseDetailDialog from '../components/ExerciseDetailDialog'
@@ -110,15 +110,22 @@ function ExercisesList({ userId }: { userId: string }) {
           <li key={exercise.id} className="block border-b-0">
             <button
               type="button"
-              className={`${cardClass} flex w-full items-center gap-4`}
+              className={`${cardClass} ${interactiveClass} flex w-full items-center gap-4 text-left focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
               onClick={() => setSelectedExercise(exercise)}
             >
               {exercise.bild_url ? (
-                <img src={exercise.bild_url} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
+                <img
+                  src={exercise.bild_url}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  referrerPolicy="no-referrer"
+                  className="h-12 w-12 shrink-0 rounded-xl object-cover"
+                />
               ) : (
-                <VitaIcon name="exercises" tone="mono" size={48} />
+                <VitaIcon name="exercises" tone="mono" size={48} className="shrink-0" />
               )}
-              {exercise.name}
+              <span className="flex-1 text-left">{exercise.name}</span>
             </button>
           </li>
         ))}

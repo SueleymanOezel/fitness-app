@@ -18,7 +18,12 @@ export default function ExerciseDetailDialog({ exercise }: { exercise: Exercise 
   return (
     <div className={`${cardClass} flex flex-col gap-4`}>
       {exercise.bild_url && (
-        <img src={exercise.bild_url} alt={exercise.name} className="w-full rounded-2xl object-cover" />
+        <img
+          src={exercise.bild_url}
+          alt={exercise.name}
+          referrerPolicy="no-referrer"
+          className="w-full rounded-2xl object-cover"
+        />
       )}
       <h2>{exercise.name}</h2>
       {(muskelgruppen.length > 0 || exercise.equipment) && (
