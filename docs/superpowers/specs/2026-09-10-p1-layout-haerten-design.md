@@ -38,13 +38,12 @@ Alle weiteren Seiten (`HomePage`, `TrainingPage` + Unterseiten, `NutritionEntrie
 
 ## Entscheidung 2: `main` reserviert Platz für die schwebende Nav
 
-Die bestehende `main`-Regel (`index.css`, `@layer base`) wird von der `padding: 0 16px 16px`-Kurzschreibweise auf explizite Longhands umgestellt, damit `padding-bottom` unabhängig gesetzt werden kann:
+Die bestehende `main`-Regel (`index.css`, `@layer base`) behält ihre Shorthand-Schreibweise (wie jede andere Regel in dieser Datei — keine logischen Properties einführen, wo der Rest der Datei durchgängig physische nutzt), nur der dritte Wert (unten) ändert sich:
 
 ```css
 main {
   flex: 1;
-  padding-inline: 16px;
-  padding-block-end: calc(4rem + env(safe-area-inset-bottom) + 16px);
+  padding: 0 16px calc(4rem + env(safe-area-inset-bottom) + 16px);
 }
 ```
 
