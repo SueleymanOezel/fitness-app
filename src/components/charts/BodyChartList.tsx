@@ -21,22 +21,33 @@ export type BodyChartListProps = {
   fotos: AnalysisPhoto[]
   /** Gesetzt auf der Analyse-Seite: zeigt die Haekchen. */
   auswahl?: ReturnType<typeof useChartSelection>
+  /** Wird an jeden Chart des Bereichs durchgereicht, siehe ChartFrame. */
+  leerCta?: { label: string; to: string }
 }
 
-export default function BodyChartList({ ids, rows, kalorien, fotos, auswahl }: BodyChartListProps) {
-  function graph(id: string): ReactNode {
+export default function BodyChartList({
+  ids,
+  rows,
+  kalorien,
+  fotos,
+  auswahl,
+  leerCta,
+}: BodyChartListProps) {
+  function graph(id: string, cta?: { label: string; to: string }): ReactNode {
     const picker = auswahl ? <ChartPicker id={id} auswahl={auswahl} /> : undefined
     switch (id) {
       case K1:
-        return <WeightTrendChart rows={rows} picker={picker} />
+        return <WeightTrendChart rows={rows} picker={picker} leerCta={cta} />
       case K2:
-        return <BodyMeasurementsChart rows={rows} picker={picker} />
+        return <BodyMeasurementsChart rows={rows} picker={picker} leerCta={cta} />
       case K3:
-        return <WeightChangeRateChart rows={rows} picker={picker} />
+        return <WeightChangeRateChart rows={rows} picker={picker} leerCta={cta} />
       case K4:
-        return <WeightVsCaloriesChart rows={rows} kalorien={kalorien} picker={picker} />
+        return (
+          <WeightVsCaloriesChart rows={rows} kalorien={kalorien} picker={picker} leerCta={cta} />
+        )
       case K5:
-        return <PhotoTimeline fotos={fotos} rows={rows} picker={picker} />
+        return <PhotoTimeline fotos={fotos} rows={rows} picker={picker} leerCta={cta} />
       default:
         // Eine ID ohne Komponente ist kein Fehler, den der Nutzer sehen muss:
         // parseAuswahl haelt Unbekanntes schon fern, hier bleibt nur die Luecke.
@@ -46,9 +57,9 @@ export default function BodyChartList({ ids, rows, kalorien, fotos, auswahl }: B
 
   return (
     <div className="space-y-4">
-      {ids.map((id) => (
+      {ids.map((id, index) => (
         <Suspense key={id} fallback={<p>Lädt…</p>}>
-          {graph(id)}
+          {graph(id, index === 0 ? leerCta : undefined)}
         </Suspense>
       ))}
     </div>

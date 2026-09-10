@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { renderWithProviders } from '../../test-render'
 import ChartFrame from './ChartFrame'
 
 describe('ChartFrame', () => {
@@ -56,5 +57,24 @@ describe('ChartFrame', () => {
     )
     expect(screen.getByText('Übung')).toBeInTheDocument()
     expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+  })
+
+  it('shows a call-to-action link in the empty state when leerCta is set', () => {
+    renderWithProviders(
+      <ChartFrame titel="Trainingsfrequenz" leer leerCta={{ label: 'Training starten', to: '/training' }}>
+        <div />
+      </ChartFrame>,
+    )
+    const link = screen.getByRole('link', { name: 'Training starten' })
+    expect(link).toHaveAttribute('href', '/training')
+  })
+
+  it('omits the call-to-action link when leerCta is not set', () => {
+    renderWithProviders(
+      <ChartFrame titel="Trainingsfrequenz" leer>
+        <div />
+      </ChartFrame>,
+    )
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
 })

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { cardClass } from '../../lib/ui-classes'
 
 /**
@@ -11,6 +12,7 @@ export default function ChartFrame({
   leer,
   picker,
   vorspann,
+  leerCta,
   children,
 }: {
   titel: string
@@ -23,6 +25,12 @@ export default function ChartFrame({
    * pick a different one).
    */
   vorspann?: ReactNode
+  /**
+   * Link zur zentralen Eintragsaktion des Bereichs, gezeigt statt eines toten
+   * Endes im Leerzustand. Von jedem Dashboard/jeder Analyse-Seite einmal fuer
+   * alle ihre Charts gesetzt, nicht pro Chart-Typ einzeln.
+   */
+  leerCta?: { label: string; to: string }
   children: ReactNode
 }) {
   return (
@@ -30,7 +38,18 @@ export default function ChartFrame({
       <h2>{titel}</h2>
       {picker}
       {vorspann}
-      {leer ? <p>Noch nicht genug Daten für diesen Graphen.</p> : children}
+      {leer ? (
+        <>
+          <p>Noch nicht genug Daten für diesen Graphen.</p>
+          {leerCta && (
+            <Link to={leerCta.to} className="flex items-center justify-center gap-2">
+              {leerCta.label}
+            </Link>
+          )}
+        </>
+      ) : (
+        children
+      )}
     </section>
   )
 }

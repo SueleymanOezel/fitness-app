@@ -12,14 +12,16 @@ export const TITEL = VOLUMEN_JE_MUSKELGRUPPE_TITEL
 export default function MuscleVolumeChart({
   sets,
   picker,
+  leerCta,
 }: {
   sets: AnalysisSet[]
   picker?: ReactNode
+  leerCta?: { label: string; to: string }
 }) {
   const punkte = volumenJeMuskelgruppe(sets)
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 1} picker={picker}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 1} picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={punkte}>
           <CartesianGrid strokeDasharray="3 3" />

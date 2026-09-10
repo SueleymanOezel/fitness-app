@@ -12,14 +12,16 @@ export const TITEL = MAKRO_VERLAUF_TITEL
 export default function MacroTrendChart({
   entries,
   picker,
+  leerCta,
 }: {
   entries: AnalysisFoodEntry[]
   picker?: ReactNode
+  leerCta?: { label: string; to: string }
 }) {
   const punkte = makroVerlauf(entries).map((punkt) => ({ ...punkt, label: tagesLabel(punkt.tag) }))
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={punkte}>
           <CartesianGrid strokeDasharray="3 3" />

@@ -43,7 +43,13 @@ function Analyse({ userId }: { userId: string }) {
       {loading ? (
         <p>Lädt…</p>
       ) : (
-        <TrainingChartList ids={ids} sessions={sessions} sets={sets} auswahl={auswahl} />
+        <TrainingChartList
+          ids={ids}
+          sessions={sessions}
+          sets={sets}
+          auswahl={auswahl}
+          leerCta={{ label: 'Training starten', to: '/training' }}
+        />
       )}
       <Link to="/training" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />

@@ -78,14 +78,16 @@ function Dashboard({ userId }: { userId: string }) {
           const change = changeSince(rows, field)
           return (
             <li key={field} className="block border-b-0">
-              <div className={`${cardClass} w-full`}>
-                <span>{FIELD_LABELS[field]}</span>
-                <span data-testid={`wert-${field}`}>
+              <div className={`${cardClass} w-full flex flex-col items-start gap-1`}>
+                <span className="text-sm text-text-muted">{FIELD_LABELS[field]}</span>
+                <span className="text-2xl font-semibold" data-testid={`wert-${field}`}>
                   {latest == null ? '—' : `${formatValue(latest.value)} ${unitOf(field)}`}
                 </span>
-                {latest != null && <span>{`Stand ${formatDate(latest.datum)}`}</span>}
+                {latest != null && (
+                  <span className="text-sm text-text-muted">{`Stand ${formatDate(latest.datum)}`}</span>
+                )}
                 {change != null && (
-                  <span>
+                  <span className="text-sm text-text-muted">
                     {/* U+2212 minus, not a hyphen: it lines up with digits. */}
                     {`${change.delta < 0 ? '−' : '+'}${formatValue(Math.abs(change.delta))} ${unitOf(field)} seit ${formatDate(change.datum)}`}
                   </span>
@@ -171,5 +173,12 @@ function DashboardBodyChartsData({ userId, ids }: { userId: string; ids: string[
   const { rows, kalorien, fotos, loading, error } = useBodyAnalysis(userId, DASHBOARD_ZEITRAUM)
   if (loading) return <p>Lädt…</p>
   if (error) return <p role="alert">Graph konnte nicht geladen werden.</p>
-  return <BodyChartList ids={ids} rows={rows} kalorien={kalorien} fotos={fotos} />
+  return (
+    <BodyChartList
+      ids={ids}
+      rows={rows}
+      kalorien={kalorien}
+      fotos={fotos}
+    />
+  )
 }

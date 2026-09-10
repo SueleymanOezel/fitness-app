@@ -60,7 +60,17 @@ function Dashboard({ userId }: { userId: string }) {
   return (
     <div>
       <h1>Training</h1>
-      {plan == null && <p>Kein aktiver Plan.</p>}
+      {plan == null && (
+        <>
+          <p>Kein aktiver Plan.</p>
+          <Link to="/training/plans" className={buttonPrimaryClass}>
+            <span className="inline-flex items-center justify-center gap-2">
+              <VitaIcon name="plans" tone="mono" size={20} />
+              Trainingsplan anlegen
+            </span>
+          </Link>
+        </>
+      )}
       {plan != null && day == null && (
         <>
           <p>{plan.name}</p>
@@ -116,5 +126,11 @@ function DashboardTrainingChartsData({ userId, ids }: { userId: string; ids: str
   const { sessions, sets, loading, error } = useTrainingAnalysis(userId, DASHBOARD_ZEITRAUM)
   if (loading) return <p>Lädt…</p>
   if (error) return <p role="alert">Graph konnte nicht geladen werden.</p>
-  return <TrainingChartList ids={ids} sessions={sessions} sets={sets} />
+  return (
+    <TrainingChartList
+      ids={ids}
+      sessions={sessions}
+      sets={sets}
+    />
+  )
 }

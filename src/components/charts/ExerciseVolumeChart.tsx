@@ -16,11 +16,13 @@ export default function ExerciseVolumeChart({
   sessions,
   sets,
   picker,
+  leerCta,
   mitUebungsauswahl = true,
 }: {
   sessions: AnalysisSession[]
   sets: AnalysisSet[]
   picker?: ReactNode
+  leerCta?: { label: string; to: string }
   mitUebungsauswahl?: boolean
 }) {
   const { optionen, exerciseId, waehlen } = useUebungsauswahl(sets)
@@ -38,6 +40,7 @@ export default function ExerciseVolumeChart({
       titel={titel}
       leer={punkte.length < 1}
       picker={picker}
+      leerCta={leerCta}
       vorspann={
         mitUebungsauswahl && (
           <ExerciseSelect optionen={optionen} wert={exerciseId} onChange={waehlen} />

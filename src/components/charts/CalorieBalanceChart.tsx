@@ -23,10 +23,12 @@ export default function CalorieBalanceChart({
   entries,
   sessions,
   picker,
+  leerCta,
 }: {
   entries: AnalysisFoodEntry[]
   sessions: AnalysisSessionKalorien[]
   picker?: ReactNode
+  leerCta?: { label: string; to: string }
 }) {
   const punkte = kalorienbilanz(entries, sessions).map((punkt) => ({
     ...punkt,
@@ -34,7 +36,7 @@ export default function CalorieBalanceChart({
   }))
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={punkte}>
           <CartesianGrid strokeDasharray="3 3" />

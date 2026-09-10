@@ -12,16 +12,18 @@ export const TITEL = TRAININGSFREQUENZ_TITEL
 export default function TrainingFrequencyChart({
   sessions,
   picker,
+  leerCta,
 }: {
   sessions: AnalysisSession[]
   picker?: ReactNode
+  leerCta?: { label: string; to: string }
 }) {
   const punkte = sessionsJeWoche(sessions)
 
   return (
     // Spec section 5: lines need two points, bars need one. A single bar still
     // states something ("3 Einheiten diese Woche"); a single line point does not.
-    <ChartFrame titel={TITEL} leer={punkte.length < 1} picker={picker}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 1} picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={punkte}>
           <CartesianGrid strokeDasharray="3 3" />

@@ -15,11 +15,13 @@ export default function DailySummary({ entries, goal }: Props) {
   return (
     <div className={cardClass}>
       <h2>Heute</h2>
-      <p>
-        {consumed} kcal verbraucht
-        {remaining != null ? `, ${remaining} kcal offen (Ziel ${goal} kcal)` : ''}
-      </p>
-      <p>
+      <p className="text-3xl font-semibold">{consumed} kcal verbraucht</p>
+      {remaining != null && (
+        <p className="text-sm text-text-muted">
+          {remaining} kcal offen (Ziel {goal} kcal)
+        </p>
+      )}
+      <p className="text-sm text-text-muted">
         Eiweiß: {Math.round(sumMakro(entries, 'eiweiss'))} g · Fett: {Math.round(sumMakro(entries, 'fett'))} g ·
         Kohlenhydrate: {Math.round(sumMakro(entries, 'kohlenhydrate'))} g
       </p>

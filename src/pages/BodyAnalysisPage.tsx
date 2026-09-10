@@ -41,7 +41,14 @@ function Analyse({ userId }: { userId: string }) {
       {loading ? (
         <p>Lädt…</p>
       ) : (
-        <BodyChartList ids={ids} rows={rows} kalorien={kalorien} fotos={fotos} auswahl={auswahl} />
+        <BodyChartList
+          ids={ids}
+          rows={rows}
+          kalorien={kalorien}
+          fotos={fotos}
+          auswahl={auswahl}
+          leerCta={{ label: 'Heute eintragen', to: '/body' }}
+        />
       )}
       <Link to="/body" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
