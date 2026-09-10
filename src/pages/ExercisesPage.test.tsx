@@ -18,6 +18,8 @@ const exercise = {
   muskelgruppen_primaer: ['chest'],
   muskelgruppen_sekundaer: [],
   bild_url: null,
+  anleitung: ['Schritt eins.', 'Schritt zwei.'],
+  schwierigkeitsgrad: 'beginner',
   met_wert: 5,
   created_by: null,
 }
@@ -190,6 +192,44 @@ describe('ExercisesPage', () => {
     renderWithProviders(<ExercisesPage />)
 
     expect(screen.queryByRole('button', { name: 'Alle Geräte' })).not.toBeInTheDocument()
+  })
+
+  it('shows a thumbnail image for an exercise with a bild_url', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(
+      exercisesResult({ exercises: [{ ...exercise, bild_url: 'https://example.com/bankdruecken.jpg' }] }),
+    )
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    const row = screen.getByRole('button', { name: 'Bankdrücken' })
+    expect(row.querySelector('img')).toHaveAttribute('src', 'https://example.com/bankdruecken.jpg')
+  })
+
+  it('shows a placeholder icon when an exercise has no bild_url', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(exercisesResult({ exercises: [{ ...exercise, bild_url: null }] }))
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    const row = screen.getByRole('button', { name: 'Bankdrücken' })
+    expect(row.querySelector('img')).not.toBeInTheDocument()
+    expect(row.querySelector('svg')).toBeInTheDocument()
+  })
+
+  it('opens the detail dialog with the exercise details when a row is clicked', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(exercisesResult())
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Bankdrücken' }))
+
+    expect(screen.getByText('Schritt eins.')).toBeInTheDocument()
+    expect(screen.getByText('Schritt zwei.')).toBeInTheDocument()
   })
 
   it('hides the filter row when no exercise has a muscle group', async () => {

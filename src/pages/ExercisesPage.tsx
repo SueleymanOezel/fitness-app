@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
-import { useExercises } from '../hooks/use-exercises'
+import { useExercises, type Exercise } from '../hooks/use-exercises'
 import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import Chip from '../components/Chip'
+import ExerciseDetailDialog from '../components/ExerciseDetailDialog'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { muskelgruppeLabel } from '../lib/muscle-group-labels'
 import { equipmentLabel } from '../lib/equipment-labels'
@@ -30,6 +31,7 @@ function ExercisesList({ userId }: { userId: string }) {
   const [query, setQuery] = useState('')
   const [muskelgruppe, setMuskelgruppe] = useState<string | null>(null)
   const [equipment, setEquipment] = useState<string | null>(null)
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   if (loading) {
@@ -106,7 +108,18 @@ function ExercisesList({ userId }: { userId: string }) {
       <ul role="list" className="space-y-4">
         {filtered.map((exercise) => (
           <li key={exercise.id} className="block border-b-0">
-            <div className={`${cardClass} w-full`}>{exercise.name}</div>
+            <button
+              type="button"
+              className={`${cardClass} flex w-full items-center gap-4`}
+              onClick={() => setSelectedExercise(exercise)}
+            >
+              {exercise.bild_url ? (
+                <img src={exercise.bild_url} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
+              ) : (
+                <VitaIcon name="exercises" tone="mono" size={48} />
+              )}
+              {exercise.name}
+            </button>
           </li>
         ))}
       </ul>
@@ -130,6 +143,9 @@ function ExercisesList({ userId }: { userId: string }) {
             onCancel={() => setDialogOpen(false)}
           />
         )}
+      </Dialog>
+      <Dialog open={selectedExercise !== null} onClose={() => setSelectedExercise(null)}>
+        {selectedExercise && <ExerciseDetailDialog exercise={selectedExercise} />}
       </Dialog>
       <Link to="/training" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
