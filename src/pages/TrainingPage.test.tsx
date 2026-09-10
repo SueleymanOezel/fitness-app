@@ -77,6 +77,10 @@ describe('TrainingPage', () => {
 
     expect(screen.queryByRole('button', { name: 'Training starten' })).not.toBeInTheDocument()
     expect(screen.getByText(/kein aktiver Plan/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Trainingsplan anlegen/ })).toHaveAttribute(
+      'href',
+      '/training/plans',
+    )
   })
 
   it('asks for a day when the active plan has none yet', () => {

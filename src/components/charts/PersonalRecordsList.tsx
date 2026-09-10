@@ -20,15 +20,17 @@ export default function PersonalRecordsList({
   sessions,
   sets,
   picker,
+  leerCta,
 }: {
   sessions: AnalysisSession[]
   sets: AnalysisSet[]
   picker?: ReactNode
+  leerCta?: { label: string; to: string }
 }) {
   const rekorde = persoenlicheRekorde(sessions, sets)
 
   return (
-    <ChartFrame titel={TITEL} leer={rekorde.length < 1} picker={picker}>
+    <ChartFrame titel={TITEL} leer={rekorde.length < 1} picker={picker} leerCta={leerCta}>
       <ul role="list">
         {rekorde.map((rekord) => (
           <li key={rekord.exercise_id}>

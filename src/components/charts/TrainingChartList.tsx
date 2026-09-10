@@ -21,6 +21,8 @@ export type TrainingChartListProps = {
   sets: AnalysisSet[]
   /** Gesetzt auf der Analyse-Seite: zeigt Haekchen und Uebungsauswahl. */
   auswahl?: ReturnType<typeof useChartSelection>
+  /** Wird an jeden Chart des Bereichs durchgereicht, siehe ChartFrame. */
+  leerCta?: { label: string; to: string }
 }
 
 export default function TrainingChartList({
@@ -28,6 +30,7 @@ export default function TrainingChartList({
   sessions,
   sets,
   auswahl,
+  leerCta,
 }: TrainingChartListProps) {
   const analyse = auswahl != null
 
@@ -35,13 +38,14 @@ export default function TrainingChartList({
     const picker = auswahl ? <ChartPicker id={id} auswahl={auswahl} /> : undefined
     switch (id) {
       case T1:
-        return <TrainingFrequencyChart sessions={sessions} picker={picker} />
+        return <TrainingFrequencyChart sessions={sessions} picker={picker} leerCta={leerCta} />
       case T2:
         return (
           <StrengthChart
             sessions={sessions}
             sets={sets}
             picker={picker}
+            leerCta={leerCta}
             mitUebungsauswahl={analyse}
           />
         )
@@ -51,6 +55,7 @@ export default function TrainingChartList({
             sessions={sessions}
             sets={sets}
             picker={picker}
+            leerCta={leerCta}
             mitUebungsauswahl={analyse}
           />
         )
@@ -60,6 +65,7 @@ export default function TrainingChartList({
             sessions={sessions}
             sets={sets}
             picker={picker}
+            leerCta={leerCta}
             mitUebungsauswahl={analyse}
           />
         )
@@ -69,15 +75,16 @@ export default function TrainingChartList({
             sessions={sessions}
             sets={sets}
             picker={picker}
+            leerCta={leerCta}
             mitUebungsauswahl={analyse}
           />
         )
       case T6:
-        return <MuscleVolumeChart sets={sets} picker={picker} />
+        return <MuscleVolumeChart sets={sets} picker={picker} leerCta={leerCta} />
       case T7:
-        return <SessionLoadChart sessions={sessions} picker={picker} />
+        return <SessionLoadChart sessions={sessions} picker={picker} leerCta={leerCta} />
       case T8:
-        return <PersonalRecordsList sessions={sessions} sets={sets} picker={picker} />
+        return <PersonalRecordsList sessions={sessions} sets={sets} picker={picker} leerCta={leerCta} />
       default:
         // Eine ID ohne Komponente ist kein Fehler, den der Nutzer sehen muss:
         // parseAuswahl haelt Unbekanntes schon fern, hier bleibt nur die Luecke.
