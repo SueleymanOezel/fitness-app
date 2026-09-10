@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
-import { useExercises, type Exercise } from '../hooks/use-exercises'
+import { useExercises, type Exercise, type NewExercise } from '../hooks/use-exercises'
 import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import Chip from '../components/Chip'
@@ -159,12 +159,15 @@ function NewExerciseForm({
   onSave,
   onCancel,
 }: {
-  onSave: (input: { name: string; kategorie: string; met_wert: number }) => Promise<void>
+  onSave: (input: NewExercise) => Promise<void>
   onCancel: () => void
 }) {
   const [name, setName] = useState('')
   const [kategorie, setKategorie] = useState('')
   const [metWert, setMetWert] = useState('')
+  const [bildUrl, setBildUrl] = useState('')
+  const [schwierigkeitsgrad, setSchwierigkeitsgrad] = useState('')
+  const [anleitung, setAnleitung] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -178,8 +181,21 @@ function NewExerciseForm({
     }
     setSaving(true)
     setError('')
+    const bildUrlGetrimmt = bildUrl.trim()
+    const schwierigkeitsgradGetrimmt = schwierigkeitsgrad.trim()
+    const anleitungSchritte = anleitung
+      .split('\n')
+      .map((zeile) => zeile.trim())
+      .filter((zeile) => zeile !== '')
     try {
-      await onSave({ name: name.trim(), kategorie: kategorie.trim(), met_wert: met })
+      await onSave({
+        name: name.trim(),
+        kategorie: kategorie.trim(),
+        met_wert: met,
+        ...(bildUrlGetrimmt !== '' ? { bild_url: bildUrlGetrimmt } : {}),
+        ...(schwierigkeitsgradGetrimmt !== '' ? { schwierigkeitsgrad: schwierigkeitsgradGetrimmt } : {}),
+        ...(anleitungSchritte.length > 0 ? { anleitung: anleitungSchritte } : {}),
+      })
     } catch {
       setError('Speichern fehlgeschlagen.')
     } finally {
@@ -201,6 +217,18 @@ function NewExerciseForm({
         <label>
           MET-Wert
           <input type="number" step="any" value={metWert} onChange={(event) => setMetWert(event.target.value)} />
+        </label>
+        <label>
+          Bild-URL
+          <input value={bildUrl} onChange={(event) => setBildUrl(event.target.value)} />
+        </label>
+        <label>
+          Schwierigkeitsgrad
+          <input value={schwierigkeitsgrad} onChange={(event) => setSchwierigkeitsgrad(event.target.value)} />
+        </label>
+        <label>
+          Anleitung
+          <textarea value={anleitung} onChange={(event) => setAnleitung(event.target.value)} />
         </label>
       </div>
       {error !== '' && <p role="alert">{error}</p>}
