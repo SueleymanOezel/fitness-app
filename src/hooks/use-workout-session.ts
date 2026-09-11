@@ -11,6 +11,7 @@ export type SessionInfo = {
 }
 
 export type SessionExercise = {
+  id: string
   exercise_id: string
   name: string
   ziel_saetze: number | null
@@ -40,7 +41,8 @@ export type SetValues = {
   ist_aufwaermsatz: boolean
 }
 
-type RawDayExercise = {
+type RawSessionExercise = {
+  id: string
   exercise_id: string
   reihenfolge: number
   ziel_saetze: number | null
@@ -83,7 +85,39 @@ export async function startWorkoutSession(userId: string, dayId: string): Promis
     .select('id')
     .single()
   if (error || !data) throw new Error('start session failed')
-  return (data as { id: string }).id
+  const sessionId = (data as { id: string }).id
+
+  // A fresh session gets its own one-time copy of the day's exercises — see
+  // docs/superpowers/specs/2026-09-11-sitzungs-uebungen-design.md. A resumed
+  // session (returned above already) keeps the copy it got when it was first
+  // created; this only runs for a session that did not exist yet.
+  const { data: dayExerciseRows, error: dayExerciseError } = await supabase
+    .from('workout_plan_day_exercises')
+    .select('exercise_id, reihenfolge, ziel_saetze, ziel_wiederholungen, pausenzeit_sekunden')
+    .eq('workout_plan_day_id', dayId)
+  if (dayExerciseError) throw new Error('start session failed')
+  const dayExercises = (dayExerciseRows ?? []) as {
+    exercise_id: string
+    reihenfolge: number
+    ziel_saetze: number | null
+    ziel_wiederholungen: number | null
+    pausenzeit_sekunden: number | null
+  }[]
+  if (dayExercises.length > 0) {
+    const { error: copyError } = await supabase.from('workout_session_exercises').insert(
+      dayExercises.map((row) => ({
+        workout_session_id: sessionId,
+        exercise_id: row.exercise_id,
+        reihenfolge: row.reihenfolge,
+        ziel_saetze: row.ziel_saetze,
+        ziel_wiederholungen: row.ziel_wiederholungen,
+        pausenzeit_sekunden: row.pausenzeit_sekunden,
+      })),
+    )
+    if (copyError) throw new Error('start session failed')
+  }
+
+  return sessionId
 }
 
 export function useWorkoutSession(sessionId: string) {
@@ -99,17 +133,22 @@ export function useWorkoutSession(sessionId: string) {
     const current = ++requestId.current
     // maybeSingle: a deleted session is an empty result to report, not an exception.
     const { data: sessionData } = await supabase.from('workout_sessions').select('*').eq('id', sessionId).maybeSingle()
-    const dayId = (sessionData as SessionInfo | null)?.workout_plan_day_id ?? null
+    if (!sessionData) {
+      // No session to hang exercises/sets off of — skip both queries rather
+      // than surface orphaned rows a stale sessionId might otherwise match.
+      if (current !== requestId.current) return
+      setSession(null)
+      setExercises([])
+      setSets([])
+      setLoading(false)
+      return
+    }
 
-    const { data: exerciseRows } = dayId
-      ? await supabase
-          .from('workout_plan_day_exercises')
-          .select(
-            'exercise_id, reihenfolge, ziel_saetze, ziel_wiederholungen, pausenzeit_sekunden, exercises(id, name)',
-          )
-          .eq('workout_plan_day_id', dayId)
-          .order('reihenfolge', { ascending: true })
-      : { data: [] }
+    const { data: exerciseRows } = await supabase
+      .from('workout_session_exercises')
+      .select('id, exercise_id, reihenfolge, ziel_saetze, ziel_wiederholungen, pausenzeit_sekunden, exercises(id, name)')
+      .eq('workout_session_id', sessionId)
+      .order('reihenfolge', { ascending: true })
 
     const { data: setRows } = await supabase
       .from('workout_session_sets')
@@ -123,7 +162,8 @@ export function useWorkoutSession(sessionId: string) {
 
     setSession(sessionData as SessionInfo | null)
     setExercises(
-      ((exerciseRows ?? []) as unknown as RawDayExercise[]).map((row) => ({
+      ((exerciseRows ?? []) as unknown as RawSessionExercise[]).map((row) => ({
+        id: row.id,
         exercise_id: row.exercise_id,
         name: row.exercises?.name ?? '',
         ziel_saetze: row.ziel_saetze,
@@ -181,6 +221,34 @@ export function useWorkoutSession(sessionId: string) {
     await reload()
   }
 
+  /**
+   * Session-scoped only — never touches workout_plan_day_exercises, so the
+   * plan itself is unaffected (see the design spec). reihenfolge is computed
+   * from the currently loaded exercises in one snapshot, then written in a
+   * single array insert — never a loop of single inserts, which would repeat
+   * the same closure bug already found and fixed for addExercisesToDay.
+   */
+  async function addExercisesToSession(exerciseIds: string[]) {
+    const nextReihenfolge = exercises.length === 0 ? 1 : Math.max(...exercises.map((entry) => entry.reihenfolge)) + 1
+    const rows = exerciseIds.map((exerciseId, index) => ({
+      workout_session_id: sessionId,
+      exercise_id: exerciseId,
+      reihenfolge: nextReihenfolge + index,
+      ziel_saetze: null,
+      ziel_wiederholungen: null,
+      pausenzeit_sekunden: null,
+    }))
+    const { error } = await supabase.from('workout_session_exercises').insert(rows)
+    if (error) throw new Error('add exercises to session failed')
+    await reload()
+  }
+
+  async function removeExerciseFromSession(sessionExerciseId: string) {
+    const { error } = await supabase.from('workout_session_exercises').delete().eq('id', sessionExerciseId)
+    if (error) throw new Error('remove exercise from session failed')
+    await reload()
+  }
+
   async function completeSession(gewichtKg: number) {
     const beendetAm = new Date().toISOString()
     // Trained time runs to the last completed set, not to whenever the user
@@ -214,5 +282,16 @@ export function useWorkoutSession(sessionId: string) {
     if (error) throw new Error('delete session failed')
   }
 
-  return { session, exercises, sets, loading, logSet, updateSet, completeSession, deleteSession }
+  return {
+    session,
+    exercises,
+    sets,
+    loading,
+    logSet,
+    updateSet,
+    completeSession,
+    deleteSession,
+    addExercisesToSession,
+    removeExerciseFromSession,
+  }
 }

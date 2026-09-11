@@ -31,12 +31,14 @@ erDiagram
 
     exercises ||--o{ workout_plan_day_exercises : "referenziert"
     exercises ||--o{ workout_session_sets : "referenziert"
+    exercises ||--o{ workout_session_exercises : "referenziert"
 
     workout_plans ||--o{ workout_plan_days : "gliedert sich in"
     workout_plan_days ||--o{ workout_plan_day_exercises : "enthält"
     workout_plan_days ||--o{ workout_sessions : "wird durchgeführt in"
 
     workout_sessions ||--o{ workout_session_sets : "enthält"
+    workout_sessions ||--o{ workout_session_exercises : "enthält"
 
     profiles {
         uuid id PK "= auth.users.id"
@@ -132,6 +134,16 @@ erDiagram
         numeric gesamt_kalorien
     }
 
+    workout_session_exercises {
+        uuid id PK
+        uuid workout_session_id FK
+        uuid exercise_id FK
+        int reihenfolge
+        int ziel_saetze
+        int ziel_wiederholungen
+        int pausenzeit_sekunden
+    }
+
     workout_session_sets {
         uuid id PK
         uuid workout_session_id FK
@@ -194,6 +206,7 @@ erDiagram
 - `exercises.anleitung` (Schritt-für-Schritt-Sätze) und `exercises.schwierigkeitsgrad` (`beginner`/`intermediate`/`expert`) kommen seit Migration `0008` ebenfalls aus dem Import; beide sind nullable (5 der 873 importierten Übungen haben keine Instructions in der Quelle). Übersetzung ins Deutsche passiert im Frontend (`src/lib/level-labels.ts` für den Schwierigkeitsgrad, analog zu Muskelgruppen/Geräten) mit Fallback auf den Rohwert — kein DB-Constraint.
 - `exercises.name_de` und `exercises.anleitung_de` (Migration `0009`) enthalten die deutsche Übersetzung von `name`/`anleitung`, befüllt durch das manuell auszuführende `scripts/translate-exercises.ts` (DeepL API, kein UI-Trigger, wiederaufnehmbar über den DB-Zustand). Beide sind nullable und gelten nur für importierte Übungen (`created_by is null`) — eigene Übungen bleiben unübersetzt. Frontend zeigt `name_de ?? name` / `anleitung_de ?? anleitung` mit Fallback auf Englisch.
 - `workout_plan_day_exercises` hat einen Unique-Index auf `(workout_plan_day_id, exercise_id)` — dieselbe Übung kann in einem Tag nur einmal vorkommen, sonst teilen sich zwei Zeilen im Live-Training eine `exercise_id` (gemeinsame Satzzählung, falsche `satz_nummer`).
+- `workout_session_exercises` (Migration `0011`) ist eine einmalige Momentaufnahme der Tages-Übungen zum Zeitpunkt der Sitzungserstellung — kopiert nur beim Neuanlegen einer Sitzung, nicht beim Fortsetzen einer bereits offenen (siehe `RESUME_WINDOW_HOURS` in `use-workout-session.ts`). Übungen lassen sich während der Sitzung hinzufügen/entfernen, ohne dass sich das auf `workout_plan_day_exercises` auswirkt; `workout_session_sets.exercise_id` bleibt davon unabhängig, weshalb die Trainingshistorie unverändert bleibt. Gleicher Unique-Index wie beim Plan-Pendant: `(workout_session_id, exercise_id)`.
 - `workout_sessions.workout_plan_day_id` ist `on delete set null`: eine abgeschlossene Session ist die Aufzeichnung des tatsächlich Trainierten und überlebt das Umbauen oder Löschen des Plans — sie verliert nur ihre Beschriftung.
 - Genau ein Plan je Nutzer ist aktiv. Das Umschalten macht die Funktion `activate_workout_plan(plan_id uuid)` in **einem** Statement (`security invoker`, prüft die Eigentümerschaft selbst); zwei Requests aus dem Client konnten dazwischen scheitern und gar keinen aktiven Plan hinterlassen.
 - `workout_session_sets.satz_nummer` ist eine reine Reihenfolge-Nummer über **alle** Sätze einer Übung, Aufwärmsätze eingeschlossen. Die Zählung „Satz 1 von 3" wird in der Oberfläche aus den Sätzen mit `ist_aufwaermsatz = false` abgeleitet; die Datenbank nummeriert nichts um, wenn ein Aufwärmsatz dazwischen liegt.

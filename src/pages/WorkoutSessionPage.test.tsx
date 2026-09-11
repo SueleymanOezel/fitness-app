@@ -9,6 +9,9 @@ vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
 const mockUseProfile = vi.fn()
 vi.mock('../hooks/use-profile', () => ({ useProfile: (userId: string) => mockUseProfile(userId) }))
 
+const mockUseExercises = vi.fn()
+vi.mock('../hooks/use-exercises', () => ({ useExercises: (userId: string) => mockUseExercises(userId) }))
+
 const mockUseWorkoutSession = vi.fn()
 vi.mock('../hooks/use-workout-session', () => ({
   useWorkoutSession: (sessionId: string) => mockUseWorkoutSession(sessionId),
@@ -20,6 +23,7 @@ afterEach(() => {
 })
 
 const exercise = {
+  id: 'se1',
   exercise_id: 'ex1',
   name: 'Bankdrücken',
   ziel_saetze: 2,
@@ -59,6 +63,8 @@ function sessionResult(overrides: Partial<ReturnType<typeof mockUseWorkoutSessio
     updateSet: vi.fn().mockResolvedValue(undefined),
     completeSession: vi.fn().mockResolvedValue(undefined),
     deleteSession: vi.fn().mockResolvedValue(undefined),
+    addExercisesToSession: vi.fn().mockResolvedValue(undefined),
+    removeExerciseFromSession: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   }
 }
@@ -73,6 +79,7 @@ function renderPage() {
 function signedIn(weight: number | null = 80) {
   mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
   mockUseProfile.mockReturnValue({ profile: { aktuelles_gewicht: weight }, loading: false, error: false })
+  mockUseExercises.mockReturnValue({ exercises: [], loading: false, createExercise: vi.fn() })
 }
 
 describe('WorkoutSessionPage', () => {
@@ -83,6 +90,67 @@ describe('WorkoutSessionPage', () => {
     renderPage()
 
     expect(await screen.findByText('Bankdrücken')).toBeInTheDocument()
+  })
+
+  it('adds an exercise to the session via the picker', async () => {
+    signedIn()
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+    mockUseExercises.mockReturnValue({
+      exercises: [
+        {
+          id: 'ex2',
+          name: 'Squat',
+          name_de: 'Kniebeuge',
+          muskelgruppen_primaer: ['quadriceps'],
+          muskelgruppen_sekundaer: null,
+          equipment: 'barbell',
+          bild_url: null,
+        },
+      ],
+      loading: false,
+      createExercise: vi.fn(),
+    })
+
+    renderPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Übung hinzufügen' }))
+    fireEvent.click(screen.getByRole('button', { name: /Kniebeuge/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Hinzufügen (1)' }))
+
+    await waitFor(() => expect(result.addExercisesToSession).toHaveBeenCalledWith(['ex2']))
+  })
+
+  it('shows a remove button for an exercise with no logged sets, and removes it', async () => {
+    signedIn()
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Entfernen' }))
+
+    await waitFor(() => expect(result.removeExerciseFromSession).toHaveBeenCalledWith('se1'))
+  })
+
+  it('hides the remove button once a set has been logged for that exercise', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult({ sets: [loggedSet({ id: 'set1' })] }))
+
+    renderPage()
+
+    expect(screen.queryByRole('button', { name: 'Entfernen' })).not.toBeInTheDocument()
+  })
+
+  it('hides the remove button when only a warm-up set has been logged for that exercise', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({ sets: [loggedSet({ id: 'set1', ist_aufwaermsatz: true })] }),
+    )
+
+    renderPage()
+
+    expect(screen.queryByRole('button', { name: 'Entfernen' })).not.toBeInTheDocument()
   })
 
   it('logs a set and starts the pause timer', async () => {

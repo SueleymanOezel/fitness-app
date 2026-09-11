@@ -12,6 +12,9 @@ import { cardClass, buttonPrimaryClass } from '../lib/ui-classes'
 import Chip from '../components/Chip'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import { useExercises } from '../hooks/use-exercises'
+import Dialog from '../components/Dialog'
+import ExercisePicker from '../components/ExercisePicker'
 
 export default function WorkoutSessionPage() {
   const { session } = useSession()
@@ -32,9 +35,20 @@ export default function WorkoutSessionPage() {
 
 function LiveSession({ userId, sessionId }: { userId: string; sessionId: string }) {
   const { profile, loading: profileLoading } = useProfile(userId)
-  const { session, exercises, sets, loading, logSet, completeSession } = useWorkoutSession(sessionId)
+  const {
+    session,
+    exercises,
+    sets,
+    loading,
+    logSet,
+    completeSession,
+    addExercisesToSession,
+    removeExerciseFromSession,
+  } = useWorkoutSession(sessionId)
+  const { exercises: katalogUebungen } = useExercises(userId)
   const [openExerciseId, setOpenExerciseId] = useState<string | null>(null)
   const [pause, setPause] = useState<{ until: number; sekunden: number } | null>(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
   const showToast = useToast()
   const navigate = useNavigate()
 
@@ -110,6 +124,22 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     }
   }
 
+  async function addExercises(exerciseIds: string[]) {
+    try {
+      await addExercisesToSession(exerciseIds)
+    } catch {
+      showToast('Übung konnte nicht hinzugefügt werden.', 'error')
+    }
+  }
+
+  async function removeExercise(sessionExerciseId: string) {
+    try {
+      await removeExerciseFromSession(sessionExerciseId)
+    } catch {
+      showToast('Übung konnte nicht entfernt werden.', 'error')
+    }
+  }
+
   return (
     <div>
       <h1>Training</h1>
@@ -121,6 +151,14 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
               <button type="button" onClick={() => setOpenExerciseId(entry.exercise_id)}>
                 {entry.name}
               </button>
+              {!sets.some((set) => set.exercise_id === entry.exercise_id) && (
+                <button type="button" onClick={() => removeExercise(entry.id)}>
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <VitaIcon name="delete" tone="mono" size={20} />
+                    Entfernen
+                  </span>
+                </button>
+              )}
               {openExerciseId === entry.exercise_id && (
                 <LoggedSets sets={sets.filter((set) => set.exercise_id === entry.exercise_id)} />
               )}
@@ -154,6 +192,31 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
           </li>
         ))}
       </ul>
+      <button type="button" className={buttonPrimaryClass} onClick={() => setPickerOpen(true)}>
+        <span className="inline-flex items-center justify-center gap-2">
+          <VitaIcon name="add" tone="mono" size={20} />
+          Übung hinzufügen
+        </span>
+      </button>
+      {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
+          rendering the picker only while open resets the search field each
+          time it opens, instead of keeping the last search around. */}
+      <Dialog open={pickerOpen} onClose={() => setPickerOpen(false)}>
+        {pickerOpen && (
+          <ExercisePicker
+            exercises={katalogUebungen}
+            alreadyAdded={exercises.map((entry) => entry.exercise_id)}
+            // Same reasoning as the plan editor's picker: close synchronously
+            // before the write resolves, since a toast raised while this
+            // Dialog is still open would render invisible behind its native
+            // top-layer backdrop.
+            onAddSelected={(exerciseIds) => {
+              void addExercises(exerciseIds)
+              setPickerOpen(false)
+            }}
+          />
+        )}
+      </Dialog>
       <p>{gewichtKg === null ? '—' : `${gewichtKg} kg`}</p>
       {gewichtKg === null && <p>Ohne Gewicht im Profil lässt sich der Verbrauch nicht berechnen.</p>}
       <button type="button" className={buttonPrimaryClass} disabled={gewichtKg === null} onClick={complete}>
