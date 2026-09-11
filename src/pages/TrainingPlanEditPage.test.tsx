@@ -19,6 +19,7 @@ const exercise = {
   name: 'Bench Press',
   name_de: 'Bankdrücken',
   muskelgruppen_primaer: ['chest'],
+  muskelgruppen_sekundaer: null,
   equipment: 'barbell',
   bild_url: null,
 }
