@@ -11,6 +11,7 @@
     "test": "vitest run",
     "import-exercises": "node scripts/import-exercises.ts",
     "translate-exercises": "node scripts/translate-exercises.ts",
+    "fix-imperial-units": "node scripts/fix-imperial-units.ts",
     "dev:mobile": "vite --mode mobile"
   },
   "dependencies": {
