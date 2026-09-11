@@ -4,11 +4,10 @@ import { useSession } from '../hooks/use-session'
 import { useExercises, type Exercise, type NewExercise } from '../hooks/use-exercises'
 import { cardClass, buttonPrimaryClass, buttonSecondaryClass, interactiveClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
-import Chip from '../components/Chip'
 import ExerciseDetailDialog from '../components/ExerciseDetailDialog'
+import ExerciseFilterChips from '../components/ExerciseFilterChips'
 import { VitaIcon } from '../components/icons/VitaIcon'
-import { muskelgruppeLabel } from '../lib/muscle-group-labels'
-import { equipmentLabel } from '../lib/equipment-labels'
+import { matchesExerciseFilter, uniqueEquipment, uniqueMuskelgruppen } from '../lib/exercise-filters'
 
 export default function ExercisesPage() {
   const { session } = useSession()
@@ -59,50 +58,24 @@ function ExercisesList({ userId }: { userId: string }) {
     )
   }
 
-  const muskelgruppen = [...new Set(exercises.flatMap((exercise) => exercise.muskelgruppen_primaer ?? []))].sort(
-    (a, b) => muskelgruppeLabel(a).localeCompare(muskelgruppeLabel(b), 'de'),
-  )
-
-  const equipmentWerte = [...new Set(exercises.flatMap((exercise) => (exercise.equipment ? [exercise.equipment] : [])))].sort(
-    (a, b) => equipmentLabel(a).localeCompare(equipmentLabel(b), 'de'),
-  )
+  const muskelgruppen = uniqueMuskelgruppen(exercises)
+  const equipmentWerte = uniqueEquipment(exercises)
 
   const filtered = exercises
-    .filter(
-      (exercise) =>
-        (exercise.name_de ?? exercise.name).toLowerCase().includes(query.toLowerCase()) &&
-        (muskelgruppe === null || (exercise.muskelgruppen_primaer ?? []).includes(muskelgruppe)) &&
-        (equipment === null || exercise.equipment === equipment),
-    )
+    .filter((exercise) => matchesExerciseFilter(exercise, { query, muskelgruppe, equipment }))
     .sort((a, b) => (a.name_de ?? a.name).localeCompare(b.name_de ?? b.name, 'de'))
 
   return (
     <div>
       <h1>Übungen</h1>
-      {muskelgruppen.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <Chip active={muskelgruppe === null} onClick={() => setMuskelgruppe(null)}>
-            Alle
-          </Chip>
-          {muskelgruppen.map((gruppe) => (
-            <Chip key={gruppe} active={muskelgruppe === gruppe} onClick={() => setMuskelgruppe(gruppe)}>
-              {muskelgruppeLabel(gruppe)}
-            </Chip>
-          ))}
-        </div>
-      )}
-      {equipmentWerte.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <Chip active={equipment === null} onClick={() => setEquipment(null)}>
-            Alle Geräte
-          </Chip>
-          {equipmentWerte.map((wert) => (
-            <Chip key={wert} active={equipment === wert} onClick={() => setEquipment(wert)}>
-              {equipmentLabel(wert)}
-            </Chip>
-          ))}
-        </div>
-      )}
+      <ExerciseFilterChips
+        muskelgruppen={muskelgruppen}
+        muskelgruppe={muskelgruppe}
+        onMuskelgruppeChange={setMuskelgruppe}
+        equipmentWerte={equipmentWerte}
+        equipment={equipment}
+        onEquipmentChange={setEquipment}
+      />
       <label>
         Suche
         <input value={query} onChange={(event) => setQuery(event.target.value)} />
