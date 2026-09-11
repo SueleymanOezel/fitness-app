@@ -17,6 +17,8 @@ import {
 } from '../lib/exercise-filters'
 import { equipmentLabel } from '../lib/equipment-labels'
 import { muskelgruppeLabel } from '../lib/muscle-group-labels'
+import { zonenFuerTag } from '../lib/muscle-zones'
+import TagMuskelSilhouette from '../components/TagMuskelSilhouette'
 
 export default function TrainingPlanEditPage() {
   const { session } = useSession()
@@ -161,9 +163,18 @@ function DayBlock({
 }) {
   const [pickerOpen, setPickerOpen] = useState(false)
 
+  // Muscle data isn't in day.exercises[].exercise (that embed only selects
+  // id/name/name_de/bild_url) — matched against the already-loaded catalog
+  // instead, so no new query is needed just for the silhouette.
+  const trainierteUebungen = day.exercises
+    .map((row) => exercises.find((exercise) => exercise.id === row.exercise_id))
+    .filter((exercise): exercise is PickableExercise => exercise !== undefined)
+  const zonen = zonenFuerTag(trainierteUebungen)
+
   return (
     <section className={cardClass}>
       <h2>{day.name}</h2>
+      <TagMuskelSilhouette zonen={zonen} />
       {canMoveUp && (
         <button type="button" onClick={() => onMoveDay('up')}>
           Tag nach oben
@@ -253,6 +264,7 @@ type PickableExercise = {
   name: string
   name_de: string | null
   muskelgruppen_primaer: string[] | null
+  muskelgruppen_sekundaer: string[] | null
   equipment: string | null
   bild_url: string | null
 }

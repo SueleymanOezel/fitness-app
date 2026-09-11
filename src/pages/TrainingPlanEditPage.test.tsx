@@ -19,6 +19,7 @@ const exercise = {
   name: 'Bench Press',
   name_de: 'Bankdrücken',
   muskelgruppen_primaer: ['chest'],
+  muskelgruppen_sekundaer: null,
   equipment: 'barbell',
   bild_url: null,
 }
@@ -76,6 +77,18 @@ describe('TrainingPlanEditPage', () => {
     expect(await screen.findByText('Tag A')).toBeInTheDocument()
     expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
     expect(screen.getByLabelText('Sätze')).toHaveValue(3)
+  })
+
+  it('shows the muscle silhouette with the day exercise’s primary muscle group highlighted', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseWorkoutPlan.mockReturnValue(planResult())
+    mockUseExercises.mockReturnValue({ exercises: [exercise], loading: false, createExercise: vi.fn() })
+
+    const { container } = renderPage()
+
+    await screen.findByText('Tag A')
+    expect(container.querySelector('[data-zone="brust"]')).toHaveAttribute('data-level', 'primary')
+    expect(container.querySelector('[data-zone="bauch"]')).toHaveAttribute('data-level', 'untrained')
   })
 
   it('shows a thumbnail for an exercise already in the day', async () => {
