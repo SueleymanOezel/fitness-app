@@ -6,6 +6,7 @@ import { cardClass, buttonPrimaryClass, buttonSecondaryClass, interactiveClass }
 import Dialog from '../components/Dialog'
 import ExerciseDetailDialog from '../components/ExerciseDetailDialog'
 import ExerciseFilterChips from '../components/ExerciseFilterChips'
+import ExerciseThumbnail from '../components/ExerciseThumbnail'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { matchesExerciseFilter, uniqueEquipment, uniqueMuskelgruppen } from '../lib/exercise-filters'
 
@@ -88,18 +89,7 @@ function ExercisesList({ userId }: { userId: string }) {
               className={`${cardClass} ${interactiveClass} flex w-full items-center gap-4 text-left focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
               onClick={() => setSelectedExercise(exercise)}
             >
-              {exercise.bild_url ? (
-                <img
-                  src={exercise.bild_url}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  referrerPolicy="no-referrer"
-                  className="h-12 w-12 shrink-0 rounded-xl object-cover"
-                />
-              ) : (
-                <VitaIcon name="exercises" tone="mono" size={48} className="shrink-0" />
-              )}
+              <ExerciseThumbnail bildUrl={exercise.bild_url} />
               <span className="flex-1 text-left">{exercise.name_de ?? exercise.name}</span>
             </button>
           </li>
