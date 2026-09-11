@@ -5,6 +5,7 @@ import { useProfile } from '../hooks/use-profile'
 import {
   useWorkoutSession,
   type SessionExercise,
+  type SessionSet,
   type SetValues,
 } from '../hooks/use-workout-session'
 import { cardClass, buttonPrimaryClass } from '../lib/ui-classes'
@@ -121,6 +122,9 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                 {entry.name}
               </button>
               {openExerciseId === entry.exercise_id && (
+                <LoggedSets sets={sets.filter((set) => set.exercise_id === entry.exercise_id)} />
+              )}
+              {openExerciseId === entry.exercise_id && (
                 <SetForm
                   exercise={entry}
                   completedCount={workingSetCount(entry.exercise_id)}
@@ -169,6 +173,40 @@ const RIR_VALUES = [0, 1, 2, 3, 4, 5] as const
 // on the column and the plan editor only rejects negative values.
 function targetReached(zielSaetze: number | null, done: number) {
   return zielSaetze != null && zielSaetze > 0 && done >= zielSaetze
+}
+
+/**
+ * Read-only history of what's already logged for the open exercise, shown
+ * above SetForm so the next set (the form itself) reads as the one still
+ * outstanding. Numbered like the "Satz N von M" status line below it — by
+ * position among working sets, not by satz_nummer, which also counts
+ * warm-ups (see workingSetCount).
+ */
+function LoggedSets({ sets }: { sets: SessionSet[] }) {
+  if (sets.length === 0) return null
+
+  const arbeitssaetze = sets.filter((set) => !set.ist_aufwaermsatz).sort((a, b) => a.satz_nummer - b.satz_nummer)
+  const aufwaermsaetze = sets.filter((set) => set.ist_aufwaermsatz)
+
+  return (
+    <div>
+      {aufwaermsaetze.length > 0 && (
+        <p className="text-sm text-text-muted">
+          {aufwaermsaetze.length} {aufwaermsaetze.length === 1 ? 'Aufwärmsatz' : 'Aufwärmsätze'}
+        </p>
+      )}
+      {arbeitssaetze.length > 0 && (
+        <ul role="list" aria-label="Erfasste Sätze" className="space-y-1">
+          {arbeitssaetze.map((set, index) => (
+            <li key={set.id} className="flex items-center gap-2">
+              <VitaIcon name="save" tone="brand" size={20} />
+              <span>{`Satz ${index + 1}: ${set.gewicht ?? '—'} kg × ${set.wiederholungen ?? '—'} Wdh.`}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
 }
 
 function SetForm({
