@@ -78,6 +78,18 @@ describe('TrainingPlanEditPage', () => {
     expect(screen.getByLabelText('Sätze')).toHaveValue(3)
   })
 
+  it('shows the muscle silhouette with the day exercise’s primary muscle group highlighted', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseWorkoutPlan.mockReturnValue(planResult())
+    mockUseExercises.mockReturnValue({ exercises: [exercise], loading: false, createExercise: vi.fn() })
+
+    const { container } = renderPage()
+
+    await screen.findByText('Tag A')
+    expect(container.querySelector('[data-zone="brust"]')).toHaveAttribute('data-level', 'primary')
+    expect(container.querySelector('[data-zone="bauch"]')).toHaveAttribute('data-level', 'untrained')
+  })
+
   it('shows a thumbnail for an exercise already in the day', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     const withImage = { ...exercise, bild_url: 'https://example.com/bank.jpg' }
