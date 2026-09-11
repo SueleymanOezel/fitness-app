@@ -67,12 +67,14 @@ function ExercisesList({ userId }: { userId: string }) {
     (a, b) => equipmentLabel(a).localeCompare(equipmentLabel(b), 'de'),
   )
 
-  const filtered = exercises.filter(
-    (exercise) =>
-      exercise.name.toLowerCase().includes(query.toLowerCase()) &&
-      (muskelgruppe === null || (exercise.muskelgruppen_primaer ?? []).includes(muskelgruppe)) &&
-      (equipment === null || exercise.equipment === equipment),
-  )
+  const filtered = exercises
+    .filter(
+      (exercise) =>
+        (exercise.name_de ?? exercise.name).toLowerCase().includes(query.toLowerCase()) &&
+        (muskelgruppe === null || (exercise.muskelgruppen_primaer ?? []).includes(muskelgruppe)) &&
+        (equipment === null || exercise.equipment === equipment),
+    )
+    .sort((a, b) => (a.name_de ?? a.name).localeCompare(b.name_de ?? b.name, 'de'))
 
   return (
     <div>
@@ -125,7 +127,7 @@ function ExercisesList({ userId }: { userId: string }) {
               ) : (
                 <VitaIcon name="exercises" tone="mono" size={48} className="shrink-0" />
               )}
-              <span className="flex-1 text-left">{exercise.name}</span>
+              <span className="flex-1 text-left">{exercise.name_de ?? exercise.name}</span>
             </button>
           </li>
         ))}

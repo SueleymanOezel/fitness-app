@@ -108,6 +108,25 @@ describe('TrainingPlanEditPage', () => {
     expect(screen.queryByLabelText('Übung suchen')).not.toBeInTheDocument()
   })
 
+  it('finds an exercise in the picker by its German translated name', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const result = planResult()
+    mockUseWorkoutPlan.mockReturnValue(result)
+    mockUseExercises.mockReturnValue({
+      exercises: [exercise, { id: 'ex2', name: 'Bench Press', name_de: 'Bankdrücken' }],
+      loading: false,
+      createExercise: vi.fn(),
+    })
+
+    renderPage()
+    await screen.findByText('Tag A')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Übung hinzufügen' }))
+    fireEvent.change(screen.getByLabelText('Übung suchen'), { target: { value: 'Bankdrücken' } })
+
+    expect(screen.getByRole('button', { name: 'Bankdrücken hinzufügen' })).toBeInTheDocument()
+  })
+
   it('writes a target value once on blur, not on every keystroke', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     const result = planResult()

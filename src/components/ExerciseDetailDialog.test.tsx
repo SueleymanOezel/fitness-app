@@ -8,12 +8,14 @@ afterEach(() => cleanup())
 const exercise: Exercise = {
   id: 'ex1',
   name: 'Bankdrücken',
+  name_de: null,
   kategorie: 'strength',
   equipment: 'barbell',
   muskelgruppen_primaer: ['chest'],
   muskelgruppen_sekundaer: [],
   bild_url: 'https://example.com/bankdruecken.jpg',
   anleitung: ['Lege dich auf die Bank.', 'Drücke die Stange nach oben.'],
+  anleitung_de: null,
   schwierigkeitsgrad: 'intermediate',
   met_wert: 5,
   created_by: null,
@@ -54,16 +56,49 @@ describe('ExerciseDetailDialog', () => {
     expect(screen.getByText('Keine Anleitung hinterlegt.')).toBeInTheDocument()
   })
 
+  it('shows the German name and instructions when translations exist', () => {
+    render(
+      <ExerciseDetailDialog
+        exercise={{
+          ...exercise,
+          name: 'Bench Press',
+          name_de: 'Bankdrücken (DE)',
+          anleitung: ['Step A.', 'Step B.'],
+          anleitung_de: ['Schritt A.', 'Schritt B.'],
+        }}
+      />,
+    )
+
+    expect(screen.getByText('Bankdrücken (DE)')).toBeInTheDocument()
+    expect(screen.queryByText('Bench Press')).not.toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Bankdrücken (DE)' })).toBeInTheDocument()
+    const items = screen.getAllByRole('listitem')
+    expect(items.map((item) => item.textContent)).toEqual(['Schritt A.', 'Schritt B.'])
+  })
+
+  it('falls back to the English anleitung when only the name is translated', () => {
+    render(
+      <ExerciseDetailDialog
+        exercise={{ ...exercise, name: 'Bench Press', name_de: 'Bankdrücken (DE)', anleitung_de: null }}
+      />,
+    )
+
+    expect(screen.getByText('Bankdrücken (DE)')).toBeInTheDocument()
+    expect(screen.getByText('Lege dich auf die Bank.')).toBeInTheDocument()
+  })
+
   it('renders a minimal exercise without empty sections', () => {
     const minimal: Exercise = {
       id: 'ex2',
       name: 'Eigene Übung',
+      name_de: null,
       kategorie: 'strength',
       equipment: null,
       muskelgruppen_primaer: null,
       muskelgruppen_sekundaer: null,
       bild_url: null,
       anleitung: null,
+      anleitung_de: null,
       schwierigkeitsgrad: null,
       met_wert: 4,
       created_by: 'u1',

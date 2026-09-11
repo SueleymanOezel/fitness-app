@@ -4,12 +4,14 @@ import { supabase } from '../lib/supabase'
 export type Exercise = {
   id: string
   name: string
+  name_de: string | null
   kategorie: string | null
   equipment: string | null
   muskelgruppen_primaer: string[] | null
   muskelgruppen_sekundaer: string[] | null
   bild_url: string | null
   anleitung: string[] | null
+  anleitung_de: string[] | null
   schwierigkeitsgrad: string | null
   met_wert: number | null
   created_by: string | null
