@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlans } from '../hooks/use-workout-plans'
@@ -23,9 +22,7 @@ export default function TrainingPlansPage() {
 }
 
 function PlansList({ userId }: { userId: string }) {
-  const { plans, loading, createPlan, deletePlan, activatePlan } = useWorkoutPlans(userId)
-  const [name, setName] = useState('')
-  const [nameError, setNameError] = useState('')
+  const { plans, loading, deletePlan, activatePlan } = useWorkoutPlans(userId)
   const showToast = useToast()
 
   if (loading) {
@@ -39,9 +36,7 @@ function PlansList({ userId }: { userId: string }) {
 
   // The hooks reject on a failed write; without this the rejection would go
   // unhandled and the user would see nothing at all. A write failure is
-  // short-lived feedback on an action, so it goes to a toast — unlike the
-  // name-is-empty check below, which is permanent form validation and stays
-  // inline (ToastProvider's own contract: transient action feedback only).
+  // short-lived feedback on an action, so it goes to a toast.
   async function run(action: () => Promise<void>, message: string) {
     try {
       await action()
@@ -82,31 +77,12 @@ function PlansList({ userId }: { userId: string }) {
           </li>
         ))}
       </ul>
-      <form
-        onSubmit={async (event) => {
-          event.preventDefault()
-          if (name.trim() === '') {
-            setNameError('Der Plan braucht einen Namen.')
-            return
-          }
-          setNameError('')
-          const trimmed = name.trim()
-          setName('')
-          await run(() => createPlan(trimmed), 'Anlegen fehlgeschlagen.')
-        }}
-      >
-        <label>
+      <Link to="/training/plans/new" className={buttonPrimaryClass}>
+        <span className="inline-flex items-center justify-center gap-2">
+          <VitaIcon name="add" tone="mono" size={20} />
           Neuer Plan
-          <input value={name} onChange={(event) => setName(event.target.value)} />
-        </label>
-        <button type="submit" className={buttonPrimaryClass}>
-          <span className="inline-flex items-center justify-center gap-2">
-            <VitaIcon name="add" tone="mono" size={20} />
-            Anlegen
-          </span>
-        </button>
-      </form>
-      {nameError !== '' && <p role="alert">{nameError}</p>}
+        </span>
+      </Link>
       <Link to="/training" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Training
