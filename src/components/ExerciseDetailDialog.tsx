@@ -12,20 +12,21 @@ import type { Exercise } from '../hooks/use-exercises'
 const tagClass = 'rounded-full bg-surface px-4 py-2 font-medium text-text-muted'
 
 export default function ExerciseDetailDialog({ exercise }: { exercise: Exercise }) {
+  const name = exercise.name_de ?? exercise.name
   const muskelgruppen = exercise.muskelgruppen_primaer ?? []
-  const anleitung = exercise.anleitung ?? []
+  const anleitung = exercise.anleitung_de ?? exercise.anleitung ?? []
 
   return (
     <div className={`${cardClass} flex flex-col gap-4`}>
       {exercise.bild_url && (
         <img
           src={exercise.bild_url}
-          alt={exercise.name}
+          alt={name}
           referrerPolicy="no-referrer"
           className="w-full rounded-2xl object-cover"
         />
       )}
-      <h2>{exercise.name}</h2>
+      <h2>{name}</h2>
       {(muskelgruppen.length > 0 || exercise.equipment) && (
         <div className="flex flex-wrap gap-2">
           {muskelgruppen.map((gruppe) => (
