@@ -140,7 +140,7 @@ function DayBlock({
   onMoveExercise,
 }: {
   day: WorkoutPlanDay
-  exercises: { id: string; name: string }[]
+  exercises: { id: string; name: string; name_de: string | null }[]
   canMoveUp: boolean
   canMoveDown: boolean
   onMoveDay: (direction: 'up' | 'down') => void
@@ -240,7 +240,7 @@ function ExercisePicker({
   alreadyAdded,
   onPick,
 }: {
-  exercises: { id: string; name: string }[]
+  exercises: { id: string; name: string; name_de: string | null }[]
   alreadyAdded: string[]
   onPick: (exerciseId: string) => void
 }) {
@@ -252,7 +252,8 @@ function ExercisePicker({
       ? []
       : exercises.filter(
           (exercise) =>
-            exercise.name.toLowerCase().includes(query.toLowerCase()) && !alreadyAdded.includes(exercise.id),
+            (exercise.name_de ?? exercise.name).toLowerCase().includes(query.toLowerCase()) &&
+            !alreadyAdded.includes(exercise.id),
         )
 
   return (
@@ -264,9 +265,9 @@ function ExercisePicker({
       <ul role="list">
         {matches.map((exercise) => (
           <li key={exercise.id}>
-            {exercise.name}
+            {exercise.name_de ?? exercise.name}
             <button type="button" onClick={() => onPick(exercise.id)}>
-              {`${exercise.name} hinzufügen`}
+              {`${exercise.name_de ?? exercise.name} hinzufügen`}
             </button>
           </li>
         ))}
