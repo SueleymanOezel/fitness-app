@@ -129,11 +129,14 @@ export function createDeeplTranslateBatch(apiKey: string): TranslateBatchFn {
         Authorization: `DeepL-Auth-Key ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text: texts, target_lang: 'DE' }),
+      body: JSON.stringify({ text: texts, target_lang: 'DE', formality: 'prefer_less', source_lang: 'EN' }),
     })
     if (response.status === 456) throw new QuotaExceededError('DeepL monthly character quota exceeded')
     if (!response.ok) throw new Error(`DeepL request failed: ${response.status} ${response.statusText}`)
     const body = (await response.json()) as { translations: { text: string }[] }
+    if (body.translations.length !== texts.length) {
+      throw new Error(`DeepL returned ${body.translations.length} translations for ${texts.length} requested texts`)
+    }
     return body.translations.map((translation) => translation.text)
   }
 }

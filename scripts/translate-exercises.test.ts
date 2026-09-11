@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest'
-import { buildTranslationUpdate, collectUniqueStrings } from './translate-exercises.ts'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { buildTranslationUpdate, collectUniqueStrings, createDeeplTranslateBatch } from './translate-exercises.ts'
 
 describe('collectUniqueStrings', () => {
   it('collects each unique name and instruction sentence exactly once', () => {
@@ -102,6 +102,47 @@ function createClient(rows: Row[]) {
     }),
   }
 }
+
+describe('createDeeplTranslateBatch', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('sends formality and source_lang alongside target_lang', async () => {
+    const fetchMock = vi.fn(async () => ({
+      status: 200,
+      ok: true,
+      json: async () => ({ translations: [{ text: 'Liegestütz' }] }),
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const translateBatch = createDeeplTranslateBatch('key')
+    const result = await translateBatch(['Push Up'])
+
+    expect(result).toEqual(['Liegestütz'])
+    const [, requestInit] = fetchMock.mock.calls[0] as unknown as [string, { body: string }]
+    const body = JSON.parse(requestInit.body)
+    expect(body).toEqual({
+      text: ['Push Up'],
+      target_lang: 'DE',
+      formality: 'prefer_less',
+      source_lang: 'EN',
+    })
+  })
+
+  it('throws when DeepL returns fewer translations than texts requested', async () => {
+    const fetchMock = vi.fn(async () => ({
+      status: 200,
+      ok: true,
+      json: async () => ({ translations: [{ text: 'Liegestütz' }] }),
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const translateBatch = createDeeplTranslateBatch('key')
+
+    await expect(translateBatch(['Push Up', 'Sit Up'])).rejects.toThrow(
+      'DeepL returned 1 translations for 2 requested texts',
+    )
+  })
+})
 
 describe('runTranslation', () => {
   it('reads untranslated rows with the expected filter, translates unique strings once, and writes name_de/anleitung_de back', async () => {
