@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { buildTranslationUpdate, collectUniqueStrings } from './translate-exercises.ts'
 
 describe('collectUniqueStrings', () => {
@@ -67,5 +67,102 @@ describe('buildTranslationUpdate', () => {
     // row is skipped entirely and retried on the next script run.
     const update = buildTranslationUpdate({ id: 'e1', name: 'Untranslated', anleitung: null }, translations)
     expect(update).toBeNull()
+  })
+})
+
+import { QuotaExceededError, runTranslation } from './translate-exercises.ts'
+
+type Row = { id: string; name: string; anleitung: string[] | null }
+
+function createClient(rows: Row[]) {
+  const updates: { id: string; name_de: string; anleitung_de: string[] | null }[] = []
+  let capturedFilter = ''
+  return {
+    updates,
+    get capturedFilter() {
+      return capturedFilter
+    },
+    from: () => ({
+      select: () => ({
+        is: () => ({
+          or: (filter: string) => {
+            capturedFilter = filter
+            return {
+              range: async (from: number, to: number) => ({ data: rows.slice(from, to + 1), error: null }),
+            }
+          },
+        }),
+      }),
+      update: (values: { name_de: string; anleitung_de: string[] | null }) => ({
+        eq: async (_column: string, id: string) => {
+          updates.push({ id, ...values })
+          return { error: null }
+        },
+      }),
+    }),
+  }
+}
+
+describe('runTranslation', () => {
+  it('reads untranslated rows with the expected filter, translates unique strings once, and writes name_de/anleitung_de back', async () => {
+    const rows: Row[] = [
+      { id: 'e1', name: 'Push Up', anleitung: ['Get in position.', 'Push up and down.'] },
+      { id: 'e2', name: 'Sit Up', anleitung: ['Get in position.', 'Sit up.'] },
+    ]
+    const client = createClient(rows)
+    const translateBatch = vi.fn(async (texts: string[]) => texts.map((text) => `${text} DE`))
+
+    const result = await runTranslation(client, translateBatch)
+
+    expect(client.capturedFilter).toBe('name_de.is.null,and(anleitung.not.is.null,anleitung_de.is.null)')
+    // 5 unique strings across the two rows ("Get in position." shared) — one batch.
+    expect(translateBatch).toHaveBeenCalledTimes(1)
+    expect(translateBatch.mock.calls[0][0]).toHaveLength(5)
+    expect(client.updates).toEqual([
+      { id: 'e1', name_de: 'Push Up DE', anleitung_de: ['Get in position. DE', 'Push up and down. DE'] },
+      { id: 'e2', name_de: 'Sit Up DE', anleitung_de: ['Get in position. DE', 'Sit up. DE'] },
+    ])
+    expect(result).toEqual({ updated: 2, total: 2, quotaExceeded: false })
+  })
+
+  it('stops translating further batches on a quota error, but keeps and writes what was already translated', async () => {
+    // 51 unique names split into a 50-item batch and a 1-item batch.
+    const rows: Row[] = Array.from({ length: 51 }, (_, index) => ({ id: `e${index}`, name: `Ex${index}`, anleitung: null }))
+    const client = createClient(rows)
+    const translateBatch = vi
+      .fn<(texts: string[]) => Promise<string[]>>()
+      .mockImplementationOnce(async (texts) => texts.map((text) => `${text} DE`))
+      .mockImplementationOnce(async () => {
+        throw new QuotaExceededError('quota exceeded')
+      })
+
+    const result = await runTranslation(client, translateBatch)
+
+    expect(translateBatch).toHaveBeenCalledTimes(2)
+    expect(client.updates).toHaveLength(50)
+    expect(client.updates.map((update) => update.id)).not.toContain('e50')
+    expect(result).toEqual({ updated: 50, total: 51, quotaExceeded: true })
+  })
+
+  it('re-throws a non-quota translation error instead of treating it as a clean stop', async () => {
+    const rows: Row[] = [{ id: 'e1', name: 'Push Up', anleitung: null }]
+    const client = createClient(rows)
+    const translateBatch = vi.fn(async () => {
+      throw new Error('network down')
+    })
+
+    await expect(runTranslation(client, translateBatch)).rejects.toThrow('network down')
+    expect(client.updates).toHaveLength(0)
+  })
+
+  it('pages through more than one page of untranslated rows', async () => {
+    const rows: Row[] = Array.from({ length: 700 }, (_, index) => ({ id: `e${index}`, name: `Ex${index}`, anleitung: null }))
+    const client = createClient(rows)
+    const translateBatch = vi.fn(async (texts: string[]) => texts.map((text) => `${text} DE`))
+
+    const result = await runTranslation(client, translateBatch)
+
+    expect(client.updates).toHaveLength(700)
+    expect(result).toEqual({ updated: 700, total: 700, quotaExceeded: false })
   })
 })
