@@ -37,7 +37,8 @@ const sessionRow = {
   gesamt_kalorien: null,
 }
 
-const dayExerciseRow = {
+const sessionExerciseRow = {
+  id: 'se1',
   exercise_id: 'ex1',
   reihenfolge: 1,
   ziel_saetze: 3,
@@ -60,43 +61,62 @@ function mockTables(overrides: Record<string, ReturnType<typeof createQueryBuild
   mockFrom.mockImplementation((table: string) => {
     if (overrides[table]) return overrides[table]
     if (table === 'workout_sessions') return createQueryBuilder({ data: sessionRow })
-    if (table === 'workout_plan_day_exercises') return createQueryBuilder({ data: [dayExerciseRow] })
+    if (table === 'workout_session_exercises') return createQueryBuilder({ data: [sessionExerciseRow] })
     if (table === 'workout_session_sets') return createQueryBuilder({ data: [setRow] })
     throw new Error(`unexpected table ${table}`)
   })
 }
 
 describe('startWorkoutSession', () => {
-  it('inserts a session for the given day and returns its id', async () => {
-    // The open-session lookup answers with an empty array, the insert with a row.
+  it('inserts a session for the given day, copies its plan exercises, and returns the new session id', async () => {
     let lookedUp = false
-    const builder: Record<string, unknown> = {
-      select: vi.fn(() => builder),
-      insert: vi.fn(() => builder),
-      eq: vi.fn(() => builder),
-      is: vi.fn(() => builder),
-      gte: vi.fn(() => builder),
-      order: vi.fn(() => builder),
-      limit: vi.fn(() => builder),
+    const sessionsBuilder: Record<string, unknown> = {
+      select: vi.fn(() => sessionsBuilder),
+      insert: vi.fn(() => sessionsBuilder),
+      eq: vi.fn(() => sessionsBuilder),
+      is: vi.fn(() => sessionsBuilder),
+      gte: vi.fn(() => sessionsBuilder),
+      order: vi.fn(() => sessionsBuilder),
+      limit: vi.fn(() => sessionsBuilder),
       single: vi.fn(() => Promise.resolve({ data: { id: 's1' }, error: null })),
       then: (resolve: (value: { data: unknown; error: null }) => unknown) => {
         lookedUp = true
         return resolve({ data: [], error: null })
       },
     }
-    mockFrom.mockReturnValue(builder)
+    const dayExercisesBuilder = createQueryBuilder({
+      data: [{ exercise_id: 'ex1', reihenfolge: 1, ziel_saetze: 3, ziel_wiederholungen: 10, pausenzeit_sekunden: 90 }],
+    })
+    const sessionExercisesBuilder = createQueryBuilder({ data: null, error: null })
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'workout_sessions') return sessionsBuilder
+      if (table === 'workout_plan_day_exercises') return dayExercisesBuilder
+      if (table === 'workout_session_exercises') return sessionExercisesBuilder
+      throw new Error(`unexpected table ${table}`)
+    })
 
     const { startWorkoutSession } = await import('./use-workout-session')
     const id = await startWorkoutSession('u1', 'd1')
 
     expect(lookedUp).toBe(true)
-    expect(builder.insert).toHaveBeenCalledWith(
+    expect(sessionsBuilder.insert).toHaveBeenCalledWith(
       expect.objectContaining({ user_id: 'u1', workout_plan_day_id: 'd1' }),
     )
+    expect(dayExercisesBuilder.eq).toHaveBeenCalledWith('workout_plan_day_id', 'd1')
+    expect(sessionExercisesBuilder.insert).toHaveBeenCalledWith([
+      {
+        workout_session_id: 's1',
+        exercise_id: 'ex1',
+        reihenfolge: 1,
+        ziel_saetze: 3,
+        ziel_wiederholungen: 10,
+        pausenzeit_sekunden: 90,
+      },
+    ])
     expect(id).toBe('s1')
   })
 
-  it('resumes an unfinished session for the day instead of opening a second one', async () => {
+  it('resumes an unfinished session for the day instead of opening a second one, without re-copying its exercises', async () => {
     const builder = createQueryBuilder({ data: [{ id: 'open1' }] })
     mockFrom.mockReturnValue(builder)
 
@@ -104,6 +124,8 @@ describe('startWorkoutSession', () => {
     const id = await startWorkoutSession('u1', 'd1')
 
     expect(id).toBe('open1')
+    // Same mock object handles every table here — this proves neither the
+    // session row nor a workout_session_exercises copy was ever inserted.
     expect(builder.insert).not.toHaveBeenCalled()
     expect(builder.is).toHaveBeenCalledWith('beendet_am', null)
   })
@@ -139,7 +161,7 @@ describe('startWorkoutSession', () => {
 })
 
 describe('useWorkoutSession', () => {
-  it('loads the session, its plan exercises, and its sets', async () => {
+  it('loads the session, its session-scoped exercises, and its sets', async () => {
     mockTables()
 
     const { useWorkoutSession } = await import('./use-workout-session')
@@ -150,6 +172,7 @@ describe('useWorkoutSession', () => {
     expect(result.current.session).toEqual(sessionRow)
     expect(result.current.exercises).toEqual([
       {
+        id: 'se1',
         exercise_id: 'ex1',
         name: 'Bankdrücken',
         ziel_saetze: 3,
@@ -199,8 +222,6 @@ describe('useWorkoutSession', () => {
   })
 
   it('stores a warm-up set under its own running number', async () => {
-    // satz_nummer keeps counting every set; the flag is the only difference,
-    // so nothing has to be renumbered when a warm-up is logged in between.
     const setsBuilder = createQueryBuilder({ data: [setRow] })
     mockTables({ workout_session_sets: setsBuilder })
 
@@ -235,6 +256,73 @@ describe('useWorkoutSession', () => {
         ist_aufwaermsatz: false,
       }),
     ).rejects.toThrow()
+  })
+
+  it('adds exercises to the session in one batch, computing reihenfolge from what is already there', async () => {
+    const sessionExercisesBuilder = createQueryBuilder({ data: [], error: null })
+    mockTables({ workout_session_exercises: sessionExercisesBuilder })
+
+    const { useWorkoutSession } = await import('./use-workout-session')
+    const { result } = renderHook(() => useWorkoutSession('s1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.exercises).toEqual([])
+
+    await result.current.addExercisesToSession(['ex2', 'ex3'])
+
+    expect(sessionExercisesBuilder.insert).toHaveBeenCalledWith([
+      {
+        workout_session_id: 's1',
+        exercise_id: 'ex2',
+        reihenfolge: 1,
+        ziel_saetze: null,
+        ziel_wiederholungen: null,
+        pausenzeit_sekunden: null,
+      },
+      {
+        workout_session_id: 's1',
+        exercise_id: 'ex3',
+        reihenfolge: 2,
+        ziel_saetze: null,
+        ziel_wiederholungen: null,
+        pausenzeit_sekunden: null,
+      },
+    ])
+  })
+
+  it('rejects instead of reporting success when adding exercises to the session fails', async () => {
+    mockTables({ workout_session_exercises: createQueryBuilder({ data: [], error: { message: 'boom' } }) })
+
+    const { useWorkoutSession } = await import('./use-workout-session')
+    const { result } = renderHook(() => useWorkoutSession('s1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await expect(result.current.addExercisesToSession(['ex2'])).rejects.toThrow()
+  })
+
+  it('removes an exercise from the session', async () => {
+    const sessionExercisesBuilder = createQueryBuilder({ data: [sessionExerciseRow], error: null })
+    mockTables({ workout_session_exercises: sessionExercisesBuilder })
+
+    const { useWorkoutSession } = await import('./use-workout-session')
+    const { result } = renderHook(() => useWorkoutSession('s1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await result.current.removeExerciseFromSession('se1')
+
+    expect(sessionExercisesBuilder.delete).toHaveBeenCalled()
+    expect(sessionExercisesBuilder.eq).toHaveBeenCalledWith('id', 'se1')
+  })
+
+  it('rejects instead of reporting success when removing a session exercise fails', async () => {
+    mockTables({
+      workout_session_exercises: createQueryBuilder({ data: [sessionExerciseRow], error: { message: 'boom' } }),
+    })
+
+    const { useWorkoutSession } = await import('./use-workout-session')
+    const { result } = renderHook(() => useWorkoutSession('s1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await expect(result.current.removeExerciseFromSession('se1')).rejects.toThrow()
   })
 
   it('completes the session with the given calories', async () => {
@@ -278,7 +366,6 @@ describe('useWorkoutSession', () => {
 
   it('measures the session up to the last completed set, not up to the button press', async () => {
     const sessionBuilder = createQueryBuilder({ data: sessionRow })
-    // Session started at 10:00, last set at 10:05, "completed" much later.
     mockTables({ workout_sessions: sessionBuilder })
     vi.setSystemTime(new Date('2026-08-22T08:00:00.000Z'))
 
@@ -288,7 +375,6 @@ describe('useWorkoutSession', () => {
 
     await result.current.completeSession(80)
 
-    // 5 minutes at MET 5 and 80 kg, not 22 hours.
     const patch = (sessionBuilder.update as unknown as { mock: { calls: [{ gesamt_kalorien: number }][] } }).mock
       .calls[0][0]
     expect(patch.gesamt_kalorien).toBeCloseTo((5 * 80 * 5) / 60, 5)
