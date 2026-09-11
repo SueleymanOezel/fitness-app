@@ -69,7 +69,7 @@ export type WorkoutPlanDayExercise = {
   ziel_saetze: number | null
   ziel_wiederholungen: number | null
   pausenzeit_sekunden: number | null
-  exercise: { id: string; name: string } | null
+  exercise: { id: string; name: string; name_de: string | null; bild_url: string | null } | null
 }
 
 export type WorkoutPlanDay = {
@@ -87,7 +87,7 @@ type RawDayExercise = {
   ziel_saetze: number | null
   ziel_wiederholungen: number | null
   pausenzeit_sekunden: number | null
-  exercises: { id: string; name: string } | null
+  exercises: { id: string; name: string; name_de: string | null; bild_url: string | null } | null
 }
 
 export type DayExercisePatch = Partial<
@@ -116,7 +116,7 @@ export function useWorkoutPlan(planId: string) {
     const { data: exerciseRows } = await supabase
       .from('workout_plan_day_exercises')
       .select(
-        'id, workout_plan_day_id, exercise_id, reihenfolge, ziel_saetze, ziel_wiederholungen, pausenzeit_sekunden, exercises(id, name)',
+        'id, workout_plan_day_id, exercise_id, reihenfolge, ziel_saetze, ziel_wiederholungen, pausenzeit_sekunden, exercises(id, name, name_de, bild_url)',
       )
       .in(
         'workout_plan_day_id',
@@ -218,17 +218,36 @@ export function useWorkoutPlan(planId: string) {
     await reload()
   }
 
-  async function addExerciseToDay(dayId: string, exerciseId: string) {
+  /**
+   * Takes every id in one call rather than being awaited once per exercise:
+   * `nextReihenfolge` is computed from a single snapshot of `days` before any
+   * insert happens, so a multi-add can't race itself. Awaiting this function
+   * once per exercise instead would have each call read the same closure's
+   * `days` — this hook's state only updates after `reload()`, and by then the
+   * closure from the first call is already gone, so every subsequent call
+   * would (wrongly) compute the same reihenfolge again.
+   */
+  async function addExercisesToDay(dayId: string, exerciseIds: string[]) {
     const day = days.find((candidate) => candidate.id === dayId)
-    // The same exercise twice in one day would collide on exercise_id in the
-    // live session (shared React key, shared set count, wrong satz_nummer).
-    if (day?.exercises.some((row) => row.exercise_id === exerciseId)) return
-    const nextReihenfolge =
+    let nextReihenfolge =
       !day || day.exercises.length === 0 ? 1 : Math.max(...day.exercises.map((row) => row.reihenfolge)) + 1
-    const { error } = await supabase
-      .from('workout_plan_day_exercises')
-      .insert({ workout_plan_day_id: dayId, exercise_id: exerciseId, reihenfolge: nextReihenfolge })
-    if (error) throw new Error('add exercise failed')
+
+    // The same exercise twice in one day would collide on exercise_id in the
+    // live session (shared React key, shared set count, wrong satz_nummer) —
+    // guarded here both against what's already saved and against a duplicate
+    // id slipping in twice within this same batch.
+    const seen = new Set(day?.exercises.map((row) => row.exercise_id) ?? [])
+    const rows = []
+    for (const exerciseId of exerciseIds) {
+      if (seen.has(exerciseId)) continue
+      seen.add(exerciseId)
+      rows.push({ workout_plan_day_id: dayId, exercise_id: exerciseId, reihenfolge: nextReihenfolge })
+      nextReihenfolge += 1
+    }
+    if (rows.length === 0) return
+
+    const { error } = await supabase.from('workout_plan_day_exercises').insert(rows)
+    if (error) throw new Error('add exercises failed')
     await reload()
   }
 
@@ -284,7 +303,7 @@ export function useWorkoutPlan(planId: string) {
     renameDay,
     deleteDay,
     moveDay,
-    addExerciseToDay,
+    addExercisesToDay,
     updateDayExercise,
     removeDayExercise,
     moveDayExercise,
