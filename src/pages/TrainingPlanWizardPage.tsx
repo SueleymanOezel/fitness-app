@@ -36,6 +36,7 @@ function Wizard({ userId }: { userId: string }) {
   const [nameError, setNameError] = useState('')
   const [haeufigkeit, setHaeufigkeit] = useState<number | null>(null)
   const [dauer, setDauer] = useState(STANDARD_DAUER_WOCHEN)
+  const [dauerError, setDauerError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   function weiterVonName() {
@@ -49,6 +50,11 @@ function Wizard({ userId }: { userId: string }) {
 
   async function planErstellen() {
     if (haeufigkeit === null) return
+    if (!Number.isInteger(dauer) || dauer < 1) {
+      setDauerError('Die Plandauer muss mindestens 1 Woche sein.')
+      return
+    }
+    setDauerError('')
     setSubmitting(true)
     try {
       const id = await createPlan(name.trim(), haeufigkeit, dauer)
@@ -113,6 +119,7 @@ function Wizard({ userId }: { userId: string }) {
               className={inputClass}
             />
           </label>
+          {dauerError !== '' && <p role="alert">{dauerError}</p>}
           <button type="button" className={buttonSecondaryClass} onClick={() => setStep(2)}>
             <span className="inline-flex items-center justify-center gap-2">
               <VitaIcon name="back" tone="mono" size={20} />

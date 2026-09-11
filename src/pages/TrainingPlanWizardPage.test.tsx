@@ -93,4 +93,38 @@ describe('TrainingPlanWizardPage', () => {
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
     expect(mockNavigate).not.toHaveBeenCalled()
   })
+
+  it('refuses to create a plan with a duration below 1 week', async () => {
+    const createPlan = stelleBereit()
+    const { default: TrainingPlanWizardPage } = await import('./TrainingPlanWizardPage')
+    renderWithProviders(<TrainingPlanWizardPage />)
+
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Push/Pull/Legs' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(screen.getByRole('button', { name: '3× pro Woche' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+
+    fireEvent.change(screen.getByLabelText('Wochen'), { target: { value: '0' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Plan erstellen' }))
+
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(createPlan).not.toHaveBeenCalled()
+  })
+
+  it('refuses to create a plan with a non-numeric duration', async () => {
+    const createPlan = stelleBereit()
+    const { default: TrainingPlanWizardPage } = await import('./TrainingPlanWizardPage')
+    renderWithProviders(<TrainingPlanWizardPage />)
+
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Push/Pull/Legs' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(screen.getByRole('button', { name: '3× pro Woche' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+
+    fireEvent.change(screen.getByLabelText('Wochen'), { target: { value: '' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Plan erstellen' }))
+
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(createPlan).not.toHaveBeenCalled()
+  })
 })
