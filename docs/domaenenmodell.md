@@ -102,6 +102,8 @@ erDiagram
         uuid user_id FK
         text name
         boolean aktiv
+        int haeufigkeit_pro_woche
+        int dauer_wochen
     }
 
     workout_plan_days {
@@ -186,6 +188,7 @@ erDiagram
 - `profiles.geschlecht/aktivitaetslevel/ziel/ziel_delta_kcal` speisen die Mifflin-St-Jeor-Berechnung des Kalorienziels (`src/lib/nutrition-goal.ts`); `taegliches_kalorienziel` überschreibt die Berechnung, wenn gesetzt. `products.barcode` hat seit Phase 2 einen Unique-Index für nicht-null-Werte (`products_barcode_unique`).
 - `profiles.mahlzeit_1_name` bis `_6_name` benennen sechs feste Mahlzeiten-Slots; `food_entries.mahlzeit` verweist als stabile Nummer 1–6 darauf und ist `null`, solange ein Eintrag keinem Abschnitt zugeordnet ist. Bewusst keine Array-Positionen: Beim Entfernen eines Abschnitts würden sonst alle nachfolgenden Einträge still auf den falschen Abschnitt zeigen.
 - `workout_plan_days` gibt einem Trainingsplan mehrere benannte Tage (z. B. „Push"/„Pull"/„Legs"); `workout_plan_day_exercises` hängt an einem Tag statt direkt am Plan, `workout_sessions.workout_plan_day_id` verweist auf den konkreten trainierten Tag. Welcher Tag als Nächstes ansteht, ergibt sich zur Laufzeit aus dem zuletzt **abgeschlossenen** Tag desselben Plans (Rotation, keine eigene Spalte) — kein Kalender beteiligt.
+- `workout_plans.haeufigkeit_pro_woche` (1–7) und `dauer_wochen` (Migration `0010`) kommen aus dem Plan-Erstellungs-Assistenten (`TrainingPlanWizardPage.tsx`) und sind beide nullable — ältere oder ohne Assistenten angelegte Pläne haben sie nicht. `haeufigkeit_pro_woche` bestimmt einmalig, wie viele leere `workout_plan_days` beim Erstellen entstehen (`Tag 1`…`Tag N`, ein einziger Array-Insert, siehe `useWorkoutPlans.createPlan`); danach hat die Spalte keine weitere Funktion. `dauer_wochen` treibt einen rein client-seitig berechneten Hinweis auf `TrainingPage` (`wochenAktiv` in `src/lib/plan-alter.ts`), sobald ein Plan mindestens so viele Wochen seit `created_at` aktiv ist — keine Automatik, kein Cron, kein Auto-Deaktivieren.
 - `gesamt_kalorien` in `workout_sessions` wird einmalig bei „Training abschließen" berechnet (MET-Durchschnitt über alle Sätze × `profiles.aktuelles_gewicht` × Dauer) und danach nicht rückwirkend neu berechnet, auch wenn sich der MET-Wert einer verwendeten Übung später ändert.
 - `exercises.met_wert` stammt beim Import aus einer Zuordnung Kategorie → MET (`src/lib/met-categories.ts`), nicht aus einem Wert je Übung. Importierte Zeilen tragen `created_by = null` und unterscheiden sich dadurch von selbst angelegten Übungen.
 - `exercises.anleitung` (Schritt-für-Schritt-Sätze) und `exercises.schwierigkeitsgrad` (`beginner`/`intermediate`/`expert`) kommen seit Migration `0008` ebenfalls aus dem Import; beide sind nullable (5 der 873 importierten Übungen haben keine Instructions in der Quelle). Übersetzung ins Deutsche passiert im Frontend (`src/lib/level-labels.ts` für den Schwierigkeitsgrad, analog zu Muskelgruppen/Geräten) mit Fallback auf den Rohwert — kein DB-Constraint.
