@@ -13,12 +13,14 @@ afterEach(() => cleanup())
 const exercise = {
   id: 'ex1',
   name: 'Bankdrücken',
+  name_de: null,
   kategorie: 'strength',
   equipment: 'barbell',
   muskelgruppen_primaer: ['chest'],
   muskelgruppen_sekundaer: [],
   bild_url: null,
   anleitung: ['Schritt eins.', 'Schritt zwei.'],
+  anleitung_de: null,
   schwierigkeitsgrad: 'beginner',
   met_wert: 5,
   created_by: null,
@@ -53,6 +55,24 @@ describe('ExercisesPage', () => {
 
     expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
     expect(screen.queryByText('Kniebeuge')).not.toBeInTheDocument()
+  })
+
+  it('shows the German name and searches by it when a translation exists', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(
+      exercisesResult({
+        exercises: [{ ...exercise, name: 'Bench Press', name_de: 'Bankdrücken' }],
+      }),
+    )
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
+    expect(screen.queryByText('Bench Press')).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Suche'), { target: { value: 'Bank' } })
+    expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
   })
 
   it('filters by muscle group when a chip is selected', async () => {

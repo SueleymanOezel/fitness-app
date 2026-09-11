@@ -69,7 +69,7 @@ function ExercisesList({ userId }: { userId: string }) {
 
   const filtered = exercises.filter(
     (exercise) =>
-      exercise.name.toLowerCase().includes(query.toLowerCase()) &&
+      (exercise.name_de ?? exercise.name).toLowerCase().includes(query.toLowerCase()) &&
       (muskelgruppe === null || (exercise.muskelgruppen_primaer ?? []).includes(muskelgruppe)) &&
       (equipment === null || exercise.equipment === equipment),
   )
@@ -125,7 +125,7 @@ function ExercisesList({ userId }: { userId: string }) {
               ) : (
                 <VitaIcon name="exercises" tone="mono" size={48} className="shrink-0" />
               )}
-              <span className="flex-1 text-left">{exercise.name}</span>
+              <span className="flex-1 text-left">{exercise.name_de ?? exercise.name}</span>
             </button>
           </li>
         ))}
