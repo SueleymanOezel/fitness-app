@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import WorkoutSessionPage from './WorkoutSessionPage'
 import { renderWithProviders } from '../test-render'
 
@@ -109,6 +109,74 @@ describe('WorkoutSessionPage', () => {
       }),
     )
     expect(screen.getByText(/Pause/)).toBeInTheDocument()
+  })
+
+  it('lists already logged working sets, numbered separately from warm-ups', () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({
+        sets: [
+          loggedSet({ id: 'set1', satz_nummer: 1, gewicht: 60, wiederholungen: 10 }),
+          loggedSet({ id: 'set2', satz_nummer: 2, gewicht: 20, wiederholungen: 12, ist_aufwaermsatz: true }),
+          loggedSet({ id: 'set3', satz_nummer: 3, gewicht: 65, wiederholungen: 8 }),
+        ],
+      }),
+    )
+
+    renderPage()
+
+    fireEvent.click(screen.getByText('Bankdrücken'))
+
+    expect(screen.getByText('Satz 1: 60 kg × 10 Wdh.')).toBeInTheDocument()
+    expect(screen.getByText('Satz 2: 65 kg × 8 Wdh.')).toBeInTheDocument()
+    expect(screen.getByText('1 Aufwärmsatz')).toBeInTheDocument()
+    // The warm-up must not also appear as its own numbered row.
+    const erfassteSaetze = screen.getByRole('list', { name: /erfasste sätze/i })
+    expect(within(erfassteSaetze).getAllByRole('listitem')).toHaveLength(2)
+  })
+
+  it('shows no warm-up count when every logged set was a working set', () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult({ sets: [loggedSet({ id: 'set1' })] }))
+
+    renderPage()
+
+    fireEvent.click(screen.getByText('Bankdrücken'))
+
+    // The plain "Aufwärmsatz" checkbox label must stay — only the "N
+    // Aufwärmsatz(e)" count line is what must be absent here.
+    expect(screen.queryByText(/^\d+ Aufwärmsatz/)).not.toBeInTheDocument()
+  })
+
+  it('shows no logged-sets list before any set was entered', () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+
+    fireEvent.click(screen.getByText('Bankdrücken'))
+
+    expect(screen.queryByRole('list', { name: /erfasste sätze/i })).not.toBeInTheDocument()
+  })
+
+  it('pluralizes the warm-up count for more than one', () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({
+        sets: [
+          loggedSet({ id: 'set1', satz_nummer: 1, ist_aufwaermsatz: true }),
+          loggedSet({ id: 'set2', satz_nummer: 2, ist_aufwaermsatz: true }),
+        ],
+      }),
+    )
+
+    renderPage()
+
+    fireEvent.click(screen.getByText('Bankdrücken'))
+
+    expect(screen.getByText('2 Aufwärmsätze')).toBeInTheDocument()
+    // Warm-ups-only: no numbered-sets list should render at all.
+    expect(screen.queryByRole('list', { name: /erfasste sätze/i })).not.toBeInTheDocument()
   })
 
   it('opens the next exercise once the pause of the last set of the current one runs out', async () => {
