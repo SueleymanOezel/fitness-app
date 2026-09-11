@@ -105,7 +105,7 @@ const dayExercise = {
   ziel_saetze: 3,
   ziel_wiederholungen: 10,
   pausenzeit_sekunden: 90,
-  exercises: { id: 'ex1', name: 'Bankdrücken' },
+  exercises: { id: 'ex1', name: 'Bench Press', name_de: 'Bankdrücken', bild_url: 'https://example.com/bank.jpg' },
 }
 
 describe('useWorkoutPlan', () => {
@@ -136,11 +136,34 @@ describe('useWorkoutPlan', () => {
             ziel_saetze: 3,
             ziel_wiederholungen: 10,
             pausenzeit_sekunden: 90,
-            exercise: { id: 'ex1', name: 'Bankdrücken' },
+            exercise: {
+              id: 'ex1',
+              name: 'Bench Press',
+              name_de: 'Bankdrücken',
+              bild_url: 'https://example.com/bank.jpg',
+            },
           },
         ],
       },
     ])
+  })
+
+  it('requests the translated name and image alongside the exercise embed', async () => {
+    const exerciseBuilder = createQueryBuilder({ data: [dayExercise] })
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'workout_plans') return createQueryBuilder({ data: plan })
+      if (table === 'workout_plan_days') return createQueryBuilder({ data: [day] })
+      if (table === 'workout_plan_day_exercises') return exerciseBuilder
+      throw new Error(`unexpected table ${table}`)
+    })
+
+    const { useWorkoutPlan } = await import('./use-workout-plans')
+    const { result } = renderHook(() => useWorkoutPlan('p1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    expect(exerciseBuilder.select).toHaveBeenCalledWith(
+      'id, workout_plan_day_id, exercise_id, reihenfolge, ziel_saetze, ziel_wiederholungen, pausenzeit_sekunden, exercises(id, name, name_de, bild_url)',
+    )
   })
 
   it('loads only the day exercises belonging to this plan', async () => {

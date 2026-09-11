@@ -69,7 +69,7 @@ export type WorkoutPlanDayExercise = {
   ziel_saetze: number | null
   ziel_wiederholungen: number | null
   pausenzeit_sekunden: number | null
-  exercise: { id: string; name: string } | null
+  exercise: { id: string; name: string; name_de: string | null; bild_url: string | null } | null
 }
 
 export type WorkoutPlanDay = {
@@ -87,7 +87,7 @@ type RawDayExercise = {
   ziel_saetze: number | null
   ziel_wiederholungen: number | null
   pausenzeit_sekunden: number | null
-  exercises: { id: string; name: string } | null
+  exercises: { id: string; name: string; name_de: string | null; bild_url: string | null } | null
 }
 
 export type DayExercisePatch = Partial<
@@ -116,7 +116,7 @@ export function useWorkoutPlan(planId: string) {
     const { data: exerciseRows } = await supabase
       .from('workout_plan_day_exercises')
       .select(
-        'id, workout_plan_day_id, exercise_id, reihenfolge, ziel_saetze, ziel_wiederholungen, pausenzeit_sekunden, exercises(id, name)',
+        'id, workout_plan_day_id, exercise_id, reihenfolge, ziel_saetze, ziel_wiederholungen, pausenzeit_sekunden, exercises(id, name, name_de, bild_url)',
       )
       .in(
         'workout_plan_day_id',
