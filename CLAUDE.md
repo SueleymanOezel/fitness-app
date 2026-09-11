@@ -204,9 +204,33 @@ Bounded-Task (kein Spec/Plan-Dokument, direkt per `superpowers:brainstorming`-Bo
 
 **Damit sind alle drei Teile des ursprünglichen Übungsauswahl-Folgewunsches abgeschlossen** (Pfund→kg, Plan-Erstellungs-Assistent, Tag-Muskel-Silhouette).
 
-### Neue Richtung: Wettbewerbsanalyse (Stand 11.09.2026, hier weitermachen)
+### Neue Richtung: Wettbewerbsanalyse (Stand 11.09.2026)
 
-**Nutzer hat den Namen der bisher anonymisierten Referenz-App genannt** (siehe `feedback_no_competitor_names`-Memory — der Name wird trotzdem bewusst nicht in Doku/Code geschrieben, nur die öffentliche Marketing-/Feature-Seite wird für Recherchezwecke besucht) und um zwei Dinge gebeten: (1) recherchieren, welche Features die Referenz-App hat, die VitaLoop noch fehlen, (2) deren Frontend-Design anschauen und Inspiration davon in VitaLoop einbauen — **ausdrücklich als Inspiration/Ideenebene, nicht als 1:1-Kopie von Marken-Assets, exakten Layouts oder Illustrationen** (Urheberrechts-/Seriositätsgrenze). Ergebnis der Recherche und daraus abgeleitete Vorschläge: siehe nächster Chat-Abschnitt bzw. für einen neuen Chat den Verlauf direkt danach prüfen.
+**Nutzer hat den Namen der bisher anonymisierten Referenz-App genannt** (siehe `feedback_no_competitor_names`-Memory — der Name wird trotzdem bewusst nicht in Doku/Code geschrieben, nur die öffentliche Marketing-/Feature-Seite wurde für Recherchezwecke besucht) und um zwei Dinge gebeten: (1) recherchieren, welche Features die Referenz-App hat, die VitaLoop noch fehlen, (2) deren Frontend-Design anschauen und Inspiration davon in VitaLoop einbauen — **ausdrücklich als Inspiration/Ideenebene, nicht als 1:1-Kopie von Marken-Assets, exakten Layouts oder Illustrationen** (Urheberrechts-/Seriositätsgrenze).
+
+**Recherche-Ergebnis (Feature-Lücken gegenüber VitaLoop, nicht mehr neu zu recherchieren):**
+1. Intelligenterer Plan-Generator (schlägt Übungen automatisch vor, statt nur leere Tage zu erzeugen).
+2. Progressions-Empfehlungen pro Satz (Gewicht/Wdh./Intensität aus der Historie berechnet, statt freier Eingabe).
+3. Übungsvideos statt Fotos, plus ein „Common Mistakes"-Abschnitt.
+4. Muscle Focus/Neglect über die Trainings*historie* (unsere Silhouette aus dem vorigen Vorhaben zeigt nur den heutigen Tag).
+5. Motivations-Layer: PR-Tracking pro Training, Streak-Zähler, ein Abschluss-Screen nach dem Training.
+6. Praktische Rechner (Aufwärmsatz, Platten), mehrere Gyms/Equipment-Profile, RIR/Periodisierung/Deload-Konzepte, CSV-Export.
+
+**Design-Inspiration:** nächster empfohlener Satz farblich hervorgehoben + abgeschlossene Sätze mit Häkchen markiert (Punkt 1 unten bereits umgesetzt), tabbed Detailansicht (Info/Anleitung/Historie), kleine Icon+Label-„Pille" über Abschnittstiteln (noch offen).
+
+**Nutzer-Priorisierung (11.09.2026):** erstes Vorhaben aus der Liste ist die aktive Satz-Anzeige beim Training.
+
+### Aktive Satz-Anzeige beim Training (gemerged, deployed, live verifiziert, PR #64, Stand 11.09.2026)
+
+Bounded-Task (kein Spec/Plan-Dokument, `superpowers:brainstorming` + `superpowers:test-driven-development`). Bewusste Scope-Entscheidung im Brainstorming: **kompakte Liste statt vollständig editierbarer Tabelle** (WorkoutSessionPage zeigte vorher gar keine Liste bereits erfasster Sätze, nur einen Zähler-Text).
+
+**Umgesetzt:** neue `LoggedSets`-Komponente in `WorkoutSessionPage.tsx`, zeigt die bereits erfassten Arbeitssätze der geöffneten Übung oberhalb des bestehenden Eingabeformulars („Satz 1: 60 kg × 10 Wdh." mit Häkchen-Icon `VitaIcon name="save"` — dieselbe Ikonographie, die `ExercisePicker` schon als „ausgewählt"-Häkchen nutzt). Aufwärmsätze nur als Zähler-Zeile („N Aufwärmsätze", korrektes Singular/Plural), keine eigenen Zeilen — konsistent mit der bestehenden `workingSetCount`-Logik.
+
+**Code-Review (general-purpose Subagent) fand keine Critical/Important-Funde**, zwei Minor-Testlücken (fehlende negative Assertions für die beiden Sonderfälle „nur Aufwärmsätze"/„nur Arbeitssätze") in derselben Runde nachgezogen.
+
+**Stand: 923/923 Tests grün**, Lint sauber, `tsc -b --noEmit` sauber, `npm run build` erfolgreich. **PR #64 gemergt**, **deployed** (Hash-Sanity-Check bestanden). **Live-Verifikation im echten Chrome-Tab gegen Produktion:** Wegwerf-Testplan angelegt, aktiviert, Training gestartet, einen Satz (60 kg × 10 Wdh.) erfasst — Liste zeigt korrekt „Satz 1: 60 kg × 10 Wdh.", Formular springt automatisch auf „Satz 2". Testplan danach wieder gelöscht (die zugehörige, nicht abgeschlossene Session bleibt laut Schema als verwaistes `workout_plan_day_id = null`-Datenobjekt bestehen — unsichtbar in der UI, gleiches Verhalten wie bei jedem Plan-Löschen, kein neues Problem dieses Tasks). Konsole ohne Fehler.
+
+**Nächster Schritt für einen neuen Chat:** aus der Wettbewerbsanalyse-Liste oben sind Punkt 5 (Motivations-Layer) und Punkt 4 (Muscle Focus/Neglect über die Historie) die vom Nutzer in der ursprünglichen Priorisierungsfrage genannten Alternativen — noch nicht entschieden, welches als Nächstes drankommt. Im neuen Chat kurz nachfragen.
 
 ### Übungsdetails — Bild, Anleitung, Schwierigkeitsgrad (gemerged, deployed, live verifiziert, PR #58, Merge-Commit `4f48a74`, Stand 10./11.09.2026)
 
