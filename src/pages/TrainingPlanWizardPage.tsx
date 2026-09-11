@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlans } from '../hooks/use-workout-plans'
 import { buttonPrimaryClass, buttonSecondaryClass, inputClass } from '../lib/ui-classes'
@@ -49,6 +49,7 @@ function Wizard({ userId }: { userId: string }) {
   }
 
   async function planErstellen() {
+    if (submitting) return
     if (haeufigkeit === null) return
     if (!Number.isInteger(dauer) || dauer < 1) {
       setDauerError('Die Plandauer muss mindestens 1 Woche sein.')
@@ -134,6 +135,10 @@ function Wizard({ userId }: { userId: string }) {
           </button>
         </>
       )}
+      <Link to="/training/plans" className="flex items-center justify-center gap-2">
+        <VitaIcon name="back" tone="brand" size={20} />
+        Zurück zu meinen Plänen
+      </Link>
     </div>
   )
 }

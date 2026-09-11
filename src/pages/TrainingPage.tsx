@@ -58,6 +58,8 @@ function Dashboard({ userId }: { userId: string }) {
     }
   }
 
+  const wochenAktivSeit = plan != null ? wochenAktiv(plan.created_at, new Date()) : 0
+
   return (
     <div>
       <h1>Training</h1>
@@ -72,9 +74,9 @@ function Dashboard({ userId }: { userId: string }) {
           </Link>
         </>
       )}
-      {plan != null && plan.dauer_wochen != null && wochenAktiv(plan.created_at, new Date()) >= plan.dauer_wochen && (
+      {plan != null && plan.dauer_wochen != null && wochenAktivSeit >= plan.dauer_wochen && (
         <p>
-          Dieser Plan läuft seit {wochenAktiv(plan.created_at, new Date())} Wochen —{' '}
+          Dieser Plan läuft seit {wochenAktivSeit} {wochenAktivSeit === 1 ? 'Woche' : 'Wochen'} —{' '}
           <Link to="/training/plans/new">Zeit für einen neuen?</Link>
         </p>
       )}
