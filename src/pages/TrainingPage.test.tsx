@@ -105,6 +105,65 @@ describe('TrainingPage', () => {
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
     expect(mockNavigate).not.toHaveBeenCalled()
   })
+
+  it('shows a reminder once a plan has run past its planned duration', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseActiveTrainingDay.mockReturnValue({
+      plan: { id: 'p1', name: 'Ganzkörper', aktiv: true, created_at: '2020-01-01T00:00:00.000Z', dauer_wochen: 4 },
+      day: { id: 'd1', name: 'Tag A', reihenfolge: 1 },
+      loading: false,
+    })
+
+    zeigeDashboard()
+
+    expect(screen.getByRole('link', { name: /Zeit für einen neuen/i })).toHaveAttribute(
+      'href',
+      '/training/plans/new',
+    )
+  })
+
+  it('shows the singular "Woche" for a plan exactly one week past its duration', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    mockUseActiveTrainingDay.mockReturnValue({
+      plan: { id: 'p1', name: 'Ganzkörper', aktiv: true, created_at: oneWeekAgo, dauer_wochen: 1 },
+      day: { id: 'd1', name: 'Tag A', reihenfolge: 1 },
+      loading: false,
+    })
+
+    zeigeDashboard()
+
+    expect(screen.getByText(/läuft seit 1 Woche\b/)).toBeInTheDocument()
+    expect(screen.queryByText(/1 Wochen/)).not.toBeInTheDocument()
+  })
+
+  it('shows no reminder for a plan without a set duration', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseActiveTrainingDay.mockReturnValue(activeDay) // no dauer_wochen field at all
+
+    zeigeDashboard()
+
+    expect(screen.queryByRole('link', { name: /Zeit für einen neuen/i })).not.toBeInTheDocument()
+  })
+
+  it('shows no reminder while a plan is still within its planned duration', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseActiveTrainingDay.mockReturnValue({
+      plan: {
+        id: 'p1',
+        name: 'Ganzkörper',
+        aktiv: true,
+        created_at: new Date().toISOString(),
+        dauer_wochen: 4,
+      },
+      day: { id: 'd1', name: 'Tag A', reihenfolge: 1 },
+      loading: false,
+    })
+
+    zeigeDashboard()
+
+    expect(screen.queryByRole('link', { name: /Zeit für einen neuen/i })).not.toBeInTheDocument()
+  })
 })
 
 const mockUseTrainingAnalysis = vi.fn()

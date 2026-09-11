@@ -5,6 +5,9 @@ export type WorkoutPlan = {
   id: string
   name: string
   aktiv: boolean
+  created_at: string
+  haeufigkeit_pro_woche: number | null
+  dauer_wochen: number | null
 }
 
 export function useWorkoutPlans(userId: string) {
@@ -36,10 +39,36 @@ export function useWorkoutPlans(userId: string) {
 
   // supabase-js resolves rather than throws on a rejected write, so an unchecked
   // error would let the UI report success while nothing was stored.
-  async function createPlan(name: string) {
-    const { error } = await supabase.from('workout_plans').insert({ user_id: userId, name, aktiv: false })
-    if (error) throw new Error('create plan failed')
+  //
+  // Days are created in one array insert, never via a loop over addDay: addDay
+  // computes reihenfolge from the current days state of a *different* hook
+  // instance and would compute the same stale reihenfolge for every call in a
+  // single render (the same closure bug already found and fixed for
+  // addExerciseToDay — see the exercise-picker redesign).
+  async function createPlan(name: string, haeufigkeitProWoche: number, dauerWochen: number): Promise<string> {
+    const { data, error } = await supabase
+      .from('workout_plans')
+      .insert({
+        user_id: userId,
+        name,
+        aktiv: false,
+        haeufigkeit_pro_woche: haeufigkeitProWoche,
+        dauer_wochen: dauerWochen,
+      })
+      .select('id')
+      .single()
+    if (error || !data) throw new Error('create plan failed')
+
+    const days = Array.from({ length: haeufigkeitProWoche }, (_, index) => ({
+      workout_plan_id: data.id as string,
+      name: `Tag ${index + 1}`,
+      reihenfolge: index + 1,
+    }))
+    const { error: daysError } = await supabase.from('workout_plan_days').insert(days)
+    if (daysError) throw new Error('create plan days failed')
+
     await reload()
+    return data.id as string
   }
 
   async function deletePlan(planId: string) {

@@ -33,18 +33,15 @@ describe('TrainingPlansPage', () => {
     expect(screen.getByText(/aktiv/i)).toBeInTheDocument()
   })
 
-  it('creates a new plan', async () => {
+  it('links to the plan-creation wizard instead of an inline form', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
-    const result = plansResult()
-    mockUseWorkoutPlans.mockReturnValue(result)
+    mockUseWorkoutPlans.mockReturnValue(plansResult())
 
     const { default: TrainingPlansPage } = await import('./TrainingPlansPage')
     renderWithProviders(<TrainingPlansPage />)
 
-    fireEvent.change(screen.getByLabelText('Neuer Plan'), { target: { value: 'Push/Pull/Legs' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Anlegen' }))
-
-    await waitFor(() => expect(result.createPlan).toHaveBeenCalledWith('Push/Pull/Legs'))
+    expect(screen.getByRole('link', { name: /Neuer Plan/ })).toHaveAttribute('href', '/training/plans/new')
+    expect(screen.queryByLabelText('Neuer Plan')).not.toBeInTheDocument()
   })
 
   it('activates and deletes a plan', async () => {
@@ -62,21 +59,6 @@ describe('TrainingPlansPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
     await waitFor(() => expect(result.deletePlan).toHaveBeenCalledWith('p1'))
-  })
-
-  it('refuses to create a plan without a name', async () => {
-    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
-    const result = plansResult()
-    mockUseWorkoutPlans.mockReturnValue(result)
-
-    const { default: TrainingPlansPage } = await import('./TrainingPlansPage')
-    renderWithProviders(<TrainingPlansPage />)
-
-    fireEvent.change(screen.getByLabelText('Neuer Plan'), { target: { value: '   ' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Anlegen' }))
-
-    expect(result.createPlan).not.toHaveBeenCalled()
-    expect(screen.getByRole('alert')).toBeInTheDocument()
   })
 
   it('reports a failed write instead of swallowing it', async () => {

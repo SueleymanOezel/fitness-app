@@ -12,6 +12,7 @@ import BodyPhotosPage from './pages/BodyPhotosPage'
 import NutritionEntriesPage from './pages/NutritionEntriesPage'
 import ProfilePage from './pages/ProfilePage'
 import TrainingPlansPage from './pages/TrainingPlansPage'
+import TrainingPlanWizardPage from './pages/TrainingPlanWizardPage'
 import TrainingPlanEditPage from './pages/TrainingPlanEditPage'
 import ExercisesPage from './pages/ExercisesPage'
 import WorkoutSessionPage from './pages/WorkoutSessionPage'
@@ -51,6 +52,7 @@ export default function App() {
           />
           <Route path="/training" element={<TrainingPage />} />
           <Route path="/training/plans" element={<TrainingPlansPage />} />
+          <Route path="/training/plans/new" element={<TrainingPlanWizardPage />} />
           <Route path="/training/plans/:planId" element={<TrainingPlanEditPage />} />
           <Route path="/training/exercises" element={<ExercisesPage />} />
           <Route path="/training/session/:sessionId" element={<WorkoutSessionPage />} />

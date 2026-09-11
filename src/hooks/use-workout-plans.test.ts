@@ -11,6 +11,7 @@ function createQueryBuilder(result: { data: unknown; error?: unknown }) {
     order: vi.fn(() => builder),
     in: vi.fn(() => builder),
     maybeSingle: vi.fn(() => builder),
+    single: vi.fn(() => builder),
     then: (resolve: (value: typeof result) => unknown) => resolve(result),
   }
   return builder
@@ -40,17 +41,43 @@ describe('useWorkoutPlans', () => {
     expect(result.current.plans).toEqual([plan])
   })
 
-  it('creates a plan and reloads', async () => {
-    const builder = createQueryBuilder({ data: [plan] })
-    mockFrom.mockReturnValue(builder)
+  it('creates a plan with the chosen frequency and pre-fills that many days', async () => {
+    const plansBuilder = createQueryBuilder({ data: [plan] })
+    plansBuilder.single = vi.fn(() => Promise.resolve({ data: { id: 'new-id' }, error: null }))
+    const daysBuilder = createQueryBuilder({ data: null, error: null })
+    mockFrom.mockImplementation((table: string) => (table === 'workout_plan_days' ? daysBuilder : plansBuilder))
 
     const { useWorkoutPlans } = await import('./use-workout-plans')
     const { result } = renderHook(() => useWorkoutPlans('u1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    await result.current.createPlan('Push/Pull/Legs')
+    const id = await result.current.createPlan('Push/Pull/Legs', 3, 4)
 
-    expect(builder.insert).toHaveBeenCalledWith({ user_id: 'u1', name: 'Push/Pull/Legs', aktiv: false })
+    expect(id).toBe('new-id')
+    expect(plansBuilder.insert).toHaveBeenCalledWith({
+      user_id: 'u1',
+      name: 'Push/Pull/Legs',
+      aktiv: false,
+      haeufigkeit_pro_woche: 3,
+      dauer_wochen: 4,
+    })
+    expect(daysBuilder.insert).toHaveBeenCalledWith([
+      { workout_plan_id: 'new-id', name: 'Tag 1', reihenfolge: 1 },
+      { workout_plan_id: 'new-id', name: 'Tag 2', reihenfolge: 2 },
+      { workout_plan_id: 'new-id', name: 'Tag 3', reihenfolge: 3 },
+    ])
+  })
+
+  it('rejects instead of reporting success when the plan insert fails', async () => {
+    const plansBuilder = createQueryBuilder({ data: [plan] })
+    plansBuilder.single = vi.fn(() => Promise.resolve({ data: null, error: { message: 'boom' } }))
+    mockFrom.mockReturnValue(plansBuilder)
+
+    const { useWorkoutPlans } = await import('./use-workout-plans')
+    const { result } = renderHook(() => useWorkoutPlans('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await expect(result.current.createPlan('X', 1, 4)).rejects.toThrow()
   })
 
   it('deletes a plan and reloads', async () => {
