@@ -204,6 +204,47 @@ describe('TrainingPlanEditPage', () => {
     expect(screen.queryByRole('button', { name: /Bankdrücken/ })).not.toBeInTheDocument()
   })
 
+  it('shows a message instead of an empty list when every exercise is already in the day', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseWorkoutPlan.mockReturnValue(planResult())
+    mockUseExercises.mockReturnValue({ exercises: [exercise], loading: false, createExercise: vi.fn() })
+
+    renderPage()
+    await screen.findByText('Tag A')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Übung hinzufügen' }))
+
+    expect(screen.getByText('Keine Übungen gefunden.')).toBeInTheDocument()
+  })
+
+  it('shows a message instead of an empty list when the search matches nothing', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseWorkoutPlan.mockReturnValue(planResult())
+    mockUseExercises.mockReturnValue({
+      exercises: [
+        exercise,
+        {
+          id: 'ex2',
+          name: 'Squat',
+          name_de: 'Kniebeuge',
+          muskelgruppen_primaer: ['quadriceps'],
+          equipment: 'barbell',
+          bild_url: null,
+        },
+      ],
+      loading: false,
+      createExercise: vi.fn(),
+    })
+
+    renderPage()
+    await screen.findByText('Tag A')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Übung hinzufügen' }))
+    fireEvent.change(screen.getByLabelText('Übung suchen'), { target: { value: 'xyz' } })
+
+    expect(screen.getByText('Keine Übungen gefunden.')).toBeInTheDocument()
+  })
+
   it('toggles an exercise selection and updates the Hinzufügen count', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseWorkoutPlan.mockReturnValue(planResult())
@@ -277,6 +318,39 @@ describe('TrainingPlanEditPage', () => {
 
     await waitFor(() => expect(result.addExercisesToDay).toHaveBeenCalledWith('d1', ['ex2', 'ex3']))
     await waitFor(() => expect(screen.queryByLabelText('Übung suchen')).not.toBeInTheDocument())
+  })
+
+  it('closes the picker immediately and reports a failed add via a toast', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const result = planResult({ addExercisesToDay: vi.fn().mockRejectedValue(new Error('boom')) })
+    mockUseWorkoutPlan.mockReturnValue(result)
+    mockUseExercises.mockReturnValue({
+      exercises: [
+        exercise,
+        {
+          id: 'ex2',
+          name: 'Squat',
+          name_de: 'Kniebeuge',
+          muskelgruppen_primaer: ['quadriceps'],
+          equipment: 'barbell',
+          bild_url: null,
+        },
+      ],
+      loading: false,
+      createExercise: vi.fn(),
+    })
+
+    renderPage()
+    await screen.findByText('Tag A')
+    fireEvent.click(screen.getByRole('button', { name: 'Übung hinzufügen' }))
+    fireEvent.click(screen.getByRole('button', { name: /Kniebeuge/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Hinzufügen (1)' }))
+
+    // The dialog closes immediately, before the write settles — a toast
+    // raised while it's still open would render invisible behind its
+    // native top-layer backdrop.
+    expect(screen.queryByLabelText('Übung suchen')).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Übung hinzufügen fehlgeschlagen.'))
   })
 
   it('groups the picker by muscle group and filters with the muscle-group chip', async () => {

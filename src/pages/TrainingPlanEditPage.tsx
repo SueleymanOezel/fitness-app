@@ -233,12 +233,12 @@ function DayBlock({
             alreadyAdded={day.exercises.map((row) => row.exercise_id)}
             // onAddExercises' write failure reports via a toast (see run() above); the
             // dialog is already closed by the time it would land, since this callback
-            // closes it synchronously after the write resolves — a toast raised while
+            // closes it synchronously before the write resolves — a toast raised while
             // this Dialog is still open would render invisible behind its native
             // top-layer backdrop (see ExercisesPage.tsx's onSave for the case where
-            // that actually happened).
-            onAddSelected={async (exerciseIds) => {
-              await onAddExercises(exerciseIds)
+            // that actually happened). Do not make this await the write before closing.
+            onAddSelected={(exerciseIds) => {
+              void onAddExercises(exerciseIds)
               setPickerOpen(false)
             }}
           />
@@ -264,13 +264,12 @@ function ExercisePicker({
 }: {
   exercises: PickableExercise[]
   alreadyAdded: string[]
-  onAddSelected: (exerciseIds: string[]) => Promise<void>
+  onAddSelected: (exerciseIds: string[]) => void
 }) {
   const [query, setQuery] = useState('')
   const [muskelgruppe, setMuskelgruppe] = useState<string | null>(null)
   const [equipment, setEquipment] = useState<string | null>(null)
   const [selected, setSelected] = useState<string[]>([])
-  const [submitting, setSubmitting] = useState(false)
 
   // Already-added exercises are filtered out rather than silently rejected by
   // the hook's duplicate guard, which would look like a dead row.
@@ -280,6 +279,14 @@ function ExercisePicker({
   const filtered = selectable.filter((exercise) => matchesExerciseFilter(exercise, { query, muskelgruppe, equipment }))
   // Grouping by muscle group only makes sense while more than one could be
   // showing — a specific muskelgruppe filter already narrows to one section.
+  // Grouping only ever uses an exercise's FIRST primary muscle group as the
+  // key (see groupByMuskelgruppe) — unlike the muskelgruppe filter chip
+  // above, which matches against every one of an exercise's primary muscle
+  // groups. A chest+triceps exercise files under "Brust" here but still
+  // shows up when the "Trizeps" chip is active; that's deliberate (one row
+  // per exercise, not one per muscle group — see the domain-model note on
+  // volume being split across groups for charts, which is a different,
+  // numeric-conservation concern that doesn't apply to a UI list).
   const groups = muskelgruppe === null ? groupByMuskelgruppe(filtered) : [{ gruppe: '', exercises: filtered }]
 
   function toggle(exerciseId: string) {
@@ -302,6 +309,7 @@ function ExercisePicker({
         equipment={equipment}
         onEquipmentChange={setEquipment}
       />
+      {filtered.length === 0 && <p>Keine Übungen gefunden.</p>}
       {groups.map((group) => (
         <div key={group.gruppe || 'gefiltert'}>
           {group.gruppe !== '' && <h3>{group.gruppe}</h3>}
@@ -346,17 +354,18 @@ function ExercisePicker({
           </ul>
         </div>
       ))}
-      <button
-        type="button"
-        className={buttonPrimaryClass}
-        disabled={selected.length === 0 || submitting}
-        onClick={async () => {
-          setSubmitting(true)
-          await onAddSelected(selected)
-        }}
-      >
-        {`Hinzufügen (${selected.length})`}
-      </button>
+      {/* Sticky so it stays reachable once the (now ungated, potentially
+          long) list scrolls inside the dialog's own scroll box. */}
+      <div className="sticky bottom-0 bg-surface pt-2">
+        <button
+          type="button"
+          className={buttonPrimaryClass}
+          disabled={selected.length === 0}
+          onClick={() => onAddSelected(selected)}
+        >
+          {`Hinzufügen (${selected.length})`}
+        </button>
+      </div>
     </div>
   )
 }
