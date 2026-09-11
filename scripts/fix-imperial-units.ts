@@ -3,12 +3,12 @@ import { fileURLToPath } from 'node:url'
 import { resolve } from 'node:path'
 
 /**
- * The full 873-exercise dataset contains exactly these four imperial-unit
+ * The full 873-exercise dataset contains exactly these imperial-unit
  * phrasings (checked against scripts/free-exercise-db.json) — a generic
  * lb/kg parser would be speculative for a closed, static dataset.
  */
 const IMPERIAL_REPLACEMENTS: [RegExp, string][] = [
-  [/\b5-10 lbs\b/g, '2-5 kg'],
+  [/\b5-10\s?lbs\b/g, '2-5 kg'],
   [/\b25-lb ones\b/g, '11-kg ones'],
   [/\b35-45lb ones\b/g, '16-20 kg ones'],
   [/\b150 lb\b/g, '68 kg'],

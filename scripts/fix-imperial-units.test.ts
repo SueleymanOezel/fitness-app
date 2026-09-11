@@ -6,6 +6,10 @@ describe('convertImperialUnits', () => {
     expect(convertImperialUnits('loaded with 5-10 lbs on each side')).toBe('loaded with 2-5 kg on each side')
   })
 
+  it('converts the plate weight range without a space before the unit', () => {
+    expect(convertImperialUnits('loaded with 5-10lbs on each side')).toBe('loaded with 2-5 kg on each side')
+  })
+
   it('converts a single plate size in pounds to kg', () => {
     expect(convertImperialUnits('small plates (25-lb ones)')).toBe('small plates (11-kg ones)')
   })
