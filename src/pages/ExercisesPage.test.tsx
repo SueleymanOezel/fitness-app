@@ -75,6 +75,26 @@ describe('ExercisesPage', () => {
     expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
   })
 
+  it('sorts the list by the displayed (German) name, not the raw English name', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(
+      exercisesResult({
+        exercises: [
+          { ...exercise, id: 'ex1', name: 'Zebra Press', name_de: 'Aufwärmübung' },
+          { ...exercise, id: 'ex2', name: 'Apple Curl', name_de: 'Zusatzübung' },
+        ],
+      }),
+    )
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    const items = screen.getAllByRole('listitem')
+    expect(items).toHaveLength(2)
+    expect(items[0]).toHaveTextContent('Aufwärmübung')
+    expect(items[1]).toHaveTextContent('Zusatzübung')
+  })
+
   it('filters by muscle group when a chip is selected', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseExercises.mockReturnValue(
