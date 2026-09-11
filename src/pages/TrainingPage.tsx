@@ -11,6 +11,7 @@ import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 import { buttonPrimaryClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import { wochenAktiv } from '../lib/plan-alter'
 
 export default function TrainingPage() {
   const { session } = useSession()
@@ -70,6 +71,12 @@ function Dashboard({ userId }: { userId: string }) {
             </span>
           </Link>
         </>
+      )}
+      {plan != null && plan.dauer_wochen != null && wochenAktiv(plan.created_at, new Date()) >= plan.dauer_wochen && (
+        <p>
+          Dieser Plan läuft seit {wochenAktiv(plan.created_at, new Date())} Wochen —{' '}
+          <Link to="/training/plans/new">Zeit für einen neuen?</Link>
+        </p>
       )}
       {plan != null && day == null && (
         <>
