@@ -238,7 +238,11 @@ describe('useWorkoutPlan', () => {
     expect(dayBuilder.update).not.toHaveBeenCalled()
   })
 
-  it('adds an exercise to a day with the next reihenfolge', async () => {
+  it('adds several exercises to a day in one insert with sequential reihenfolge values', async () => {
+    // A single snapshot of `days` is read once before any insert — computing
+    // it per-item across separate awaited calls would let each one see the
+    // same stale state and race to the same reihenfolge (see the picker's
+    // onAddSelected comment in TrainingPlanEditPage.tsx for why that matters).
     const exerciseBuilder = createQueryBuilder({ data: [dayExercise] })
     mockFrom.mockImplementation((table: string) => {
       if (table === 'workout_plans') return createQueryBuilder({ data: plan })
@@ -251,13 +255,12 @@ describe('useWorkoutPlan', () => {
     const { result } = renderHook(() => useWorkoutPlan('p1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    await result.current.addExerciseToDay('d1', 'ex2')
+    await result.current.addExercisesToDay('d1', ['ex2', 'ex3'])
 
-    expect(exerciseBuilder.insert).toHaveBeenCalledWith({
-      workout_plan_day_id: 'd1',
-      exercise_id: 'ex2',
-      reihenfolge: 2,
-    })
+    expect(exerciseBuilder.insert).toHaveBeenCalledWith([
+      { workout_plan_day_id: 'd1', exercise_id: 'ex2', reihenfolge: 2 },
+      { workout_plan_day_id: 'd1', exercise_id: 'ex3', reihenfolge: 3 },
+    ])
   })
 
   it('rejects instead of reporting success when a write fails', async () => {
@@ -275,7 +278,7 @@ describe('useWorkoutPlan', () => {
     await expect(result.current.addDay('Tag B')).rejects.toThrow()
   })
 
-  it('refuses to add an exercise a day already contains', async () => {
+  it('skips ids the day already contains, including a duplicate within the same batch', async () => {
     const exerciseBuilder = createQueryBuilder({ data: [dayExercise] })
     mockFrom.mockImplementation((table: string) => {
       if (table === 'workout_plans') return createQueryBuilder({ data: plan })
@@ -288,7 +291,28 @@ describe('useWorkoutPlan', () => {
     const { result } = renderHook(() => useWorkoutPlan('p1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    await result.current.addExerciseToDay('d1', 'ex1')
+    // ex1 is already in the day; ex2 is requested twice in the same call.
+    await result.current.addExercisesToDay('d1', ['ex1', 'ex2', 'ex2'])
+
+    expect(exerciseBuilder.insert).toHaveBeenCalledWith([
+      { workout_plan_day_id: 'd1', exercise_id: 'ex2', reihenfolge: 2 },
+    ])
+  })
+
+  it('does nothing when every requested id is already in the day', async () => {
+    const exerciseBuilder = createQueryBuilder({ data: [dayExercise] })
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'workout_plans') return createQueryBuilder({ data: plan })
+      if (table === 'workout_plan_days') return createQueryBuilder({ data: [day] })
+      if (table === 'workout_plan_day_exercises') return exerciseBuilder
+      throw new Error(`unexpected table ${table}`)
+    })
+
+    const { useWorkoutPlan } = await import('./use-workout-plans')
+    const { result } = renderHook(() => useWorkoutPlan('p1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await result.current.addExercisesToDay('d1', ['ex1'])
 
     expect(exerciseBuilder.insert).not.toHaveBeenCalled()
   })

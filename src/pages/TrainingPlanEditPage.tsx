@@ -3,10 +3,20 @@ import { Link, useParams } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlan, type DayExercisePatch, type WorkoutPlanDay } from '../hooks/use-workout-plans'
 import { useExercises } from '../hooks/use-exercises'
-import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { cardClass, buttonPrimaryClass, buttonSecondaryClass, interactiveClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
+import ExerciseFilterChips from '../components/ExerciseFilterChips'
+import ExerciseThumbnail from '../components/ExerciseThumbnail'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import {
+  groupByMuskelgruppe,
+  matchesExerciseFilter,
+  uniqueEquipment,
+  uniqueMuskelgruppen,
+} from '../lib/exercise-filters'
+import { equipmentLabel } from '../lib/equipment-labels'
+import { muskelgruppeLabel } from '../lib/muscle-group-labels'
 
 export default function TrainingPlanEditPage() {
   const { session } = useSession()
@@ -32,7 +42,7 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
     loading,
     addDay,
     moveDay,
-    addExerciseToDay,
+    addExercisesToDay,
     updateDayExercise,
     removeDayExercise,
     moveDayExercise,
@@ -85,8 +95,8 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
           canMoveUp={index > 0}
           canMoveDown={index < days.length - 1}
           onMoveDay={(direction) => run(() => moveDay(day.id, direction), 'Verschieben fehlgeschlagen.')}
-          onAddExercise={(exerciseId) =>
-            run(() => addExerciseToDay(day.id, exerciseId), 'Übung hinzufügen fehlgeschlagen.')
+          onAddExercises={(exerciseIds) =>
+            run(() => addExercisesToDay(day.id, exerciseIds), 'Übung hinzufügen fehlgeschlagen.')
           }
           onUpdateExercise={(id, patch) => run(() => updateDayExercise(id, patch), 'Speichern fehlgeschlagen.')}
           onRemoveExercise={(id) => run(() => removeDayExercise(id), 'Entfernen fehlgeschlagen.')}
@@ -134,17 +144,17 @@ function DayBlock({
   canMoveUp,
   canMoveDown,
   onMoveDay,
-  onAddExercise,
+  onAddExercises,
   onUpdateExercise,
   onRemoveExercise,
   onMoveExercise,
 }: {
   day: WorkoutPlanDay
-  exercises: { id: string; name: string; name_de: string | null }[]
+  exercises: PickableExercise[]
   canMoveUp: boolean
   canMoveDown: boolean
   onMoveDay: (direction: 'up' | 'down') => void
-  onAddExercise: (exerciseId: string) => void
+  onAddExercises: (exerciseIds: string[]) => Promise<void>
   onUpdateExercise: (id: string, patch: DayExercisePatch) => void
   onRemoveExercise: (id: string) => void
   onMoveExercise: (exerciseRowId: string, direction: 'up' | 'down') => void
@@ -167,39 +177,42 @@ function DayBlock({
       <ul role="list" className="space-y-4">
         {day.exercises.map((row, index) => (
           <li key={row.id} className="block border-b-0">
-            <div className={`${cardClass} w-full`}>
-              {row.exercise?.name}
-              <TargetField
-                label="Sätze"
-                stored={row.ziel_saetze}
-                onCommit={(value) => onUpdateExercise(row.id, { ziel_saetze: value })}
-              />
-              <TargetField
-                label="Wiederholungen"
-                stored={row.ziel_wiederholungen}
-                onCommit={(value) => onUpdateExercise(row.id, { ziel_wiederholungen: value })}
-              />
-              <TargetField
-                label="Pause (Sekunden)"
-                stored={row.pausenzeit_sekunden}
-                onCommit={(value) => onUpdateExercise(row.id, { pausenzeit_sekunden: value })}
-              />
-              {index > 0 && (
-                <button type="button" onClick={() => onMoveExercise(row.id, 'up')}>
-                  Nach oben
+            <div className={`${cardClass} w-full flex items-start gap-4`}>
+              <ExerciseThumbnail bildUrl={row.exercise?.bild_url ?? null} />
+              <div className="flex-1">
+                <span className="block font-medium">{row.exercise?.name_de ?? row.exercise?.name}</span>
+                <TargetField
+                  label="Sätze"
+                  stored={row.ziel_saetze}
+                  onCommit={(value) => onUpdateExercise(row.id, { ziel_saetze: value })}
+                />
+                <TargetField
+                  label="Wiederholungen"
+                  stored={row.ziel_wiederholungen}
+                  onCommit={(value) => onUpdateExercise(row.id, { ziel_wiederholungen: value })}
+                />
+                <TargetField
+                  label="Pause (Sekunden)"
+                  stored={row.pausenzeit_sekunden}
+                  onCommit={(value) => onUpdateExercise(row.id, { pausenzeit_sekunden: value })}
+                />
+                {index > 0 && (
+                  <button type="button" onClick={() => onMoveExercise(row.id, 'up')}>
+                    Nach oben
+                  </button>
+                )}
+                {index < day.exercises.length - 1 && (
+                  <button type="button" onClick={() => onMoveExercise(row.id, 'down')}>
+                    Nach unten
+                  </button>
+                )}
+                <button type="button" className={buttonSecondaryClass} onClick={() => onRemoveExercise(row.id)}>
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <VitaIcon name="delete" tone="mono" size={20} />
+                    Entfernen
+                  </span>
                 </button>
-              )}
-              {index < day.exercises.length - 1 && (
-                <button type="button" onClick={() => onMoveExercise(row.id, 'down')}>
-                  Nach unten
-                </button>
-              )}
-              <button type="button" className={buttonSecondaryClass} onClick={() => onRemoveExercise(row.id)}>
-                <span className="inline-flex items-center justify-center gap-2">
-                  <VitaIcon name="delete" tone="mono" size={20} />
-                  Entfernen
-                </span>
-              </button>
+              </div>
             </div>
           </li>
         ))}
@@ -218,14 +231,14 @@ function DayBlock({
           <ExercisePicker
             exercises={exercises}
             alreadyAdded={day.exercises.map((row) => row.exercise_id)}
-            // onAddExercise's write failure reports via a toast (see run() above); the
+            // onAddExercises' write failure reports via a toast (see run() above); the
             // dialog is already closed by the time it would land, since this callback
-            // closes it synchronously before the async write resolves — a toast raised
-            // while this Dialog is still open would render invisible behind its native
+            // closes it synchronously after the write resolves — a toast raised while
+            // this Dialog is still open would render invisible behind its native
             // top-layer backdrop (see ExercisesPage.tsx's onSave for the case where
-            // that actually happened). Do not make this await the write before closing.
-            onPick={(exerciseId) => {
-              onAddExercise(exerciseId)
+            // that actually happened).
+            onAddSelected={async (exerciseIds) => {
+              await onAddExercises(exerciseIds)
               setPickerOpen(false)
             }}
           />
@@ -235,26 +248,45 @@ function DayBlock({
   )
 }
 
+type PickableExercise = {
+  id: string
+  name: string
+  name_de: string | null
+  muskelgruppen_primaer: string[] | null
+  equipment: string | null
+  bild_url: string | null
+}
+
 function ExercisePicker({
   exercises,
   alreadyAdded,
-  onPick,
+  onAddSelected,
 }: {
-  exercises: { id: string; name: string; name_de: string | null }[]
+  exercises: PickableExercise[]
   alreadyAdded: string[]
-  onPick: (exerciseId: string) => void
+  onAddSelected: (exerciseIds: string[]) => Promise<void>
 }) {
   const [query, setQuery] = useState('')
+  const [muskelgruppe, setMuskelgruppe] = useState<string | null>(null)
+  const [equipment, setEquipment] = useState<string | null>(null)
+  const [selected, setSelected] = useState<string[]>([])
+  const [submitting, setSubmitting] = useState(false)
+
   // Already-added exercises are filtered out rather than silently rejected by
-  // the hook's duplicate guard, which would look like a dead button.
-  const matches =
-    query === ''
-      ? []
-      : exercises.filter(
-          (exercise) =>
-            (exercise.name_de ?? exercise.name).toLowerCase().includes(query.toLowerCase()) &&
-            !alreadyAdded.includes(exercise.id),
-        )
+  // the hook's duplicate guard, which would look like a dead row.
+  const selectable = exercises.filter((exercise) => !alreadyAdded.includes(exercise.id))
+  const muskelgruppen = uniqueMuskelgruppen(selectable)
+  const equipmentWerte = uniqueEquipment(selectable)
+  const filtered = selectable.filter((exercise) => matchesExerciseFilter(exercise, { query, muskelgruppe, equipment }))
+  // Grouping by muscle group only makes sense while more than one could be
+  // showing — a specific muskelgruppe filter already narrows to one section.
+  const groups = muskelgruppe === null ? groupByMuskelgruppe(filtered) : [{ gruppe: '', exercises: filtered }]
+
+  function toggle(exerciseId: string) {
+    setSelected((current) =>
+      current.includes(exerciseId) ? current.filter((id) => id !== exerciseId) : [...current, exerciseId],
+    )
+  }
 
   return (
     <div className={cardClass}>
@@ -262,16 +294,69 @@ function ExercisePicker({
         Übung suchen
         <input value={query} onChange={(event) => setQuery(event.target.value)} />
       </label>
-      <ul role="list">
-        {matches.map((exercise) => (
-          <li key={exercise.id}>
-            {exercise.name_de ?? exercise.name}
-            <button type="button" onClick={() => onPick(exercise.id)}>
-              {`${exercise.name_de ?? exercise.name} hinzufügen`}
-            </button>
-          </li>
-        ))}
-      </ul>
+      <ExerciseFilterChips
+        muskelgruppen={muskelgruppen}
+        muskelgruppe={muskelgruppe}
+        onMuskelgruppeChange={setMuskelgruppe}
+        equipmentWerte={equipmentWerte}
+        equipment={equipment}
+        onEquipmentChange={setEquipment}
+      />
+      {groups.map((group) => (
+        <div key={group.gruppe || 'gefiltert'}>
+          {group.gruppe !== '' && <h3>{group.gruppe}</h3>}
+          <ul role="list" className="space-y-2">
+            {group.exercises.map((exercise) => {
+              const name = exercise.name_de ?? exercise.name
+              const isSelected = selected.includes(exercise.id)
+              const caption = [
+                exercise.equipment ? equipmentLabel(exercise.equipment) : null,
+                exercise.muskelgruppen_primaer?.[0] ? muskelgruppeLabel(exercise.muskelgruppen_primaer[0]) : null,
+              ]
+                .filter((part): part is string => part !== null)
+                .join(' · ')
+
+              return (
+                <li key={exercise.id}>
+                  <button
+                    type="button"
+                    aria-pressed={isSelected}
+                    onClick={() => toggle(exercise.id)}
+                    className={`${cardClass} ${interactiveClass} flex w-full items-center gap-4 text-left`}
+                  >
+                    <span className="relative shrink-0">
+                      <ExerciseThumbnail bildUrl={exercise.bild_url} />
+                      {isSelected && (
+                        <VitaIcon
+                          name="save"
+                          tone="brand"
+                          size={20}
+                          className="absolute -bottom-1 -right-1 rounded-full bg-bg"
+                        />
+                      )}
+                    </span>
+                    <span className="flex-1">
+                      <span className="block">{name}</span>
+                      {caption !== '' && <span className="block text-sm text-text-muted">{caption}</span>}
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      ))}
+      <button
+        type="button"
+        className={buttonPrimaryClass}
+        disabled={selected.length === 0 || submitting}
+        onClick={async () => {
+          setSubmitting(true)
+          await onAddSelected(selected)
+        }}
+      >
+        {`Hinzufügen (${selected.length})`}
+      </button>
     </div>
   )
 }
