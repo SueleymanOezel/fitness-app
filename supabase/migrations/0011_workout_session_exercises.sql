@@ -34,3 +34,14 @@ create unique index workout_session_exercises_session_exercise_unique
   on public.workout_session_exercises (workout_session_id, exercise_id);
 
 create index on public.workout_session_exercises (workout_session_id);
+
+-- One-time backfill: any session already open (unfinished, within the
+-- existing 6-hour resume window in startWorkoutSession) when this migration
+-- lands would otherwise have no rows here at all, and its live page would
+-- appear to have lost every exercise on resume.
+insert into public.workout_session_exercises
+  (workout_session_id, exercise_id, reihenfolge, ziel_saetze, ziel_wiederholungen, pausenzeit_sekunden)
+select ws.id, wpde.exercise_id, wpde.reihenfolge, wpde.ziel_saetze, wpde.ziel_wiederholungen, wpde.pausenzeit_sekunden
+  from public.workout_sessions ws
+  join public.workout_plan_day_exercises wpde on wpde.workout_plan_day_id = ws.workout_plan_day_id
+ where ws.beendet_am is null;

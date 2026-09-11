@@ -36,4 +36,11 @@ describe('0011_workout_session_exercises.sql', () => {
       /create unique index workout_session_exercises_session_exercise_unique\s+on public\.workout_session_exercises \(workout_session_id, exercise_id\)/,
     )
   })
+
+  it('backfills any session already open when the migration lands, from its plan day', () => {
+    expect(statements).toMatch(/insert into public\.workout_session_exercises/)
+    expect(statements).toMatch(
+      /from public\.workout_sessions ws\s+join public\.workout_plan_day_exercises wpde on wpde\.workout_plan_day_id = ws\.workout_plan_day_id\s+where ws\.beendet_am is null/,
+    )
+  })
 })

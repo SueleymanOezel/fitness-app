@@ -151,7 +151,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
               <button type="button" onClick={() => setOpenExerciseId(entry.exercise_id)}>
                 {entry.name}
               </button>
-              {workingSetCount(entry.exercise_id) === 0 && (
+              {!sets.some((set) => set.exercise_id === entry.exercise_id) && (
                 <button type="button" onClick={() => removeExercise(entry.id)}>
                   <span className="inline-flex items-center justify-center gap-2">
                     <VitaIcon name="delete" tone="mono" size={20} />

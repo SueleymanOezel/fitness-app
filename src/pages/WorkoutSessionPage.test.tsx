@@ -142,6 +142,17 @@ describe('WorkoutSessionPage', () => {
     expect(screen.queryByRole('button', { name: 'Entfernen' })).not.toBeInTheDocument()
   })
 
+  it('hides the remove button when only a warm-up set has been logged for that exercise', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({ sets: [loggedSet({ id: 'set1', ist_aufwaermsatz: true })] }),
+    )
+
+    renderPage()
+
+    expect(screen.queryByRole('button', { name: 'Entfernen' })).not.toBeInTheDocument()
+  })
+
   it('logs a set and starts the pause timer', async () => {
     // shouldAdvanceTime: waitFor runs on its own timers and would never resolve
     // under fully frozen fake ones.

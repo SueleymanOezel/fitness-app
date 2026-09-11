@@ -313,6 +313,22 @@ describe('useWorkoutSession', () => {
     expect(sessionExercisesBuilder.eq).toHaveBeenCalledWith('id', 'se1')
   })
 
+  it('leaves already-logged sets alone when removing a session exercise', async () => {
+    const sessionExercisesBuilder = createQueryBuilder({ data: [sessionExerciseRow], error: null })
+    const setsBuilder = createQueryBuilder({ data: [setRow] })
+    mockTables({ workout_session_exercises: sessionExercisesBuilder, workout_session_sets: setsBuilder })
+
+    const { useWorkoutSession } = await import('./use-workout-session')
+    const { result } = renderHook(() => useWorkoutSession('s1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await result.current.removeExerciseFromSession('se1')
+
+    // removeExerciseFromSession is scoped to workout_session_exercises only —
+    // the already-logged workout_session_sets rows for that exercise must survive.
+    expect(setsBuilder.delete).not.toHaveBeenCalled()
+  })
+
   it('rejects instead of reporting success when removing a session exercise fails', async () => {
     mockTables({
       workout_session_exercises: createQueryBuilder({ data: [sessionExerciseRow], error: { message: 'boom' } }),
@@ -354,7 +370,13 @@ describe('useWorkoutSession', () => {
   })
 
   it('reports a missing session instead of loading forever', async () => {
-    mockTables({ workout_sessions: createQueryBuilder({ data: null }) })
+    const exercisesBuilder = createQueryBuilder({ data: [sessionExerciseRow] })
+    const setsBuilder = createQueryBuilder({ data: [setRow] })
+    mockTables({
+      workout_sessions: createQueryBuilder({ data: null }),
+      workout_session_exercises: exercisesBuilder,
+      workout_session_sets: setsBuilder,
+    })
 
     const { useWorkoutSession } = await import('./use-workout-session')
     const { result } = renderHook(() => useWorkoutSession('s1'))
@@ -362,6 +384,10 @@ describe('useWorkoutSession', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.session).toBeNull()
     expect(result.current.exercises).toEqual([])
+    // The early-return guard must skip these queries entirely, not just
+    // discard their result after the fact.
+    expect(exercisesBuilder.select).not.toHaveBeenCalled()
+    expect(setsBuilder.select).not.toHaveBeenCalled()
   })
 
   it('measures the session up to the last completed set, not up to the button press', async () => {
