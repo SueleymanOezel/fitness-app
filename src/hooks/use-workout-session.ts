@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { sessionKalorien } from '../lib/workout-calories'
+import { epley1RM, neuePersoenlicheRekorde, type NeuerRekord } from '../lib/analysis/training-charts'
 
 export type SessionInfo = {
   id: string
@@ -249,7 +250,7 @@ export function useWorkoutSession(sessionId: string) {
     await reload()
   }
 
-  async function completeSession(gewichtKg: number) {
+  async function completeSession(gewichtKg: number): Promise<{ beendetAm: string; gesamtKalorien: number | null }> {
     const beendetAm = new Date().toISOString()
     // Trained time runs to the last completed set, not to whenever the user
     // remembers to press the button — a session finished the next morning
@@ -275,6 +276,55 @@ export function useWorkoutSession(sessionId: string) {
       .eq('id', sessionId)
     if (error) throw new Error('complete session failed')
     await reload()
+    return { beendetAm, gesamtKalorien }
+  }
+
+  /**
+   * Compares the just-finished session's best estimated 1RM per exercise
+   * against the best 1RM from every OTHER session of this user. RLS on
+   * workout_session_sets already restricts the query to the user's own rows
+   * (see 0001_initial_schema.sql's exists-subquery-against-workout_sessions
+   * policy), so no session-id prefetch is needed here.
+   */
+  async function ermittleNeueRekorde(): Promise<NeuerRekord[]> {
+    const betroffeneIds = [...new Set(sets.filter((set) => !set.ist_aufwaermsatz).map((set) => set.exercise_id))]
+    if (betroffeneIds.length === 0) return []
+
+    const { data, error } = await supabase
+      .from('workout_session_sets')
+      .select('exercise_id, gewicht, wiederholungen')
+      .in('exercise_id', betroffeneIds)
+      .eq('ist_aufwaermsatz', false)
+      .neq('workout_session_id', sessionId)
+    if (error) throw new Error('determine new records failed')
+
+    const vorherigeBeste = new Map<string, number>()
+    for (const row of (data ?? []) as {
+      exercise_id: string
+      gewicht: number | null
+      wiederholungen: number | null
+    }[]) {
+      const einsRM = epley1RM(row.gewicht, row.wiederholungen)
+      if (einsRM == null) continue
+      // Rounded the same way neuePersoenlicheRekorde rounds the session's own
+      // best — otherwise float noise (e.g. 116.70000000000002 vs 116.7) could
+      // report a "new" record that only differs by a rounding artifact.
+      const gerundet = Math.round(einsRM * 10) / 10
+      const bisher = vorherigeBeste.get(row.exercise_id)
+      if (bisher == null || gerundet > bisher) vorherigeBeste.set(row.exercise_id, gerundet)
+    }
+
+    const sessionSetsForCheck = sets
+      .filter((set) => betroffeneIds.includes(set.exercise_id))
+      .map((set) => ({
+        exercise_id: set.exercise_id,
+        name: set.exercise?.name ?? '',
+        gewicht: set.gewicht,
+        wiederholungen: set.wiederholungen,
+        ist_aufwaermsatz: set.ist_aufwaermsatz,
+      }))
+
+    return neuePersoenlicheRekorde(sessionSetsForCheck, vorherigeBeste)
   }
 
   async function deleteSession() {
@@ -290,6 +340,7 @@ export function useWorkoutSession(sessionId: string) {
     logSet,
     updateSet,
     completeSession,
+    ermittleNeueRekorde,
     deleteSession,
     addExercisesToSession,
     removeExerciseFromSession,
