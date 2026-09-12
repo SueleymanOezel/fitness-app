@@ -11,6 +11,7 @@ import {
   volumenJeMuskelgruppe,
   dauerUndKalorien,
   persoenlicheRekorde,
+  neuePersoenlicheRekorde,
 } from './training-charts'
 
 const am = (jahr: number, monat: number, tag: number) =>
@@ -486,5 +487,60 @@ describe('persoenlicheRekorde', () => {
       ],
     )
     expect(rekorde.map((rekord) => rekord.exercise_id)).toEqual(['e2', 'e1'])
+  })
+})
+
+const sessionSatz = (
+  exercise_id: string,
+  name: string,
+  gewicht: number | null,
+  wiederholungen: number | null,
+  ist_aufwaermsatz = false,
+) => ({ exercise_id, name, gewicht, wiederholungen, ist_aufwaermsatz })
+
+describe('neuePersoenlicheRekorde', () => {
+  it('reports a new record when the session beats the previous best', () => {
+    const rekorde = neuePersoenlicheRekorde(
+      [sessionSatz('e1', 'Bankdruecken', 100, 5)],
+      new Map([['e1', 105]]),
+    )
+    expect(rekorde).toEqual([{ exercise_id: 'e1', name: 'Bankdruecken', neuesEinsRM: 116.7, altesEinsRM: 105 }])
+  })
+
+  it('reports nothing when the session does not beat the previous best', () => {
+    const rekorde = neuePersoenlicheRekorde(
+      [sessionSatz('e1', 'Bankdruecken', 90, 5)],
+      new Map([['e1', 105]]),
+    )
+    expect(rekorde).toEqual([])
+  })
+
+  it('treats an exercise with no prior best as a record ("erste Ausfuehrung")', () => {
+    const rekorde = neuePersoenlicheRekorde([sessionSatz('e1', 'Bankdruecken', 60, 10)], new Map())
+    expect(rekorde).toEqual([{ exercise_id: 'e1', name: 'Bankdruecken', neuesEinsRM: 80, altesEinsRM: null }])
+  })
+
+  it('ignores warm-up sets', () => {
+    const rekorde = neuePersoenlicheRekorde([sessionSatz('e1', 'Bankdruecken', 200, 5, true)], new Map())
+    expect(rekorde).toEqual([])
+  })
+
+  it('takes the best set per exercise within the session, not the first', () => {
+    const rekorde = neuePersoenlicheRekorde(
+      [sessionSatz('e1', 'Bankdruecken', 80, 5), sessionSatz('e1', 'Bankdruecken', 100, 5)],
+      new Map(),
+    )
+    expect(rekorde).toEqual([{ exercise_id: 'e1', name: 'Bankdruecken', neuesEinsRM: 116.7, altesEinsRM: null }])
+  })
+
+  it('reports records for multiple exercises, mixed improved and not', () => {
+    const rekorde = neuePersoenlicheRekorde(
+      [sessionSatz('e1', 'Bankdruecken', 80, 5), sessionSatz('e2', 'Kniebeuge', 90, 5)],
+      new Map([
+        ['e1', 105],
+        ['e2', 80],
+      ]),
+    )
+    expect(rekorde).toEqual([{ exercise_id: 'e2', name: 'Kniebeuge', neuesEinsRM: 105, altesEinsRM: 80 }])
   })
 })

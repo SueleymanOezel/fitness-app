@@ -326,3 +326,44 @@ export function persoenlicheRekorde(sessions: AnalysisSession[], sets: AnalysisS
     (a, b) => b.einsRM - a.einsRM || a.name.localeCompare(b.name, 'de'),
   )
 }
+
+export type NeuerRekord = { exercise_id: string; name: string; neuesEinsRM: number; altesEinsRM: number | null }
+
+/**
+ * Neue Rekorde aus den Saetzen EINER gerade abgeschlossenen Session, verglichen
+ * mit dem bisher besten 1RM je Uebung (ohne diese Session — siehe
+ * ermittleNeueRekorde in use-workout-session.ts, das `vorherigeBeste` per
+ * gezielter Abfrage befuellt). Eine Uebung ohne Eintrag in `vorherigeBeste`
+ * zaehlt ebenfalls als Rekord — es gibt schlicht keinen alten Wert, der
+ * geschlagen werden muesste ("erste Ausfuehrung").
+ */
+export function neuePersoenlicheRekorde(
+  sessionSets: {
+    exercise_id: string
+    name: string
+    gewicht: number | null
+    wiederholungen: number | null
+    ist_aufwaermsatz: boolean
+  }[],
+  vorherigeBeste: Map<string, number>,
+): NeuerRekord[] {
+  const besteJeUebung = new Map<string, { name: string; einsRM: number }>()
+  for (const satz of sessionSets) {
+    if (satz.ist_aufwaermsatz) continue
+    const einsRM = epley1RM(satz.gewicht, satz.wiederholungen)
+    if (einsRM == null) continue
+    const gerundet = runde(einsRM)
+    const bisher = besteJeUebung.get(satz.exercise_id)
+    if (!bisher || gerundet > bisher.einsRM) {
+      besteJeUebung.set(satz.exercise_id, { name: satz.name, einsRM: gerundet })
+    }
+  }
+
+  const rekorde: NeuerRekord[] = []
+  for (const [exerciseId, { name, einsRM }] of besteJeUebung) {
+    const altesEinsRM = vorherigeBeste.get(exerciseId) ?? null
+    if (altesEinsRM != null && einsRM <= altesEinsRM) continue
+    rekorde.push({ exercise_id: exerciseId, name, neuesEinsRM: einsRM, altesEinsRM })
+  }
+  return rekorde.sort((a, b) => b.neuesEinsRM - a.neuesEinsRM || a.name.localeCompare(b.name, 'de'))
+}
