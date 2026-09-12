@@ -35,6 +35,11 @@ function createQueryBuilder(result: { data: unknown; error?: unknown }) {
  */
 function createSequencedQueryBuilder(results: { data: unknown; error?: unknown }[]) {
   let index = 0
+  const next = () => {
+    const result = results[Math.min(index, results.length - 1)]
+    index += 1
+    return result
+  }
   const builder: Record<string, unknown> = {
     select: vi.fn(() => builder),
     insert: vi.fn(() => builder),
@@ -47,13 +52,10 @@ function createSequencedQueryBuilder(results: { data: unknown; error?: unknown }
     is: vi.fn(() => builder),
     gte: vi.fn(() => builder),
     limit: vi.fn(() => builder),
-    single: vi.fn(() => Promise.resolve(results[Math.min(index, results.length - 1)])),
-    maybeSingle: vi.fn(() => Promise.resolve(results[Math.min(index, results.length - 1)])),
-    then: (resolve: (value: { data: unknown; error?: unknown }) => unknown) => {
-      const result = results[Math.min(index, results.length - 1)]
-      index += 1
-      return resolve(result)
-    },
+    range: vi.fn(() => Promise.resolve(next())),
+    single: vi.fn(() => Promise.resolve(next())),
+    maybeSingle: vi.fn(() => Promise.resolve(next())),
+    then: (resolve: (value: { data: unknown; error?: unknown }) => unknown) => resolve(next()),
   }
   return builder
 }

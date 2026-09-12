@@ -58,6 +58,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     dauerMinuten: number
     kalorien: number | null
   } | null>(null)
+  const [abschlussLaeuft, setAbschlussLaeuft] = useState(false)
   const showToast = useToast()
   const navigate = useNavigate()
 
@@ -86,6 +87,20 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
         neueRekorde={abschluss.neueRekorde}
         onFertig={() => navigate('/training')}
       />
+    )
+  }
+
+  // Set as soon as completion starts, before any await: once completeSession()
+  // resolves, its internal reload() sets session.beendet_am non-null before
+  // ermittleNeueRekorde() has finished — without this guard, a render in that
+  // window would hit the "already completed" fallback below and flash it over
+  // what should be the completion screen.
+  if (abschlussLaeuft) {
+    return (
+      <div>
+        <h1>Training</h1>
+        <p>Lädt…</p>
+      </div>
     )
   }
 
@@ -137,10 +152,12 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
 
   async function complete() {
     if (gewichtKg === null || session === null) return
+    setAbschlussLaeuft(true)
     let ergebnis: { beendetAm: string; gesamtKalorien: number | null }
     try {
       ergebnis = await completeSession(gewichtKg)
     } catch {
+      setAbschlussLaeuft(false)
       showToast('Training konnte nicht abgeschlossen werden.', 'error')
       return
     }

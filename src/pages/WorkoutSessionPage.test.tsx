@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import WorkoutSessionPage from './WorkoutSessionPage'
@@ -479,6 +480,48 @@ describe('WorkoutSessionPage', () => {
     expect(screen.getByText('3 Tage in Folge')).toBeInTheDocument()
     // The live session view is gone, not just covered.
     expect(screen.queryByRole('button', { name: 'Training abschließen' })).not.toBeInTheDocument()
+  })
+
+  it('never shows the "already completed" fallback while completion is still in flight', async () => {
+    signedIn()
+    const base = sessionResult()
+    // The mocked hook owns real React state, so that the reload() simulation
+    // below produces a genuine re-render (not just a mutated closure variable
+    // that nothing re-renders on) — matching how the real useWorkoutSession's
+    // reload() flips session.beendet_am via setState before
+    // ermittleNeueRekorde() (called after, still inside complete()) resolves.
+    mockUseWorkoutSession.mockImplementation(() => {
+      const [session, setSession] = useState<Omit<typeof base.session, 'beendet_am'> & { beendet_am: string | null }>(
+        base.session,
+      )
+      return {
+        ...base,
+        session,
+        completeSession: vi.fn().mockImplementation(async () => {
+          act(() => {
+            setSession({ ...base.session, beendet_am: '2026-08-21T10:20:00.000Z' })
+          })
+          // Still in flight after the reload-equivalent render committed —
+          // mirrors ermittleNeueRekorde() not having resolved yet.
+          await Promise.resolve()
+          return { beendetAm: '2026-08-21T10:25:00.000Z', gesamtKalorien: 187 }
+        }),
+      }
+    })
+
+    renderPage()
+    await screen.findByText('Bankdrücken')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+
+    // The synchronous part of completeSession() (including our simulated
+    // reload) has already committed its render by the time fireEvent.click
+    // returns; abschluss is still null at this point. This is exactly the
+    // window the pre-fix code falls through to the "already completed" guard.
+    expect(screen.queryByText('Dieses Training ist bereits abgeschlossen.')).not.toBeInTheDocument()
+
+    expect(await screen.findByText('Training abgeschlossen')).toBeInTheDocument()
+    expect(screen.queryByText('Dieses Training ist bereits abgeschlossen.')).not.toBeInTheDocument()
   })
 
   it('shows new personal records on the completion screen', async () => {

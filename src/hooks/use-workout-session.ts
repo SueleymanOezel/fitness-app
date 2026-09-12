@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { sessionKalorien } from '../lib/workout-calories'
 import { epley1RM, neuePersoenlicheRekorde, type NeuerRekord } from '../lib/analysis/training-charts'
+import { seitenweiseLaden } from '../lib/paged-query'
 
 export type SessionInfo = {
   id: string
@@ -290,20 +291,28 @@ export function useWorkoutSession(sessionId: string) {
     const betroffeneIds = [...new Set(sets.filter((set) => !set.ist_aufwaermsatz).map((set) => set.exercise_id))]
     if (betroffeneIds.length === 0) return []
 
-    const { data, error } = await supabase
-      .from('workout_session_sets')
-      .select('exercise_id, gewicht, wiederholungen')
-      .in('exercise_id', betroffeneIds)
-      .eq('ist_aufwaermsatz', false)
-      .neq('workout_session_id', sessionId)
-    if (error) throw new Error('determine new records failed')
-
-    const vorherigeBeste = new Map<string, number>()
-    for (const row of (data ?? []) as {
+    // Paginated like every other multi-row history query in this codebase
+    // (see use-training-analysis.ts) — an unpaginated query would silently
+    // truncate at PostgREST's db-max-rows for a long-tenured user, corrupting
+    // the historical-best computation below.
+    const ergebnis = await seitenweiseLaden<{
       exercise_id: string
       gewicht: number | null
       wiederholungen: number | null
-    }[]) {
+    }>((from, to) =>
+      supabase
+        .from('workout_session_sets')
+        .select('exercise_id, gewicht, wiederholungen')
+        .in('exercise_id', betroffeneIds)
+        .eq('ist_aufwaermsatz', false)
+        .neq('workout_session_id', sessionId)
+        .order('id', { ascending: true })
+        .range(from, to),
+    )
+    if (ergebnis.failed) throw new Error('determine new records failed')
+
+    const vorherigeBeste = new Map<string, number>()
+    for (const row of ergebnis.rows) {
       const einsRM = epley1RM(row.gewicht, row.wiederholungen)
       if (einsRM == null) continue
       // Rounded the same way neuePersoenlicheRekorde rounds the session's own
