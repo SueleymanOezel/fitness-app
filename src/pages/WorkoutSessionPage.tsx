@@ -15,6 +15,9 @@ import { VitaIcon } from '../components/icons/VitaIcon'
 import { useExercises } from '../hooks/use-exercises'
 import Dialog from '../components/Dialog'
 import ExercisePicker from '../components/ExercisePicker'
+import { useTrainingStreak } from '../hooks/use-training-streak'
+import { streakText } from '../lib/streak'
+import type { NeuerRekord } from '../lib/analysis/training-charts'
 
 export default function WorkoutSessionPage() {
   const { session } = useSession()
@@ -42,6 +45,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     loading,
     logSet,
     completeSession,
+    ermittleNeueRekorde,
     addExercisesToSession,
     removeExerciseFromSession,
   } = useWorkoutSession(sessionId)
@@ -49,6 +53,11 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
   const [openExerciseId, setOpenExerciseId] = useState<string | null>(null)
   const [pause, setPause] = useState<{ until: number; sekunden: number } | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [abschluss, setAbschluss] = useState<{
+    neueRekorde: NeuerRekord[]
+    dauerMinuten: number
+    kalorien: number | null
+  } | null>(null)
   const showToast = useToast()
   const navigate = useNavigate()
 
@@ -65,6 +74,18 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
         <h1>Training</h1>
         <p>Lädt…</p>
       </div>
+    )
+  }
+
+  if (abschluss !== null) {
+    return (
+      <SessionCompletionScreen
+        userId={userId}
+        dauerMinuten={abschluss.dauerMinuten}
+        kalorien={abschluss.kalorien}
+        neueRekorde={abschluss.neueRekorde}
+        onFertig={() => navigate('/training')}
+      />
     )
   }
 
@@ -115,13 +136,25 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
   }
 
   async function complete() {
-    if (gewichtKg === null) return
+    if (gewichtKg === null || session === null) return
+    let ergebnis: { beendetAm: string; gesamtKalorien: number | null }
     try {
-      await completeSession(gewichtKg)
-      navigate('/training')
+      ergebnis = await completeSession(gewichtKg)
     } catch {
       showToast('Training konnte nicht abgeschlossen werden.', 'error')
+      return
     }
+    let neueRekorde: NeuerRekord[] = []
+    try {
+      neueRekorde = await ermittleNeueRekorde()
+    } catch {
+      // PR-Ermittlung ist reiner Bonus-Inhalt — ein Fehler hier zeigt den
+      // Abschluss-Screen trotzdem, nur ohne Rekord-Sektion.
+    }
+    const dauerMinuten = Math.round(
+      (new Date(ergebnis.beendetAm).getTime() - new Date(session.gestartet_am).getTime()) / 60000,
+    )
+    setAbschluss({ neueRekorde, dauerMinuten, kalorien: ergebnis.gesamtKalorien })
   }
 
   async function addExercises(exerciseIds: string[]) {
@@ -224,6 +257,52 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
           <VitaIcon name="save" tone="mono" size={20} />
           Training abschließen
         </span>
+      </button>
+    </div>
+  )
+}
+
+/** Eine Zahl mit einer Nachkommastelle, deutsch geschrieben — wie in PersonalRecordsList.tsx. */
+function zahl(wert: number) {
+  return wert.toFixed(1).replace('.', ',')
+}
+
+function SessionCompletionScreen({
+  userId,
+  dauerMinuten,
+  kalorien,
+  neueRekorde,
+  onFertig,
+}: {
+  userId: string
+  dauerMinuten: number
+  kalorien: number | null
+  neueRekorde: NeuerRekord[]
+  onFertig: () => void
+}) {
+  const { streak, loading: streakLoading } = useTrainingStreak(userId)
+
+  return (
+    <div>
+      <h1>Training abgeschlossen</h1>
+      <p>{`${dauerMinuten} Minuten${kalorien == null ? '' : ` · ${Math.round(kalorien)} kcal`}`}</p>
+      {neueRekorde.length > 0 && (
+        <div className={cardClass}>
+          <h2>Neue Rekorde</h2>
+          <ul role="list" className="space-y-1">
+            {neueRekorde.map((rekord) => (
+              <li key={rekord.exercise_id}>
+                {`${rekord.name} — neues 1RM ${zahl(rekord.neuesEinsRM)} kg (${
+                  rekord.altesEinsRM == null ? 'erste Ausführung' : `vorher: ${zahl(rekord.altesEinsRM)} kg`
+                })`}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <p>{streakLoading ? '…' : streakText(streak)}</p>
+      <button type="button" className={buttonPrimaryClass} onClick={onFertig}>
+        Fertig
       </button>
     </div>
   )

@@ -17,6 +17,17 @@ vi.mock('../hooks/use-workout-session', () => ({
   useWorkoutSession: (sessionId: string) => mockUseWorkoutSession(sessionId),
 }))
 
+const mockUseTrainingStreak = vi.fn()
+vi.mock('../hooks/use-training-streak', () => ({
+  useTrainingStreak: (userId: string) => mockUseTrainingStreak(userId),
+}))
+
+const mockNavigate = vi.fn()
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return { ...actual, useNavigate: () => mockNavigate }
+})
+
 afterEach(() => {
   cleanup()
   vi.useRealTimers()
@@ -61,7 +72,8 @@ function sessionResult(overrides: Partial<ReturnType<typeof mockUseWorkoutSessio
     loading: false,
     logSet: vi.fn().mockResolvedValue(undefined),
     updateSet: vi.fn().mockResolvedValue(undefined),
-    completeSession: vi.fn().mockResolvedValue(undefined),
+    completeSession: vi.fn().mockResolvedValue({ beendetAm: '2026-08-21T10:20:00.000Z', gesamtKalorien: 187 }),
+    ermittleNeueRekorde: vi.fn().mockResolvedValue([]),
     deleteSession: vi.fn().mockResolvedValue(undefined),
     addExercisesToSession: vi.fn().mockResolvedValue(undefined),
     removeExerciseFromSession: vi.fn().mockResolvedValue(undefined),
@@ -77,9 +89,11 @@ function renderPage() {
 }
 
 function signedIn(weight: number | null = 80) {
+  mockNavigate.mockClear()
   mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
   mockUseProfile.mockReturnValue({ profile: { aktuelles_gewicht: weight }, loading: false, error: false })
   mockUseExercises.mockReturnValue({ exercises: [], loading: false, createExercise: vi.fn() })
+  mockUseTrainingStreak.mockReturnValue({ streak: 0, loading: false })
 }
 
 describe('WorkoutSessionPage', () => {
@@ -445,6 +459,101 @@ describe('WorkoutSessionPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
 
     await waitFor(() => expect(result.completeSession).not.toHaveBeenCalled())
+  })
+
+  it('shows the completion screen with duration, calories and streak after finishing', async () => {
+    signedIn()
+    const result = sessionResult({
+      completeSession: vi.fn().mockResolvedValue({ beendetAm: '2026-08-21T10:25:00.000Z', gesamtKalorien: 187.4 }),
+    })
+    mockUseWorkoutSession.mockReturnValue(result)
+    mockUseTrainingStreak.mockReturnValue({ streak: 3, loading: false })
+
+    renderPage()
+    await screen.findByText('Bankdrücken')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+
+    expect(await screen.findByText('Training abgeschlossen')).toBeInTheDocument()
+    expect(screen.getByText('25 Minuten · 187 kcal')).toBeInTheDocument()
+    expect(screen.getByText('3 Tage in Folge')).toBeInTheDocument()
+    // The live session view is gone, not just covered.
+    expect(screen.queryByRole('button', { name: 'Training abschließen' })).not.toBeInTheDocument()
+  })
+
+  it('shows new personal records on the completion screen', async () => {
+    signedIn()
+    const result = sessionResult({
+      ermittleNeueRekorde: vi.fn().mockResolvedValue([
+        { exercise_id: 'ex1', name: 'Bankdrücken', neuesEinsRM: 116.7, altesEinsRM: 105 },
+        { exercise_id: 'ex2', name: 'Kniebeuge', neuesEinsRM: 80, altesEinsRM: null },
+      ]),
+    })
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+    await screen.findByText('Bankdrücken')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+
+    expect(await screen.findByText('Neue Rekorde')).toBeInTheDocument()
+    expect(screen.getByText('Bankdrücken — neues 1RM 116,7 kg (vorher: 105,0 kg)')).toBeInTheDocument()
+    expect(screen.getByText('Kniebeuge — neues 1RM 80,0 kg (erste Ausführung)')).toBeInTheDocument()
+  })
+
+  it('omits the records section instead of showing an empty one', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+    await screen.findByText('Bankdrücken')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+
+    expect(await screen.findByText('Training abgeschlossen')).toBeInTheDocument()
+    expect(screen.queryByText('Neue Rekorde')).not.toBeInTheDocument()
+  })
+
+  it('still shows the completion screen when determining new records fails', async () => {
+    signedIn()
+    const result = sessionResult({ ermittleNeueRekorde: vi.fn().mockRejectedValue(new Error('boom')) })
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+    await screen.findByText('Bankdrücken')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+
+    expect(await screen.findByText('Training abgeschlossen')).toBeInTheDocument()
+    expect(screen.queryByText('Neue Rekorde')).not.toBeInTheDocument()
+  })
+
+  it('does not navigate immediately after completing the session', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+    await screen.findByText('Bankdrücken')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+    await screen.findByText('Training abgeschlossen')
+
+    expect(mockNavigate).not.toHaveBeenCalled()
+  })
+
+  it('navigates to /training once Fertig is pressed on the completion screen', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+    await screen.findByText('Bankdrücken')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+    await screen.findByText('Training abgeschlossen')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fertig' }))
+
+    expect(mockNavigate).toHaveBeenCalledWith('/training')
   })
 
   it('reports a failed set instead of pretending it was stored', async () => {
