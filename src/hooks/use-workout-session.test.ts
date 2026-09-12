@@ -13,6 +13,8 @@ function createQueryBuilder(result: { data: unknown; error?: unknown }) {
     update: vi.fn(() => builder),
     delete: vi.fn(() => builder),
     eq: vi.fn(() => builder),
+    neq: vi.fn(() => builder),
+    in: vi.fn(() => builder),
     order: vi.fn(() => builder),
     is: vi.fn(() => builder),
     gte: vi.fn(() => builder),
@@ -20,6 +22,40 @@ function createQueryBuilder(result: { data: unknown; error?: unknown }) {
     single: vi.fn(() => Promise.resolve(result)),
     maybeSingle: vi.fn(() => Promise.resolve(result)),
     then: (resolve: (value: typeof result) => unknown) => resolve(result),
+  }
+  return builder
+}
+
+/**
+ * Same shape as createQueryBuilder, but `.then()` yields each of `results` in
+ * order (repeating the last one after exhaustion) instead of a single canned
+ * response — needed where two different queries hit the same table, like
+ * ermittleNeueRekorde's history query hitting workout_session_sets right
+ * after reload()'s own sets query already did.
+ */
+function createSequencedQueryBuilder(results: { data: unknown; error?: unknown }[]) {
+  let index = 0
+  const next = () => {
+    const result = results[Math.min(index, results.length - 1)]
+    index += 1
+    return result
+  }
+  const builder: Record<string, unknown> = {
+    select: vi.fn(() => builder),
+    insert: vi.fn(() => builder),
+    update: vi.fn(() => builder),
+    delete: vi.fn(() => builder),
+    eq: vi.fn(() => builder),
+    neq: vi.fn(() => builder),
+    in: vi.fn(() => builder),
+    order: vi.fn(() => builder),
+    is: vi.fn(() => builder),
+    gte: vi.fn(() => builder),
+    limit: vi.fn(() => builder),
+    range: vi.fn(() => Promise.resolve(next())),
+    single: vi.fn(() => Promise.resolve(next())),
+    maybeSingle: vi.fn(() => Promise.resolve(next())),
+    then: (resolve: (value: { data: unknown; error?: unknown }) => unknown) => resolve(next()),
   }
   return builder
 }
@@ -341,7 +377,7 @@ describe('useWorkoutSession', () => {
     await expect(result.current.removeExerciseFromSession('se1')).rejects.toThrow()
   })
 
-  it('completes the session with the given calories', async () => {
+  it('completes the session with the given calories and returns the summary', async () => {
     const sessionBuilder = createQueryBuilder({ data: sessionRow })
     mockTables({ workout_sessions: sessionBuilder })
 
@@ -349,11 +385,12 @@ describe('useWorkoutSession', () => {
     const { result } = renderHook(() => useWorkoutSession('s1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    await result.current.completeSession(75)
+    const summary = await result.current.completeSession(75)
 
     expect(sessionBuilder.update).toHaveBeenCalledWith(
       expect.objectContaining({ beendet_am: expect.any(String), gesamt_kalorien: expect.any(Number) }),
     )
+    expect(summary).toEqual({ beendetAm: expect.any(String), gesamtKalorien: expect.any(Number) })
   })
 
   it('deletes the session', async () => {
@@ -406,5 +443,82 @@ describe('useWorkoutSession', () => {
     expect(patch.gesamt_kalorien).toBeCloseTo((5 * 80 * 5) / 60, 5)
 
     vi.useRealTimers()
+  })
+
+  describe('ermittleNeueRekorde', () => {
+    it('reports a new record when the session beats the best prior set of the same exercise', async () => {
+      const setsBuilder = createSequencedQueryBuilder([
+        { data: [{ ...setRow, gewicht: 100, wiederholungen: 5 }] }, // reload(): this session's own sets
+        { data: [{ exercise_id: 'ex1', gewicht: 90, wiederholungen: 5 }] }, // history query
+      ])
+      mockTables({ workout_session_sets: setsBuilder })
+
+      const { useWorkoutSession } = await import('./use-workout-session')
+      const { result } = renderHook(() => useWorkoutSession('s1'))
+      await waitFor(() => expect(result.current.loading).toBe(false))
+
+      const rekorde = await result.current.ermittleNeueRekorde()
+
+      expect(setsBuilder.in).toHaveBeenCalledWith('exercise_id', ['ex1'])
+      expect(setsBuilder.eq).toHaveBeenCalledWith('ist_aufwaermsatz', false)
+      expect(setsBuilder.neq).toHaveBeenCalledWith('workout_session_id', 's1')
+      expect(rekorde).toEqual([{ exercise_id: 'ex1', name: 'Bankdrücken', neuesEinsRM: 116.7, altesEinsRM: 105 }])
+    })
+
+    it('reports no record when the session does not beat the historical best', async () => {
+      const setsBuilder = createSequencedQueryBuilder([
+        { data: [{ ...setRow, gewicht: 90, wiederholungen: 5 }] },
+        { data: [{ exercise_id: 'ex1', gewicht: 100, wiederholungen: 5 }] },
+      ])
+      mockTables({ workout_session_sets: setsBuilder })
+
+      const { useWorkoutSession } = await import('./use-workout-session')
+      const { result } = renderHook(() => useWorkoutSession('s1'))
+      await waitFor(() => expect(result.current.loading).toBe(false))
+
+      expect(await result.current.ermittleNeueRekorde()).toEqual([])
+    })
+
+    it('treats an exercise with no prior history as a record', async () => {
+      const setsBuilder = createSequencedQueryBuilder([
+        { data: [{ ...setRow, gewicht: 60, wiederholungen: 10 }] },
+        { data: [] },
+      ])
+      mockTables({ workout_session_sets: setsBuilder })
+
+      const { useWorkoutSession } = await import('./use-workout-session')
+      const { result } = renderHook(() => useWorkoutSession('s1'))
+      await waitFor(() => expect(result.current.loading).toBe(false))
+
+      expect(await result.current.ermittleNeueRekorde()).toEqual([
+        { exercise_id: 'ex1', name: 'Bankdrücken', neuesEinsRM: 80, altesEinsRM: null },
+      ])
+    })
+
+    it('returns an empty list without querying when the session logged no working sets', async () => {
+      const setsBuilder = createSequencedQueryBuilder([{ data: [{ ...setRow, ist_aufwaermsatz: true }] }])
+      mockTables({ workout_session_sets: setsBuilder })
+
+      const { useWorkoutSession } = await import('./use-workout-session')
+      const { result } = renderHook(() => useWorkoutSession('s1'))
+      await waitFor(() => expect(result.current.loading).toBe(false))
+
+      expect(await result.current.ermittleNeueRekorde()).toEqual([])
+      expect(setsBuilder.in).not.toHaveBeenCalled()
+    })
+
+    it('rejects instead of reporting no records when the history query fails', async () => {
+      const setsBuilder = createSequencedQueryBuilder([
+        { data: [{ ...setRow, gewicht: 60, wiederholungen: 10 }] },
+        { data: null, error: { message: 'boom' } },
+      ])
+      mockTables({ workout_session_sets: setsBuilder })
+
+      const { useWorkoutSession } = await import('./use-workout-session')
+      const { result } = renderHook(() => useWorkoutSession('s1'))
+      await waitFor(() => expect(result.current.loading).toBe(false))
+
+      await expect(result.current.ermittleNeueRekorde()).rejects.toThrow()
+    })
   })
 })

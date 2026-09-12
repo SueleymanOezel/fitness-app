@@ -20,6 +20,11 @@ vi.mock('../hooks/use-active-training-day', () => ({
 const mockUseBodyMetrics = vi.fn()
 vi.mock('../hooks/use-body-metrics', () => ({ useBodyMetrics: (userId: string) => mockUseBodyMetrics(userId) }))
 
+const mockUseTrainingStreak = vi.fn()
+vi.mock('../hooks/use-training-streak', () => ({
+  useTrainingStreak: (userId: string) => mockUseTrainingStreak(userId),
+}))
+
 const mockUseHomeAnalysis = vi.fn()
 vi.mock('../hooks/use-home-analysis', () => ({
   useHomeAnalysis: (userId: string, zeitraum: unknown) => mockUseHomeAnalysis(userId, zeitraum),
@@ -42,6 +47,7 @@ function stubDefaults() {
   mockUseFoodEntries.mockReturnValue({ entries: [], loading: false, addEntry: vi.fn(), updateEntry: vi.fn(), deleteEntry: vi.fn() })
   mockUseActiveTrainingDay.mockReturnValue({ plan: null, day: null, loading: false })
   mockUseBodyMetrics.mockReturnValue({ rows: [], loading: false, error: false, saveEntry: vi.fn(), deleteEntry: vi.fn(), reload: vi.fn() })
+  mockUseTrainingStreak.mockReturnValue({ streak: 0, loading: false })
   // No chart pinned by default: use-home-analysis must not be exercised at
   // all in that case (asserted below), this stub only guards against a
   // regression accidentally calling it and crashing on a destructure of
@@ -123,6 +129,19 @@ describe('HomePage', () => {
     expect(screen.getByText(/82,5 kg/)).toBeInTheDocument()
     expect(screen.queryByText(/seit dem letzten Eintrag/)).not.toBeInTheDocument()
     expect(screen.queryByText('Keine Messwerte.')).not.toBeInTheDocument()
+  })
+
+  it('shows the current streak', () => {
+    stubDefaults()
+    mockUseTrainingStreak.mockReturnValue({ streak: 4, loading: false })
+    renderWithProviders(<HomePage />)
+    expect(screen.getByText('4 Tage in Folge')).toBeInTheDocument()
+  })
+
+  it('shows a message instead of a streak count when there is none yet', () => {
+    stubDefaults()
+    renderWithProviders(<HomePage />)
+    expect(screen.getByText('Noch kein Trainingstag.')).toBeInTheDocument()
   })
 
   it('does not query Home analysis data without a pinned selection', () => {

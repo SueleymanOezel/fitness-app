@@ -14,6 +14,8 @@ import { useHomeAnalysis } from '../hooks/use-home-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 import { cardClass } from '../lib/ui-classes'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import { useTrainingStreak } from '../hooks/use-training-streak'
+import { streakText } from '../lib/streak'
 
 /** German notation: comma as the decimal mark, at most one place. */
 function formatValue(value: number) {
@@ -41,9 +43,10 @@ function Dashboard({ userId }: { userId: string }) {
   const { entries, loading: entriesLoading } = useFoodEntries(userId)
   const { plan, day, loading: trainingLoading } = useActiveTrainingDay(userId)
   const { rows, loading: rowsLoading, error: rowsError } = useBodyMetrics(userId)
+  const { streak, loading: streakLoading } = useTrainingStreak(userId)
   const auswahl = useChartSelection(userId)
 
-  if (profileLoading || entriesLoading || trainingLoading || rowsLoading) {
+  if (profileLoading || entriesLoading || trainingLoading || rowsLoading || streakLoading) {
     return (
       <div>
         <h1>Home</h1>
@@ -102,6 +105,17 @@ function Dashboard({ userId }: { userId: string }) {
         <Link to="/body" className="flex items-center justify-center gap-2">
           <VitaIcon name="body" tone="brand" size={20} />
           Zum Körperbereich
+        </Link>
+      </div>
+      <div className={cardClass}>
+        <h2 className="flex items-center justify-center gap-2">
+          <VitaIcon name="training" tone="brand" size={28} />
+          Streak
+        </h2>
+        <p>{streakText(streak)}</p>
+        <Link to="/training" className="flex items-center justify-center gap-2">
+          <VitaIcon name="training" tone="brand" size={20} />
+          Zum Trainingsbereich
         </Link>
       </div>
       <DashboardHomeCharts userId={userId} auswahl={auswahl.auswahl} />
