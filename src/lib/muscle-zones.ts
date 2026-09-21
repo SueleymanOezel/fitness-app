@@ -65,3 +65,31 @@ export function zonenFuerTag(
   }
   return zonen
 }
+
+/**
+ * T9: Wie oft (in wie vielen unterschiedlichen Sessions) eine Zone ueber die
+ * Trainingshistorie primaer getroffen wurde — die Kennzahl fuer "Fokus" vs.
+ * "Vernachlaessigung". Nur primaere Treffer zaehlen (wie T6s
+ * volumenJeMuskelgruppe), Aufwaermsaetze zaehlen nicht mit. Mehrere Saetze
+ * derselben Session auf dieselbe Zone zaehlen nur einmal, sonst wuerde eine
+ * Zone allein durch viele Saetze pro Tag ueberproportional "fokussiert"
+ * wirken statt tatsaechlich oft trainiert.
+ */
+export function haeufigkeitJeZone(
+  saetze: { workout_session_id: string; muskelgruppen: string[]; ist_aufwaermsatz: boolean }[],
+): Record<MuskelZone, number> {
+  const sessionsJeZone = Object.fromEntries(ALLE_ZONEN.map((zone) => [zone, new Set<string>()])) as Record<
+    MuskelZone,
+    Set<string>
+  >
+
+  for (const satz of saetze) {
+    if (satz.ist_aufwaermsatz) continue
+    for (const wert of satz.muskelgruppen) {
+      const zone = ZONE_FUER_MUSKELGRUPPE[wert]
+      if (zone) sessionsJeZone[zone].add(satz.workout_session_id)
+    }
+  }
+
+  return Object.fromEntries(ALLE_ZONEN.map((zone) => [zone, sessionsJeZone[zone].size])) as Record<MuskelZone, number>
+}

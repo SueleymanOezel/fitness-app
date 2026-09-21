@@ -9,6 +9,7 @@ import { TITEL as T5_TITEL } from '../../components/charts/RepsPerSetChart'
 import { TITEL as T6_TITEL } from '../../components/charts/MuscleVolumeChart'
 import { TITEL as T7_TITEL } from '../../components/charts/SessionLoadChart'
 import { TITEL as T8_TITEL } from '../../components/charts/PersonalRecordsList'
+import { TITEL as T9_TITEL } from '../../components/charts/MuscleFocusChart'
 import { TITEL as E1_TITEL } from '../../components/charts/CaloriesPerDayChart'
 import { TITEL as E2_TITEL } from '../../components/charts/MacroDistributionChart'
 import { TITEL as E3_TITEL } from '../../components/charts/MacroTrendChart'
@@ -26,7 +27,7 @@ import { TITEL as H3_TITEL } from '../../components/charts/HomeSparklines'
 
 describe('registry', () => {
   it('registers the charts of plan 1, 2a, 2b and 2c', () => {
-    expect(CHART_IDS).toEqual(['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'K1', 'K2', 'K3', 'K4', 'K5', 'H1', 'H2', 'H3'])
+    expect(CHART_IDS).toEqual(['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'K1', 'K2', 'K3', 'K4', 'K5', 'H1', 'H2', 'H3'])
   })
 
   it('takes each title from its component instead of restating it', () => {
@@ -40,6 +41,7 @@ describe('registry', () => {
     expect(CHARTS.find((chart) => chart.id === 'T6')?.titel).toBe(T6_TITEL)
     expect(CHARTS.find((chart) => chart.id === 'T7')?.titel).toBe(T7_TITEL)
     expect(CHARTS.find((chart) => chart.id === 'T8')?.titel).toBe(T8_TITEL)
+    expect(CHARTS.find((chart) => chart.id === 'T9')?.titel).toBe(T9_TITEL)
     expect(CHARTS.find((chart) => chart.id === 'E1')?.titel).toBe(E1_TITEL)
     expect(CHARTS.find((chart) => chart.id === 'E2')?.titel).toBe(E2_TITEL)
     expect(CHARTS.find((chart) => chart.id === 'E3')?.titel).toBe(E3_TITEL)
@@ -57,7 +59,7 @@ describe('registry', () => {
   })
 
   it('filters by area', () => {
-    expect(chartsFor('training').map((chart) => chart.id)).toEqual(['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8'])
+    expect(chartsFor('training').map((chart) => chart.id)).toEqual(['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9'])
     expect(chartsFor('nutrition').map((chart) => chart.id)).toEqual(['E1', 'E2', 'E3', 'E4', 'E5', 'E6'])
     expect(chartsFor('body').map((chart) => chart.id)).toEqual(['K1', 'K2', 'K3', 'K4', 'K5'])
     expect(chartsFor('home').map((chart) => chart.id)).toEqual(['H1', 'H2', 'H3'])
