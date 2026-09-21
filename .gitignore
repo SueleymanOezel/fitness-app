@@ -26,7 +26,7 @@ dist-ssr
 .env
 
 # Claude Code worktrees live here; vitest would otherwise glob their test copies too
-.claude/
+.claude/worktrees/
 
 # Scratch space for subagent-driven development (ledger, briefs, review packages)
 .superpowers/
