@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import TrainingChartList from './TrainingChartList'
-import { T1 } from '../../lib/analysis/registry'
+import { T1, T9 } from '../../lib/analysis/registry'
 
 const session = (id: string, tag: string) => ({
   id,
@@ -28,6 +28,13 @@ describe('TrainingChartList', () => {
     )
     // timeout: die Graphen haengen hinter React.lazy.
     expect(await screen.findByText('Trainingsfrequenz', {}, { timeout: 5000 })).toBeInTheDocument()
+  })
+
+  it('renders the muscle-focus chart for T9', async () => {
+    render(
+      <TrainingChartList ids={[T9]} sessions={[session('s1', '2026-08-17')]} sets={[]} />,
+    )
+    expect(await screen.findByText('Fokus je Muskelgruppe', {}, { timeout: 5000 })).toBeInTheDocument()
   })
 
   it('renders no chart for an id it does not know', async () => {

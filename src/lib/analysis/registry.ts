@@ -18,6 +18,7 @@ import {
   VOLUMEN_JE_MUSKELGRUPPE_TITEL as MUSCLE_VOLUME,
   DAUER_UND_KALORIEN_TITEL as SESSION_LOAD,
   REKORDE_TITEL as RECORDS,
+  FOKUS_JE_MUSKELGRUPPE_TITEL as MUSCLE_FOCUS,
   KALORIENBILANZ_TITEL as CALORIE_BALANCE,
   UMFAENGE_TITEL as BODY_MEASUREMENTS,
   AENDERUNGSRATE_TITEL as CHANGE_RATE,
@@ -56,6 +57,7 @@ export const T5 = 'T5'
 export const T6 = 'T6'
 export const T7 = 'T7'
 export const T8 = 'T8'
+export const T9 = 'T9'
 export const E1 = 'E1'
 export const E2 = 'E2'
 export const E3 = 'E3'
@@ -80,6 +82,7 @@ export const CHARTS: ChartDef[] = [
   { id: T6, bereich: 'training', titel: MUSCLE_VOLUME },
   { id: T7, bereich: 'training', titel: SESSION_LOAD },
   { id: T8, bereich: 'training', titel: RECORDS },
+  { id: T9, bereich: 'training', titel: MUSCLE_FOCUS },
   { id: E1, bereich: 'nutrition', titel: CALORIES_PER_DAY },
   { id: E2, bereich: 'nutrition', titel: MACRO_DISTRIBUTION_TODAY },
   { id: E3, bereich: 'nutrition', titel: MACRO_TREND },

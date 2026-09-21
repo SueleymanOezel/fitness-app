@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ALLE_ZONEN, zonenFuerTag } from './muscle-zones'
+import { ALLE_ZONEN, haeufigkeitJeZone, zonenFuerTag } from './muscle-zones'
 
 describe('zonenFuerTag', () => {
   it('leaves every zone untrained for a day with no exercises', () => {
@@ -74,5 +74,53 @@ describe('zonenFuerTag', () => {
       const getroffeneZonen = ALLE_ZONEN.filter((zone) => zonen[zone] === 'primary')
       expect(getroffeneZonen).toHaveLength(1)
     }
+  })
+})
+
+describe('haeufigkeitJeZone', () => {
+  function satz(overrides: {
+    workout_session_id: string
+    muskelgruppen: string[]
+    ist_aufwaermsatz?: boolean
+  }) {
+    return { ist_aufwaermsatz: false, ...overrides }
+  }
+
+  it('leaves every zone at 0 when there are no sets', () => {
+    const haeufigkeit = haeufigkeitJeZone([])
+    for (const zone of ALLE_ZONEN) expect(haeufigkeit[zone]).toBe(0)
+  })
+
+  it('counts one session that hits a zone as 1', () => {
+    const haeufigkeit = haeufigkeitJeZone([satz({ workout_session_id: 's1', muskelgruppen: ['chest'] })])
+    expect(haeufigkeit.brust).toBe(1)
+  })
+
+  it('counts two different sessions that hit the same zone as 2', () => {
+    const haeufigkeit = haeufigkeitJeZone([
+      satz({ workout_session_id: 's1', muskelgruppen: ['chest'] }),
+      satz({ workout_session_id: 's2', muskelgruppen: ['chest'] }),
+    ])
+    expect(haeufigkeit.brust).toBe(2)
+  })
+
+  it('counts two sets of the same session hitting the same zone only once', () => {
+    const haeufigkeit = haeufigkeitJeZone([
+      satz({ workout_session_id: 's1', muskelgruppen: ['chest'] }),
+      satz({ workout_session_id: 's1', muskelgruppen: ['chest'] }),
+    ])
+    expect(haeufigkeit.brust).toBe(1)
+  })
+
+  it('ignores warm-up sets', () => {
+    const haeufigkeit = haeufigkeitJeZone([
+      satz({ workout_session_id: 's1', muskelgruppen: ['chest'], ist_aufwaermsatz: true }),
+    ])
+    expect(haeufigkeit.brust).toBe(0)
+  })
+
+  it('ignores unknown muscle-group values without crashing', () => {
+    const haeufigkeit = haeufigkeitJeZone([satz({ workout_session_id: 's1', muskelgruppen: ['some-future-value'] })])
+    for (const zone of ALLE_ZONEN) expect(haeufigkeit[zone]).toBe(0)
   })
 })
