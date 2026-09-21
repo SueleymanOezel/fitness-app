@@ -120,7 +120,7 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
         } else {
           try {
             saved = await saveProductEdit(
-              { id: product.id, created_by: product.created_by },
+              { id: product.id, created_by: product.created_by, barcode: product.barcode },
               { ...nutrients, name: trimmedName },
               userId,
             )
@@ -131,8 +131,9 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
           }
         }
 
-        // saveProductEdit returns a copy when the product belonged to someone
-        // else; the entry has to follow it.
+        // saveProductEdit returns a copy whenever it couldn't update in place
+        // (foreign product, or a barcode-carrying shared product); the entry
+        // has to follow it.
         if (saved.id !== product.id) patch.product_id = saved.id
       }
     }

@@ -84,7 +84,7 @@ describe('FoodEntryEditForm', () => {
 
     await waitFor(() => expect(onSave).toHaveBeenCalled())
     expect(mockSaveProductEdit).toHaveBeenCalledWith(
-      { id: 'p1', created_by: 'u1' },
+      { id: 'p1', created_by: 'u1', barcode: '4001234567890' },
       expect.objectContaining({ kalorien: 120, name: 'Testprodukt' }),
       'u1',
     )
