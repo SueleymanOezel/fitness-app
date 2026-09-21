@@ -37,3 +37,7 @@ dist-ssr
 # impeccable's local live-server runtime state (pid/port/token) — not the critique snapshots,
 # those live in .impeccable/critique/ and are meant to be committed
 .impeccable/live/
+
+# graphify's local knowledge-graph snapshot (graph.json/graph.html/GRAPH_REPORT.md) —
+# regenerated via `graphify update`, not meant to be committed
+graphify-out/

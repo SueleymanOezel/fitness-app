@@ -91,6 +91,10 @@ Befehle:
 - `codex exec --sandbox workspace-write -m gpt-5.6-sol "<Auftrag>"` — darf Dateien im Arbeitsverzeichnis ändern.
 - `codex review -c model="gpt-5.6-sol" --base <branch> --title "<Titel>"` — eigenständiger Review-Lauf gegen einen Base-Branch.
 
+## Graphify — Wissensgraph-Orientierung
+
+Seit 22.09.2026: Ein per `/graphify` gebauter Wissensgraph-Snapshot liegt unter `graphify-out/` im Hauptcheckout (`graph.json`, `GRAPH_REPORT.md`, `graph.html`) — lokal generiert, nicht committet (siehe `.gitignore`). Bei Fragen zu Architektur, Datei-/Modul-Beziehungen oder „wo hängt X mit Y zusammen" zuerst `graphify query "<Frage>"` im Hauptcheckout laufen lassen, statt die Codebase blind zu durchsuchen. **Nach jedem gemergten PR** den Graph mit `graphify update` (bzw. `/graphify --update`) nachziehen, analog zur Wiki-/Domänenmodell-Pflicht (siehe „Wiki & domain model upkeep" in der Projekt-Memory) — sonst veraltet der Graph gegenüber dem tatsächlichen Code-Stand.
+
 ## Status / Fortschritt (laufend aktuell halten)
 
 Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer Chat sofort weiß, was gemacht wurde und was als Nächstes ansteht.
