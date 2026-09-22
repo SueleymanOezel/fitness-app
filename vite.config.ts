@@ -19,5 +19,15 @@ export default defineConfig(({ mode }) => ({
       VITE_SUPABASE_URL: 'https://example.supabase.co',
       VITE_SUPABASE_ANON_KEY: 'test-anon-key',
     },
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/cypress/**',
+      '**/.{idea,git,cache,output,temp}/**',
+      '**/{karma,rollup,webpack,vite,vitest,vite.config,vitest.config,jest.config,ava.config,babel.config,nuxt.config,karma.conf,rollup.config,webpack.config}.*',
+      // Deno edge function tests run via `deno test`, not vitest — Deno
+      // globals and remote https:// imports break the Node/jsdom runner.
+      'supabase/functions/**',
+    ],
   },
 }))
