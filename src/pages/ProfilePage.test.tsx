@@ -9,10 +9,11 @@ vi.mock('../hooks/use-profile', () => ({ useProfile: (userId: string) => mockUse
 
 const mockInvoke = vi.fn()
 const mockNavigate = vi.fn()
+const mockSignOut = vi.fn()
 
 vi.mock('../lib/supabase', () => ({
   supabase: {
-    auth: { signOut: vi.fn() },
+    auth: { signOut: (...args: unknown[]) => mockSignOut(...args) },
     functions: { invoke: (...args: unknown[]) => mockInvoke(...args) },
   },
 }))
@@ -64,6 +65,8 @@ describe('ProfilePage', () => {
   beforeEach(() => {
     mockInvoke.mockReset()
     mockNavigate.mockReset()
+    mockSignOut.mockReset()
+    mockSignOut.mockResolvedValue({ error: null })
   })
 
   it('keeps the delete-account confirm button disabled until "LÖSCHEN" is typed exactly', async () => {
@@ -96,6 +99,7 @@ describe('ProfilePage', () => {
 
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/login'))
     expect(mockInvoke).toHaveBeenCalledWith('delete-account')
+    expect(mockSignOut).toHaveBeenCalledWith({ scope: 'local' })
   })
 
   it('shows an inline error and keeps the confirmation text when the function call fails', async () => {

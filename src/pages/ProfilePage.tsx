@@ -190,16 +190,27 @@ function DeleteAccountSection() {
   async function handleDelete() {
     setSubmitting(true)
     setError(null)
-    const { data, error: invokeError } = await supabase.functions.invoke<{
-      ok: boolean
-      error?: string
-    }>('delete-account')
-    if (invokeError || !data?.ok) {
+    try {
+      const { data, error: invokeError } = await supabase.functions.invoke<{
+        ok: boolean
+        error?: string
+      }>('delete-account')
+      if (invokeError || !data?.ok) {
+        setSubmitting(false)
+        setError('Konto konnte nicht gelöscht werden. Bitte erneut versuchen.')
+        return
+      }
+      // 'local' clears only client-side storage without a server round-trip —
+      // the default 'global' scope would fail with 403 since the account (and
+      // thus its session) is already gone server-side at this point.
+      supabase.auth.signOut({ scope: 'local' }).catch(() => {
+        /* signOut failed network-side; navigating to /login below still clears the UI */
+      })
+      navigate('/login')
+    } catch {
       setSubmitting(false)
       setError('Konto konnte nicht gelöscht werden. Bitte erneut versuchen.')
-      return
     }
-    navigate('/login')
   }
 
   return (
