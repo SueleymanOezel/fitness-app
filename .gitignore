@@ -34,6 +34,9 @@ dist-ssr
 # Firebase CLI's local deploy cache (file-hash cache, not project config)
 .firebase/
 
+# Supabase CLI's local scratch state (cached CLI version, project ref) — not project config
+supabase/.temp/
+
 # impeccable's local live-server runtime state (pid/port/token) — not the critique snapshots,
 # those live in .impeccable/critique/ and are meant to be committed
 .impeccable/live/
