@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useSession } from '../hooks/use-session'
 import { useProfile, type Profile } from '../hooks/use-profile'
 import CalorieGoalEditor from '../components/CalorieGoalEditor'
-import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import Dialog from '../components/Dialog'
+import { cardClass, buttonPrimaryClass, buttonSecondaryClass, inputClass } from '../lib/ui-classes'
 import { VitaIcon } from '../components/icons/VitaIcon'
 
 type Draft = {
@@ -168,6 +170,86 @@ function ProfileForm({ userId }: { userId: string }) {
   }
 
   return <LoadedProfileForm profile={profile} onUpdate={updateProfile} />
+}
+
+const DELETE_CONFIRM_WORD = 'LÖSCHEN'
+
+function DeleteAccountSection() {
+  const navigate = useNavigate()
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [confirmText, setConfirmText] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  function closeDialog() {
+    setDialogOpen(false)
+    setConfirmText('')
+    setError(null)
+  }
+
+  async function handleDelete() {
+    setSubmitting(true)
+    setError(null)
+    const { data, error: invokeError } = await supabase.functions.invoke<{
+      ok: boolean
+      error?: string
+    }>('delete-account')
+    if (invokeError || !data?.ok) {
+      setSubmitting(false)
+      setError('Konto konnte nicht gelöscht werden. Bitte erneut versuchen.')
+      return
+    }
+    navigate('/login')
+  }
+
+  return (
+    <>
+      <button type="button" className={buttonSecondaryClass} onClick={() => setDialogOpen(true)}>
+        <span className="inline-flex items-center justify-center gap-2">
+          <VitaIcon name="delete" tone="mono" size={20} />
+          Konto löschen
+        </span>
+      </button>
+      <Dialog open={dialogOpen} onClose={closeDialog}>
+        <div className={cardClass}>
+          <h2 className="m-0">Konto endgültig löschen?</h2>
+          <p>
+            Alle Trainings-, Ernährungs- und Körperdaten sowie Fortschrittsfotos werden
+            unwiderruflich gelöscht, dein Login verschwindet. Das lässt sich nicht rückgängig
+            machen.
+          </p>
+          <label>
+            Bestätigung: {DELETE_CONFIRM_WORD} eingeben
+            <input
+              type="text"
+              className={inputClass}
+              value={confirmText}
+              onChange={(event) => setConfirmText(event.target.value)}
+            />
+          </label>
+          {error && (
+            <p role="alert" className="text-sm text-danger">
+              {error}
+            </p>
+          )}
+          <button
+            type="button"
+            className={buttonPrimaryClass}
+            disabled={confirmText !== DELETE_CONFIRM_WORD || submitting}
+            onClick={handleDelete}
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              <VitaIcon name="delete" tone="mono" size={20} />
+              Konto endgültig löschen
+            </span>
+          </button>
+          <button type="button" className={buttonSecondaryClass} onClick={closeDialog}>
+            Abbrechen
+          </button>
+        </div>
+      </Dialog>
+    </>
+  )
 }
 
 function LoadedProfileForm({
@@ -351,6 +433,8 @@ function LoadedProfileForm({
           Logout
         </span>
       </button>
+
+      <DeleteAccountSection />
     </div>
   )
 }

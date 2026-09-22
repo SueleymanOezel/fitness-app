@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 const mockUseSession = vi.fn()
@@ -6,6 +6,21 @@ vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
 
 const mockUseProfile = vi.fn()
 vi.mock('../hooks/use-profile', () => ({ useProfile: (userId: string) => mockUseProfile(userId) }))
+
+const mockInvoke = vi.fn()
+const mockNavigate = vi.fn()
+
+vi.mock('../lib/supabase', () => ({
+  supabase: {
+    auth: { signOut: vi.fn() },
+    functions: { invoke: (...args: unknown[]) => mockInvoke(...args) },
+  },
+}))
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return { ...actual, useNavigate: () => mockNavigate }
+})
 
 const profile = {
   id: 'u1',
@@ -46,6 +61,62 @@ async function renderPage(result = profileResult()) {
 }
 
 describe('ProfilePage', () => {
+  beforeEach(() => {
+    mockInvoke.mockReset()
+    mockNavigate.mockReset()
+  })
+
+  it('keeps the delete-account confirm button disabled until "LÖSCHEN" is typed exactly', async () => {
+    await renderPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Konto löschen' }))
+    const confirmButton = screen.getByRole('button', { name: 'Konto endgültig löschen' })
+    expect(confirmButton).toBeDisabled()
+
+    fireEvent.change(screen.getByLabelText('Bestätigung: LÖSCHEN eingeben'), {
+      target: { value: 'löschen' },
+    })
+    expect(confirmButton).toBeDisabled()
+
+    fireEvent.change(screen.getByLabelText('Bestätigung: LÖSCHEN eingeben'), {
+      target: { value: 'LÖSCHEN' },
+    })
+    expect(confirmButton).toBeEnabled()
+  })
+
+  it('calls the delete-account function and navigates to /login when the account is deleted', async () => {
+    mockInvoke.mockResolvedValue({ data: { ok: true }, error: null })
+    await renderPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Konto löschen' }))
+    fireEvent.change(screen.getByLabelText('Bestätigung: LÖSCHEN eingeben'), {
+      target: { value: 'LÖSCHEN' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Konto endgültig löschen' }))
+
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/login'))
+    expect(mockInvoke).toHaveBeenCalledWith('delete-account')
+  })
+
+  it('shows an inline error and keeps the confirmation text when the function call fails', async () => {
+    mockInvoke.mockResolvedValue({ data: null, error: { message: 'network' } })
+    await renderPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Konto löschen' }))
+    fireEvent.change(screen.getByLabelText('Bestätigung: LÖSCHEN eingeben'), {
+      target: { value: 'LÖSCHEN' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Konto endgültig löschen' }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Konto konnte nicht gelöscht werden. Bitte erneut versuchen.',
+      ),
+    )
+    expect(screen.getByLabelText('Bestätigung: LÖSCHEN eingeben')).toHaveValue('LÖSCHEN')
+    expect(mockNavigate).not.toHaveBeenCalled()
+  })
+
   it('fills the form with the stored profile', async () => {
     await renderPage()
 
