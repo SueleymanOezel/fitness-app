@@ -36,7 +36,7 @@ export default function Dialog({
     const dialog = ref.current
     const content = contentRef.current
     if (!dialog || !dialog.open) return
-    if (!content || prefersReducedMotion()) {
+    if (!content || content.childElementCount === 0 || prefersReducedMotion()) {
       dialog.close()
       return
     }
@@ -70,11 +70,6 @@ export default function Dialog({
     }
 
     if (!open && dialog.open) closeAnimated()
-    // closeAnimated is stable across renders for this effect's purpose (it
-    // only reads refs and the current open/reduced-motion state); adding it
-    // as a dependency would re-run this effect on every render for no
-    // behavioural reason.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   return (
