@@ -5,6 +5,7 @@ import {
   cardClass,
   inputClass,
   interactiveClass,
+  stickyActionClass,
 } from './ui-classes'
 
 describe('ui-classes', () => {
@@ -60,5 +61,10 @@ describe('ui-classes', () => {
     expect(interactiveClass).toContain('transition')
     expect(interactiveClass).toContain('motion-safe:active:scale-[0.97]')
     expect(interactiveClass).not.toContain('ring-offset')
+  })
+
+  it('keeps a bottom-anchored primary action above the floating nav', () => {
+    expect(stickyActionClass).toContain('sticky')
+    expect(stickyActionClass).toContain('bottom-[var(--nav-clearance)]')
   })
 })
