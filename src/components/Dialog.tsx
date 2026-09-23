@@ -1,5 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { VitaIcon } from './icons/VitaIcon'
+import { loadGsap } from '../lib/gsap-loader'
+import { prefersReducedMotion } from '../lib/motion'
 
 /**
  * Wraps the native <dialog> element instead of building a modal from a div
@@ -12,6 +14,11 @@ import { VitaIcon } from './icons/VitaIcon'
  * content (see the design spec) — visually a separate circle under the
  * sheet, like the reference design, while staying inside the dialog's own
  * focus trap so Tab never escapes it.
+ *
+ * Open/close animate via a lazily-loaded GSAP (src/lib/gsap-loader.ts) and
+ * collapse to the plain instant show/hide under prefers-reduced-motion
+ * (src/lib/motion.ts) — see docs/superpowers/specs/2026-09-23-visuelles-
+ * interaktions-redesign-design.md, "Motion-Architektur".
  */
 export default function Dialog({
   open,
@@ -23,12 +30,51 @@ export default function Dialog({
   children: ReactNode
 }) {
   const ref = useRef<HTMLDialogElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  function closeAnimated() {
+    const dialog = ref.current
+    const content = contentRef.current
+    if (!dialog || !dialog.open) return
+    if (!content || prefersReducedMotion()) {
+      dialog.close()
+      return
+    }
+    loadGsap().then((gsap) => {
+      gsap.to(content, {
+        opacity: 0,
+        scale: 0.95,
+        duration: 0.15,
+        ease: 'power2.in',
+        onComplete: () => dialog.close(),
+      })
+    })
+  }
 
   useEffect(() => {
     const dialog = ref.current
+    const content = contentRef.current
     if (!dialog) return
-    if (open && !dialog.open) dialog.showModal()
-    if (!open && dialog.open) dialog.close()
+
+    if (open && !dialog.open) {
+      dialog.showModal()
+      if (content && !prefersReducedMotion()) {
+        loadGsap().then((gsap) => {
+          gsap.fromTo(
+            content,
+            { opacity: 0, scale: 0.95 },
+            { opacity: 1, scale: 1, duration: 0.2, ease: 'power2.out' },
+          )
+        })
+      }
+    }
+
+    if (!open && dialog.open) closeAnimated()
+    // closeAnimated is stable across renders for this effect's purpose (it
+    // only reads refs and the current open/reduced-motion state); adding it
+    // as a dependency would re-run this effect on every render for no
+    // behavioural reason.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   return (
@@ -37,10 +83,12 @@ export default function Dialog({
       onClose={onClose}
       className="m-auto rounded-3xl bg-transparent p-0 backdrop:bg-bg/70 backdrop:backdrop-blur-sm"
     >
-      <div className="flex flex-col gap-4">{children}</div>
+      <div ref={contentRef} className="flex flex-col gap-4">
+        {children}
+      </div>
       <button
         type="button"
-        onClick={() => ref.current?.close()}
+        onClick={closeAnimated}
         aria-label="Schließen"
         className="mx-auto mt-4 flex h-11 w-11 items-center justify-center rounded-full bg-surface-raised text-text"
       >
