@@ -486,6 +486,14 @@ describe('WorkoutSessionPage', () => {
     expect(screen.getByText('Körpergewicht für die kcal-Berechnung')).toBeInTheDocument()
   })
 
+  it('renders the exercise name as a borderless card header', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+    expect(await screen.findByRole('button', { name: 'Bankdrücken' })).toHaveClass('border-0')
+  })
+
   it('completes the session using the profile weight', async () => {
     signedIn()
     const result = sessionResult()

@@ -29,6 +29,7 @@ export default function CompletionCelebration({ children }: { children: ReactNod
                 wert: ziel,
                 duration: 0.8,
                 ease: 'power2.out',
+                // Schreibt textContent über einen von React verwalteten Textknoten: nur sicher, weil sich die Werte nach dem Mount nie ändern.
                 onUpdate: () => { el.textContent = String(Math.round(zaehler.wert)) },
                 onComplete: () => { el.textContent = String(ziel) },
               },

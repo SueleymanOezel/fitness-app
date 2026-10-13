@@ -8,7 +8,7 @@ import {
   type SessionSet,
   type SetValues,
 } from '../hooks/use-workout-session'
-import { cardClass, labelClass, statClass, stickyActionClass } from '../lib/ui-classes'
+import { cardClass, interactiveClass, labelClass, statClass, stickyActionClass } from '../lib/ui-classes'
 import Chip from '../components/Chip'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
@@ -204,7 +204,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                 <Pressable
                   variant="bare"
                   type="button"
-                  className="flex-1 text-left text-lg font-semibold"
+                  className={`flex-1 border-0 m-0 bg-transparent px-0 text-left text-lg font-semibold ${interactiveClass}`}
                   onClick={() => setOpenExerciseId(entry.exercise_id)}
                 >
                   {entry.name}
@@ -553,7 +553,7 @@ function PauseTimer({ until, sekunden, onDone }: { until: number; sekunden: numb
   }, [until])
 
   return (
-    <div className={cardClass} role="timer">
+    <div className={`${cardClass} sticky top-0 z-10`} role="timer">
       <p className={labelClass}>Pause</p>
       <p className={statClass}>{formatPause(remainingSeconds)}</p>
     </div>
