@@ -48,7 +48,18 @@ export function attachPressFeedback(el: HTMLElement): () => void {
   const release = () => {
     if (!pressed) return
     pressed = false
-    run((gsap) => gsap.to(el, { scale: 1, duration: 0.5, ease: 'elastic.out(1, 0.4)', overwrite: 'auto' }))
+    run((gsap) =>
+      gsap.to(el, {
+        scale: 1,
+        duration: 0.5,
+        ease: 'elastic.out(1, 0.4)',
+        overwrite: 'auto',
+        // Drop the identity matrix GSAP leaves behind (it forms a stacking context).
+        onComplete: () => {
+          if (!detached) gsap.set(el, { clearProps: 'transform' })
+        },
+      }),
+    )
   }
 
   el.addEventListener('pointerdown', press)

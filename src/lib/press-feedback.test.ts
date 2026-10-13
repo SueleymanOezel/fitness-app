@@ -60,6 +60,22 @@ describe('attachPressFeedback', () => {
     expect(gsap.to).toHaveBeenLastCalledWith(el, expect.objectContaining({ scale: 1 }))
   })
 
+  it('clears the inline transform once the release tween completes', async () => {
+    stubReducedMotion(false)
+    const el = document.createElement('button')
+    attachPressFeedback(el)
+
+    el.dispatchEvent(new Event('pointerdown'))
+    el.dispatchEvent(new Event('pointerup'))
+    await flush()
+
+    const vars = gsap.to.mock.lastCall![1] as { scale: number; onComplete?: () => void }
+    expect(vars.scale).toBe(1)
+    gsap.set.mockClear()
+    vars.onComplete!()
+    expect(gsap.set).toHaveBeenCalledWith(el, { clearProps: 'transform' })
+  })
+
   it('returns to scale 1 on pointerleave and pointercancel too', async () => {
     stubReducedMotion(false)
     const el = document.createElement('button')
