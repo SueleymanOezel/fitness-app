@@ -243,7 +243,7 @@ describe('ExercisesPage', () => {
     const { default: ExercisesPage } = await import('./ExercisesPage')
     renderWithProviders(<ExercisesPage />)
 
-    const row = screen.getByRole('button', { name: 'Bankdrücken' })
+    const row = screen.getByRole('button', { name: /^Bankdrücken/ })
     expect(row.querySelector('img')).toHaveAttribute('src', 'https://example.com/bankdruecken.jpg')
   })
 
@@ -254,7 +254,7 @@ describe('ExercisesPage', () => {
     const { default: ExercisesPage } = await import('./ExercisesPage')
     renderWithProviders(<ExercisesPage />)
 
-    const row = screen.getByRole('button', { name: 'Bankdrücken' })
+    const row = screen.getByRole('button', { name: /^Bankdrücken/ })
     expect(row.querySelector('img')).not.toBeInTheDocument()
     expect(row.querySelector('svg')).toBeInTheDocument()
   })
@@ -266,7 +266,7 @@ describe('ExercisesPage', () => {
     const { default: ExercisesPage } = await import('./ExercisesPage')
     renderWithProviders(<ExercisesPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Bankdrücken' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Bankdrücken/ }))
 
     expect(screen.getByText('Schritt eins.')).toBeInTheDocument()
     expect(screen.getByText('Schritt zwei.')).toBeInTheDocument()
@@ -284,6 +284,30 @@ describe('ExercisesPage', () => {
     renderWithProviders(<ExercisesPage />)
 
     expect(screen.queryByRole('button', { name: 'Alle' })).not.toBeInTheDocument()
+  })
+
+  it('puts search before the filter and shows a caption per exercise', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(exercisesResult())
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    const suche = screen.getByLabelText('Suche')
+    const filter = screen.getByRole('button', { name: /^Filter/ })
+    expect(suche.compareDocumentPosition(filter) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getByText('Langhantel · Brust')).toBeInTheDocument()
+  })
+
+  it('says so when nothing matches', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(exercisesResult())
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    fireEvent.change(screen.getByLabelText('Suche'), { target: { value: 'zzzz' } })
+    expect(screen.getByText('Keine Übungen gefunden.')).toBeInTheDocument()
   })
 
   it('creates an own exercise', async () => {

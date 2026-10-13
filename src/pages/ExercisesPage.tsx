@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useSession } from '../hooks/use-session'
 import { useExercises, type Exercise, type NewExercise } from '../hooks/use-exercises'
-import { cardClass, interactiveClass } from '../lib/ui-classes'
+import { cardClass, inputClass, interactiveClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import ExerciseDetailDialog from '../components/ExerciseDetailDialog'
 import ExerciseFilterChips from '../components/ExerciseFilterChips'
 import ExerciseThumbnail from '../components/ExerciseThumbnail'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { matchesExerciseFilter, uniqueEquipment, uniqueMuskelgruppen } from '../lib/exercise-filters'
+import { exerciseCaption, revealDelay } from '../lib/exercise-caption'
 import Pressable, { PressableLink } from '../components/Pressable'
 
 export default function ExercisesPage() {
@@ -69,6 +70,16 @@ function ExercisesList({ userId }: { userId: string }) {
   return (
     <div>
       <h1>Übungen</h1>
+      <label className="relative block">
+        <span className="sr-only">Suche</span>
+        <VitaIcon
+          name="search"
+          tone="mono"
+          size={20}
+          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2"
+        />
+        <input className={`${inputClass} pl-12`} value={query} onChange={(event) => setQuery(event.target.value)} />
+      </label>
       <ExerciseFilterChips
         muskelgruppen={muskelgruppen}
         muskelgruppe={muskelgruppe}
@@ -77,23 +88,26 @@ function ExercisesList({ userId }: { userId: string }) {
         equipment={equipment}
         onEquipmentChange={setEquipment}
       />
-      <label>
-        Suche
-        <input value={query} onChange={(event) => setQuery(event.target.value)} />
-      </label>
+      {filtered.length === 0 && <p>Keine Übungen gefunden.</p>}
       <ul role="list" className="space-y-4">
-        {filtered.map((exercise) => (
-          <li key={exercise.id} className="block border-b-0">
-            <Pressable
-              type="button"
-              className={`${cardClass} ${interactiveClass} flex w-full items-center gap-4 text-left focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
-              onClick={() => setSelectedExercise(exercise)}
-            >
-              <ExerciseThumbnail bildUrl={exercise.bild_url} />
-              <span className="flex-1 text-left">{exercise.name_de ?? exercise.name}</span>
-            </Pressable>
-          </li>
-        ))}
+        {filtered.map((exercise, index) => {
+          const caption = exerciseCaption(exercise)
+          return (
+            <li key={exercise.id} className="list-in block border-b-0" style={{ animationDelay: revealDelay(index) }}>
+              <Pressable
+                type="button"
+                className={`${cardClass} ${interactiveClass} flex w-full items-center gap-4 text-left focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
+                onClick={() => setSelectedExercise(exercise)}
+              >
+                <ExerciseThumbnail bildUrl={exercise.bild_url} />
+                <span className="flex-1 text-left">
+                  <span className="block">{exercise.name_de ?? exercise.name}</span>
+                  {caption !== '' && <span className="block text-sm text-text-muted">{caption}</span>}
+                </span>
+              </Pressable>
+            </li>
+          )
+        })}
       </ul>
       <Pressable variant="primary" type="button" onClick={() => setDialogOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">
