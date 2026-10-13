@@ -52,6 +52,6 @@ export function attachPressFeedback(el: HTMLElement): () => void {
       if (!gsapInstance) return
       gsapInstance.killTweensOf(el)
       gsapInstance.set(el, { clearProps: 'scale' })
-    })
+    }).catch(() => {})
   }
 }
