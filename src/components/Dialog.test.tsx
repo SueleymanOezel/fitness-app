@@ -1,15 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import Dialog from './Dialog'
+import { loadGsap } from '../lib/gsap-loader'
 
-vi.mock('gsap', () => ({
-  gsap: {
-    fromTo: vi.fn(),
-    to: vi.fn((_target: unknown, vars: { onComplete?: () => void }) => {
-      vars.onComplete?.()
-    }),
-  },
-}))
+const gsap = {
+  fromTo: vi.fn(),
+  to: vi.fn((_target: unknown, vars: { onComplete?: () => void }) => {
+    vars.onComplete?.()
+  }),
+}
+vi.mock('../lib/gsap-loader', () => ({ loadGsap: vi.fn(() => Promise.resolve(gsap)) }))
 
 function stubReducedMotion(matches: boolean) {
   vi.spyOn(window, 'matchMedia').mockReturnValue({
@@ -26,6 +26,8 @@ function stubReducedMotion(matches: boolean) {
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.clearAllMocks()
+  vi.mocked(loadGsap).mockImplementation(() => Promise.resolve(gsap as never))
 })
 
 describe('Dialog', () => {
@@ -62,7 +64,6 @@ describe('Dialog', () => {
 describe('Dialog animation', () => {
   it('animates in via gsap when the user has not requested reduced motion', async () => {
     stubReducedMotion(false)
-    const { gsap } = await import('gsap')
 
     render(
       <Dialog open onClose={() => {}}>
@@ -86,5 +87,42 @@ describe('Dialog animation', () => {
     screen.getByRole('button', { name: 'Schließen' }).click()
 
     await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
+    expect(gsap.to).toHaveBeenCalledOnce()
+  })
+
+  it('still closes when gsap fails to load', async () => {
+    stubReducedMotion(false)
+    vi.mocked(loadGsap).mockRejectedValue(new Error('chunk failed'))
+    const onClose = vi.fn()
+
+    render(
+      <Dialog open onClose={onClose}>
+        <p>Inhalt</p>
+      </Dialog>,
+    )
+
+    screen.getByRole('button', { name: 'Schließen' }).click()
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
+    expect(gsap.to).not.toHaveBeenCalled()
+  })
+
+  it('closes instantly, without animating, when its children are already gone', async () => {
+    stubReducedMotion(false)
+    const onClose = vi.fn()
+
+    const { rerender } = render(
+      <Dialog open onClose={onClose}>
+        <p>Inhalt</p>
+      </Dialog>,
+    )
+    rerender(
+      <Dialog open={false} onClose={onClose}>
+        {null}
+      </Dialog>,
+    )
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
+    expect(gsap.to).not.toHaveBeenCalled()
   })
 })

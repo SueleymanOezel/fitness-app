@@ -72,7 +72,7 @@ if (!HTMLDialogElement.prototype.showModal) {
 // src/lib/motion.test.ts and Dialog.test.tsx for examples).
 window.matchMedia ??= function (query: string): MediaQueryList {
   return {
-    matches: true,
+    matches: query.includes('prefers-reduced-motion'),
     media: query,
     onchange: null,
     addListener: () => {},

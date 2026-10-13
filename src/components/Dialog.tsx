@@ -40,15 +40,18 @@ export default function Dialog({
       dialog.close()
       return
     }
-    loadGsap().then((gsap) => {
-      gsap.to(content, {
-        opacity: 0,
-        scale: 0.95,
-        duration: 0.15,
-        ease: 'power2.in',
-        onComplete: () => dialog.close(),
+    loadGsap()
+      .then((gsap) => {
+        gsap.to(content, {
+          opacity: 0,
+          scale: 0.95,
+          duration: 0.15,
+          ease: 'power2.in',
+          onComplete: () => dialog.close(),
+        })
       })
-    })
+      // A failed chunk load must never leave the dialog undismissable.
+      .catch(() => dialog.close())
   }
 
   useEffect(() => {
@@ -59,13 +62,16 @@ export default function Dialog({
     if (open && !dialog.open) {
       dialog.showModal()
       if (content && !prefersReducedMotion()) {
-        loadGsap().then((gsap) => {
-          gsap.fromTo(
-            content,
-            { opacity: 0, scale: 0.95 },
-            { opacity: 1, scale: 1, duration: 0.2, ease: 'power2.out' },
-          )
-        })
+        loadGsap()
+          .then((gsap) => {
+            gsap.fromTo(
+              content,
+              { opacity: 0, scale: 0.95 },
+              { opacity: 1, scale: 1, duration: 0.2, ease: 'power2.out' },
+            )
+          })
+          // Already visible via showModal(); a failed load only skips the animation.
+          .catch(() => {})
       }
     }
 
