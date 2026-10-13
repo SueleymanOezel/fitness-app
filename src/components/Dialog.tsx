@@ -2,6 +2,10 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { VitaIcon } from './icons/VitaIcon'
 import { loadGsap } from '../lib/gsap-loader'
 import { prefersReducedMotion } from '../lib/motion'
+import Pressable from './Pressable'
+
+type Gsap = Awaited<ReturnType<typeof loadGsap>>
+type GsapContext = { add: (fn: () => void) => unknown; revert: () => void }
 
 /**
  * Wraps the native <dialog> element instead of building a modal from a div
@@ -31,6 +35,29 @@ export default function Dialog({
 }) {
   const ref = useRef<HTMLDialogElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  const ctxRef = useRef<GsapContext | null>(null)
+  const disposedRef = useRef(false)
+
+  // One gsap context per instance, reverted only on unmount — never between
+  // open and close, where a revert would reset the content back to opacity 0.
+  // disposedRef drops a loadGsap() that resolves after unmount; it is reset in
+  // the effect body so StrictMode's mount -> cleanup -> mount stays usable.
+  useEffect(() => {
+    disposedRef.current = false
+    return () => {
+      disposedRef.current = true
+      ctxRef.current?.revert()
+      ctxRef.current = null
+    }
+  }, [])
+
+  function animate(run: (gsap: Gsap) => void) {
+    return loadGsap().then((gsap) => {
+      if (disposedRef.current) return
+      ctxRef.current ??= gsap.context(() => {}) as GsapContext
+      ctxRef.current.add(() => run(gsap))
+    })
+  }
 
   function closeAnimated() {
     const dialog = ref.current
@@ -40,16 +67,15 @@ export default function Dialog({
       dialog.close()
       return
     }
-    loadGsap()
-      .then((gsap) => {
-        gsap.to(content, {
-          opacity: 0,
-          scale: 0.95,
-          duration: 0.15,
-          ease: 'power2.in',
-          onComplete: () => dialog.close(),
-        })
+    animate((gsap) => {
+      gsap.to(content, {
+        opacity: 0,
+        scale: 0.95,
+        duration: 0.15,
+        ease: 'power2.in',
+        onComplete: () => dialog.close(),
       })
+    })
       // A failed chunk load must never leave the dialog undismissable.
       .catch(() => dialog.close())
   }
@@ -62,14 +88,13 @@ export default function Dialog({
     if (open && !dialog.open) {
       dialog.showModal()
       if (content && !prefersReducedMotion()) {
-        loadGsap()
-          .then((gsap) => {
-            gsap.fromTo(
-              content,
-              { opacity: 0, scale: 0.95 },
-              { opacity: 1, scale: 1, duration: 0.2, ease: 'power2.out' },
-            )
-          })
+        animate((gsap) => {
+          gsap.fromTo(
+            content,
+            { opacity: 0, scale: 0.95 },
+            { opacity: 1, scale: 1, duration: 0.2, ease: 'power2.out' },
+          )
+        })
           // Already visible via showModal(); a failed load only skips the animation.
           .catch(() => {})
       }
@@ -87,14 +112,14 @@ export default function Dialog({
       <div ref={contentRef} className="flex flex-col gap-4">
         {children}
       </div>
-      <button
+      <Pressable
         type="button"
         onClick={closeAnimated}
         aria-label="Schließen"
         className="mx-auto mt-4 flex h-11 w-11 items-center justify-center rounded-full bg-surface-raised text-text"
       >
         <VitaIcon name="close" size={20} />
-      </button>
+      </Pressable>
     </dialog>
   )
 }
