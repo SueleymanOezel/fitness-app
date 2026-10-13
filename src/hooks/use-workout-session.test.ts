@@ -406,6 +406,22 @@ describe('useWorkoutSession', () => {
     expect(summary).toEqual({ beendetAm: expect.any(String), gesamtKalorien: expect.any(Number) })
   })
 
+  it('completes without a body weight and stores no calories instead of a made-up figure', async () => {
+    const sessionBuilder = createQueryBuilder({ data: sessionRow })
+    mockTables({ workout_sessions: sessionBuilder })
+
+    const { useWorkoutSession } = await import('./use-workout-session')
+    const { result } = renderHook(() => useWorkoutSession('s1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    const summary = await result.current.completeSession(null)
+
+    expect(sessionBuilder.update).toHaveBeenCalledWith(
+      expect.objectContaining({ beendet_am: expect.any(String), gesamt_kalorien: null }),
+    )
+    expect(summary.gesamtKalorien).toBeNull()
+  })
+
   it('deletes the session', async () => {
     const sessionBuilder = createQueryBuilder({ data: sessionRow })
     mockTables({ workout_sessions: sessionBuilder })

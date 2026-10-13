@@ -507,7 +507,7 @@ describe('WorkoutSessionPage', () => {
     await waitFor(() => expect(result.completeSession).toHaveBeenCalledWith(80))
   })
 
-  it('shows a dash instead of completing when no weight is on the profile', async () => {
+  it('still completes without a profile weight, just without calories, and links to the profile', async () => {
     signedIn(null)
     const result = sessionResult()
     mockUseWorkoutSession.mockReturnValue(result)
@@ -516,9 +516,46 @@ describe('WorkoutSessionPage', () => {
     await screen.findByText('Bankdrücken')
 
     expect(screen.getByText('—')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Gewicht im Profil eintragen' })).toHaveAttribute('href', '/profile')
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
 
-    await waitFor(() => expect(result.completeSession).not.toHaveBeenCalled())
+    await waitFor(() => expect(result.completeSession).toHaveBeenCalledWith(null))
+  })
+
+  it('stores a weight typed with a decimal comma', async () => {
+    signedIn()
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+    fireEvent.click(await screen.findByText('Bankdrücken'))
+    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '22,5' } })
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '8' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+
+    await waitFor(() =>
+      expect(result.logSet).toHaveBeenCalledWith('ex1', 1, expect.objectContaining({ gewicht: 22.5, wiederholungen: 8 })),
+    )
+  })
+
+  it('refuses an invalid weight or negative reps instead of storing the set without them', async () => {
+    signedIn()
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+    fireEvent.click(await screen.findByText('Bankdrücken'))
+    expect(screen.getByLabelText('Gewicht (kg)')).toHaveAttribute('inputmode', 'decimal')
+    expect(screen.getByLabelText('Wiederholungen')).toHaveAttribute('inputmode', 'numeric')
+
+    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: 'abc' } })
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '-5' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+
+    expect(await screen.findByText('Gewicht als Zahl ab 0 eingeben, z. B. 22,5.')).toBeInTheDocument()
+    expect(screen.getByText('Wiederholungen als ganze Zahl ab 0 eingeben.')).toBeInTheDocument()
+    expect(result.logSet).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue('abc')
   })
 
   it('shows the completion screen with duration, calories and streak after finishing', async () => {
