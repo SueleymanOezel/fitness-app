@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import Chip from './Chip'
+import { attachPressFeedback } from '../lib/press-feedback'
+
+vi.mock('../lib/press-feedback', () => ({ attachPressFeedback: vi.fn(() => vi.fn()) }))
+vi.mock('../lib/gsap-loader', () => ({ loadGsap: () => Promise.resolve({}) }))
 
 describe('Chip', () => {
   it('marks an active chip with aria-pressed', () => {
@@ -40,5 +44,10 @@ describe('Chip', () => {
     const inactive = screen.getByRole('button', { name: '90 Tage' })
     expect(inactive.className).not.toContain('text-on-bright')
     expect(inactive.className).toContain('transition')
+  })
+
+  it('attaches tap feedback to the chip', () => {
+    render(<Chip active={false}>Brust</Chip>)
+    expect(attachPressFeedback).toHaveBeenCalledWith(screen.getByRole('button', { name: 'Brust' }))
   })
 })

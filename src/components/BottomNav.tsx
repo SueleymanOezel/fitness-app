@@ -1,5 +1,7 @@
+import { useRef } from 'react'
 import { NavLink } from 'react-router-dom'
 import { interactiveClass } from '../lib/ui-classes'
+import { usePressFeedback } from '../lib/use-press-feedback'
 import { VitaIcon, type VitaIconName } from './icons/VitaIcon'
 
 const tabs: { to: string; label: string; icon: VitaIconName; end: boolean }[] = [
@@ -8,6 +10,26 @@ const tabs: { to: string; label: string; icon: VitaIconName; end: boolean }[] = 
   { to: '/nutrition', label: 'Ernährung', icon: 'nutrition', end: false },
   { to: '/body', label: 'Körper', icon: 'body', end: false },
 ]
+
+function NavTab({ to, label, icon, end }: (typeof tabs)[number]) {
+  const ref = useRef<HTMLAnchorElement>(null)
+  usePressFeedback(ref)
+  return (
+    <NavLink
+      ref={ref}
+      to={to}
+      end={end}
+      aria-label={label}
+      className={({ isActive }) =>
+        `flex h-11 w-11 items-center justify-center rounded-full ${interactiveClass} focus-visible:ring-text focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised ${
+          isActive ? 'text-accent-text' : 'text-text-muted'
+        }`
+      }
+    >
+      {({ isActive }) => <VitaIcon name={icon} tone={isActive ? 'brand' : 'mono'} />}
+    </NavLink>
+  )
+}
 
 /**
  * Floating pill, not a full-width bar with a top border: matches the
@@ -21,20 +43,8 @@ export default function BottomNav() {
       className="sticky bottom-4 mx-4 flex justify-around rounded-full bg-surface-raised p-2"
       style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
     >
-      {tabs.map(({ to, label, icon, end }) => (
-        <NavLink
-          key={to}
-          to={to}
-          end={end}
-          aria-label={label}
-          className={({ isActive }) =>
-            `flex h-11 w-11 items-center justify-center rounded-full ${interactiveClass} focus-visible:ring-text focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised ${
-              isActive ? 'text-accent-text' : 'text-text-muted'
-            }`
-          }
-        >
-          {({ isActive }) => <VitaIcon name={icon} tone={isActive ? 'brand' : 'mono'} />}
-        </NavLink>
+      {tabs.map((tab) => (
+        <NavTab key={tab.to} {...tab} />
       ))}
     </nav>
   )
