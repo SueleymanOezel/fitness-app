@@ -339,7 +339,7 @@ function SessionCompletionScreen({
                   <span
                     data-sweep
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-accent/30 to-transparent"
+                    className="pointer-events-none absolute inset-0 opacity-0 bg-linear-to-r from-transparent via-accent/30 to-transparent"
                   />
                   <p className="font-semibold">{rekord.name}</p>
                   <p className="text-2xl font-bold tracking-tight tabular-nums">{`${zahl(rekord.neuesEinsRM)} kg`}</p>
