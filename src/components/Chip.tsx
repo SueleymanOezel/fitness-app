@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes } from 'react'
 import { interactiveClass } from '../lib/ui-classes'
+import Pressable from './Pressable'
 
 export type ChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   active: boolean
@@ -12,7 +13,7 @@ export type ChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
  */
 export default function Chip({ active, className = '', ...props }: ChipProps) {
   return (
-    <button
+    <Pressable
       type="button"
       aria-pressed={active}
       className={`rounded-full border-0 m-0 px-4 py-2 font-medium ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${

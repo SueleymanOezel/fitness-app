@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { buttonPrimaryClass, buttonSecondaryClass, inputClass } from '../lib/ui-classes'
+import { inputClass } from '../lib/ui-classes'
+import Pressable from '../components/Pressable'
 
 type Mode = 'login' | 'signup'
 
@@ -121,19 +122,19 @@ export default function LoginPage() {
             {error}
           </p>
         )}
-        <button type="submit" disabled={submitting} className={buttonPrimaryClass}>
+        <Pressable variant="primary" type="submit" disabled={submitting}>
           {mode === 'login' ? 'Einloggen' : 'Registrieren'}
-        </button>
-        <button type="button" className={`w-full ${buttonSecondaryClass}`} onClick={handleGoogleSignIn}>
+        </Pressable>
+        <Pressable variant="secondary" type="button" className="w-full" onClick={handleGoogleSignIn}>
           Mit Google anmelden
-        </button>
-        <button
+        </Pressable>
+        <Pressable
           type="button"
           className="w-full m-0 border-0 bg-transparent text-center text-sm text-text-muted underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           onClick={toggleMode}
         >
           {mode === 'login' ? 'Noch keinen Account? Registrieren' : 'Schon registriert? Einloggen'}
-        </button>
+        </Pressable>
       </form>
     </div>
   )

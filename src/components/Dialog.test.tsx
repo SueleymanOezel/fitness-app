@@ -3,11 +3,13 @@ import { render, screen, waitFor } from '@testing-library/react'
 import Dialog from './Dialog'
 import { loadGsap } from '../lib/gsap-loader'
 
+const revert = vi.fn()
 const gsap = {
   fromTo: vi.fn(),
   to: vi.fn((_target: unknown, vars: { onComplete?: () => void }) => {
     vars.onComplete?.()
   }),
+  context: vi.fn(() => ({ add: (fn: () => void) => fn(), revert })),
 }
 vi.mock('../lib/gsap-loader', () => ({ loadGsap: vi.fn(() => Promise.resolve(gsap)) }))
 
@@ -124,5 +126,63 @@ describe('Dialog animation', () => {
 
     await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
     expect(gsap.to).not.toHaveBeenCalled()
+  })
+})
+
+describe('Dialog unmount', () => {
+  it('reverts its gsap context when unmounted', async () => {
+    stubReducedMotion(false)
+    const { unmount } = render(
+      <Dialog open onClose={() => {}}>
+        <p>Inhalt</p>
+      </Dialog>,
+    )
+    await waitFor(() => expect(gsap.fromTo).toHaveBeenCalledOnce())
+
+    // RTL's auto-cleanup unmounts earlier tests' dialogs after our afterEach
+    // has cleared the mocks, so their revert() calls leak into this test.
+    revert.mockClear()
+    unmount()
+
+    expect(revert).toHaveBeenCalledOnce()
+  })
+
+  it('does not revert its gsap context between open and close', async () => {
+    stubReducedMotion(false)
+    vi.clearAllMocks()
+    const onClose = vi.fn()
+    const { rerender } = render(
+      <Dialog open onClose={onClose}>
+        <p>Inhalt</p>
+      </Dialog>,
+    )
+    await waitFor(() => expect(gsap.fromTo).toHaveBeenCalledOnce())
+
+    rerender(
+      <Dialog open={false} onClose={onClose}>
+        <p>Inhalt</p>
+      </Dialog>,
+    )
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
+
+    expect(revert).not.toHaveBeenCalled()
+    expect(gsap.context).toHaveBeenCalledOnce()
+  })
+
+  it('does not animate when unmounted before gsap has loaded', async () => {
+    stubReducedMotion(false)
+    let resolveLoad: (g: typeof gsap) => void = () => {}
+    vi.mocked(loadGsap).mockReturnValueOnce(new Promise((r) => (resolveLoad = r)) as never)
+
+    const { unmount } = render(
+      <Dialog open onClose={() => {}}>
+        <p>Inhalt</p>
+      </Dialog>,
+    )
+    unmount()
+    resolveLoad(gsap)
+    await new Promise((r) => setTimeout(r, 0))
+
+    expect(gsap.fromTo).not.toHaveBeenCalled()
   })
 })

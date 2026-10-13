@@ -1,8 +1,8 @@
-import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutHistory } from '../hooks/use-workout-history'
 import { cardClass } from '../lib/ui-classes'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import { PressableLink } from '../components/Pressable'
 
 export default function TrainingHistoryPage() {
   const { session } = useSession()
@@ -42,23 +42,23 @@ function HistoryList({ userId }: { userId: string }) {
           {sessions.map((entry) => (
             <li key={entry.id} className="block border-b-0">
               <div className={`${cardClass} w-full`}>
-                <Link to={`/training/history/${entry.id}`}>
+                <PressableLink to={`/training/history/${entry.id}`}>
                   {`${entry.plan_name ?? '—'} – ${entry.tag_name ?? '—'} – ${new Date(
                     entry.gestartet_am,
                   ).toLocaleDateString('de-DE')} – ${
                     // An unfinished session has no calorie result; "0 kcal" would read as a measurement.
                     entry.gesamt_kalorien == null ? 'nicht beendet' : `${Math.round(entry.gesamt_kalorien)} kcal`
                   }`}
-                </Link>
+                </PressableLink>
               </div>
             </li>
           ))}
         </ul>
       )}
-      <Link to="/training" className="flex items-center justify-center gap-2">
+      <PressableLink to="/training" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Training
-      </Link>
+      </PressableLink>
     </div>
   )
 }

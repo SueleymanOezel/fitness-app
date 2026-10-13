@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
 import { useProfile } from '../hooks/use-profile'
@@ -10,6 +9,7 @@ import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
 import { effectiveCalorieGoal } from '../lib/nutrition-goal'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import { PressableLink } from '../components/Pressable'
 
 export default function NutritionAnalysisPage() {
   const { session } = useSession()
@@ -57,10 +57,10 @@ function Analyse({ userId }: { userId: string }) {
           leerCta={{ label: 'Eintragen', to: '/nutrition' }}
         />
       )}
-      <Link to="/nutrition" className="flex items-center justify-center gap-2">
+      <PressableLink to="/nutrition" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Ernährungsbereich
-      </Link>
+      </PressableLink>
     </div>
   )
 }

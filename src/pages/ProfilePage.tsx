@@ -5,8 +5,9 @@ import { useSession } from '../hooks/use-session'
 import { useProfile, type Profile } from '../hooks/use-profile'
 import CalorieGoalEditor from '../components/CalorieGoalEditor'
 import Dialog from '../components/Dialog'
-import { cardClass, buttonPrimaryClass, buttonSecondaryClass, inputClass } from '../lib/ui-classes'
+import { cardClass, inputClass } from '../lib/ui-classes'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import Pressable from '../components/Pressable'
 
 type Draft = {
   name: string
@@ -159,12 +160,12 @@ function ProfileForm({ userId }: { userId: string }) {
       <div>
         <h1>Profil</h1>
         <p role="alert">Profil konnte nicht geladen werden.</p>
-        <button type="button" className={buttonSecondaryClass} onClick={() => reload()}>
+        <Pressable variant="secondary" type="button" onClick={() => reload()}>
           <span className="inline-flex items-center justify-center gap-2">
             <VitaIcon name="retry" tone="mono" size={20} />
             Erneut versuchen
           </span>
-        </button>
+        </Pressable>
       </div>
     )
   }
@@ -215,12 +216,12 @@ function DeleteAccountSection() {
 
   return (
     <>
-      <button type="button" className={buttonSecondaryClass} onClick={() => setDialogOpen(true)}>
+      <Pressable variant="danger" type="button" onClick={() => setDialogOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="delete" tone="mono" size={20} />
           Konto löschen
         </span>
-      </button>
+      </Pressable>
       <Dialog open={dialogOpen} onClose={closeDialog}>
         <div className={cardClass}>
           <h2 className="m-0">Konto endgültig löschen?</h2>
@@ -243,9 +244,9 @@ function DeleteAccountSection() {
               {error}
             </p>
           )}
-          <button
+          <Pressable
+            variant="danger"
             type="button"
-            className={buttonPrimaryClass}
             disabled={confirmText !== DELETE_CONFIRM_WORD || submitting}
             onClick={handleDelete}
           >
@@ -253,10 +254,10 @@ function DeleteAccountSection() {
               <VitaIcon name="delete" tone="mono" size={20} />
               Konto endgültig löschen
             </span>
-          </button>
-          <button type="button" className={buttonSecondaryClass} onClick={closeDialog}>
+          </Pressable>
+          <Pressable variant="secondary" type="button" onClick={closeDialog}>
             Abbrechen
-          </button>
+          </Pressable>
         </div>
       </Dialog>
     </>
@@ -419,20 +420,20 @@ function LoadedProfileForm({
         {status === 'failed' && <p role="alert">Profil konnte nicht gespeichert werden.</p>}
         {status === 'saved' && <p role="status">Gespeichert.</p>}
 
-        <button type="submit" className={buttonPrimaryClass}>
+        <Pressable variant="primary" type="submit">
           <span className="inline-flex items-center justify-center gap-2">
             <VitaIcon name="save" tone="mono" size={20} />
             Speichern
           </span>
-        </button>
+        </Pressable>
       </form>
 
       <h2>Tagesziel</h2>
       <CalorieGoalEditor profile={profile} onUpdate={onUpdate} />
 
-      <button
+      <Pressable
+        variant="secondary"
         type="button"
-        className={buttonSecondaryClass}
         onClick={() => {
           supabase.auth.signOut().catch(() => {
             /* signOut failed network-side; ProtectedRoute re-checks the session on the next render anyway */
@@ -443,7 +444,7 @@ function LoadedProfileForm({
           <VitaIcon name="logout" tone="mono" size={20} />
           Logout
         </span>
-      </button>
+      </Pressable>
 
       <DeleteAccountSection />
     </div>

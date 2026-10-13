@@ -3,8 +3,9 @@ import { supabase } from '../lib/supabase'
 import { PRODUCT_COLUMNS, type Product } from '../lib/product-lookup'
 import { MAX_NAME_LENGTH } from '../lib/open-food-facts'
 import { parseNutrients } from '../lib/nutrients'
-import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { cardClass } from '../lib/ui-classes'
 import { VitaIcon } from './icons/VitaIcon'
+import Pressable from './Pressable'
 
 type Props = {
   barcode?: string
@@ -114,15 +115,15 @@ export default function ManualProductForm({ barcode, onCreated, onCancel }: Prop
       </div>
 
       {error && <p role="alert">{error}</p>}
-      <button type="submit" className={buttonPrimaryClass} disabled={submitting}>
+      <Pressable variant="primary" type="submit" disabled={submitting}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="save" tone="mono" size={20} />
           Produkt speichern
         </span>
-      </button>
-      <button type="button" className={buttonSecondaryClass} onClick={onCancel}>
+      </Pressable>
+      <Pressable variant="secondary" type="button" onClick={onCancel}>
         Abbrechen
-      </button>
+      </Pressable>
     </form>
   )
 }

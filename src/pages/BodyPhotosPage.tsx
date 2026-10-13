@@ -1,12 +1,12 @@
 import { useState, type ChangeEvent } from 'react'
-import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useBodyPhotos } from '../hooks/use-body-photos'
 import type { BodyPhoto } from '../hooks/use-body-photos'
 import { today } from '../lib/body-metrics'
-import { cardClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { cardClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import Pressable, { PressableLink } from '../components/Pressable'
 
 function formatDate(iso: string) {
   const [year, month, day] = iso.split('-')
@@ -102,21 +102,21 @@ function Photos({ userId }: { userId: string }) {
                   loading="lazy"
                 />
               )}
-              <button type="button" className={buttonSecondaryClass} onClick={() => remove(photo)}>
+              <Pressable variant="danger" type="button" onClick={() => remove(photo)}>
                 <span className="inline-flex items-center justify-center gap-2">
                   <VitaIcon name="delete" tone="mono" size={20} />
                   Löschen
                 </span>
-              </button>
+              </Pressable>
             </div>
           </li>
         ))}
       </ul>
 
-      <Link to="/body" className="flex items-center justify-center gap-2">
+      <PressableLink to="/body" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Körperbereich
-      </Link>
+      </PressableLink>
     </div>
   )
 }

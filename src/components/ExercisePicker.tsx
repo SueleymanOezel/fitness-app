@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { cardClass, buttonPrimaryClass, interactiveClass } from '../lib/ui-classes'
+import { cardClass, interactiveClass } from '../lib/ui-classes'
 import ExerciseFilterChips from './ExerciseFilterChips'
 import ExerciseThumbnail from './ExerciseThumbnail'
 import { VitaIcon } from './icons/VitaIcon'
@@ -11,6 +11,7 @@ import {
 } from '../lib/exercise-filters'
 import { equipmentLabel } from '../lib/equipment-labels'
 import { muskelgruppeLabel } from '../lib/muscle-group-labels'
+import Pressable from './Pressable'
 
 export type PickableExercise = {
   id: string
@@ -98,7 +99,7 @@ export default function ExercisePicker({
 
               return (
                 <li key={exercise.id}>
-                  <button
+                  <Pressable
                     type="button"
                     aria-pressed={isSelected}
                     onClick={() => toggle(exercise.id)}
@@ -119,7 +120,7 @@ export default function ExercisePicker({
                       <span className="block">{name}</span>
                       {caption !== '' && <span className="block text-sm text-text-muted">{caption}</span>}
                     </span>
-                  </button>
+                  </Pressable>
                 </li>
               )
             })}
@@ -129,14 +130,14 @@ export default function ExercisePicker({
       {/* Sticky so it stays reachable once the (now ungated, potentially
           long) list scrolls inside the dialog's own scroll box. */}
       <div className="sticky bottom-0 bg-surface pt-2">
-        <button
+        <Pressable
+          variant="primary"
           type="button"
-          className={buttonPrimaryClass}
           disabled={selected.length === 0}
           onClick={() => onAddSelected(selected)}
         >
           {`Hinzufügen (${selected.length})`}
-        </button>
+        </Pressable>
       </div>
     </div>
   )

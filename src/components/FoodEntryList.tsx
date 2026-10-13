@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import FoodEntryEditForm from './FoodEntryEditForm'
-import { cardClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { cardClass } from '../lib/ui-classes'
 import Dialog from './Dialog'
 import { VitaIcon } from './icons/VitaIcon'
 import { useToast } from './ToastProvider'
 import type { MealSection } from '../lib/meal-sections'
 import type { EntryPatch, FoodEntry } from '../hooks/use-food-entries'
+import Pressable from './Pressable'
 
 type Props = {
   entries: FoodEntry[]
@@ -56,15 +57,15 @@ function FoodEntryRow({
             getByText(/150 g/) would not match across them. */}
         <span>{`${entry.menge} g`}</span>
         {kalorien != null && <span>{`${kalorien} kcal`}</span>}
-        <button type="button" className={buttonSecondaryClass} onClick={() => setEditing(true)}>
+        <Pressable variant="secondary" type="button" onClick={() => setEditing(true)}>
           <span className="inline-flex items-center justify-center gap-2">
             <VitaIcon name="edit" tone="mono" size={20} />
             Bearbeiten
           </span>
-        </button>
-        <button
+        </Pressable>
+        <Pressable
+          variant="danger"
           type="button"
-          className={buttonSecondaryClass}
           onClick={() => {
             onDelete(entry.id).catch(() => showToast('Eintrag konnte nicht gelöscht werden.', 'error'))
           }}
@@ -73,7 +74,7 @@ function FoodEntryRow({
             <VitaIcon name="delete" tone="mono" size={20} />
             Löschen
           </span>
-        </button>
+        </Pressable>
       </div>
       {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
           rendering the edit form only while open resets its draft state each

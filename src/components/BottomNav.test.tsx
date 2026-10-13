@@ -1,7 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import BottomNav from './BottomNav'
+import { attachPressFeedback } from '../lib/press-feedback'
+
+vi.mock('../lib/press-feedback', () => ({ attachPressFeedback: vi.fn(() => vi.fn()) }))
+vi.mock('../lib/gsap-loader', () => ({ loadGsap: () => Promise.resolve({}) }))
 
 function renderNav(initialPath = '/') {
   return render(
@@ -33,10 +37,16 @@ describe('BottomNav', () => {
     const home = screen.getByRole('link', { name: 'Home' })
     expect(home.className).toContain('transition')
     expect(home.className).toContain('hover:brightness-110')
-    expect(home.className).toContain('motion-safe:active:scale-[0.97]')
     expect(home.className).toContain('focus-visible:ring-2')
     expect(home.className).toContain('focus-visible:ring-text')
     expect(home.className).toContain('focus-visible:ring-offset-2')
     expect(home.className).toContain('focus-visible:ring-offset-surface-raised')
+  })
+
+  it('attaches tap feedback to every tab', () => {
+    renderNav()
+    for (const name of ['Home', 'Training', 'Ernährung', 'Körper']) {
+      expect(attachPressFeedback).toHaveBeenCalledWith(screen.getByRole('link', { name }))
+    }
   })
 })

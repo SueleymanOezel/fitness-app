@@ -1,14 +1,14 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useExercises, type Exercise, type NewExercise } from '../hooks/use-exercises'
-import { cardClass, buttonPrimaryClass, buttonSecondaryClass, interactiveClass } from '../lib/ui-classes'
+import { cardClass, interactiveClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import ExerciseDetailDialog from '../components/ExerciseDetailDialog'
 import ExerciseFilterChips from '../components/ExerciseFilterChips'
 import ExerciseThumbnail from '../components/ExerciseThumbnail'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { matchesExerciseFilter, uniqueEquipment, uniqueMuskelgruppen } from '../lib/exercise-filters'
+import Pressable, { PressableLink } from '../components/Pressable'
 
 export default function ExercisesPage() {
   const { session } = useSession()
@@ -51,10 +51,10 @@ function ExercisesList({ userId }: { userId: string }) {
       <div>
         <h1>Übungen</h1>
         <p role="alert">Übungen konnten nicht geladen werden.</p>
-        <Link to="/training" className="flex items-center justify-center gap-2">
+        <PressableLink to="/training" className="flex items-center justify-center gap-2">
           <VitaIcon name="back" tone="brand" size={20} />
           Zurück zum Training
-        </Link>
+        </PressableLink>
       </div>
     )
   }
@@ -84,23 +84,23 @@ function ExercisesList({ userId }: { userId: string }) {
       <ul role="list" className="space-y-4">
         {filtered.map((exercise) => (
           <li key={exercise.id} className="block border-b-0">
-            <button
+            <Pressable
               type="button"
               className={`${cardClass} ${interactiveClass} flex w-full items-center gap-4 text-left focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
               onClick={() => setSelectedExercise(exercise)}
             >
               <ExerciseThumbnail bildUrl={exercise.bild_url} />
               <span className="flex-1 text-left">{exercise.name_de ?? exercise.name}</span>
-            </button>
+            </Pressable>
           </li>
         ))}
       </ul>
-      <button type="button" className={buttonPrimaryClass} onClick={() => setDialogOpen(true)}>
+      <Pressable variant="primary" type="button" onClick={() => setDialogOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="add" tone="mono" size={20} />
           Eigene Übung anlegen
         </span>
-      </button>
+      </Pressable>
       {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
           rendering the form only while open forces a fresh instance (blank
           fields) each time it opens, instead of showing the last attempt's
@@ -119,10 +119,10 @@ function ExercisesList({ userId }: { userId: string }) {
       <Dialog open={selectedExercise !== null} onClose={() => setSelectedExercise(null)}>
         {selectedExercise && <ExerciseDetailDialog exercise={selectedExercise} />}
       </Dialog>
-      <Link to="/training" className="flex items-center justify-center gap-2">
+      <PressableLink to="/training" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Training
-      </Link>
+      </PressableLink>
     </div>
   )
 }
@@ -204,15 +204,15 @@ function NewExerciseForm({
         </label>
       </div>
       {error !== '' && <p role="alert">{error}</p>}
-      <button type="submit" className={buttonPrimaryClass} disabled={saving}>
+      <Pressable variant="primary" type="submit" disabled={saving}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="save" tone="mono" size={20} />
           Speichern
         </span>
-      </button>
-      <button type="button" className={buttonSecondaryClass} onClick={onCancel}>
+      </Pressable>
+      <Pressable variant="secondary" type="button" onClick={onCancel}>
         Abbrechen
-      </button>
+      </Pressable>
     </form>
   )
 }

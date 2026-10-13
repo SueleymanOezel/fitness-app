@@ -19,4 +19,21 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    files: ['src/**/*.tsx'],
+    // Pressable is the one sanctioned place that renders a raw <button>;
+    // tests may render raw buttons as fixtures. `ignores` only exempts these
+    // files from THIS object, the rules above still apply to them.
+    ignores: ['src/components/Pressable.tsx', '**/*.test.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "JSXOpeningElement[name.name='button']",
+          message:
+            'Use <Pressable> from components/Pressable instead of a raw <button> (shared tap feedback).',
+        },
+      ],
+    },
+  },
 ])

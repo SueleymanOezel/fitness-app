@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
 import { useFoodEntries, type EntryPatch, type FoodEntry } from '../hooks/use-food-entries'
@@ -7,9 +6,9 @@ import { mealSections, visibleSections, type MealSection } from '../lib/meal-sec
 import { sumKalorien } from '../lib/entry-calories'
 import FoodEntryList from '../components/FoodEntryList'
 import AddEntryFlow from '../components/AddEntryFlow'
-import { buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import Pressable, { PressableLink } from '../components/Pressable'
 
 export default function NutritionEntriesPage() {
   const { session } = useSession()
@@ -45,10 +44,10 @@ function EntriesBySection({ userId }: { userId: string }) {
       <div>
         <h1>Einträge heute</h1>
         <p role="alert">Profil konnte nicht geladen werden.</p>
-        <button type="button" className="inline-flex items-center gap-2" onClick={() => reload()}>
+        <Pressable type="button" className="inline-flex items-center gap-2" onClick={() => reload()}>
           <VitaIcon name="retry" tone="brand" size={20} />
           Erneut versuchen
-        </button>
+        </Pressable>
       </div>
     )
   }
@@ -79,10 +78,10 @@ function EntriesBySection({ userId }: { userId: string }) {
           />
         )
       })}
-      <Link to="/nutrition" className="flex items-center justify-center gap-2">
+      <PressableLink to="/nutrition" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zur Ernährung
-      </Link>
+      </PressableLink>
     </div>
   )
 }
@@ -123,9 +122,9 @@ function SectionBlock({
       {/* No add button for the unassigned group — nothing new belongs there. */}
       {slot !== null && (
         <>
-          <button
+          <Pressable
+            variant={isPrimaryAdd ? 'primary' : 'secondary'}
             type="button"
-            className={isPrimaryAdd ? buttonPrimaryClass : buttonSecondaryClass}
             onClick={() => setDialogOpen(true)}
           >
             {/* "Eintrag hinzufügen", nicht bloss "Hinzufügen": AddEntryFlow
@@ -136,7 +135,7 @@ function SectionBlock({
               <VitaIcon name="add" tone="mono" size={20} />
               Eintrag hinzufügen
             </span>
-          </button>
+          </Pressable>
           {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
               rendering AddEntryFlow only while open resets its product/quantity/error
               state each time it opens, instead of showing the last attempt's leftovers. */}

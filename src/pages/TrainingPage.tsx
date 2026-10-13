@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useActiveTrainingDay } from '../hooks/use-active-training-day'
 import { startWorkoutSession } from '../hooks/use-workout-session'
@@ -8,10 +8,10 @@ import { useTrainingAnalysis } from '../hooks/use-training-analysis'
 import TrainingChartList from '../components/charts/TrainingChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
-import { buttonPrimaryClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { wochenAktiv } from '../lib/plan-alter'
+import Pressable, { PressableLink } from '../components/Pressable'
 
 export default function TrainingPage() {
   const { session } = useSession()
@@ -66,18 +66,18 @@ function Dashboard({ userId }: { userId: string }) {
       {plan == null && (
         <>
           <p>Kein aktiver Plan.</p>
-          <Link to="/training/plans" className={buttonPrimaryClass}>
+          <PressableLink variant="primary" to="/training/plans">
             <span className="inline-flex items-center justify-center gap-2">
               <VitaIcon name="plans" tone="mono" size={20} />
               Trainingsplan anlegen
             </span>
-          </Link>
+          </PressableLink>
         </>
       )}
       {plan != null && plan.dauer_wochen != null && wochenAktivSeit >= plan.dauer_wochen && (
         <p>
           Dieser Plan läuft seit {wochenAktivSeit} {wochenAktivSeit === 1 ? 'Woche' : 'Wochen'} —{' '}
-          <Link to="/training/plans/new">Zeit für einen neuen?</Link>
+          <PressableLink to="/training/plans/new">Zeit für einen neuen?</PressableLink>
         </p>
       )}
       {plan != null && day == null && (
@@ -90,31 +90,31 @@ function Dashboard({ userId }: { userId: string }) {
         <>
           <p>{plan.name}</p>
           <p>{day.name}</p>
-          <button type="button" className={buttonPrimaryClass} disabled={starting} onClick={() => start(day.id)}>
+          <Pressable variant="primary" type="button" disabled={starting} onClick={() => start(day.id)}>
             <span className="inline-flex items-center justify-center gap-2">
               <VitaIcon name="start" tone="mono" size={20} />
               Training starten
             </span>
-          </button>
+          </Pressable>
         </>
       )}
-      <Link to="/training/plans" className="flex items-center justify-center gap-2">
+      <PressableLink to="/training/plans" className="flex items-center justify-center gap-2">
         <VitaIcon name="plans" tone="brand" size={20} />
         Meine Pläne
-      </Link>
-      <Link to="/training/exercises" className="flex items-center justify-center gap-2">
+      </PressableLink>
+      <PressableLink to="/training/exercises" className="flex items-center justify-center gap-2">
         <VitaIcon name="exercises" tone="brand" size={20} />
         Übungen
-      </Link>
-      <Link to="/training/history" className="flex items-center justify-center gap-2">
+      </PressableLink>
+      <PressableLink to="/training/history" className="flex items-center justify-center gap-2">
         <VitaIcon name="history" tone="brand" size={20} />
         Trainingshistorie
-      </Link>
+      </PressableLink>
       <DashboardTrainingCharts userId={userId} auswahl={auswahl.auswahl} />
-      <Link to="/training/analyse" className="flex items-center justify-center gap-2">
+      <PressableLink to="/training/analyse" className="flex items-center justify-center gap-2">
         <VitaIcon name="analysis" tone="brand" size={20} />
         Analyse
-      </Link>
+      </PressableLink>
     </div>
   )
 }

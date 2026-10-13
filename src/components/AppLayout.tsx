@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
 import BottomNav from './BottomNav'
 import { ToastProvider } from './ToastProvider'
 import { VitaIcon } from './icons/VitaIcon'
+import { PressableLink } from './Pressable'
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
@@ -10,9 +10,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <div>
         <header>
           {/* Profile is a setting, not a fifth area — it stays out of the bottom nav. */}
-          <Link to="/profile" aria-label="Profil">
+          <PressableLink to="/profile" aria-label="Profil">
             <VitaIcon name="profile" />
-          </Link>
+          </PressableLink>
         </header>
         <main>{children}</main>
         <BottomNav />

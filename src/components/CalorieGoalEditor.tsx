@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { Profile } from '../hooks/use-profile'
 import { calculateCalorieGoal } from '../lib/nutrition-goal'
-import { cardClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { cardClass } from '../lib/ui-classes'
+import Pressable from './Pressable'
 
 type Props = {
   profile: Profile
@@ -61,9 +62,9 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
             : 'Profil vervollständigen (Gewicht, Größe, Alter, Geschlecht, Aktivitätslevel), um ein Ziel zu berechnen.'}
         </p>
         {failed && <p role="alert">Ziel konnte nicht gespeichert werden.</p>}
-        <button type="button" className={buttonSecondaryClass} onClick={switchToManual}>
+        <Pressable variant="secondary" type="button" onClick={switchToManual}>
           Manuell festlegen
-        </button>
+        </Pressable>
       </div>
     )
   }
@@ -81,9 +82,9 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
         />
       </label>
       {failed && <p role="alert">Ziel konnte nicht gespeichert werden.</p>}
-      <button type="button" className={buttonSecondaryClass} onClick={switchToCalculated}>
+      <Pressable variant="secondary" type="button" onClick={switchToCalculated}>
         Berechnen lassen
-      </button>
+      </Pressable>
     </div>
   )
 }

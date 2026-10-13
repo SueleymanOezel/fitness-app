@@ -35,12 +35,11 @@ describe('ui-classes', () => {
     expect(buttonPrimaryClass).not.toContain('text-text ')
   })
 
-  it('gives both buttons hover, press and focus-visible feedback', () => {
+  it('gives both buttons hover and focus-visible feedback (press scale is GSAP)', () => {
     for (const cls of [buttonPrimaryClass, buttonSecondaryClass]) {
       expect(cls).toContain('transition')
       expect(cls).toContain('motion-reduce:transition-none')
       expect(cls).toContain('hover:brightness-110')
-      expect(cls).toContain('motion-safe:active:scale-[0.97]')
       expect(cls).toContain('focus-visible:ring-2')
       expect(cls).toContain('focus-visible:ring-accent')
       expect(cls).toContain('focus-visible:ring-offset-2')
@@ -59,8 +58,17 @@ describe('ui-classes', () => {
 
   it('exports the shared interactive-state classes for other components to reuse', () => {
     expect(interactiveClass).toContain('transition')
-    expect(interactiveClass).toContain('motion-safe:active:scale-[0.97]')
+    expect(interactiveClass).not.toContain('active:scale')
     expect(interactiveClass).not.toContain('ring-offset')
+  })
+
+  it('does not CSS-transition transform, which GSAP drives inline every frame', () => {
+    for (const cls of [interactiveClass, buttonPrimaryClass, buttonSecondaryClass]) {
+      expect(cls).not.toMatch(/(^|\s)transition(\s|$)/)
+      expect(cls).not.toMatch(/transition-(all|transform)/)
+      expect(cls).not.toMatch(/transition-\[[^\]]*(transform|scale|translate|rotate)/)
+      expect(cls).toMatch(/transition-\[[^\]]*background-color/)
+    }
   })
 
   it('keeps a bottom-anchored primary action above the floating nav', () => {

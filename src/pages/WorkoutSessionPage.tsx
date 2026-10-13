@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
 import {
@@ -8,7 +8,7 @@ import {
   type SessionSet,
   type SetValues,
 } from '../hooks/use-workout-session'
-import { cardClass, buttonPrimaryClass } from '../lib/ui-classes'
+import { cardClass } from '../lib/ui-classes'
 import Chip from '../components/Chip'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
@@ -18,6 +18,7 @@ import ExercisePicker from '../components/ExercisePicker'
 import { useTrainingStreak } from '../hooks/use-training-streak'
 import { streakText } from '../lib/streak'
 import type { NeuerRekord } from '../lib/analysis/training-charts'
+import Pressable, { PressableLink } from '../components/Pressable'
 
 export default function WorkoutSessionPage() {
   const { session } = useSession()
@@ -109,10 +110,10 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
       <div>
         <h1>Training</h1>
         <p role="alert">Dieses Training gibt es nicht mehr.</p>
-        <Link to="/training" className="flex items-center justify-center gap-2">
+        <PressableLink to="/training" className="flex items-center justify-center gap-2">
           <VitaIcon name="back" tone="brand" size={20} />
           Zurück zum Training
-        </Link>
+        </PressableLink>
       </div>
     )
   }
@@ -125,11 +126,11 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
       <div>
         <h1>Training</h1>
         <p role="alert">Dieses Training ist bereits abgeschlossen.</p>
-        <Link to={`/training/history/${session.id}`}>Zur Trainingseinheit</Link>
-        <Link to="/training" className="flex items-center justify-center gap-2">
+        <PressableLink to={`/training/history/${session.id}`}>Zur Trainingseinheit</PressableLink>
+        <PressableLink to="/training" className="flex items-center justify-center gap-2">
           <VitaIcon name="back" tone="brand" size={20} />
           Zurück zum Training
-        </Link>
+        </PressableLink>
       </div>
     )
   }
@@ -198,16 +199,16 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
         {exercises.map((entry) => (
           <li key={entry.exercise_id} className="block border-b-0">
             <div className={`${cardClass} w-full`}>
-              <button type="button" onClick={() => setOpenExerciseId(entry.exercise_id)}>
+              <Pressable type="button" onClick={() => setOpenExerciseId(entry.exercise_id)}>
                 {entry.name}
-              </button>
+              </Pressable>
               {!sets.some((set) => set.exercise_id === entry.exercise_id) && (
-                <button type="button" onClick={() => removeExercise(entry.id)}>
+                <Pressable type="button" onClick={() => removeExercise(entry.id)}>
                   <span className="inline-flex items-center justify-center gap-2">
                     <VitaIcon name="delete" tone="mono" size={20} />
                     Entfernen
                   </span>
-                </button>
+                </Pressable>
               )}
               {openExerciseId === entry.exercise_id && (
                 <LoggedSets sets={sets.filter((set) => set.exercise_id === entry.exercise_id)} />
@@ -242,12 +243,12 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
           </li>
         ))}
       </ul>
-      <button type="button" className={buttonPrimaryClass} onClick={() => setPickerOpen(true)}>
+      <Pressable variant="primary" type="button" onClick={() => setPickerOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="add" tone="mono" size={20} />
           Übung hinzufügen
         </span>
-      </button>
+      </Pressable>
       {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
           rendering the picker only while open resets the search field each
           time it opens, instead of keeping the last search around. */}
@@ -269,12 +270,12 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
       </Dialog>
       <p>{gewichtKg === null ? '—' : `${gewichtKg} kg`}</p>
       {gewichtKg === null && <p>Ohne Gewicht im Profil lässt sich der Verbrauch nicht berechnen.</p>}
-      <button type="button" className={buttonPrimaryClass} disabled={gewichtKg === null} onClick={complete}>
+      <Pressable variant="primary" type="button" disabled={gewichtKg === null} onClick={complete}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="save" tone="mono" size={20} />
           Training abschließen
         </span>
-      </button>
+      </Pressable>
     </div>
   )
 }
@@ -318,9 +319,9 @@ function SessionCompletionScreen({
         </div>
       )}
       <p>{streakLoading ? '…' : streakText(streak)}</p>
-      <button type="button" className={buttonPrimaryClass} onClick={onFertig}>
+      <Pressable variant="primary" type="button" onClick={onFertig}>
         Fertig
-      </button>
+      </Pressable>
     </div>
   )
 }
@@ -446,12 +447,12 @@ function SetForm({
           ))}
         </fieldset>
       </div>
-      <button type="submit" className={buttonPrimaryClass}>
+      <Pressable variant="primary" type="submit">
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="start" tone="mono" size={20} />
           Satz abschließen
         </span>
-      </button>
+      </Pressable>
     </form>
   )
 }
