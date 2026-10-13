@@ -149,6 +149,7 @@ describe('ExerciseFilterChips', () => {
     expect(screen.getByRole('button', { name: 'Filter (2)' })).toHaveClass('md:hidden')
     const entferneBrust = screen.getByRole('button', { name: 'Filter Brust entfernen' })
     expect(entferneBrust.closest('.hidden')).toBeNull()
+    expect(entferneBrust).not.toHaveAttribute('aria-pressed')
     fireEvent.click(entferneBrust)
     expect(props.onMuskelgruppeChange).toHaveBeenCalledWith(null)
     expect(props.onEquipmentChange).not.toHaveBeenCalled()

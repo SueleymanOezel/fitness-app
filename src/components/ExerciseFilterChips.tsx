@@ -36,7 +36,7 @@ export default function ExerciseFilterChips({
   ].filter((eintrag): eintrag is { label: string; entfernen: () => void } => Boolean(eintrag))
 
   return (
-    <div className="space-y-2">
+    <div>
       {/* Unter md eingeklappt; ab md ist das Panel immer offen und der Trigger weg (nur CSS). */}
       <div className="flex flex-wrap items-center gap-2 md:hidden">
         <Pressable
@@ -50,7 +50,7 @@ export default function ExerciseFilterChips({
           {aktive.length === 0 ? 'Filter' : `Filter (${aktive.length})`}
         </Pressable>
         {aktive.map((eintrag) => (
-          <Chip key={eintrag.label} active aria-label={`Filter ${eintrag.label} entfernen`} onClick={eintrag.entfernen}>
+          <Chip key={eintrag.label} active aria-pressed={undefined} aria-label={`Filter ${eintrag.label} entfernen`} onClick={eintrag.entfernen}>
             <span className="inline-flex items-center gap-1">
               {eintrag.label}
               <VitaIcon name="close" tone="mono" size={16} />
@@ -58,7 +58,7 @@ export default function ExerciseFilterChips({
           </Chip>
         ))}
       </div>
-      <div id={panelId} className={`space-y-2 ${offen ? 'block' : 'hidden'} md:block`}>
+      <div id={panelId} className={`space-y-2 ${offen ? 'mt-2 block' : 'hidden'} md:mt-0 md:block`}>
         {muskelgruppen.length > 0 && (
           <div className="flex flex-wrap gap-2">
             <Chip active={muskelgruppe === null} onClick={() => onMuskelgruppeChange(null)}>
