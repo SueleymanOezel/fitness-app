@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
 import {
@@ -17,6 +17,7 @@ import Dialog from '../components/Dialog'
 import ExercisePicker from '../components/ExercisePicker'
 import { useTrainingStreak } from '../hooks/use-training-streak'
 import { streakText } from '../lib/streak'
+import { parseDecimal } from '../lib/parse-decimal'
 import type { NeuerRekord } from '../lib/analysis/training-charts'
 import Pressable, { PressableLink } from '../components/Pressable'
 import CompletionCelebration from '../components/CompletionCelebration'
@@ -153,7 +154,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
   }
 
   async function complete() {
-    if (gewichtKg === null || session === null) return
+    if (session === null) return
     setAbschlussLaeuft(true)
     let ergebnis: { beendetAm: string; gesamtKalorien: number | null }
     try {
@@ -284,15 +285,14 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
       <div className="mt-6">
         <p className={labelClass}>Körpergewicht für die kcal-Berechnung</p>
         <p className="text-xl font-bold tabular-nums">{gewichtKg === null ? '—' : `${gewichtKg} kg`}</p>
-        {gewichtKg === null && <p>Ohne Gewicht im Profil lässt sich der Verbrauch nicht berechnen.</p>}
+        {gewichtKg === null && (
+          <>
+            <p>Ohne Gewicht im Profil lässt sich der Verbrauch nicht berechnen.</p>
+            <Link to="/profile">Gewicht im Profil eintragen</Link>
+          </>
+        )}
       </div>
-      <Pressable
-        variant="primary"
-        type="button"
-        className={stickyActionClass}
-        disabled={gewichtKg === null}
-        onClick={complete}
-      >
+      <Pressable variant="primary" type="button" className={stickyActionClass} onClick={complete}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="save" tone="mono" size={20} />
           Training abschließen
@@ -445,19 +445,28 @@ function SetForm({
   const [wiederholungen, setWiederholungen] = useState('')
   const [rir, setRir] = useState<number | null>(null)
   const [istAufwaermsatz, setIstAufwaermsatz] = useState(false)
+  const [fehler, setFehler] = useState<{ gewicht: boolean; wiederholungen: boolean }>({
+    gewicht: false,
+    wiederholungen: false,
+  })
 
   return (
     <form
       onSubmit={async (event) => {
         event.preventDefault()
-        // Number('') is 0, not "unset" — an empty field must stay null, not become a fake 0.
-        const gewichtValue = gewicht === '' ? null : Number(gewicht)
-        const wiederholungenValue = wiederholungen === '' ? null : Number(wiederholungen)
+        const gewichtValue = parseDecimal(gewicht)
+        const wiederholungenValue = parseDecimal(wiederholungen, { integer: true })
+        // Refuse rather than store the set without the value: "22,5" used to become NaN and land as null.
+        const gewichtUngueltig = gewichtValue === undefined || (gewichtValue !== null && gewichtValue < 0)
+        const wiederholungenUngueltig =
+          wiederholungenValue === undefined || (wiederholungenValue !== null && wiederholungenValue < 0)
+        setFehler({ gewicht: gewichtUngueltig, wiederholungen: wiederholungenUngueltig })
+        if (gewichtUngueltig || wiederholungenUngueltig) return
         // Only clear on a stored set: wiping the fields after a failed save
         // would force the user to type everything again.
         const stored = await onLog({
-          gewicht: gewichtValue,
-          wiederholungen: wiederholungenValue,
+          gewicht: gewichtValue ?? null,
+          wiederholungen: wiederholungenValue ?? null,
           rir,
           ist_aufwaermsatz: istAufwaermsatz,
         })
@@ -481,12 +490,32 @@ function SetForm({
         </p>
         <label>
           Gewicht (kg)
-          <input value={gewicht} onChange={(event) => setGewicht(event.target.value)} />
+          <input
+            inputMode="decimal"
+            value={gewicht}
+            aria-invalid={fehler.gewicht}
+            onChange={(event) => setGewicht(event.target.value)}
+          />
         </label>
+        {fehler.gewicht && (
+          <p role="alert" className="text-sm text-danger">
+            Gewicht als Zahl ab 0 eingeben, z. B. 22,5.
+          </p>
+        )}
         <label>
           Wiederholungen
-          <input value={wiederholungen} onChange={(event) => setWiederholungen(event.target.value)} />
+          <input
+            inputMode="numeric"
+            value={wiederholungen}
+            aria-invalid={fehler.wiederholungen}
+            onChange={(event) => setWiederholungen(event.target.value)}
+          />
         </label>
+        {fehler.wiederholungen && (
+          <p role="alert" className="text-sm text-danger">
+            Wiederholungen als ganze Zahl ab 0 eingeben.
+          </p>
+        )}
         <label>
           Aufwärmsatz
           <input
