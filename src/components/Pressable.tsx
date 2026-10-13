@@ -42,6 +42,5 @@ export function PressableLink({ variant = 'bare', className, ref, ...props }: Pr
   const inner = useRef<HTMLAnchorElement>(null)
   useImperativeHandle(ref, () => inner.current as HTMLAnchorElement)
   usePressFeedback(inner)
-  const resolved = typeof className === 'function' ? className : join(variant, className ?? '')
-  return <Link ref={inner} className={resolved} {...props} />
+  return <Link ref={inner} className={join(variant, className ?? '')} {...props} />
 }

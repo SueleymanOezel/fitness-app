@@ -147,6 +147,28 @@ describe('Dialog unmount', () => {
     expect(revert).toHaveBeenCalledOnce()
   })
 
+  it('does not revert its gsap context between open and close', async () => {
+    stubReducedMotion(false)
+    vi.clearAllMocks()
+    const onClose = vi.fn()
+    const { rerender } = render(
+      <Dialog open onClose={onClose}>
+        <p>Inhalt</p>
+      </Dialog>,
+    )
+    await waitFor(() => expect(gsap.fromTo).toHaveBeenCalledOnce())
+
+    rerender(
+      <Dialog open={false} onClose={onClose}>
+        <p>Inhalt</p>
+      </Dialog>,
+    )
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
+
+    expect(revert).not.toHaveBeenCalled()
+    expect(gsap.context).toHaveBeenCalledOnce()
+  })
+
   it('does not animate when unmounted before gsap has loaded', async () => {
     stubReducedMotion(false)
     let resolveLoad: (g: typeof gsap) => void = () => {}
