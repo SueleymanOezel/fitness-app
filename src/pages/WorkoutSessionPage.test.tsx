@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
-import WorkoutSessionPage from './WorkoutSessionPage'
+import WorkoutSessionPage, { formatPause } from './WorkoutSessionPage'
 import { renderWithProviders } from '../test-render'
 
 const mockUseSession = vi.fn()
@@ -96,6 +96,14 @@ function signedIn(weight: number | null = 80) {
   mockUseExercises.mockReturnValue({ exercises: [], loading: false, createExercise: vi.fn() })
   mockUseTrainingStreak.mockReturnValue({ streak: 0, loading: false })
 }
+
+describe('formatPause', () => {
+  it('formats seconds as m:ss', () => {
+    expect(formatPause(90)).toBe('1:30')
+    expect(formatPause(5)).toBe('0:05')
+    expect(formatPause(0)).toBe('0:00')
+  })
+})
 
 describe('WorkoutSessionPage', () => {
   it('lists the exercises of the day', async () => {
@@ -210,12 +218,42 @@ describe('WorkoutSessionPage', () => {
 
     fireEvent.click(screen.getByText('Bankdrücken'))
 
-    expect(screen.getByText('Satz 1: 60 kg × 10 Wdh.')).toBeInTheDocument()
-    expect(screen.getByText('Satz 2: 65 kg × 8 Wdh.')).toBeInTheDocument()
     expect(screen.getByText('1 Aufwärmsatz')).toBeInTheDocument()
-    // The warm-up must not also appear as its own numbered row.
-    const erfassteSaetze = screen.getByRole('list', { name: /erfasste sätze/i })
-    expect(within(erfassteSaetze).getAllByRole('listitem')).toHaveLength(2)
+    const tabelle = screen.getByRole('table', { name: 'Erfasste Sätze' })
+    expect(within(tabelle).getByRole('columnheader', { name: 'RIR' })).toBeInTheDocument()
+    // Header row + 2 working sets: the warm-up must not also appear as its own numbered row.
+    const zeilen = within(tabelle).getAllByRole('row')
+    expect(zeilen).toHaveLength(3)
+    expect(zeilen[1]).toHaveTextContent('1')
+    expect(zeilen[1]).toHaveTextContent('60')
+    expect(zeilen[1]).toHaveTextContent('10')
+    expect(zeilen[1]).toHaveTextContent('—') // rir der Fixture ist null
+    expect(zeilen[2]).toHaveTextContent('2')
+    expect(zeilen[2]).toHaveTextContent('65')
+    expect(zeilen[1]).not.toHaveClass('row-in') // beim Aufklappen vorhandener Sätze keine Einblendung
+  })
+
+  it('reveals only the newly logged set', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult({ sets: [loggedSet({ id: 'set1' })] }))
+
+    renderPage()
+
+    fireEvent.click(screen.getByText('Bankdrücken'))
+    // Next render of the hook returns a second set (new id), as after a real log.
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({
+        sets: [loggedSet({ id: 'set1' }), loggedSet({ id: 'set2', satz_nummer: 2, gewicht: 65, wiederholungen: 8 })],
+      }),
+    )
+    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '65' } })
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '8' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+
+    await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(3))
+    const zeilen = screen.getAllByRole('row')
+    expect(zeilen[1]).not.toHaveClass('row-in')
+    expect(zeilen[2]).toHaveClass('row-in')
   })
 
   it('shows no warm-up count when every logged set was a working set', () => {
@@ -239,7 +277,7 @@ describe('WorkoutSessionPage', () => {
 
     fireEvent.click(screen.getByText('Bankdrücken'))
 
-    expect(screen.queryByRole('list', { name: /erfasste sätze/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('table', { name: 'Erfasste Sätze' })).not.toBeInTheDocument()
   })
 
   it('pluralizes the warm-up count for more than one', () => {
@@ -259,7 +297,7 @@ describe('WorkoutSessionPage', () => {
 
     expect(screen.getByText('2 Aufwärmsätze')).toBeInTheDocument()
     // Warm-ups-only: no numbered-sets list should render at all.
-    expect(screen.queryByRole('list', { name: /erfasste sätze/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('table', { name: 'Erfasste Sätze' })).not.toBeInTheDocument()
   })
 
   it('opens the next exercise once the pause of the last set of the current one runs out', async () => {

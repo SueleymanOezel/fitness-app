@@ -8,7 +8,7 @@ import {
   type SessionSet,
   type SetValues,
 } from '../hooks/use-workout-session'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, labelClass, statClass } from '../lib/ui-classes'
 import Chip from '../components/Chip'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
@@ -343,6 +343,8 @@ function targetReached(zielSaetze: number | null, done: number) {
  * warm-ups (see workingSetCount).
  */
 function LoggedSets({ sets }: { sets: SessionSet[] }) {
+  // Snapshot beim Aufklappen: nur danach erfasste Sätze blenden ein.
+  const [bekannteIds] = useState(() => new Set(sets.map((set) => set.id)))
   if (sets.length === 0) return null
 
   const arbeitssaetze = sets.filter((set) => !set.ist_aufwaermsatz).sort((a, b) => a.satz_nummer - b.satz_nummer)
@@ -356,14 +358,29 @@ function LoggedSets({ sets }: { sets: SessionSet[] }) {
         </p>
       )}
       {arbeitssaetze.length > 0 && (
-        <ul role="list" aria-label="Erfasste Sätze" className="space-y-1">
-          {arbeitssaetze.map((set, index) => (
-            <li key={set.id} className="flex items-center gap-2">
-              <VitaIcon name="save" tone="brand" size={20} />
-              <span>{`Satz ${index + 1}: ${set.gewicht ?? '—'} kg × ${set.wiederholungen ?? '—'} Wdh.`}</span>
-            </li>
-          ))}
-        </ul>
+        <table aria-label="Erfasste Sätze" className="w-full text-left tabular-nums">
+          <thead>
+            <tr className={labelClass}>
+              <th className="py-1 font-medium">Satz</th>
+              <th className="py-1 font-medium">kg</th>
+              <th className="py-1 font-medium">Wdh.</th>
+              <th className="py-1 font-medium">RIR</th>
+            </tr>
+          </thead>
+          <tbody>
+            {arbeitssaetze.map((set, index) => (
+              <tr
+                key={set.id}
+                className={`border-t border-text-muted/20 ${bekannteIds.has(set.id) ? '' : 'row-in'}`}
+              >
+                <td className="py-1">{index + 1}</td>
+                <td className="py-1">{set.gewicht ?? '—'}</td>
+                <td className="py-1">{set.wiederholungen ?? '—'}</td>
+                <td className="py-1">{set.rir ?? '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   )
@@ -457,6 +474,11 @@ function SetForm({
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- exportiert für Tests
+export function formatPause(sekunden: number) {
+  return `${Math.floor(sekunden / 60)}:${String(sekunden % 60).padStart(2, '0')}`
+}
+
 function PauseTimer({ until, sekunden, onDone }: { until: number; sekunden: number; onDone: () => void }) {
   // Seeded from the configured pause rather than from Date.now(): reading the
   // clock during render is impure and would differ between renders.
@@ -484,5 +506,10 @@ function PauseTimer({ until, sekunden, onDone }: { until: number; sekunden: numb
     return () => clearInterval(interval)
   }, [until])
 
-  return <p>{`Pause: ${remainingSeconds}s`}</p>
+  return (
+    <div className={cardClass} role="timer">
+      <p className={labelClass}>Pause</p>
+      <p className={statClass}>{formatPause(remainingSeconds)}</p>
+    </div>
+  )
 }
