@@ -9,7 +9,7 @@ export const cardClass = 'bg-surface rounded-3xl p-6'
 
 /**
  * transition + motion-reduce:transition-none statt eines separaten
- * motion-safe:-Zweigs: der Zustandswechsel selbst (Farbe, Skalierung) soll
+ * motion-safe:-Zweigs: der Zustandswechsel selbst (Farbe; die Press-Skalierung macht GSAP, siehe press-feedback.ts) soll
  * unter prefers-reduced-motion bestehen bleiben, nur ohne animierten
  * Uebergang dazwischen — siehe Spec, Abschnitt "Motion".
  *
@@ -20,13 +20,23 @@ export const cardClass = 'bg-surface rounded-3xl p-6'
  * statt die ganze Liste ein drittes/viertes Mal zu tippen.
  */
 export const interactiveClass =
-  'transition duration-150 motion-reduce:transition-none hover:brightness-110 motion-safe:active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
+  'transition duration-150 motion-reduce:transition-none hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
 
 export const buttonPrimaryClass =
   `w-full rounded-2xl border-0 m-0 bg-accent px-4 py-3 font-semibold text-on-bright disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
 
 export const buttonSecondaryClass =
   `rounded-2xl border-0 m-0 bg-surface px-4 py-3 font-semibold text-text disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
+
+/** Destructive action (delete, remove): same shape as secondary, danger-colored text. */
+export const buttonDangerClass =
+  `rounded-2xl border-0 m-0 bg-surface px-4 py-3 font-semibold text-danger disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
+
+/** Large figure (weight, PR, calories): bold, tight, digits that do not jump. */
+export const statClass = 'text-3xl font-bold tracking-tight tabular-nums'
+
+/** Quiet label above/next to a figure: visibly a different weight than the value. */
+export const labelClass = 'text-sm font-medium text-text-muted'
 
 /**
  * bg-surface-raised statt bg-surface: ein Feld muss sich auch abheben, wenn
