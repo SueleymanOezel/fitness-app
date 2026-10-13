@@ -525,10 +525,31 @@ describe('WorkoutSessionPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
 
     expect(await screen.findByText('Training abgeschlossen')).toBeInTheDocument()
-    expect(screen.getByText('25 Minuten · 187 kcal')).toBeInTheDocument()
+    expect(screen.getByText('25')).toHaveAttribute('data-count-to', '25')
+    expect(screen.getByText('Minuten')).toBeInTheDocument()
+    expect(screen.getByText('187')).toBeInTheDocument()
+    expect(screen.getByText('kcal')).toBeInTheDocument()
     expect(screen.getByText('3 Tage in Folge')).toBeInTheDocument()
     // The live session view is gone, not just covered.
     expect(screen.queryByRole('button', { name: 'Training abschließen' })).not.toBeInTheDocument()
+  })
+
+  it('shows only the duration when no calories were computed', async () => {
+    signedIn()
+    const result = sessionResult({
+      completeSession: vi.fn().mockResolvedValue({ beendetAm: '2026-08-21T10:25:00.000Z', gesamtKalorien: null }),
+    })
+    mockUseWorkoutSession.mockReturnValue(result)
+    mockUseTrainingStreak.mockReturnValue({ streak: 3, loading: false })
+
+    renderPage()
+    await screen.findByText('Bankdrücken')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+
+    expect(await screen.findByText('Training abgeschlossen')).toBeInTheDocument()
+    expect(screen.getByText('Minuten')).toBeInTheDocument()
+    expect(screen.queryByText('kcal')).toBeNull()
   })
 
   it('never shows the "already completed" fallback while completion is still in flight', async () => {
@@ -589,8 +610,11 @@ describe('WorkoutSessionPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
 
     expect(await screen.findByText('Neue Rekorde')).toBeInTheDocument()
-    expect(screen.getByText('Bankdrücken — neues 1RM 116,7 kg (vorher: 105,0 kg)')).toBeInTheDocument()
-    expect(screen.getByText('Kniebeuge — neues 1RM 80,0 kg (erste Ausführung)')).toBeInTheDocument()
+    expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
+    expect(screen.getByText('116,7 kg')).toBeInTheDocument()
+    expect(screen.getByText('vorher: 105,0 kg')).toBeInTheDocument()
+    expect(screen.getByText('80,0 kg')).toBeInTheDocument()
+    expect(screen.getByText('erste Ausführung')).toBeInTheDocument()
   })
 
   it('omits the records section instead of showing an empty one', async () => {
