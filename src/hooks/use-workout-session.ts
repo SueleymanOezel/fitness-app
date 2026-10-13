@@ -251,7 +251,10 @@ export function useWorkoutSession(sessionId: string) {
     await reload()
   }
 
-  async function completeSession(gewichtKg: number): Promise<{ beendetAm: string; gesamtKalorien: number | null }> {
+  /** Without a body weight the session still completes, only its calories stay unknown (null). */
+  async function completeSession(
+    gewichtKg: number | null,
+  ): Promise<{ beendetAm: string; gesamtKalorien: number | null }> {
     const beendetAm = new Date().toISOString()
     // Trained time runs to the last completed set, not to whenever the user
     // remembers to press the button — a session finished the next morning
@@ -269,7 +272,7 @@ export function useWorkoutSession(sessionId: string) {
     const kalorienSets = sets.flatMap((set) =>
       set.exercise?.met_wert == null ? [] : [{ exercise: { met_wert: set.exercise.met_wert } }],
     )
-    const gesamtKalorien = sessionKalorien(kalorienSets, gewichtKg, dauerStunden)
+    const gesamtKalorien = gewichtKg === null ? null : sessionKalorien(kalorienSets, gewichtKg, dauerStunden)
 
     const { error } = await supabase
       .from('workout_sessions')
