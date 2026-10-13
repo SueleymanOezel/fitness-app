@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlans } from '../hooks/use-workout-plans'
-import { inputClass } from '../lib/ui-classes'
+import { fieldLabelClass, inputClass, linkClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Chip from '../components/Chip'
@@ -71,8 +71,8 @@ function Wizard({ userId }: { userId: string }) {
     <div>
       <h1>Neuer Plan</h1>
       {step === 1 && (
-        <>
-          <label>
+        <section className="flex flex-col gap-3">
+          <label className={fieldLabelClass}>
             Name
             <input value={name} onChange={(event) => setName(event.target.value)} className={inputClass} />
           </label>
@@ -80,10 +80,10 @@ function Wizard({ userId }: { userId: string }) {
           <Pressable variant="primary" type="button" onClick={weiterVonName}>
             Weiter
           </Pressable>
-        </>
+        </section>
       )}
       {step === 2 && (
-        <>
+        <section className="flex flex-col gap-3">
           <h2>Wie oft möchtest du trainieren?</h2>
           <div className="flex flex-wrap gap-2">
             {HAEUFIGKEITEN.map((wert) => (
@@ -92,7 +92,7 @@ function Wizard({ userId }: { userId: string }) {
               </Chip>
             ))}
           </div>
-          <Pressable variant="secondary" type="button" onClick={() => setStep(1)}>
+          <Pressable variant="secondary" className="self-start" type="button" onClick={() => setStep(1)}>
             <span className="inline-flex items-center justify-center gap-2">
               <VitaIcon name="back" tone="mono" size={20} />
               Zurück
@@ -106,12 +106,12 @@ function Wizard({ userId }: { userId: string }) {
           >
             Weiter
           </Pressable>
-        </>
+        </section>
       )}
       {step === 3 && (
-        <>
+        <section className="flex flex-col gap-3">
           <h2>Plandauer</h2>
-          <label>
+          <label className={fieldLabelClass}>
             Wochen
             <input
               type="number"
@@ -122,7 +122,7 @@ function Wizard({ userId }: { userId: string }) {
             />
           </label>
           {dauerError !== '' && <p role="alert">{dauerError}</p>}
-          <Pressable variant="secondary" type="button" onClick={() => setStep(2)}>
+          <Pressable variant="secondary" className="self-start" type="button" onClick={() => setStep(2)}>
             <span className="inline-flex items-center justify-center gap-2">
               <VitaIcon name="back" tone="mono" size={20} />
               Zurück
@@ -134,9 +134,9 @@ function Wizard({ userId }: { userId: string }) {
               Plan erstellen
             </span>
           </Pressable>
-        </>
+        </section>
       )}
-      <PressableLink to="/training/plans" className="flex items-center justify-center gap-2">
+      <PressableLink to="/training/plans" className={linkClass}>
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zu meinen Plänen
       </PressableLink>

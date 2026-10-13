@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { cardClass, interactiveClass } from '../lib/ui-classes'
+import { cardClass, fieldLabelClass, inputClass, interactiveClass, listClass, listRowClass } from '../lib/ui-classes'
 import ExerciseFilterChips from './ExerciseFilterChips'
 import ExerciseThumbnail from './ExerciseThumbnail'
 import { VitaIcon } from './icons/VitaIcon'
@@ -69,9 +69,9 @@ export default function ExercisePicker({
 
   return (
     <div className={cardClass}>
-      <label>
+      <label className={fieldLabelClass}>
         Übung suchen
-        <input value={query} onChange={(event) => setQuery(event.target.value)} />
+        <input className={inputClass} value={query} onChange={(event) => setQuery(event.target.value)} />
       </label>
       <ExerciseFilterChips
         muskelgruppen={muskelgruppen}
@@ -83,9 +83,9 @@ export default function ExercisePicker({
       />
       {filtered.length === 0 && <p>Keine Übungen gefunden.</p>}
       {groups.map((group) => (
-        <div key={group.gruppe || 'gefiltert'}>
+        <div key={group.gruppe || 'gefiltert'} className="space-y-1">
           {group.gruppe !== '' && <h3>{group.gruppe}</h3>}
-          <ul role="list" className="space-y-2">
+          <ul role="list" className={listClass}>
             {group.exercises.map((exercise, index) => {
               const name = exercise.name_de ?? exercise.name
               const isSelected = selected.includes(exercise.id)
@@ -97,7 +97,7 @@ export default function ExercisePicker({
                     type="button"
                     aria-pressed={isSelected}
                     onClick={() => toggle(exercise.id)}
-                    className={`${cardClass} ${interactiveClass} flex w-full items-center gap-4 text-left`}
+                    className={`${listRowClass} ${interactiveClass} w-full rounded-2xl px-2 text-left`}
                   >
                     <span className="relative shrink-0">
                       <ExerciseThumbnail bildUrl={exercise.bild_url} />

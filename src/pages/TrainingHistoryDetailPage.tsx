@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useWorkoutSession } from '../hooks/use-workout-session'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, checkLabelClass, fieldLabelClass, inputClass, linkClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable, { PressableLink } from '../components/Pressable'
@@ -40,7 +40,7 @@ function Detail({ sessionId }: { sessionId: string }) {
       <div>
         <h1>Trainingseinheit</h1>
         <p role="alert">Diese Trainingseinheit gibt es nicht mehr.</p>
-        <PressableLink to="/training/history" className="flex items-center justify-center gap-2">
+        <PressableLink to="/training/history" className={linkClass}>
           <VitaIcon name="back" tone="brand" size={20} />
           Zurück zur Historie
         </PressableLink>
@@ -61,9 +61,9 @@ function Detail({ sessionId }: { sessionId: string }) {
       <h1>Trainingseinheit</h1>
       {/* An unfinished session has no calorie result; "0 kcal" would read as a measurement. */}
       <p>{session.gesamt_kalorien == null ? 'nicht beendet' : `${Math.round(session.gesamt_kalorien)} kcal`}</p>
-      <ul role="list" className="space-y-4">
+      <ul role="list" className="flex flex-col gap-3">
         {sets.map((set) => (
-          <li key={set.id} className="block border-b-0">
+          <li key={set.id}>
             <div className={`${cardClass} w-full`}>
               {set.exercise?.name}
               <SetField
@@ -86,8 +86,7 @@ function Detail({ sessionId }: { sessionId: string }) {
                 integer
                 onCommit={(value) => run(() => updateSet(set.id, { rir: value }), 'Speichern fehlgeschlagen.')}
               />
-              <label>
-                Aufwärmsatz
+              <label className={checkLabelClass}>
                 <input
                   type="checkbox"
                   checked={set.ist_aufwaermsatz}
@@ -100,6 +99,7 @@ function Detail({ sessionId }: { sessionId: string }) {
                     )
                   }
                 />
+                Aufwärmsatz
               </label>
             </div>
           </li>
@@ -107,6 +107,7 @@ function Detail({ sessionId }: { sessionId: string }) {
       </ul>
       <Pressable
         variant="danger"
+        className="self-start"
         type="button"
         onClick={async () => {
           try {
@@ -123,7 +124,7 @@ function Detail({ sessionId }: { sessionId: string }) {
           Session löschen
         </span>
       </Pressable>
-      <PressableLink to="/training/history" className="flex items-center justify-center gap-2">
+      <PressableLink to="/training/history" className={linkClass}>
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zur Historie
       </PressableLink>
@@ -171,9 +172,9 @@ function SetField({
   }
 
   return (
-    <label>
+    <label className={fieldLabelClass}>
       {label}
-      <input value={draft} onChange={(event) => setDraft(event.target.value)} onBlur={commit} />
+      <input className={inputClass} value={draft} onChange={(event) => setDraft(event.target.value)} onBlur={commit} />
     </label>
   )
 }

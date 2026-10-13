@@ -11,7 +11,6 @@ const PENDING_MIGRATION = [
   'src/components/AddEntryFlow.tsx',
   'src/components/BodyEntryForm.tsx',
   'src/components/CalorieGoalEditor.tsx',
-  'src/components/ExercisePicker.tsx',
   'src/components/FoodEntryEditForm.tsx',
   'src/components/FoodEntryList.tsx',
   'src/components/ManualProductForm.tsx',
@@ -21,16 +20,10 @@ const PENDING_MIGRATION = [
   'src/pages/BodyEntriesPage.tsx',
   'src/pages/BodyPage.tsx',
   'src/pages/BodyPhotosPage.tsx',
-  'src/pages/ExercisesPage.tsx',
   'src/pages/LoginPage.tsx',
   'src/pages/NutritionEntriesPage.tsx',
   'src/pages/NutritionPage.tsx',
   'src/pages/ProfilePage.tsx',
-  'src/pages/TrainingHistoryDetailPage.tsx',
-  'src/pages/TrainingPlanEditPage.tsx',
-  'src/pages/TrainingPlansPage.tsx',
-  'src/pages/TrainingPlanWizardPage.tsx',
-  'src/pages/WorkoutSessionPage.tsx',
 ]
 
 const rawButtonSelector = {

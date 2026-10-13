@@ -12,6 +12,7 @@ import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { wochenAktiv } from '../lib/plan-alter'
 import Pressable, { PressableLink } from '../components/Pressable'
+import { cardClass, labelClass, linkClass } from '../lib/ui-classes'
 
 export default function TrainingPage() {
   const { session } = useSession()
@@ -64,7 +65,7 @@ function Dashboard({ userId }: { userId: string }) {
     <div>
       <h1>Training</h1>
       {plan == null && (
-        <>
+        <div className="flex flex-col gap-2">
           <p>Kein aktiver Plan.</p>
           <PressableLink variant="primary" to="/training/plans">
             <span className="inline-flex items-center justify-center gap-2">
@@ -72,7 +73,7 @@ function Dashboard({ userId }: { userId: string }) {
               Trainingsplan anlegen
             </span>
           </PressableLink>
-        </>
+        </div>
       )}
       {plan != null && plan.dauer_wochen != null && wochenAktivSeit >= plan.dauer_wochen && (
         <p>
@@ -81,40 +82,42 @@ function Dashboard({ userId }: { userId: string }) {
         </p>
       )}
       {plan != null && day == null && (
-        <>
+        <div className="flex flex-col gap-2">
           <p>{plan.name}</p>
           <p>Dieser Plan hat noch keinen Tag.</p>
-        </>
+        </div>
       )}
       {plan != null && day != null && (
-        <>
-          <p>{plan.name}</p>
-          <p>{day.name}</p>
+        <div className={cardClass}>
+          <p className={labelClass}>{plan.name}</p>
+          <p className="text-xl font-semibold">{day.name}</p>
           <Pressable variant="primary" type="button" disabled={starting} onClick={() => start(day.id)}>
             <span className="inline-flex items-center justify-center gap-2">
               <VitaIcon name="start" tone="mono" size={20} />
               Training starten
             </span>
           </Pressable>
-        </>
+        </div>
       )}
-      <PressableLink to="/training/plans" className="flex items-center justify-center gap-2">
-        <VitaIcon name="plans" tone="brand" size={20} />
-        Meine Pläne
-      </PressableLink>
-      <PressableLink to="/training/exercises" className="flex items-center justify-center gap-2">
-        <VitaIcon name="exercises" tone="brand" size={20} />
-        Übungen
-      </PressableLink>
-      <PressableLink to="/training/history" className="flex items-center justify-center gap-2">
-        <VitaIcon name="history" tone="brand" size={20} />
-        Trainingshistorie
-      </PressableLink>
+      <div className="flex flex-col">
+        <PressableLink to="/training/plans" className={linkClass}>
+          <VitaIcon name="plans" tone="brand" size={20} />
+          Meine Pläne
+        </PressableLink>
+        <PressableLink to="/training/exercises" className={linkClass}>
+          <VitaIcon name="exercises" tone="brand" size={20} />
+          Übungen
+        </PressableLink>
+        <PressableLink to="/training/history" className={linkClass}>
+          <VitaIcon name="history" tone="brand" size={20} />
+          Trainingshistorie
+        </PressableLink>
+        <PressableLink to="/training/analyse" className={linkClass}>
+          <VitaIcon name="analysis" tone="brand" size={20} />
+          Analyse
+        </PressableLink>
+      </div>
       <DashboardTrainingCharts userId={userId} auswahl={auswahl.auswahl} />
-      <PressableLink to="/training/analyse" className="flex items-center justify-center gap-2">
-        <VitaIcon name="analysis" tone="brand" size={20} />
-        Analyse
-      </PressableLink>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlans } from '../hooks/use-workout-plans'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, linkClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable, { PressableLink } from '../components/Pressable'
@@ -48,11 +48,13 @@ function PlansList({ userId }: { userId: string }) {
   return (
     <div>
       <h1>Meine Pläne</h1>
-      <ul role="list" className="space-y-4">
+      <ul role="list" className="flex flex-col gap-3">
         {plans.map((plan) => (
-          <li key={plan.id} className="block border-b-0">
+          <li key={plan.id}>
             <div className={`${cardClass} w-full`}>
-              <PressableLink to={`/training/plans/${plan.id}`}>{plan.name}</PressableLink>
+              <PressableLink to={`/training/plans/${plan.id}`} className={linkClass}>
+                {plan.name}
+              </PressableLink>
               {plan.aktiv && <span>aktiv</span>}
               {!plan.aktiv && (
                 <Pressable
@@ -83,7 +85,7 @@ function PlansList({ userId }: { userId: string }) {
           Neuer Plan
         </span>
       </PressableLink>
-      <PressableLink to="/training" className="flex items-center justify-center gap-2">
+      <PressableLink to="/training" className={linkClass}>
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Training
       </PressableLink>

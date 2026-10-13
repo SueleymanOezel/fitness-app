@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlan, type DayExercisePatch, type WorkoutPlanDay } from '../hooks/use-workout-plans'
 import { useExercises } from '../hooks/use-exercises'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, fieldLabelClass, inputClass, linkClass, listClass, listRowClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import ExerciseThumbnail from '../components/ExerciseThumbnail'
 import { useToast } from '../components/ToastProvider'
@@ -61,7 +61,7 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
       <div>
         <h1>Plan bearbeiten</h1>
         <p role="alert">Diesen Plan gibt es nicht mehr.</p>
-        <PressableLink to="/training/plans" className="flex items-center justify-center gap-2">
+        <PressableLink to="/training/plans" className={linkClass}>
           <VitaIcon name="back" tone="brand" size={20} />
           Zurück zu meinen Plänen
         </PressableLink>
@@ -113,9 +113,9 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
           void run(() => addDay(name), 'Tag hinzufügen fehlgeschlagen.')
         }}
       >
-        <label>
+        <label className={fieldLabelClass}>
           Neuer Tag
-          <input value={newDayName} onChange={(event) => setNewDayName(event.target.value)} />
+          <input className={inputClass} value={newDayName} onChange={(event) => setNewDayName(event.target.value)} />
         </label>
         <Pressable variant="primary" type="submit">
           <span className="inline-flex items-center justify-center gap-2">
@@ -125,7 +125,7 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
         </Pressable>
       </form>
       {dayNameError !== '' && <p role="alert">{dayNameError}</p>}
-      <PressableLink to="/training/plans" className="flex items-center justify-center gap-2">
+      <PressableLink to="/training/plans" className={linkClass}>
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zu meinen Plänen
       </PressableLink>
@@ -168,45 +168,59 @@ function DayBlock({
     <section className={cardClass}>
       <h2>{day.name}</h2>
       <TagMuskelSilhouette zonen={zonen} />
-      {canMoveUp && (
-        <Pressable type="button" onClick={() => onMoveDay('up')}>
-          Tag nach oben
-        </Pressable>
+      {(canMoveUp || canMoveDown) && (
+        <div className="flex gap-2">
+          {canMoveUp && (
+            <Pressable variant="secondary" className="min-w-11 px-3" type="button" onClick={() => onMoveDay('up')}>
+              Tag nach oben
+            </Pressable>
+          )}
+          {canMoveDown && (
+            <Pressable variant="secondary" className="min-w-11 px-3" type="button" onClick={() => onMoveDay('down')}>
+              Tag nach unten
+            </Pressable>
+          )}
+        </div>
       )}
-      {canMoveDown && (
-        <Pressable type="button" onClick={() => onMoveDay('down')}>
-          Tag nach unten
-        </Pressable>
-      )}
-      <ul role="list" className="space-y-4">
+      <ul role="list" className={listClass}>
         {day.exercises.map((row, index) => (
-          <li key={row.id} className="block border-b-0">
-            <div className={`${cardClass} w-full flex items-start gap-4`}>
-              <ExerciseThumbnail bildUrl={row.exercise?.bild_url ?? null} />
-              <div className="flex-1">
-                <span className="block font-medium">{row.exercise?.name_de ?? row.exercise?.name}</span>
-                <TargetField
-                  label="Sätze"
-                  stored={row.ziel_saetze}
-                  onCommit={(value) => onUpdateExercise(row.id, { ziel_saetze: value })}
-                />
-                <TargetField
-                  label="Wiederholungen"
-                  stored={row.ziel_wiederholungen}
-                  onCommit={(value) => onUpdateExercise(row.id, { ziel_wiederholungen: value })}
-                />
-                <TargetField
-                  label="Pause (Sekunden)"
-                  stored={row.pausenzeit_sekunden}
-                  onCommit={(value) => onUpdateExercise(row.id, { pausenzeit_sekunden: value })}
-                />
+          <li key={row.id} className={`${listRowClass} items-start`}>
+            <ExerciseThumbnail bildUrl={row.exercise?.bild_url ?? null} />
+            <div className="flex flex-1 flex-col gap-2">
+              <span className="block font-medium">{row.exercise?.name_de ?? row.exercise?.name}</span>
+              <TargetField
+                label="Sätze"
+                stored={row.ziel_saetze}
+                onCommit={(value) => onUpdateExercise(row.id, { ziel_saetze: value })}
+              />
+              <TargetField
+                label="Wiederholungen"
+                stored={row.ziel_wiederholungen}
+                onCommit={(value) => onUpdateExercise(row.id, { ziel_wiederholungen: value })}
+              />
+              <TargetField
+                label="Pause (Sekunden)"
+                stored={row.pausenzeit_sekunden}
+                onCommit={(value) => onUpdateExercise(row.id, { pausenzeit_sekunden: value })}
+              />
+              <div className="flex flex-wrap gap-2">
                 {index > 0 && (
-                  <Pressable type="button" onClick={() => onMoveExercise(row.id, 'up')}>
+                  <Pressable
+                    variant="secondary"
+                    className="min-w-11 px-3"
+                    type="button"
+                    onClick={() => onMoveExercise(row.id, 'up')}
+                  >
                     Nach oben
                   </Pressable>
                 )}
                 {index < day.exercises.length - 1 && (
-                  <Pressable type="button" onClick={() => onMoveExercise(row.id, 'down')}>
+                  <Pressable
+                    variant="secondary"
+                    className="min-w-11 px-3"
+                    type="button"
+                    onClick={() => onMoveExercise(row.id, 'down')}
+                  >
                     Nach unten
                   </Pressable>
                 )}
@@ -281,9 +295,9 @@ function TargetField({
   }
 
   return (
-    <label>
+    <label className={fieldLabelClass}>
       {label}
-      <input type="number" value={draft} onChange={(event) => setDraft(event.target.value)} onBlur={commit} />
+      <input className={inputClass} type="number" value={draft} onChange={(event) => setDraft(event.target.value)} onBlur={commit} />
     </label>
   )
 }
