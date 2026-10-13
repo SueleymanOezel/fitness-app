@@ -23,6 +23,8 @@ vi.mock('../hooks/use-training-streak', () => ({
   useTrainingStreak: (userId: string) => mockUseTrainingStreak(userId),
 }))
 
+vi.mock('../lib/gsap-loader', () => ({ loadGsap: vi.fn(() => new Promise(() => {})) }))
+
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')

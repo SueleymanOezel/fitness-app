@@ -19,6 +19,7 @@ import { useTrainingStreak } from '../hooks/use-training-streak'
 import { streakText } from '../lib/streak'
 import type { NeuerRekord } from '../lib/analysis/training-charts'
 import Pressable, { PressableLink } from '../components/Pressable'
+import CompletionCelebration from '../components/CompletionCelebration'
 
 export default function WorkoutSessionPage() {
   const { session } = useSession()
@@ -323,33 +324,35 @@ function SessionCompletionScreen({
 
   return (
     <div>
-      <h1>Training abgeschlossen</h1>
-      <dl className="grid grid-cols-2 gap-4">
-        <Kennzahl label="Dauer" wert={dauerMinuten} einheit="Minuten" />
-        {kalorien != null && <Kennzahl label="Verbrauch" wert={Math.round(kalorien)} einheit="kcal" />}
-      </dl>
-      {neueRekorde.length > 0 && (
-        <section className="mt-6">
-          <h2>Neue Rekorde</h2>
-          <ul role="list" className="space-y-3">
-            {neueRekorde.map((rekord) => (
-              <li key={rekord.exercise_id} data-pr-card className={`${cardClass} relative overflow-hidden`}>
-                <span
-                  data-sweep
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-accent/30 to-transparent"
-                />
-                <p className="font-semibold">{rekord.name}</p>
-                <p className="text-2xl font-bold tracking-tight tabular-nums">{`${zahl(rekord.neuesEinsRM)} kg`}</p>
-                <p className={labelClass}>
-                  {rekord.altesEinsRM == null ? 'erste Ausführung' : `vorher: ${zahl(rekord.altesEinsRM)} kg`}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      <p data-reveal className="mt-6">{streakLoading ? '…' : streakText(streak)}</p>
+      <CompletionCelebration>
+        <h1>Training abgeschlossen</h1>
+        <dl className="grid grid-cols-2 gap-4">
+          <Kennzahl label="Dauer" wert={dauerMinuten} einheit="Minuten" />
+          {kalorien != null && <Kennzahl label="Verbrauch" wert={Math.round(kalorien)} einheit="kcal" />}
+        </dl>
+        {neueRekorde.length > 0 && (
+          <section className="mt-6">
+            <h2>Neue Rekorde</h2>
+            <ul role="list" className="space-y-3">
+              {neueRekorde.map((rekord) => (
+                <li key={rekord.exercise_id} data-pr-card className={`${cardClass} relative overflow-hidden`}>
+                  <span
+                    data-sweep
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-accent/30 to-transparent"
+                  />
+                  <p className="font-semibold">{rekord.name}</p>
+                  <p className="text-2xl font-bold tracking-tight tabular-nums">{`${zahl(rekord.neuesEinsRM)} kg`}</p>
+                  <p className={labelClass}>
+                    {rekord.altesEinsRM == null ? 'erste Ausführung' : `vorher: ${zahl(rekord.altesEinsRM)} kg`}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        <p data-reveal className="mt-6">{streakLoading ? '…' : streakText(streak)}</p>
+      </CompletionCelebration>
       <Pressable variant="primary" type="button" className={stickyActionClass} onClick={onFertig}>
         Fertig
       </Pressable>
