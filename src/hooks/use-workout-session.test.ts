@@ -80,7 +80,7 @@ const sessionExerciseRow = {
   ziel_saetze: 3,
   ziel_wiederholungen: 10,
   pausenzeit_sekunden: 90,
-  exercises: { id: 'ex1', name: 'Bankdrücken' },
+  exercises: { id: 'ex1', name: 'Bench Press', name_de: 'Bankdrücken' },
 }
 
 const setRow = {
@@ -90,7 +90,7 @@ const setRow = {
   gewicht: 60,
   wiederholungen: 10,
   abgeschlossen_am: '2026-08-21T10:05:00.000Z',
-  exercises: { id: 'ex1', name: 'Bankdrücken', met_wert: 5 },
+  exercises: { id: 'ex1', name: 'Bench Press', name_de: 'Bankdrücken', met_wert: 5 },
 }
 
 function mockTables(overrides: Record<string, ReturnType<typeof createQueryBuilder>> = {}) {
@@ -225,9 +225,22 @@ describe('useWorkoutSession', () => {
         gewicht: 60,
         wiederholungen: 10,
         abgeschlossen_am: '2026-08-21T10:05:00.000Z',
-        exercise: { id: 'ex1', name: 'Bankdrücken', met_wert: 5 },
+        exercise: { id: 'ex1', name: 'Bench Press', name_de: 'Bankdrücken', met_wert: 5 },
       },
     ])
+  })
+
+  it('falls back to the English name when no German name is set', async () => {
+    mockTables({
+      workout_session_exercises: createQueryBuilder({
+        data: [{ ...sessionExerciseRow, exercises: { id: 'ex1', name: 'Bench Press', name_de: null } }],
+      }),
+    })
+
+    const { useWorkoutSession } = await import('./use-workout-session')
+    const { result } = renderHook(() => useWorkoutSession('s1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.exercises[0].name).toBe('Bench Press')
   })
 
   it('logs a set immediately', async () => {

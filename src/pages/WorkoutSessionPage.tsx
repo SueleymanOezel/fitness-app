@@ -8,7 +8,7 @@ import {
   type SessionSet,
   type SetValues,
 } from '../hooks/use-workout-session'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, interactiveClass, labelClass, statClass, stickyActionClass } from '../lib/ui-classes'
 import Chip from '../components/Chip'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
@@ -19,6 +19,7 @@ import { useTrainingStreak } from '../hooks/use-training-streak'
 import { streakText } from '../lib/streak'
 import type { NeuerRekord } from '../lib/analysis/training-charts'
 import Pressable, { PressableLink } from '../components/Pressable'
+import CompletionCelebration from '../components/CompletionCelebration'
 
 export default function WorkoutSessionPage() {
   const { session } = useSession()
@@ -199,17 +200,29 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
         {exercises.map((entry) => (
           <li key={entry.exercise_id} className="block border-b-0">
             <div className={`${cardClass} w-full`}>
-              <Pressable type="button" onClick={() => setOpenExerciseId(entry.exercise_id)}>
-                {entry.name}
-              </Pressable>
-              {!sets.some((set) => set.exercise_id === entry.exercise_id) && (
-                <Pressable type="button" onClick={() => removeExercise(entry.id)}>
-                  <span className="inline-flex items-center justify-center gap-2">
-                    <VitaIcon name="delete" tone="mono" size={20} />
-                    Entfernen
-                  </span>
+              <div className="flex items-center gap-2">
+                <Pressable
+                  variant="bare"
+                  type="button"
+                  className={`flex-1 border-0 m-0 bg-transparent px-0 text-left text-lg font-semibold ${interactiveClass}`}
+                  onClick={() => setOpenExerciseId(entry.exercise_id)}
+                >
+                  {entry.name}
                 </Pressable>
-              )}
+                {!sets.some((set) => set.exercise_id === entry.exercise_id) && (
+                  <Pressable
+                    variant="danger"
+                    type="button"
+                    className="px-3! py-2! text-sm"
+                    onClick={() => removeExercise(entry.id)}
+                  >
+                    <span className="inline-flex items-center justify-center gap-2">
+                      <VitaIcon name="delete" tone="mono" size={16} />
+                      Entfernen
+                    </span>
+                  </Pressable>
+                )}
+              </div>
               {openExerciseId === entry.exercise_id && (
                 <LoggedSets sets={sets.filter((set) => set.exercise_id === entry.exercise_id)} />
               )}
@@ -243,7 +256,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
           </li>
         ))}
       </ul>
-      <Pressable variant="primary" type="button" onClick={() => setPickerOpen(true)}>
+      <Pressable variant="secondary" type="button" className="w-full" onClick={() => setPickerOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="add" tone="mono" size={20} />
           Übung hinzufügen
@@ -268,9 +281,18 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
           />
         )}
       </Dialog>
-      <p>{gewichtKg === null ? '—' : `${gewichtKg} kg`}</p>
-      {gewichtKg === null && <p>Ohne Gewicht im Profil lässt sich der Verbrauch nicht berechnen.</p>}
-      <Pressable variant="primary" type="button" disabled={gewichtKg === null} onClick={complete}>
+      <div className="mt-6">
+        <p className={labelClass}>Körpergewicht für die kcal-Berechnung</p>
+        <p className="text-xl font-bold tabular-nums">{gewichtKg === null ? '—' : `${gewichtKg} kg`}</p>
+        {gewichtKg === null && <p>Ohne Gewicht im Profil lässt sich der Verbrauch nicht berechnen.</p>}
+      </div>
+      <Pressable
+        variant="primary"
+        type="button"
+        className={stickyActionClass}
+        disabled={gewichtKg === null}
+        onClick={complete}
+      >
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="save" tone="mono" size={20} />
           Training abschließen
@@ -302,26 +324,50 @@ function SessionCompletionScreen({
 
   return (
     <div>
-      <h1>Training abgeschlossen</h1>
-      <p>{`${dauerMinuten} Minuten${kalorien == null ? '' : ` · ${Math.round(kalorien)} kcal`}`}</p>
-      {neueRekorde.length > 0 && (
-        <div className={cardClass}>
-          <h2>Neue Rekorde</h2>
-          <ul role="list" className="space-y-1">
-            {neueRekorde.map((rekord) => (
-              <li key={rekord.exercise_id}>
-                {`${rekord.name} — neues 1RM ${zahl(rekord.neuesEinsRM)} kg (${
-                  rekord.altesEinsRM == null ? 'erste Ausführung' : `vorher: ${zahl(rekord.altesEinsRM)} kg`
-                })`}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      <p>{streakLoading ? '…' : streakText(streak)}</p>
-      <Pressable variant="primary" type="button" onClick={onFertig}>
+      <CompletionCelebration>
+        <h1>Training abgeschlossen</h1>
+        <dl className="grid grid-cols-2 gap-4">
+          <Kennzahl label="Dauer" wert={dauerMinuten} einheit="Minuten" />
+          {kalorien != null && <Kennzahl label="Verbrauch" wert={Math.round(kalorien)} einheit="kcal" />}
+        </dl>
+        {neueRekorde.length > 0 && (
+          <section className="mt-6">
+            <h2>Neue Rekorde</h2>
+            <ul role="list" className="space-y-3">
+              {neueRekorde.map((rekord) => (
+                <li key={rekord.exercise_id} data-pr-card className={`${cardClass} relative overflow-hidden`}>
+                  <span
+                    data-sweep
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 opacity-0 bg-linear-to-r from-transparent via-accent/30 to-transparent"
+                  />
+                  <p className="font-semibold">{rekord.name}</p>
+                  <p className="text-2xl font-bold tracking-tight tabular-nums">{`${zahl(rekord.neuesEinsRM)} kg`}</p>
+                  <p className={labelClass}>
+                    {rekord.altesEinsRM == null ? 'erste Ausführung' : `vorher: ${zahl(rekord.altesEinsRM)} kg`}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        <p data-reveal className="mt-6">{streakLoading ? '…' : streakText(streak)}</p>
+      </CompletionCelebration>
+      <Pressable variant="primary" type="button" className={stickyActionClass} onClick={onFertig}>
         Fertig
       </Pressable>
+    </div>
+  )
+}
+
+function Kennzahl({ label, wert, einheit }: { label: string; wert: number; einheit: string }) {
+  return (
+    <div className={cardClass}>
+      <dt className={labelClass}>{label}</dt>
+      <dd>
+        <span className={statClass} data-count-to={wert}>{wert}</span>{' '}
+        <span className={labelClass}>{einheit}</span>
+      </dd>
     </div>
   )
 }
@@ -343,6 +389,8 @@ function targetReached(zielSaetze: number | null, done: number) {
  * warm-ups (see workingSetCount).
  */
 function LoggedSets({ sets }: { sets: SessionSet[] }) {
+  // Snapshot beim Aufklappen: nur danach erfasste Sätze blenden ein.
+  const [bekannteIds] = useState(() => new Set(sets.map((set) => set.id)))
   if (sets.length === 0) return null
 
   const arbeitssaetze = sets.filter((set) => !set.ist_aufwaermsatz).sort((a, b) => a.satz_nummer - b.satz_nummer)
@@ -356,14 +404,29 @@ function LoggedSets({ sets }: { sets: SessionSet[] }) {
         </p>
       )}
       {arbeitssaetze.length > 0 && (
-        <ul role="list" aria-label="Erfasste Sätze" className="space-y-1">
-          {arbeitssaetze.map((set, index) => (
-            <li key={set.id} className="flex items-center gap-2">
-              <VitaIcon name="save" tone="brand" size={20} />
-              <span>{`Satz ${index + 1}: ${set.gewicht ?? '—'} kg × ${set.wiederholungen ?? '—'} Wdh.`}</span>
-            </li>
-          ))}
-        </ul>
+        <table aria-label="Erfasste Sätze" className="w-full text-left tabular-nums">
+          <thead>
+            <tr className={labelClass}>
+              <th className="py-1 font-medium">Satz</th>
+              <th className="py-1 font-medium">kg</th>
+              <th className="py-1 font-medium">Wdh.</th>
+              <th className="py-1 font-medium">RIR</th>
+            </tr>
+          </thead>
+          <tbody>
+            {arbeitssaetze.map((set, index) => (
+              <tr
+                key={set.id}
+                className={`border-t border-text-muted/20 ${bekannteIds.has(set.id) ? '' : 'row-in'}`}
+              >
+                <td className="py-1">{index + 1}</td>
+                <td className="py-1">{set.gewicht ?? '—'}</td>
+                <td className="py-1">{set.wiederholungen ?? '—'}</td>
+                <td className="py-1">{set.rir ?? '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   )
@@ -457,6 +520,11 @@ function SetForm({
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- exportiert für Tests
+export function formatPause(sekunden: number) {
+  return `${Math.floor(sekunden / 60)}:${String(sekunden % 60).padStart(2, '0')}`
+}
+
 function PauseTimer({ until, sekunden, onDone }: { until: number; sekunden: number; onDone: () => void }) {
   // Seeded from the configured pause rather than from Date.now(): reading the
   // clock during render is impure and would differ between renders.
@@ -484,5 +552,10 @@ function PauseTimer({ until, sekunden, onDone }: { until: number; sekunden: numb
     return () => clearInterval(interval)
   }, [until])
 
-  return <p>{`Pause: ${remainingSeconds}s`}</p>
+  return (
+    <div className={`${cardClass} sticky top-0 z-10`} role="timer">
+      <p className={labelClass}>Pause</p>
+      <p className={statClass}>{formatPause(remainingSeconds)}</p>
+    </div>
+  )
 }

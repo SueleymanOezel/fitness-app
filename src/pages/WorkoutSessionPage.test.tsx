@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
-import WorkoutSessionPage from './WorkoutSessionPage'
+import WorkoutSessionPage, { formatPause } from './WorkoutSessionPage'
 import { renderWithProviders } from '../test-render'
 
 const mockUseSession = vi.fn()
@@ -22,6 +22,8 @@ const mockUseTrainingStreak = vi.fn()
 vi.mock('../hooks/use-training-streak', () => ({
   useTrainingStreak: (userId: string) => mockUseTrainingStreak(userId),
 }))
+
+vi.mock('../lib/gsap-loader', () => ({ loadGsap: vi.fn(() => new Promise(() => {})) }))
 
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -96,6 +98,14 @@ function signedIn(weight: number | null = 80) {
   mockUseExercises.mockReturnValue({ exercises: [], loading: false, createExercise: vi.fn() })
   mockUseTrainingStreak.mockReturnValue({ streak: 0, loading: false })
 }
+
+describe('formatPause', () => {
+  it('formats seconds as m:ss', () => {
+    expect(formatPause(90)).toBe('1:30')
+    expect(formatPause(5)).toBe('0:05')
+    expect(formatPause(0)).toBe('0:00')
+  })
+})
 
 describe('WorkoutSessionPage', () => {
   it('lists the exercises of the day', async () => {
@@ -210,12 +220,42 @@ describe('WorkoutSessionPage', () => {
 
     fireEvent.click(screen.getByText('Bankdrücken'))
 
-    expect(screen.getByText('Satz 1: 60 kg × 10 Wdh.')).toBeInTheDocument()
-    expect(screen.getByText('Satz 2: 65 kg × 8 Wdh.')).toBeInTheDocument()
     expect(screen.getByText('1 Aufwärmsatz')).toBeInTheDocument()
-    // The warm-up must not also appear as its own numbered row.
-    const erfassteSaetze = screen.getByRole('list', { name: /erfasste sätze/i })
-    expect(within(erfassteSaetze).getAllByRole('listitem')).toHaveLength(2)
+    const tabelle = screen.getByRole('table', { name: 'Erfasste Sätze' })
+    expect(within(tabelle).getByRole('columnheader', { name: 'RIR' })).toBeInTheDocument()
+    // Header row + 2 working sets: the warm-up must not also appear as its own numbered row.
+    const zeilen = within(tabelle).getAllByRole('row')
+    expect(zeilen).toHaveLength(3)
+    expect(zeilen[1]).toHaveTextContent('1')
+    expect(zeilen[1]).toHaveTextContent('60')
+    expect(zeilen[1]).toHaveTextContent('10')
+    expect(zeilen[1]).toHaveTextContent('—') // rir der Fixture ist null
+    expect(zeilen[2]).toHaveTextContent('2')
+    expect(zeilen[2]).toHaveTextContent('65')
+    expect(zeilen[1]).not.toHaveClass('row-in') // beim Aufklappen vorhandener Sätze keine Einblendung
+  })
+
+  it('reveals only the newly logged set', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult({ sets: [loggedSet({ id: 'set1' })] }))
+
+    renderPage()
+
+    fireEvent.click(screen.getByText('Bankdrücken'))
+    // Next render of the hook returns a second set (new id), as after a real log.
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({
+        sets: [loggedSet({ id: 'set1' }), loggedSet({ id: 'set2', satz_nummer: 2, gewicht: 65, wiederholungen: 8 })],
+      }),
+    )
+    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '65' } })
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '8' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+
+    await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(3))
+    const zeilen = screen.getAllByRole('row')
+    expect(zeilen[1]).not.toHaveClass('row-in')
+    expect(zeilen[2]).toHaveClass('row-in')
   })
 
   it('shows no warm-up count when every logged set was a working set', () => {
@@ -239,7 +279,7 @@ describe('WorkoutSessionPage', () => {
 
     fireEvent.click(screen.getByText('Bankdrücken'))
 
-    expect(screen.queryByRole('list', { name: /erfasste sätze/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('table', { name: 'Erfasste Sätze' })).not.toBeInTheDocument()
   })
 
   it('pluralizes the warm-up count for more than one', () => {
@@ -259,7 +299,7 @@ describe('WorkoutSessionPage', () => {
 
     expect(screen.getByText('2 Aufwärmsätze')).toBeInTheDocument()
     // Warm-ups-only: no numbered-sets list should render at all.
-    expect(screen.queryByRole('list', { name: /erfasste sätze/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('table', { name: 'Erfasste Sätze' })).not.toBeInTheDocument()
   })
 
   it('opens the next exercise once the pause of the last set of the current one runs out', async () => {
@@ -435,6 +475,25 @@ describe('WorkoutSessionPage', () => {
     expect(screen.getByRole('button', { name: '3' })).toHaveAttribute('aria-pressed', 'false')
   })
 
+  it('pins the finish action above the nav and labels the body weight', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+    await screen.findByText('Bankdrücken')
+
+    expect(screen.getByRole('button', { name: 'Training abschließen' })).toHaveClass('sticky')
+    expect(screen.getByText('Körpergewicht für die kcal-Berechnung')).toBeInTheDocument()
+  })
+
+  it('renders the exercise name as a borderless card header', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+    expect(await screen.findByRole('button', { name: 'Bankdrücken' })).toHaveClass('border-0')
+  })
+
   it('completes the session using the profile weight', async () => {
     signedIn()
     const result = sessionResult()
@@ -476,10 +535,31 @@ describe('WorkoutSessionPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
 
     expect(await screen.findByText('Training abgeschlossen')).toBeInTheDocument()
-    expect(screen.getByText('25 Minuten · 187 kcal')).toBeInTheDocument()
+    expect(screen.getByText('25')).toHaveAttribute('data-count-to', '25')
+    expect(screen.getByText('Minuten')).toBeInTheDocument()
+    expect(screen.getByText('187')).toBeInTheDocument()
+    expect(screen.getByText('kcal')).toBeInTheDocument()
     expect(screen.getByText('3 Tage in Folge')).toBeInTheDocument()
     // The live session view is gone, not just covered.
     expect(screen.queryByRole('button', { name: 'Training abschließen' })).not.toBeInTheDocument()
+  })
+
+  it('shows only the duration when no calories were computed', async () => {
+    signedIn()
+    const result = sessionResult({
+      completeSession: vi.fn().mockResolvedValue({ beendetAm: '2026-08-21T10:25:00.000Z', gesamtKalorien: null }),
+    })
+    mockUseWorkoutSession.mockReturnValue(result)
+    mockUseTrainingStreak.mockReturnValue({ streak: 3, loading: false })
+
+    renderPage()
+    await screen.findByText('Bankdrücken')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+
+    expect(await screen.findByText('Training abgeschlossen')).toBeInTheDocument()
+    expect(screen.getByText('Minuten')).toBeInTheDocument()
+    expect(screen.queryByText('kcal')).toBeNull()
   })
 
   it('never shows the "already completed" fallback while completion is still in flight', async () => {
@@ -540,8 +620,11 @@ describe('WorkoutSessionPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
 
     expect(await screen.findByText('Neue Rekorde')).toBeInTheDocument()
-    expect(screen.getByText('Bankdrücken — neues 1RM 116,7 kg (vorher: 105,0 kg)')).toBeInTheDocument()
-    expect(screen.getByText('Kniebeuge — neues 1RM 80,0 kg (erste Ausführung)')).toBeInTheDocument()
+    expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
+    expect(screen.getByText('116,7 kg')).toBeInTheDocument()
+    expect(screen.getByText('vorher: 105,0 kg')).toBeInTheDocument()
+    expect(screen.getByText('80,0 kg')).toBeInTheDocument()
+    expect(screen.getByText('erste Ausführung')).toBeInTheDocument()
   })
 
   it('omits the records section instead of showing an empty one', async () => {

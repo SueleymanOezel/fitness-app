@@ -32,7 +32,7 @@ export type SessionSet = {
   rir: number | null
   ist_aufwaermsatz: boolean
   abgeschlossen_am: string | null
-  exercise: { id: string; name: string; met_wert: number | null } | null
+  exercise: { id: string; name: string; name_de: string | null; met_wert: number | null } | null
 }
 
 /** What the live form collects for one set. satz_nummer is derived, not entered. */
@@ -50,7 +50,7 @@ type RawSessionExercise = {
   ziel_saetze: number | null
   ziel_wiederholungen: number | null
   pausenzeit_sekunden: number | null
-  exercises: { id: string; name: string } | null
+  exercises: { id: string; name: string; name_de: string | null } | null
 }
 
 type RawSessionSet = Omit<SessionSet, 'exercise'> & { exercises: SessionSet['exercise'] }
@@ -148,14 +148,14 @@ export function useWorkoutSession(sessionId: string) {
 
     const { data: exerciseRows } = await supabase
       .from('workout_session_exercises')
-      .select('id, exercise_id, reihenfolge, ziel_saetze, ziel_wiederholungen, pausenzeit_sekunden, exercises(id, name)')
+      .select('id, exercise_id, reihenfolge, ziel_saetze, ziel_wiederholungen, pausenzeit_sekunden, exercises(id, name, name_de)')
       .eq('workout_session_id', sessionId)
       .order('reihenfolge', { ascending: true })
 
     const { data: setRows } = await supabase
       .from('workout_session_sets')
       .select(
-        'id, exercise_id, satz_nummer, gewicht, wiederholungen, rir, ist_aufwaermsatz, abgeschlossen_am, exercises(id, name, met_wert)',
+        'id, exercise_id, satz_nummer, gewicht, wiederholungen, rir, ist_aufwaermsatz, abgeschlossen_am, exercises(id, name, name_de, met_wert)',
       )
       .eq('workout_session_id', sessionId)
       .order('abgeschlossen_am', { ascending: true })
@@ -167,7 +167,7 @@ export function useWorkoutSession(sessionId: string) {
       ((exerciseRows ?? []) as unknown as RawSessionExercise[]).map((row) => ({
         id: row.id,
         exercise_id: row.exercise_id,
-        name: row.exercises?.name ?? '',
+        name: row.exercises?.name_de ?? row.exercises?.name ?? '',
         ziel_saetze: row.ziel_saetze,
         ziel_wiederholungen: row.ziel_wiederholungen,
         pausenzeit_sekunden: row.pausenzeit_sekunden,
@@ -327,7 +327,7 @@ export function useWorkoutSession(sessionId: string) {
       .filter((set) => betroffeneIds.includes(set.exercise_id))
       .map((set) => ({
         exercise_id: set.exercise_id,
-        name: set.exercise?.name ?? '',
+        name: set.exercise?.name_de ?? set.exercise?.name ?? '',
         gewicht: set.gewicht,
         wiederholungen: set.wiederholungen,
         ist_aufwaermsatz: set.ist_aufwaermsatz,
