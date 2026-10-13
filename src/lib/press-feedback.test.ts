@@ -93,6 +93,39 @@ describe('attachPressFeedback', () => {
     expect(scales).toEqual([0.96, 1])
   })
 
+  it('ignores presses on disabled and aria-disabled elements without loading gsap', async () => {
+    stubReducedMotion(false)
+    const disabled = document.createElement('button')
+    disabled.disabled = true
+    const ariaDisabled = document.createElement('a')
+    ariaDisabled.setAttribute('aria-disabled', 'true')
+    attachPressFeedback(disabled)
+    attachPressFeedback(ariaDisabled)
+
+    for (const el of [disabled, ariaDisabled]) {
+      el.dispatchEvent(new Event('pointerdown'))
+      el.dispatchEvent(new Event('pointerup'))
+    }
+    await flush()
+
+    expect(loadGsap).not.toHaveBeenCalled()
+    expect(gsap.to).not.toHaveBeenCalled()
+  })
+
+  it('still springs back when the element becomes disabled mid-press', async () => {
+    stubReducedMotion(false)
+    const el = document.createElement('button')
+    attachPressFeedback(el)
+
+    el.dispatchEvent(new Event('pointerdown'))
+    el.disabled = true
+    el.dispatchEvent(new Event('pointerup'))
+    await flush()
+
+    const scales = gsap.to.mock.calls.map(([, vars]) => (vars as { scale: number }).scale)
+    expect(scales).toEqual([0.96, 1])
+  })
+
   it('does nothing under reduced motion', async () => {
     stubReducedMotion(true)
     const el = document.createElement('button')

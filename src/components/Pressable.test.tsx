@@ -48,16 +48,6 @@ describe('Pressable', () => {
     expect(attach).toHaveBeenCalledWith(screen.getByRole('button'))
     expect(ref.current).toBe(screen.getByRole('button'))
   })
-
-  it('keeps disabled buttons inert', () => {
-    const onClick = vi.fn()
-    render(
-      <Pressable disabled onClick={onClick}>
-        x
-      </Pressable>,
-    )
-    expect(screen.getByRole('button')).toBeDisabled()
-  })
 })
 
 describe('PressableLink', () => {
