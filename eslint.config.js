@@ -8,21 +8,13 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 // Block 1: noch nicht auf ui-classes migrierte Dateien. Jeder Migrations-Task
 // entfernt seine Dateien; am Ende ist die Liste leer und wird gelöscht.
 const PENDING_MIGRATION = [
-  'src/components/AddEntryFlow.tsx',
   'src/components/BodyEntryForm.tsx',
-  'src/components/CalorieGoalEditor.tsx',
-  'src/components/FoodEntryEditForm.tsx',
-  'src/components/FoodEntryList.tsx',
-  'src/components/ManualProductForm.tsx',
-  'src/components/ProductPicker.tsx',
   'src/components/charts/ChartPicker.tsx',
   'src/components/charts/ExerciseSelect.tsx',
   'src/pages/BodyEntriesPage.tsx',
   'src/pages/BodyPage.tsx',
   'src/pages/BodyPhotosPage.tsx',
   'src/pages/LoginPage.tsx',
-  'src/pages/NutritionEntriesPage.tsx',
-  'src/pages/NutritionPage.tsx',
   'src/pages/ProfilePage.tsx',
 ]
 

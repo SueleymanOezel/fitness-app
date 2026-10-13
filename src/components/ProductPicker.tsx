@@ -3,7 +3,7 @@ import BarcodeScanner from './BarcodeScanner'
 import ManualProductForm from './ManualProductForm'
 import { findOrFetchProductByBarcode, type Product } from '../lib/product-lookup'
 import { isValidBarcode } from '../lib/open-food-facts'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, fieldLabelClass, inputClass } from '../lib/ui-classes'
 import { VitaIcon } from './icons/VitaIcon'
 import Pressable from './Pressable'
 
@@ -89,7 +89,7 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
   }
 
   return (
-    <div className={cardClass}>
+    <div className={`${cardClass} flex flex-col`}>
       <Pressable variant="primary" type="button" onClick={() => setStep('scanning')}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="scan" tone="mono" size={20} />
@@ -102,17 +102,18 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
           Manuell hinzufügen
         </span>
       </Pressable>
-      <form onSubmit={handleTypedBarcode}>
-        <label>
+      <form onSubmit={handleTypedBarcode} className="flex flex-col gap-3">
+        <label className={fieldLabelClass}>
           Barcode-Nummer eingeben
           <input
+            className={inputClass}
             inputMode="numeric"
             value={typedBarcode}
             onChange={(event) => setTypedBarcode(event.target.value)}
             placeholder="z. B. 8076809580144"
           />
         </label>
-        <Pressable variant="secondary" type="submit">
+        <Pressable variant="secondary" className="self-start" type="submit">
           <span className="inline-flex items-center justify-center gap-2">
             <VitaIcon name="search" tone="mono" size={20} />
             Suchen
@@ -120,7 +121,7 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
         </Pressable>
       </form>
       {error && <p role="alert">{error}</p>}
-      <Pressable variant="secondary" type="button" onClick={onCancel}>
+      <Pressable variant="secondary" className="self-start" type="button" onClick={onCancel}>
         Abbrechen
       </Pressable>
     </div>

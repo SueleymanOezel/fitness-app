@@ -12,6 +12,7 @@ import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable, { PressableLink } from '../components/Pressable'
+import { cardClass, linkClass, listClass, listRowClass } from '../lib/ui-classes'
 
 export default function NutritionPage() {
   const { session } = useSession()
@@ -48,7 +49,7 @@ function NutritionDashboard({ userId }: { userId: string }) {
       <div>
         <h1>Ernährung</h1>
         <p role="alert">Profil konnte nicht geladen werden.</p>
-        <Pressable type="button" className="inline-flex items-center gap-2" onClick={() => reload()}>
+        <Pressable variant="secondary" type="button" className="inline-flex items-center gap-2 self-start" onClick={() => reload()}>
           <VitaIcon name="retry" tone="brand" size={20} />
           Erneut versuchen
         </Pressable>
@@ -67,31 +68,42 @@ function NutritionDashboard({ userId }: { userId: string }) {
           Für ein Tagesziel <PressableLink to="/profile">Profil vervollständigen</PressableLink>.
         </p>
       )}
-      <PressableLink to="/profile" className="flex items-center justify-center gap-2">
-        <VitaIcon name="goal" tone="brand" size={20} />
-        Ziel im Profil anpassen
-      </PressableLink>
-      <ul role="list">
-        {visibleSections(profile, entries).map((section) => {
-          const sectionEntries = entries.filter((entry) => entry.mahlzeit === section.slot)
-          return (
-            <li key={section.slot ?? 'unassigned'}>
-              <PressableLink to="/nutrition/entries">
-                {`${section.name} — ${Math.round(sumKalorien(sectionEntries))} kcal`}
-              </PressableLink>
-            </li>
-          )
-        })}
-      </ul>
-      <PressableLink to="/nutrition/entries" className="flex items-center justify-center gap-2">
-        <VitaIcon name="entries" tone="brand" size={20} />
-        Einträge ansehen
-      </PressableLink>
+      <div className={cardClass}>
+        <ul role="list" className={listClass}>
+          {visibleSections(profile, entries).map((section) => {
+            const sectionEntries = entries.filter((entry) => entry.mahlzeit === section.slot)
+            const kcal = `${Math.round(sumKalorien(sectionEntries))} kcal`
+            return (
+              <li key={section.slot ?? 'unassigned'} className={listRowClass}>
+                {/* aria-label hält den Namen "<Abschnitt> — <kcal>" als eine Einheit, obwohl die kcal optisch rechts stehen. */}
+                <PressableLink
+                  to="/nutrition/entries"
+                  className={`${linkClass} flex-1`}
+                  aria-label={`${section.name} — ${kcal}`}
+                >
+                  <span>{section.name}</span>
+                  <span className="ml-auto tabular-nums">{kcal}</span>
+                </PressableLink>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+      <div className="flex flex-col">
+        <PressableLink to="/profile" className={linkClass}>
+          <VitaIcon name="goal" tone="brand" size={20} />
+          Ziel im Profil anpassen
+        </PressableLink>
+        <PressableLink to="/nutrition/entries" className={linkClass}>
+          <VitaIcon name="entries" tone="brand" size={20} />
+          Einträge ansehen
+        </PressableLink>
+        <PressableLink to="/nutrition/analyse" className={linkClass}>
+          <VitaIcon name="analysis" tone="brand" size={20} />
+          Analyse
+        </PressableLink>
+      </div>
       <DashboardNutritionCharts userId={userId} auswahl={auswahl.auswahl} ziel={goal} profile={profile} />
-      <PressableLink to="/nutrition/analyse" className="flex items-center justify-center gap-2">
-        <VitaIcon name="analysis" tone="brand" size={20} />
-        Analyse
-      </PressableLink>
     </div>
   )
 }

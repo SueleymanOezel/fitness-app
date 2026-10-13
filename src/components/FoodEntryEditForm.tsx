@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import ProductPicker from './ProductPicker'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, fieldLabelClass, inputClass, labelClass } from '../lib/ui-classes'
 import { VitaIcon } from './icons/VitaIcon'
 import { parseNutrients, type Nutrients } from '../lib/nutrients'
 import { saveProductEdit } from '../lib/product-edit'
@@ -148,23 +148,24 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className={cardClass}>
-        <label>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div className={`${cardClass} flex flex-col`}>
+        <label className={fieldLabelClass}>
           Menge (g)
-          <input type="number" step="any" value={menge} onChange={(event) => setMenge(event.target.value)} />
+          <input className={inputClass} type="number" step="any" value={menge} onChange={(event) => setMenge(event.target.value)} />
         </label>
-        <label>
+        <label className={fieldLabelClass}>
           Zeitpunkt
           <input
+            className={inputClass}
             type="datetime-local"
             value={zeitpunkt}
             onChange={(event) => setZeitpunkt(event.target.value)}
           />
         </label>
-        <label>
+        <label className={fieldLabelClass}>
           Mahlzeit
-          <select value={mahlzeit} onChange={(event) => setMahlzeit(event.target.value)}>
+          <select className={inputClass} value={mahlzeit} onChange={(event) => setMahlzeit(event.target.value)}>
             <option value="">{UNASSIGNED_LABEL}</option>
             {sections.map((section) => (
               <option key={section.slot} value={String(section.slot)}>
@@ -175,59 +176,62 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
         </label>
 
         <p>{swapped ? swapped.name : (product?.name ?? 'Unbekanntes Produkt')}</p>
-        <Pressable variant="secondary" type="button" onClick={() => setPicking(true)}>
+        <Pressable variant="secondary" className="self-start" type="button" onClick={() => setPicking(true)}>
           Anderes Produkt wählen
         </Pressable>
 
         {!swapped && product && (
-          <fieldset>
-            <legend>Nährwerte pro 100 g</legend>
-            <label>
+          <fieldset className="flex flex-col gap-3">
+            <legend className={`${labelClass} mb-3`}>Nährwerte pro 100 g</legend>
+            <label className={fieldLabelClass}>
               Name
-              <input value={name} onChange={(event) => setName(event.target.value)} />
+              <input className={inputClass} value={name} onChange={(event) => setName(event.target.value)} />
             </label>
-            <label>
+            <label className={fieldLabelClass}>
               Kalorien (kcal)
               <input
+                className={inputClass}
                 type="number"
                 step="any"
                 value={kalorien}
                 onChange={(event) => setKalorien(event.target.value)}
               />
             </label>
-            <label>
+            <label className={fieldLabelClass}>
               Eiweiß (g)
-              <input type="number" step="any" value={eiweiss} onChange={(event) => setEiweiss(event.target.value)} />
+              <input className={inputClass} type="number" step="any" value={eiweiss} onChange={(event) => setEiweiss(event.target.value)} />
             </label>
-            <label>
+            <label className={fieldLabelClass}>
               Fett (g)
-              <input type="number" step="any" value={fett} onChange={(event) => setFett(event.target.value)} />
+              <input className={inputClass} type="number" step="any" value={fett} onChange={(event) => setFett(event.target.value)} />
             </label>
-            <label>
+            <label className={fieldLabelClass}>
               Kohlenhydrate (g)
               <input
+                className={inputClass}
                 type="number"
                 step="any"
                 value={kohlenhydrate}
                 onChange={(event) => setKohlenhydrate(event.target.value)}
               />
             </label>
-            <label>
+            <label className={fieldLabelClass}>
               Ballaststoffe (g)
               <input
+                className={inputClass}
                 type="number"
                 step="any"
                 value={ballaststoffe}
                 onChange={(event) => setBallaststoffe(event.target.value)}
               />
             </label>
-            <label>
+            <label className={fieldLabelClass}>
               Zucker (g)
-              <input type="number" step="any" value={zucker} onChange={(event) => setZucker(event.target.value)} />
+              <input className={inputClass} type="number" step="any" value={zucker} onChange={(event) => setZucker(event.target.value)} />
             </label>
-            <label>
+            <label className={fieldLabelClass}>
               Salz (g)
-              <input type="number" step="any" value={salz} onChange={(event) => setSalz(event.target.value)} />
+              <input className={inputClass} type="number" step="any" value={salz} onChange={(event) => setSalz(event.target.value)} />
             </label>
           </fieldset>
         )}
@@ -240,7 +244,7 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
           Speichern
         </span>
       </Pressable>
-      <Pressable variant="secondary" type="button" onClick={onClose}>
+      <Pressable variant="secondary" className="self-start" type="button" onClick={onClose}>
         Abbrechen
       </Pressable>
     </form>

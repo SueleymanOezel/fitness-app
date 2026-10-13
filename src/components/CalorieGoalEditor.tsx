@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Profile } from '../hooks/use-profile'
 import { calculateCalorieGoal } from '../lib/nutrition-goal'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, fieldLabelClass, inputClass } from '../lib/ui-classes'
 import Pressable from './Pressable'
 
 type Props = {
@@ -55,14 +55,14 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
 
   if (mode === 'calculated') {
     return (
-      <div className={cardClass}>
+      <div className={`${cardClass} flex flex-col`}>
         <p>
           {calculated != null
             ? `Berechnetes Tagesziel: ${calculated} kcal`
             : 'Profil vervollständigen (Gewicht, Größe, Alter, Geschlecht, Aktivitätslevel), um ein Ziel zu berechnen.'}
         </p>
         {failed && <p role="alert">Ziel konnte nicht gespeichert werden.</p>}
-        <Pressable variant="secondary" type="button" onClick={switchToManual}>
+        <Pressable variant="secondary" className="self-start" type="button" onClick={switchToManual}>
           Manuell festlegen
         </Pressable>
       </div>
@@ -70,10 +70,11 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
   }
 
   return (
-    <div className={cardClass}>
-      <label>
+    <div className={`${cardClass} flex flex-col`}>
+      <label className={fieldLabelClass}>
         Tagesziel (kcal)
         <input
+          className={inputClass}
           type="number"
           step="any"
           value={draft}
@@ -82,7 +83,7 @@ export default function CalorieGoalEditor({ profile, onUpdate }: Props) {
         />
       </label>
       {failed && <p role="alert">Ziel konnte nicht gespeichert werden.</p>}
-      <Pressable variant="secondary" type="button" onClick={switchToCalculated}>
+      <Pressable variant="secondary" className="self-start" type="button" onClick={switchToCalculated}>
         Berechnen lassen
       </Pressable>
     </div>

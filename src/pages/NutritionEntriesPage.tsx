@@ -9,6 +9,7 @@ import AddEntryFlow from '../components/AddEntryFlow'
 import Dialog from '../components/Dialog'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable, { PressableLink } from '../components/Pressable'
+import { linkClass } from '../lib/ui-classes'
 
 export default function NutritionEntriesPage() {
   const { session } = useSession()
@@ -44,7 +45,7 @@ function EntriesBySection({ userId }: { userId: string }) {
       <div>
         <h1>Einträge heute</h1>
         <p role="alert">Profil konnte nicht geladen werden.</p>
-        <Pressable type="button" className="inline-flex items-center gap-2" onClick={() => reload()}>
+        <Pressable variant="secondary" type="button" className="inline-flex items-center gap-2 self-start" onClick={() => reload()}>
           <VitaIcon name="retry" tone="brand" size={20} />
           Erneut versuchen
         </Pressable>
@@ -78,7 +79,7 @@ function EntriesBySection({ userId }: { userId: string }) {
           />
         )
       })}
-      <PressableLink to="/nutrition" className="flex items-center justify-center gap-2">
+      <PressableLink to="/nutrition" className={linkClass}>
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zur Ernährung
       </PressableLink>
@@ -110,7 +111,7 @@ function SectionBlock({
   const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
-    <section>
+    <section className="flex flex-col gap-3">
       <h2>{`${name} — ${Math.round(sumKalorien(entries))} kcal`}</h2>
       <FoodEntryList
         entries={entries}
