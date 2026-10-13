@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlans } from '../hooks/use-workout-plans'
-import { buttonPrimaryClass, buttonSecondaryClass, inputClass } from '../lib/ui-classes'
+import { inputClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Chip from '../components/Chip'
+import Pressable, { PressableLink } from '../components/Pressable'
 
 const HAEUFIGKEITEN = [1, 2, 3, 4, 5, 6, 7]
 const STANDARD_DAUER_WOCHEN = 4
@@ -76,9 +77,9 @@ function Wizard({ userId }: { userId: string }) {
             <input value={name} onChange={(event) => setName(event.target.value)} className={inputClass} />
           </label>
           {nameError !== '' && <p role="alert">{nameError}</p>}
-          <button type="button" className={buttonPrimaryClass} onClick={weiterVonName}>
+          <Pressable variant="primary" type="button" onClick={weiterVonName}>
             Weiter
-          </button>
+          </Pressable>
         </>
       )}
       {step === 2 && (
@@ -91,20 +92,20 @@ function Wizard({ userId }: { userId: string }) {
               </Chip>
             ))}
           </div>
-          <button type="button" className={buttonSecondaryClass} onClick={() => setStep(1)}>
+          <Pressable variant="secondary" type="button" onClick={() => setStep(1)}>
             <span className="inline-flex items-center justify-center gap-2">
               <VitaIcon name="back" tone="mono" size={20} />
               Zurück
             </span>
-          </button>
-          <button
+          </Pressable>
+          <Pressable
+            variant="primary"
             type="button"
-            className={buttonPrimaryClass}
             disabled={haeufigkeit === null}
             onClick={() => setStep(3)}
           >
             Weiter
-          </button>
+          </Pressable>
         </>
       )}
       {step === 3 && (
@@ -121,24 +122,24 @@ function Wizard({ userId }: { userId: string }) {
             />
           </label>
           {dauerError !== '' && <p role="alert">{dauerError}</p>}
-          <button type="button" className={buttonSecondaryClass} onClick={() => setStep(2)}>
+          <Pressable variant="secondary" type="button" onClick={() => setStep(2)}>
             <span className="inline-flex items-center justify-center gap-2">
               <VitaIcon name="back" tone="mono" size={20} />
               Zurück
             </span>
-          </button>
-          <button type="button" className={buttonPrimaryClass} disabled={submitting} onClick={planErstellen}>
+          </Pressable>
+          <Pressable variant="primary" type="button" disabled={submitting} onClick={planErstellen}>
             <span className="inline-flex items-center justify-center gap-2">
               <VitaIcon name="add" tone="mono" size={20} />
               Plan erstellen
             </span>
-          </button>
+          </Pressable>
         </>
       )}
-      <Link to="/training/plans" className="flex items-center justify-center gap-2">
+      <PressableLink to="/training/plans" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zu meinen Plänen
-      </Link>
+      </PressableLink>
     </div>
   )
 }

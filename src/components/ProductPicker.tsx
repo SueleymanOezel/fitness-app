@@ -3,8 +3,9 @@ import BarcodeScanner from './BarcodeScanner'
 import ManualProductForm from './ManualProductForm'
 import { findOrFetchProductByBarcode, type Product } from '../lib/product-lookup'
 import { isValidBarcode } from '../lib/open-food-facts'
-import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { cardClass } from '../lib/ui-classes'
 import { VitaIcon } from './icons/VitaIcon'
+import Pressable from './Pressable'
 
 type Step = 'idle' | 'scanning' | 'looking-up' | 'manual-entry'
 
@@ -89,18 +90,18 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
 
   return (
     <div className={cardClass}>
-      <button type="button" className={buttonPrimaryClass} onClick={() => setStep('scanning')}>
+      <Pressable variant="primary" type="button" onClick={() => setStep('scanning')}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="scan" tone="mono" size={20} />
           Barcode scannen
         </span>
-      </button>
-      <button type="button" className={buttonSecondaryClass} onClick={() => setStep('manual-entry')}>
+      </Pressable>
+      <Pressable variant="secondary" type="button" onClick={() => setStep('manual-entry')}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="add" tone="mono" size={20} />
           Manuell hinzufügen
         </span>
-      </button>
+      </Pressable>
       <form onSubmit={handleTypedBarcode}>
         <label>
           Barcode-Nummer eingeben
@@ -111,17 +112,17 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
             placeholder="z. B. 8076809580144"
           />
         </label>
-        <button type="submit" className={buttonSecondaryClass}>
+        <Pressable variant="secondary" type="submit">
           <span className="inline-flex items-center justify-center gap-2">
             <VitaIcon name="search" tone="mono" size={20} />
             Suchen
           </span>
-        </button>
+        </Pressable>
       </form>
       {error && <p role="alert">{error}</p>}
-      <button type="button" className={buttonSecondaryClass} onClick={onCancel}>
+      <Pressable variant="secondary" type="button" onClick={onCancel}>
         Abbrechen
-      </button>
+      </Pressable>
     </div>
   )
 }

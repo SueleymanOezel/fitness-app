@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { ProfileWeightSyncError, useBodyMetrics } from '../hooks/use-body-metrics'
 import { changeSince, latestValue } from '../lib/body-change'
@@ -15,10 +14,11 @@ import BodyChartList from '../components/charts/BodyChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { useBodyAnalysis } from '../hooks/use-body-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
-import { cardClass, buttonPrimaryClass, stickyActionClass } from '../lib/ui-classes'
+import { cardClass, stickyActionClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import Pressable, { PressableLink } from '../components/Pressable'
 
 /** German notation: comma as the decimal mark, at most one place. */
 function formatValue(value: number) {
@@ -98,16 +98,17 @@ function Dashboard({ userId }: { userId: string }) {
         })}
       </ul>
 
-      <button
+      <Pressable
+        variant="primary"
         type="button"
-        className={`${buttonPrimaryClass} ${stickyActionClass}`}
+        className={stickyActionClass}
         onClick={() => setFormOpen(true)}
       >
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="measurement" tone="mono" size={20} />
           Heute eintragen
         </span>
-      </button>
+      </Pressable>
       {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
           rendering the form only while open forces a fresh prefill from the
           current rows each time it opens, instead of showing the last
@@ -145,18 +146,18 @@ function Dashboard({ userId }: { userId: string }) {
       </Dialog>
 
       <DashboardBodyCharts userId={userId} auswahl={auswahl.auswahl} />
-      <Link to="/body/analyse" className="flex items-center justify-center gap-2">
+      <PressableLink to="/body/analyse" className="flex items-center justify-center gap-2">
         <VitaIcon name="analysis" tone="brand" size={20} />
         Analyse
-      </Link>
-      <Link to="/body/entries" className="flex items-center justify-center gap-2">
+      </PressableLink>
+      <PressableLink to="/body/entries" className="flex items-center justify-center gap-2">
         <VitaIcon name="history" tone="brand" size={20} />
         Verlauf
-      </Link>
-      <Link to="/body/photos" className="flex items-center justify-center gap-2">
+      </PressableLink>
+      <PressableLink to="/body/photos" className="flex items-center justify-center gap-2">
         <VitaIcon name="photos" tone="brand" size={20} />
         Fortschrittsfotos
-      </Link>
+      </PressableLink>
     </div>
   )
 }

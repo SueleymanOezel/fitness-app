@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import ProductPicker from './ProductPicker'
 import type { Product } from '../lib/product-lookup'
-import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { cardClass } from '../lib/ui-classes'
+import Pressable from './Pressable'
 
 type Props = {
   onAdd: (productId: string, menge: number) => Promise<void>
@@ -52,12 +53,12 @@ export default function AddEntryFlow({ onAdd, onCancel }: Props) {
         </label>
       </div>
       {error && <p role="alert">{error}</p>}
-      <button type="submit" className={buttonPrimaryClass}>
+      <Pressable variant="primary" type="submit">
         Hinzufügen
-      </button>
-      <button type="button" className={buttonSecondaryClass} onClick={reset}>
+      </Pressable>
+      <Pressable variant="secondary" type="button" onClick={reset}>
         Abbrechen
-      </button>
+      </Pressable>
     </form>
   )
 }

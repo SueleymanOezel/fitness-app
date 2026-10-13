@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import ProductPicker from './ProductPicker'
-import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { cardClass } from '../lib/ui-classes'
 import { VitaIcon } from './icons/VitaIcon'
 import { parseNutrients, type Nutrients } from '../lib/nutrients'
 import { saveProductEdit } from '../lib/product-edit'
@@ -9,6 +9,7 @@ import { MAX_NAME_LENGTH } from '../lib/open-food-facts'
 import { UNASSIGNED_LABEL, type MealSection } from '../lib/meal-sections'
 import type { Product } from '../lib/product-lookup'
 import type { EntryPatch, FoodEntry } from '../hooks/use-food-entries'
+import Pressable from './Pressable'
 
 type Props = {
   entry: FoodEntry
@@ -174,9 +175,9 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
         </label>
 
         <p>{swapped ? swapped.name : (product?.name ?? 'Unbekanntes Produkt')}</p>
-        <button type="button" className={buttonSecondaryClass} onClick={() => setPicking(true)}>
+        <Pressable variant="secondary" type="button" onClick={() => setPicking(true)}>
           Anderes Produkt wählen
-        </button>
+        </Pressable>
 
         {!swapped && product && (
           <fieldset>
@@ -233,15 +234,15 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
       </div>
 
       {error && <p role="alert">{error}</p>}
-      <button type="submit" className={buttonPrimaryClass}>
+      <Pressable variant="primary" type="submit">
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="save" tone="mono" size={20} />
           Speichern
         </span>
-      </button>
-      <button type="button" className={buttonSecondaryClass} onClick={onClose}>
+      </Pressable>
+      <Pressable variant="secondary" type="button" onClick={onClose}>
         Abbrechen
-      </button>
+      </Pressable>
     </form>
   )
 }

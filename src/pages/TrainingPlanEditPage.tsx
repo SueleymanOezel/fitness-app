@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlan, type DayExercisePatch, type WorkoutPlanDay } from '../hooks/use-workout-plans'
 import { useExercises } from '../hooks/use-exercises'
-import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { cardClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import ExerciseThumbnail from '../components/ExerciseThumbnail'
 import { useToast } from '../components/ToastProvider'
@@ -11,6 +11,7 @@ import { VitaIcon } from '../components/icons/VitaIcon'
 import { zonenFuerTag } from '../lib/muscle-zones'
 import TagMuskelSilhouette from '../components/TagMuskelSilhouette'
 import ExercisePicker, { type PickableExercise } from '../components/ExercisePicker'
+import Pressable, { PressableLink } from '../components/Pressable'
 
 export default function TrainingPlanEditPage() {
   const { session } = useSession()
@@ -60,10 +61,10 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
       <div>
         <h1>Plan bearbeiten</h1>
         <p role="alert">Diesen Plan gibt es nicht mehr.</p>
-        <Link to="/training/plans" className="flex items-center justify-center gap-2">
+        <PressableLink to="/training/plans" className="flex items-center justify-center gap-2">
           <VitaIcon name="back" tone="brand" size={20} />
           Zurück zu meinen Plänen
-        </Link>
+        </PressableLink>
       </div>
     )
   }
@@ -116,18 +117,18 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
           Neuer Tag
           <input value={newDayName} onChange={(event) => setNewDayName(event.target.value)} />
         </label>
-        <button type="submit" className={buttonPrimaryClass}>
+        <Pressable variant="primary" type="submit">
           <span className="inline-flex items-center justify-center gap-2">
             <VitaIcon name="add" tone="mono" size={20} />
             Tag hinzufügen
           </span>
-        </button>
+        </Pressable>
       </form>
       {dayNameError !== '' && <p role="alert">{dayNameError}</p>}
-      <Link to="/training/plans" className="flex items-center justify-center gap-2">
+      <PressableLink to="/training/plans" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zu meinen Plänen
-      </Link>
+      </PressableLink>
     </div>
   )
 }
@@ -168,14 +169,14 @@ function DayBlock({
       <h2>{day.name}</h2>
       <TagMuskelSilhouette zonen={zonen} />
       {canMoveUp && (
-        <button type="button" onClick={() => onMoveDay('up')}>
+        <Pressable type="button" onClick={() => onMoveDay('up')}>
           Tag nach oben
-        </button>
+        </Pressable>
       )}
       {canMoveDown && (
-        <button type="button" onClick={() => onMoveDay('down')}>
+        <Pressable type="button" onClick={() => onMoveDay('down')}>
           Tag nach unten
-        </button>
+        </Pressable>
       )}
       <ul role="list" className="space-y-4">
         {day.exercises.map((row, index) => (
@@ -200,32 +201,32 @@ function DayBlock({
                   onCommit={(value) => onUpdateExercise(row.id, { pausenzeit_sekunden: value })}
                 />
                 {index > 0 && (
-                  <button type="button" onClick={() => onMoveExercise(row.id, 'up')}>
+                  <Pressable type="button" onClick={() => onMoveExercise(row.id, 'up')}>
                     Nach oben
-                  </button>
+                  </Pressable>
                 )}
                 {index < day.exercises.length - 1 && (
-                  <button type="button" onClick={() => onMoveExercise(row.id, 'down')}>
+                  <Pressable type="button" onClick={() => onMoveExercise(row.id, 'down')}>
                     Nach unten
-                  </button>
+                  </Pressable>
                 )}
-                <button type="button" className={buttonSecondaryClass} onClick={() => onRemoveExercise(row.id)}>
+                <Pressable variant="danger" type="button" onClick={() => onRemoveExercise(row.id)}>
                   <span className="inline-flex items-center justify-center gap-2">
                     <VitaIcon name="delete" tone="mono" size={20} />
                     Entfernen
                   </span>
-                </button>
+                </Pressable>
               </div>
             </div>
           </li>
         ))}
       </ul>
-      <button type="button" className={buttonPrimaryClass} onClick={() => setPickerOpen(true)}>
+      <Pressable variant="primary" type="button" onClick={() => setPickerOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="add" tone="mono" size={20} />
           Übung hinzufügen
         </span>
-      </button>
+      </Pressable>
       {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
           rendering the picker only while open resets the search field each
           time it opens, instead of keeping the last search around. */}

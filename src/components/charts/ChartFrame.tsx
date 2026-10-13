@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
 import { cardClass } from '../../lib/ui-classes'
+import { PressableLink } from '../Pressable'
 
 /**
  * Shared shell for every chart: title, the dashboard checkbox, and the empty
@@ -42,9 +42,9 @@ export default function ChartFrame({
         <>
           <p>Noch nicht genug Daten für diesen Graphen.</p>
           {leerCta && (
-            <Link to={leerCta.to} className="flex items-center justify-center gap-2">
+            <PressableLink to={leerCta.to} className="flex items-center justify-center gap-2">
               {leerCta.label}
-            </Link>
+            </PressableLink>
           )}
         </>
       ) : (

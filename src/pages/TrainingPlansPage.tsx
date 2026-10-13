@@ -1,9 +1,9 @@
-import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlans } from '../hooks/use-workout-plans'
-import { cardClass, buttonPrimaryClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { cardClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import Pressable, { PressableLink } from '../components/Pressable'
 
 export default function TrainingPlansPage() {
   const { session } = useSession()
@@ -52,41 +52,41 @@ function PlansList({ userId }: { userId: string }) {
         {plans.map((plan) => (
           <li key={plan.id} className="block border-b-0">
             <div className={`${cardClass} w-full`}>
-              <Link to={`/training/plans/${plan.id}`}>{plan.name}</Link>
+              <PressableLink to={`/training/plans/${plan.id}`}>{plan.name}</PressableLink>
               {plan.aktiv && <span>aktiv</span>}
               {!plan.aktiv && (
-                <button
+                <Pressable
+                  variant="secondary"
                   type="button"
-                  className={buttonSecondaryClass}
                   onClick={() => run(() => activatePlan(plan.id), 'Aktivieren fehlgeschlagen.')}
                 >
                   Aktivieren
-                </button>
+                </Pressable>
               )}
-              <button
+              <Pressable
+                variant="danger"
                 type="button"
-                className={buttonSecondaryClass}
                 onClick={() => run(() => deletePlan(plan.id), 'Löschen fehlgeschlagen.')}
               >
                 <span className="inline-flex items-center justify-center gap-2">
                   <VitaIcon name="delete" tone="mono" size={20} />
                   Löschen
                 </span>
-              </button>
+              </Pressable>
             </div>
           </li>
         ))}
       </ul>
-      <Link to="/training/plans/new" className={buttonPrimaryClass}>
+      <PressableLink variant="primary" to="/training/plans/new">
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="add" tone="mono" size={20} />
           Neuer Plan
         </span>
-      </Link>
-      <Link to="/training" className="flex items-center justify-center gap-2">
+      </PressableLink>
+      <PressableLink to="/training" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Training
-      </Link>
+      </PressableLink>
     </div>
   )
 }

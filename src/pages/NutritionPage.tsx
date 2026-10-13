@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useProfile, type Profile } from '../hooks/use-profile'
 import { useFoodEntries } from '../hooks/use-food-entries'
@@ -12,6 +11,7 @@ import { chartsFor } from '../lib/analysis/registry'
 import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import Pressable, { PressableLink } from '../components/Pressable'
 
 export default function NutritionPage() {
   const { session } = useSession()
@@ -48,10 +48,10 @@ function NutritionDashboard({ userId }: { userId: string }) {
       <div>
         <h1>Ernährung</h1>
         <p role="alert">Profil konnte nicht geladen werden.</p>
-        <button type="button" className="inline-flex items-center gap-2" onClick={() => reload()}>
+        <Pressable type="button" className="inline-flex items-center gap-2" onClick={() => reload()}>
           <VitaIcon name="retry" tone="brand" size={20} />
           Erneut versuchen
-        </button>
+        </Pressable>
       </div>
     )
   }
@@ -64,34 +64,34 @@ function NutritionDashboard({ userId }: { userId: string }) {
       <DailySummary entries={entries} goal={goal} />
       {goal == null && (
         <p>
-          Für ein Tagesziel <Link to="/profile">Profil vervollständigen</Link>.
+          Für ein Tagesziel <PressableLink to="/profile">Profil vervollständigen</PressableLink>.
         </p>
       )}
-      <Link to="/profile" className="flex items-center justify-center gap-2">
+      <PressableLink to="/profile" className="flex items-center justify-center gap-2">
         <VitaIcon name="goal" tone="brand" size={20} />
         Ziel im Profil anpassen
-      </Link>
+      </PressableLink>
       <ul role="list">
         {visibleSections(profile, entries).map((section) => {
           const sectionEntries = entries.filter((entry) => entry.mahlzeit === section.slot)
           return (
             <li key={section.slot ?? 'unassigned'}>
-              <Link to="/nutrition/entries">
+              <PressableLink to="/nutrition/entries">
                 {`${section.name} — ${Math.round(sumKalorien(sectionEntries))} kcal`}
-              </Link>
+              </PressableLink>
             </li>
           )
         })}
       </ul>
-      <Link to="/nutrition/entries" className="flex items-center justify-center gap-2">
+      <PressableLink to="/nutrition/entries" className="flex items-center justify-center gap-2">
         <VitaIcon name="entries" tone="brand" size={20} />
         Einträge ansehen
-      </Link>
+      </PressableLink>
       <DashboardNutritionCharts userId={userId} auswahl={auswahl.auswahl} ziel={goal} profile={profile} />
-      <Link to="/nutrition/analyse" className="flex items-center justify-center gap-2">
+      <PressableLink to="/nutrition/analyse" className="flex items-center justify-center gap-2">
         <VitaIcon name="analysis" tone="brand" size={20} />
         Analyse
-      </Link>
+      </PressableLink>
     </div>
   )
 }

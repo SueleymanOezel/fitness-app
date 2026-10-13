@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { ProfileWeightSyncError, useBodyMetrics } from '../hooks/use-body-metrics'
 import {
@@ -8,10 +7,11 @@ import {
   type BodyMetricRow,
 } from '../lib/body-metrics'
 import BodyEntryForm from '../components/BodyEntryForm'
-import { cardClass, buttonSecondaryClass } from '../lib/ui-classes'
+import { cardClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { useToast } from '../components/ToastProvider'
+import Pressable, { PressableLink } from '../components/Pressable'
 
 function formatDate(iso: string) {
   const [year, month, day] = iso.split('-')
@@ -87,22 +87,22 @@ function Entries({ userId }: { userId: string }) {
             <div className={`${cardClass} w-full`}>
               <span>{formatDate(entry.datum)}</span>
               <span>{summarize(entry)}</span>
-              <button
+              <Pressable
+                variant="secondary"
                 type="button"
-                className={buttonSecondaryClass}
                 onClick={() => setEditingId(entry.id)}
               >
                 <span className="inline-flex items-center justify-center gap-2">
                   <VitaIcon name="edit" tone="mono" size={20} />
                   Bearbeiten
                 </span>
-              </button>
-              <button type="button" className={buttonSecondaryClass} onClick={() => remove(entry.id)}>
+              </Pressable>
+              <Pressable variant="danger" type="button" onClick={() => remove(entry.id)}>
                 <span className="inline-flex items-center justify-center gap-2">
                   <VitaIcon name="delete" tone="mono" size={20} />
                   Löschen
                 </span>
-              </button>
+              </Pressable>
             </div>
           </li>
         ))}
@@ -140,10 +140,10 @@ function Entries({ userId }: { userId: string }) {
         )}
       </Dialog>
 
-      <Link to="/body" className="flex items-center justify-center gap-2">
+      <PressableLink to="/body" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Körperbereich
-      </Link>
+      </PressableLink>
     </div>
   )
 }

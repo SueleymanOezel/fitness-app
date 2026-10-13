@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useBodyAnalysis } from '../hooks/use-body-analysis'
 import ZeitraumSwitch from '../components/ZeitraumSwitch'
@@ -8,6 +7,7 @@ import BodyChartList from '../components/charts/BodyChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import { PressableLink } from '../components/Pressable'
 
 export default function BodyAnalysisPage() {
   const { session } = useSession()
@@ -50,10 +50,10 @@ function Analyse({ userId }: { userId: string }) {
           leerCta={{ label: 'Heute eintragen', to: '/body' }}
         />
       )}
-      <Link to="/body" className="flex items-center justify-center gap-2">
+      <PressableLink to="/body" className="flex items-center justify-center gap-2">
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Körperbereich
-      </Link>
+      </PressableLink>
     </div>
   )
 }
