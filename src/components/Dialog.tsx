@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, type ReactNode } from 'react'
 import { VitaIcon } from './icons/VitaIcon'
 import { loadGsap } from '../lib/gsap-loader'
 import { prefersReducedMotion } from '../lib/motion'
@@ -51,15 +51,15 @@ export default function Dialog({
     }
   }, [])
 
-  function animate(run: (gsap: Gsap) => void) {
+  const animate = useCallback((run: (gsap: Gsap) => void) => {
     return loadGsap().then((gsap) => {
       if (disposedRef.current) return
       ctxRef.current ??= gsap.context(() => {}) as GsapContext
       ctxRef.current.add(() => run(gsap))
     })
-  }
+  }, [])
 
-  function closeAnimated() {
+  const closeAnimated = useCallback(() => {
     const dialog = ref.current
     const content = contentRef.current
     if (!dialog || !dialog.open) return
@@ -78,7 +78,7 @@ export default function Dialog({
     })
       // A failed chunk load must never leave the dialog undismissable.
       .catch(() => dialog.close())
-  }
+  }, [animate])
 
   useEffect(() => {
     const dialog = ref.current
@@ -101,7 +101,7 @@ export default function Dialog({
     }
 
     if (!open && dialog.open) closeAnimated()
-  }, [open])
+  }, [open, animate, closeAnimated])
 
   return (
     <dialog
