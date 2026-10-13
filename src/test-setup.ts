@@ -64,7 +64,7 @@ if (!HTMLDialogElement.prototype.showModal) {
 }
 
 // jsdom (v30, as installed in this project) does not implement
-// window.matchMedia at all. Defaulting to "matches: true" (reduced motion
+// window.matchMedia at all. Answering "matches: true" for the reduced-motion query (reduced motion
 // IS requested) rather than false means every existing component test that
 // renders something animatable keeps exercising today's synchronous,
 // no-animation code path without changes — only a test that specifically
