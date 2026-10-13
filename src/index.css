@@ -255,3 +255,11 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .row-in { animation: none; }
 }
+
+@keyframes list-in {
+  from { opacity: 0; transform: translateY(4px); }
+}
+.list-in { animation: list-in 250ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .list-in { animation: none; }
+}
