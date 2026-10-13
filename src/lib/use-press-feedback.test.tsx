@@ -22,6 +22,7 @@ function stubReducedMotion(matches: boolean) {
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
   vi.clearAllMocks()
   vi.useRealTimers()
   vi.resetModules()
@@ -55,7 +56,24 @@ describe('usePressFeedback', () => {
     await renderProbe()
     await renderProbe()
 
+    expect(load).not.toHaveBeenCalled()
     vi.advanceTimersByTime(1000)
+    expect(load).toHaveBeenCalledOnce()
+  })
+
+  it('defers the preload to requestIdleCallback when the browser provides it', async () => {
+    stubReducedMotion(false)
+    const callbacks: Array<() => void> = []
+    const idle = vi.fn((cb: () => void) => {
+      callbacks.push(cb)
+      return 1
+    })
+    vi.stubGlobal('requestIdleCallback', idle)
+    await renderProbe()
+
+    expect(idle).toHaveBeenCalledOnce()
+    expect(load).not.toHaveBeenCalled()
+    callbacks.forEach((cb) => cb())
     expect(load).toHaveBeenCalledOnce()
   })
 
