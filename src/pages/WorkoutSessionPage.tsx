@@ -203,7 +203,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                 {entry.name}
               </Pressable>
               {!sets.some((set) => set.exercise_id === entry.exercise_id) && (
-                <Pressable variant="danger" type="button" onClick={() => removeExercise(entry.id)}>
+                <Pressable type="button" onClick={() => removeExercise(entry.id)}>
                   <span className="inline-flex items-center justify-center gap-2">
                     <VitaIcon name="delete" tone="mono" size={20} />
                     Entfernen
