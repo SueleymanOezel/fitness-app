@@ -8,10 +8,14 @@
 export const cardClass = 'bg-surface rounded-3xl p-6'
 
 /**
- * transition + motion-reduce:transition-none statt eines separaten
+ * Explizite transition-[...]-Liste (ohne transform/scale) + motion-reduce:transition-none statt eines separaten
  * motion-safe:-Zweigs: der Zustandswechsel selbst (Farbe; die Press-Skalierung macht GSAP, siehe press-feedback.ts) soll
  * unter prefers-reduced-motion bestehen bleiben, nur ohne animierten
  * Uebergang dazwischen — siehe Spec, Abschnitt "Motion".
+ *
+ * Bewusst KEIN nacktes `transition`: das umfasst in Tailwind 4 auch transform/scale,
+ * GSAP schreibt aber jedes Frame inline — die CSS-Transition wuerde den Press
+ * verzoegern und das Elastic-Overshoot daempfen.
  *
  * Exportiert (nicht nur hier verwendet): Chip und BottomNav brauchen
  * dieselbe Hover/Press/Fokus-Basis, nur mit einer anderen
@@ -20,7 +24,7 @@ export const cardClass = 'bg-surface rounded-3xl p-6'
  * statt die ganze Liste ein drittes/viertes Mal zu tippen.
  */
 export const interactiveClass =
-  'transition duration-150 motion-reduce:transition-none hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
+  'transition-[color,background-color,border-color,box-shadow,filter,opacity] duration-150 motion-reduce:transition-none hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
 
 export const buttonPrimaryClass =
   `w-full rounded-2xl border-0 m-0 bg-accent px-4 py-3 font-semibold text-on-bright disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`

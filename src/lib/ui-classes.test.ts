@@ -62,6 +62,15 @@ describe('ui-classes', () => {
     expect(interactiveClass).not.toContain('ring-offset')
   })
 
+  it('does not CSS-transition transform, which GSAP drives inline every frame', () => {
+    for (const cls of [interactiveClass, buttonPrimaryClass, buttonSecondaryClass]) {
+      expect(cls).not.toMatch(/(^|\s)transition(\s|$)/)
+      expect(cls).not.toMatch(/transition-(all|transform)/)
+      expect(cls).not.toMatch(/transition-\[[^\]]*(transform|scale|translate|rotate)/)
+      expect(cls).toMatch(/transition-\[[^\]]*background-color/)
+    }
+  })
+
   it('keeps a bottom-anchored primary action above the floating nav', () => {
     expect(stickyActionClass).toContain('sticky')
     expect(stickyActionClass).toContain('bottom-[var(--nav-clearance)]')
