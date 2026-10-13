@@ -182,13 +182,13 @@ describe('NutritionEntriesPage', () => {
     const mittagessenButton = within(mittagessenHeading.closest('section') as HTMLElement).getByRole('button', {
       name: 'Eintrag hinzufügen',
     })
-    expect(mittagessenButton).toHaveClass('bg-surface')
+    expect(mittagessenButton).toHaveClass('bg-surface-raised')
 
     const abendessenHeading = screen.getByRole('heading', { name: /Abendessen/ })
     const abendessenButton = within(abendessenHeading.closest('section') as HTMLElement).getByRole('button', {
       name: 'Eintrag hinzufügen',
     })
-    expect(abendessenButton).toHaveClass('bg-surface')
+    expect(abendessenButton).toHaveClass('bg-surface-raised')
   })
 
   it('files a new entry under the section it was added from', async () => {

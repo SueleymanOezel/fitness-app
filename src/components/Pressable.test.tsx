@@ -30,7 +30,7 @@ describe('Pressable', () => {
 
   it.each([
     ['primary', 'bg-accent'],
-    ['secondary', 'bg-surface'],
+    ['secondary', 'bg-surface-raised'],
     ['danger', 'text-danger'],
   ] as const)('variant %s carries its look', (variant, cls) => {
     render(<Pressable variant={variant}>x</Pressable>)

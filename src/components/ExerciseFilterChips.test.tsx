@@ -103,7 +103,7 @@ describe('ExerciseFilterChips', () => {
     )
 
     expect(screen.getByRole('button', { name: 'Brust' })).toHaveClass('bg-accent')
-    expect(screen.getByRole('button', { name: 'Alle' })).toHaveClass('bg-surface')
+    expect(screen.getByRole('button', { name: 'Alle' })).toHaveClass('bg-surface-raised', 'text-text')
   })
 
   it('renders no muscle-group row when there are no muscle-group values', () => {

@@ -117,7 +117,7 @@ describe('ExercisesPage', () => {
     expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
     expect(screen.queryByText('Kniebeuge')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Brust' })).toHaveClass('bg-accent')
-    expect(screen.getByRole('button', { name: 'Alle' })).toHaveClass('bg-surface')
+    expect(screen.getByRole('button', { name: 'Alle' })).toHaveClass('bg-surface-raised')
   })
 
   it('resets the muscle-group filter with the Alle chip', async () => {
@@ -178,7 +178,7 @@ describe('ExercisesPage', () => {
     expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
     expect(screen.queryByText('Kniebeuge')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Langhantel' })).toHaveClass('bg-accent')
-    expect(screen.getByRole('button', { name: 'Alle Geräte' })).toHaveClass('bg-surface')
+    expect(screen.getByRole('button', { name: 'Alle Geräte' })).toHaveClass('bg-surface-raised')
   })
 
   it('resets the equipment filter with the Alle Geräte chip', async () => {
