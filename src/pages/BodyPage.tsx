@@ -15,7 +15,7 @@ import BodyChartList from '../components/charts/BodyChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { useBodyAnalysis } from '../hooks/use-body-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
-import { cardClass, buttonPrimaryClass } from '../lib/ui-classes'
+import { cardClass, buttonPrimaryClass, stickyActionClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
@@ -98,7 +98,11 @@ function Dashboard({ userId }: { userId: string }) {
         })}
       </ul>
 
-      <button type="button" className={buttonPrimaryClass} onClick={() => setFormOpen(true)}>
+      <button
+        type="button"
+        className={`${buttonPrimaryClass} ${stickyActionClass}`}
+        onClick={() => setFormOpen(true)}
+      >
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="measurement" tone="mono" size={20} />
           Heute eintragen

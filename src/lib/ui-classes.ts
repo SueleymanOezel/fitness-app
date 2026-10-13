@@ -36,3 +36,14 @@ export const buttonSecondaryClass =
  */
 export const inputClass =
   'w-full rounded-2xl m-0 border border-text-muted/30 bg-surface-raised px-4 py-3 text-text placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
+
+/**
+ * For a primary action that would otherwise sit low enough on a page to
+ * collide with the floating bottom nav (see the P0 finding in
+ * .impeccable/critique/2026-09-23T00-41-12Z__vitaloop-web-app.md — /body's
+ * "Heute eintragen" button was 57-69% hidden behind the nav at initial
+ * page load). Sticks the action to `--nav-clearance` (src/index.css) from
+ * the bottom of the viewport once the page scrolls that far, instead of
+ * letting it scroll into the nav's own fixed band.
+ */
+export const stickyActionClass = 'sticky bottom-[var(--nav-clearance)] z-10'

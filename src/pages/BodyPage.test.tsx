@@ -157,6 +157,17 @@ describe('BodyPage', () => {
     expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(82.5)
   })
 
+  it('keeps the primary action stuck above the bottom nav instead of sitting in normal page flow', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult())
+
+    zeigeDashboard()
+
+    const button = screen.getByRole('button', { name: 'Heute eintragen' })
+    expect(button).toHaveClass('sticky')
+    expect(button.className).toContain('bottom-[var(--nav-clearance)]')
+  })
+
   it('reports a failed load instead of showing an empty body area', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseBodyMetrics.mockReturnValue(metricsResult({ error: true, rows: [] }))

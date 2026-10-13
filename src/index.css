@@ -64,6 +64,19 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
+  /*
+   * Matches BottomNav's own box exactly (src/components/BottomNav.tsx):
+   * bottom-4 (1rem gap from the viewport edge) + p-2's top padding (0.5rem)
+   * + h-11 icon height (2.75rem) + the nav's own bottom padding, which is
+   * at least 0.5rem and grows with env(safe-area-inset-bottom) on notched
+   * phones, plus a 0.5rem buffer. If BottomNav's own sizing classes ever
+   * change, this value must change with them — there is no shared source of
+   * truth between the two other than this comment.
+   */
+  --nav-clearance: calc(
+    1rem + 0.5rem + 2.75rem + max(0.5rem, env(safe-area-inset-bottom)) + 0.5rem
+  );
+
   @media (max-width: 1024px) {
     font-size: 16px;
   }

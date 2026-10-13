@@ -62,3 +62,23 @@ if (!HTMLDialogElement.prototype.showModal) {
     this.dispatchEvent(new Event('close'))
   }
 }
+
+// jsdom (v30, as installed in this project) does not implement
+// window.matchMedia at all. Answering "matches: true" for the reduced-motion query (reduced motion
+// IS requested) rather than false means every existing component test that
+// renders something animatable keeps exercising today's synchronous,
+// no-animation code path without changes — only a test that specifically
+// wants to exercise an animated path needs to stub this itself (see
+// src/lib/motion.test.ts and Dialog.test.tsx for examples).
+window.matchMedia ??= function (query: string): MediaQueryList {
+  return {
+    matches: query.includes('prefers-reduced-motion'),
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }
+}
