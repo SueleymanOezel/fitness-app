@@ -168,6 +168,16 @@ describe('BodyPage', () => {
     expect(button.className).toContain('bottom-[var(--nav-clearance)]')
   })
 
+  it('renders the figure large with tabular digits and the label as a quieter, separate weight', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult())
+    zeigeDashboard()
+
+    const wert = screen.getByTestId('wert-gewicht')
+    expect(wert).toHaveClass('tabular-nums', 'font-bold')
+    expect(screen.getByText('Gewicht (kg)')).toHaveClass('text-text-muted', 'font-medium')
+  })
+
   it('reports a failed load instead of showing an empty body area', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseBodyMetrics.mockReturnValue(metricsResult({ error: true, rows: [] }))

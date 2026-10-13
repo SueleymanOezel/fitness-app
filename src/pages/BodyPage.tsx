@@ -14,7 +14,7 @@ import BodyChartList from '../components/charts/BodyChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { useBodyAnalysis } from '../hooks/use-body-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
-import { cardClass, stickyActionClass } from '../lib/ui-classes'
+import { cardClass, labelClass, statClass, stickyActionClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
@@ -79,8 +79,8 @@ function Dashboard({ userId }: { userId: string }) {
           return (
             <li key={field} className="block border-b-0">
               <div className={`${cardClass} w-full flex flex-col items-start gap-1`}>
-                <span className="text-sm text-text-muted">{FIELD_LABELS[field]}</span>
-                <span className="text-2xl font-semibold" data-testid={`wert-${field}`}>
+                <span className={labelClass}>{FIELD_LABELS[field]}</span>
+                <span className={statClass} data-testid={`wert-${field}`}>
                   {latest == null ? '—' : `${formatValue(latest.value)} ${unitOf(field)}`}
                 </span>
                 {latest != null && (
