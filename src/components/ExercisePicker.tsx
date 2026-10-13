@@ -9,8 +9,7 @@ import {
   uniqueEquipment,
   uniqueMuskelgruppen,
 } from '../lib/exercise-filters'
-import { equipmentLabel } from '../lib/equipment-labels'
-import { muskelgruppeLabel } from '../lib/muscle-group-labels'
+import { exerciseCaption, revealDelay } from '../lib/exercise-caption'
 import Pressable from './Pressable'
 
 export type PickableExercise = {
@@ -87,18 +86,13 @@ export default function ExercisePicker({
         <div key={group.gruppe || 'gefiltert'}>
           {group.gruppe !== '' && <h3>{group.gruppe}</h3>}
           <ul role="list" className="space-y-2">
-            {group.exercises.map((exercise) => {
+            {group.exercises.map((exercise, index) => {
               const name = exercise.name_de ?? exercise.name
               const isSelected = selected.includes(exercise.id)
-              const caption = [
-                exercise.equipment ? equipmentLabel(exercise.equipment) : null,
-                exercise.muskelgruppen_primaer?.[0] ? muskelgruppeLabel(exercise.muskelgruppen_primaer[0]) : null,
-              ]
-                .filter((part): part is string => part !== null)
-                .join(' · ')
+              const caption = exerciseCaption(exercise)
 
               return (
-                <li key={exercise.id}>
+                <li key={exercise.id} className="list-in" style={{ animationDelay: revealDelay(index) }}>
                   <Pressable
                     type="button"
                     aria-pressed={isSelected}
