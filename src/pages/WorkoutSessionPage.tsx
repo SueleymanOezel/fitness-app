@@ -8,7 +8,7 @@ import {
   type SessionSet,
   type SetValues,
 } from '../hooks/use-workout-session'
-import { cardClass, labelClass, statClass } from '../lib/ui-classes'
+import { cardClass, labelClass, statClass, stickyActionClass } from '../lib/ui-classes'
 import Chip from '../components/Chip'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
@@ -199,17 +199,29 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
         {exercises.map((entry) => (
           <li key={entry.exercise_id} className="block border-b-0">
             <div className={`${cardClass} w-full`}>
-              <Pressable type="button" onClick={() => setOpenExerciseId(entry.exercise_id)}>
-                {entry.name}
-              </Pressable>
-              {!sets.some((set) => set.exercise_id === entry.exercise_id) && (
-                <Pressable type="button" onClick={() => removeExercise(entry.id)}>
-                  <span className="inline-flex items-center justify-center gap-2">
-                    <VitaIcon name="delete" tone="mono" size={20} />
-                    Entfernen
-                  </span>
+              <div className="flex items-center gap-2">
+                <Pressable
+                  variant="bare"
+                  type="button"
+                  className="flex-1 text-left text-lg font-semibold"
+                  onClick={() => setOpenExerciseId(entry.exercise_id)}
+                >
+                  {entry.name}
                 </Pressable>
-              )}
+                {!sets.some((set) => set.exercise_id === entry.exercise_id) && (
+                  <Pressable
+                    variant="danger"
+                    type="button"
+                    className="px-3! py-2! text-sm"
+                    onClick={() => removeExercise(entry.id)}
+                  >
+                    <span className="inline-flex items-center justify-center gap-2">
+                      <VitaIcon name="delete" tone="mono" size={16} />
+                      Entfernen
+                    </span>
+                  </Pressable>
+                )}
+              </div>
               {openExerciseId === entry.exercise_id && (
                 <LoggedSets sets={sets.filter((set) => set.exercise_id === entry.exercise_id)} />
               )}
@@ -243,7 +255,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
           </li>
         ))}
       </ul>
-      <Pressable variant="primary" type="button" onClick={() => setPickerOpen(true)}>
+      <Pressable variant="secondary" type="button" className="w-full" onClick={() => setPickerOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="add" tone="mono" size={20} />
           Übung hinzufügen
@@ -268,9 +280,18 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
           />
         )}
       </Dialog>
-      <p>{gewichtKg === null ? '—' : `${gewichtKg} kg`}</p>
-      {gewichtKg === null && <p>Ohne Gewicht im Profil lässt sich der Verbrauch nicht berechnen.</p>}
-      <Pressable variant="primary" type="button" disabled={gewichtKg === null} onClick={complete}>
+      <div className="mt-6">
+        <p className={labelClass}>Körpergewicht für die kcal-Berechnung</p>
+        <p className="text-xl font-bold tabular-nums">{gewichtKg === null ? '—' : `${gewichtKg} kg`}</p>
+        {gewichtKg === null && <p>Ohne Gewicht im Profil lässt sich der Verbrauch nicht berechnen.</p>}
+      </div>
+      <Pressable
+        variant="primary"
+        type="button"
+        className={stickyActionClass}
+        disabled={gewichtKg === null}
+        onClick={complete}
+      >
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="save" tone="mono" size={20} />
           Training abschließen

@@ -473,6 +473,17 @@ describe('WorkoutSessionPage', () => {
     expect(screen.getByRole('button', { name: '3' })).toHaveAttribute('aria-pressed', 'false')
   })
 
+  it('pins the finish action above the nav and labels the body weight', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+    await screen.findByText('Bankdrücken')
+
+    expect(screen.getByRole('button', { name: 'Training abschließen' })).toHaveClass('sticky')
+    expect(screen.getByText('Körpergewicht für die kcal-Berechnung')).toBeInTheDocument()
+  })
+
   it('completes the session using the profile weight', async () => {
     signedIn()
     const result = sessionResult()
