@@ -36,6 +36,16 @@ describe('ManualProductForm', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } })
   })
 
+  it('puts its heading inside the card, not on the dialog backdrop', async () => {
+    const { default: ManualProductForm } = await import('./ManualProductForm')
+    render(<ManualProductForm onCreated={vi.fn()} onCancel={vi.fn()} />)
+
+    expect(screen.getByRole('heading', { name: 'Neues Produkt (Werte pro 100 g)' }).parentElement).toHaveClass(
+      'bg-surface',
+      'rounded-3xl',
+    )
+  })
+
   it('shows a validation error when name or kalorien are missing', async () => {
     const { default: ManualProductForm } = await import('./ManualProductForm')
     render(<ManualProductForm onCreated={vi.fn()} onCancel={vi.fn()} />)

@@ -219,7 +219,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                 <Pressable
                   variant="bare"
                   type="button"
-                  className={`flex-1 border-0 m-0 bg-transparent px-0 text-left text-lg font-semibold ${interactiveClass}`}
+                  className={`flex-1 border-0 bg-transparent px-0 text-left text-lg font-semibold ${interactiveClass}`}
                   onClick={() => setOpenExerciseId(entry.exercise_id)}
                 >
                   {entry.name}

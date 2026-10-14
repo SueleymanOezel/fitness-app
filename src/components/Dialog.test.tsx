@@ -42,6 +42,17 @@ describe('Dialog', () => {
     expect(screen.getByText('Inhalt')).toBeVisible()
   })
 
+  it('sizes its content to the screen, not to the content, on a phone', () => {
+    render(
+      <Dialog open onClose={() => {}}>
+        <p>Inhalt</p>
+      </Dialog>,
+    )
+    expect(screen.getByText('Inhalt').parentElement).toHaveClass('w-[min(28rem,calc(100vw-2rem))]')
+    // The UA max-width (100% - 6px - 2em) is narrower than that and would add a horizontal scrollbar.
+    expect(screen.getByText('Inhalt').closest('dialog')).toHaveClass('max-w-none')
+  })
+
   it('hides its content when not open', () => {
     render(
       <Dialog open={false} onClose={() => {}}>
