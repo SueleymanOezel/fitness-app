@@ -11,7 +11,7 @@ import HomeChartList from '../components/charts/HomeChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { useHomeAnalysis } from '../hooks/use-home-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, linkClass } from '../lib/ui-classes'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { useTrainingStreak } from '../hooks/use-training-streak'
 import { streakText } from '../lib/streak'
@@ -63,28 +63,28 @@ function Dashboard({ userId }: { userId: string }) {
   const gewichtsAenderung = changeSince(rows, 'gewicht')
 
   return (
-    <div className="space-y-4">
+    <div>
       <h1>Home</h1>
       <DailySummary entries={entries} goal={goal} />
-      <PressableLink to="/nutrition" className="flex items-center justify-center gap-2">
+      <PressableLink to="/nutrition" className={linkClass}>
         <VitaIcon name="nutrition" tone="brand" size={20} />
         Zum Ernährungsbereich
       </PressableLink>
       <div className={cardClass}>
-        <h2 className="flex items-center justify-center gap-2">
+        <h2 className="flex items-center gap-2">
           <VitaIcon name="training" tone="brand" size={28} />
           Training
         </h2>
         {plan == null && <p>Kein aktiver Plan.</p>}
         {plan != null && day == null && <p>{`Plan „${plan.name}“ hat noch keine Tage.`}</p>}
         {plan != null && day != null && <p>{`${plan.name} — ${day.name}`}</p>}
-        <PressableLink to="/training" className="flex items-center justify-center gap-2">
+        <PressableLink to="/training" className={linkClass}>
           <VitaIcon name="training" tone="brand" size={20} />
           Zum Trainingsbereich
         </PressableLink>
       </div>
       <div className={cardClass}>
-        <h2 className="flex items-center justify-center gap-2">
+        <h2 className="flex items-center gap-2">
           <VitaIcon name="body" tone="brand" size={28} />
           Gewicht
         </h2>
@@ -102,24 +102,24 @@ function Dashboard({ userId }: { userId: string }) {
                   : ` (${gewichtsAenderung.delta < 0 ? '−' : '+'}${formatValue(Math.abs(gewichtsAenderung.delta))} kg seit dem letzten Eintrag)`
               }`}
         </p>
-        <PressableLink to="/body" className="flex items-center justify-center gap-2">
+        <PressableLink to="/body" className={linkClass}>
           <VitaIcon name="body" tone="brand" size={20} />
           Zum Körperbereich
         </PressableLink>
       </div>
       <div className={cardClass}>
-        <h2 className="flex items-center justify-center gap-2">
+        <h2 className="flex items-center gap-2">
           <VitaIcon name="training" tone="brand" size={28} />
           Streak
         </h2>
         <p>{streakText(streak)}</p>
-        <PressableLink to="/training" className="flex items-center justify-center gap-2">
+        <PressableLink to="/training" className={linkClass}>
           <VitaIcon name="training" tone="brand" size={20} />
           Zum Trainingsbereich
         </PressableLink>
       </div>
       <DashboardHomeCharts userId={userId} auswahl={auswahl.auswahl} />
-      <PressableLink to="/home/analyse" className="flex items-center justify-center gap-2">
+      <PressableLink to="/home/analyse" className={linkClass}>
         <VitaIcon name="analysis" tone="brand" size={20} />
         Analyse
       </PressableLink>

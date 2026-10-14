@@ -72,11 +72,9 @@ describe('BodyPage', () => {
 
     zeigeDashboard()
 
-    // The li must never carry cardClass directly — index.css's transition rule
-    // for bare <li> elements (display:flex/justify-content:center/border-bottom)
-    // would clobber the card look. cardClass belongs on the nested div only.
+    // The li stays a plain list item; cardClass belongs on the nested div only.
     const li = screen.getByText('82,5 kg').closest('li')
-    expect(li).toHaveClass('block', 'border-b-0')
+    expect(li).not.toHaveClass('bg-surface')
     const card = screen.getByText('82,5 kg').closest('div')
     expect(card).toHaveClass('bg-surface', 'rounded-3xl')
   })

@@ -5,19 +5,6 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
-// Block 1: noch nicht auf ui-classes migrierte Dateien. Jeder Migrations-Task
-// entfernt seine Dateien; am Ende ist die Liste leer und wird gelöscht.
-const PENDING_MIGRATION = [
-  'src/components/BodyEntryForm.tsx',
-  'src/components/charts/ChartPicker.tsx',
-  'src/components/charts/ExerciseSelect.tsx',
-  'src/pages/BodyEntriesPage.tsx',
-  'src/pages/BodyPage.tsx',
-  'src/pages/BodyPhotosPage.tsx',
-  'src/pages/LoginPage.tsx',
-  'src/pages/ProfilePage.tsx',
-]
-
 const rawButtonSelector = {
   selector: "JSXOpeningElement[name.name='button']",
   message: 'Use <Pressable> from components/Pressable instead of a raw <button> (shared tap feedback).',
@@ -61,15 +48,9 @@ export default defineConfig([
     // Pressable is the one sanctioned place that renders a raw <button>;
     // tests may render raw buttons as fixtures. `ignores` only exempts these
     // files from THIS object, the rules above still apply to them.
-    ignores: ['src/components/Pressable.tsx', '**/*.test.tsx', ...PENDING_MIGRATION],
+    ignores: ['src/components/Pressable.tsx', '**/*.test.tsx'],
     rules: {
       'no-restricted-syntax': ['error', rawButtonSelector, ...designSystemSelectors],
-    },
-  },
-  {
-    files: PENDING_MIGRATION,
-    rules: {
-      'no-restricted-syntax': ['error', rawButtonSelector],
     },
   },
 ])

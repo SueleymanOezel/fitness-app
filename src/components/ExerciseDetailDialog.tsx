@@ -9,7 +9,7 @@ import type { Exercise } from '../hooks/use-exercises'
  * read-only facts about the exercise, not toggleable filters, so they must
  * not carry Chip's button/aria-pressed semantics.
  */
-const tagClass = 'rounded-full bg-surface px-4 py-2 font-medium text-text-muted'
+const tagClass = 'rounded-full bg-surface-raised px-4 py-2 font-medium text-text-muted'
 
 export default function ExerciseDetailDialog({ exercise }: { exercise: Exercise }) {
   const name = exercise.name_de ?? exercise.name
@@ -39,7 +39,7 @@ export default function ExerciseDetailDialog({ exercise }: { exercise: Exercise 
       )}
       {exercise.schwierigkeitsgrad && <p>{levelLabel(exercise.schwierigkeitsgrad)}</p>}
       {anleitung.length > 0 ? (
-        <ol className="list-decimal space-y-2 pl-5">
+        <ol className="flex list-decimal flex-col gap-2 pl-5">
           {anleitung.map((schritt, index) => (
             <li key={index}>{schritt}</li>
           ))}
