@@ -14,7 +14,7 @@ import BodyChartList from '../components/charts/BodyChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { useBodyAnalysis } from '../hooks/use-body-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
-import { cardClass, labelClass, statClass, stickyActionClass } from '../lib/ui-classes'
+import { cardClass, labelClass, linkClass, statClass, stickyActionClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
@@ -77,21 +77,23 @@ function Dashboard({ userId }: { userId: string }) {
           const latest = latestValue(rows, field)
           const change = changeSince(rows, field)
           return (
-            <li key={field} className="block border-b-0">
-              <div className={`${cardClass} w-full flex flex-col items-start gap-1`}>
-                <span className={labelClass}>{FIELD_LABELS[field]}</span>
-                <span className={statClass} data-testid={`wert-${field}`}>
-                  {latest == null ? '—' : `${formatValue(latest.value)} ${unitOf(field)}`}
-                </span>
-                {latest != null && (
-                  <span className="text-sm text-text-muted">{`Stand ${formatDate(latest.datum)}`}</span>
-                )}
-                {change != null && (
-                  <span className="text-sm text-text-muted">
-                    {/* U+2212 minus, not a hyphen: it lines up with digits. */}
-                    {`${change.delta < 0 ? '−' : '+'}${formatValue(Math.abs(change.delta))} ${unitOf(field)} seit ${formatDate(change.datum)}`}
+            <li key={field}>
+              <div className={`${cardClass} w-full`}>
+                <div className="flex flex-col items-start gap-1">
+                  <span className={labelClass}>{FIELD_LABELS[field]}</span>
+                  <span className={statClass} data-testid={`wert-${field}`}>
+                    {latest == null ? '—' : `${formatValue(latest.value)} ${unitOf(field)}`}
                   </span>
-                )}
+                  {latest != null && (
+                    <span className="text-sm text-text-muted">{`Stand ${formatDate(latest.datum)}`}</span>
+                  )}
+                  {change != null && (
+                    <span className="text-sm text-text-muted">
+                      {/* U+2212 minus, not a hyphen: it lines up with digits. */}
+                      {`${change.delta < 0 ? '−' : '+'}${formatValue(Math.abs(change.delta))} ${unitOf(field)} seit ${formatDate(change.datum)}`}
+                    </span>
+                  )}
+                </div>
               </div>
             </li>
           )
@@ -146,18 +148,20 @@ function Dashboard({ userId }: { userId: string }) {
       </Dialog>
 
       <DashboardBodyCharts userId={userId} auswahl={auswahl.auswahl} />
-      <PressableLink to="/body/analyse" className="flex items-center justify-center gap-2">
-        <VitaIcon name="analysis" tone="brand" size={20} />
-        Analyse
-      </PressableLink>
-      <PressableLink to="/body/entries" className="flex items-center justify-center gap-2">
-        <VitaIcon name="history" tone="brand" size={20} />
-        Verlauf
-      </PressableLink>
-      <PressableLink to="/body/photos" className="flex items-center justify-center gap-2">
-        <VitaIcon name="photos" tone="brand" size={20} />
-        Fortschrittsfotos
-      </PressableLink>
+      <div className="flex flex-col">
+        <PressableLink to="/body/analyse" className={linkClass}>
+          <VitaIcon name="analysis" tone="brand" size={20} />
+          Analyse
+        </PressableLink>
+        <PressableLink to="/body/entries" className={linkClass}>
+          <VitaIcon name="history" tone="brand" size={20} />
+          Verlauf
+        </PressableLink>
+        <PressableLink to="/body/photos" className={linkClass}>
+          <VitaIcon name="photos" tone="brand" size={20} />
+          Fortschrittsfotos
+        </PressableLink>
+      </div>
     </div>
   )
 }

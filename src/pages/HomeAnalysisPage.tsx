@@ -7,6 +7,7 @@ import HomeChartList from '../components/charts/HomeChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import { linkClass } from '../lib/ui-classes'
 import { PressableLink } from '../components/Pressable'
 
 export default function HomeAnalysisPage() {
@@ -43,7 +44,7 @@ function Analyse({ userId }: { userId: string }) {
       ) : (
         <HomeChartList ids={ids} sessions={sessions} entries={entries} rows={rows} zeitraum={zeitraum} auswahl={auswahl} />
       )}
-      <PressableLink to="/" className="flex items-center justify-center gap-2">
+      <PressableLink to="/" className={linkClass}>
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zur Übersicht
       </PressableLink>

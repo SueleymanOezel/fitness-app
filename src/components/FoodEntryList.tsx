@@ -22,7 +22,7 @@ export default function FoodEntryList({ entries, userId, sections, onUpdateEntry
   }
 
   return (
-    <ul role="list" className="space-y-4">
+    <ul role="list" className="flex flex-col gap-3">
       {entries.map((entry) => (
         <FoodEntryRow
           key={entry.id}
@@ -50,31 +50,35 @@ function FoodEntryRow({
   const kalorien = entry.products ? Math.round((entry.products.kalorien * entry.menge) / 100) : null
 
   return (
-    <li className="block border-b-0">
-      <div className={`${cardClass} w-full`}>
-        <span>{label}</span>
+    <li>
+      <div className={`${cardClass} flex flex-col`}>
+        <span className="font-semibold">{label}</span>
         {/* One template string per span: `{value} g` renders two text nodes and
             getByText(/150 g/) would not match across them. */}
-        <span>{`${entry.menge} g`}</span>
-        {kalorien != null && <span>{`${kalorien} kcal`}</span>}
-        <Pressable variant="secondary" type="button" onClick={() => setEditing(true)}>
-          <span className="inline-flex items-center justify-center gap-2">
-            <VitaIcon name="edit" tone="mono" size={20} />
-            Bearbeiten
-          </span>
-        </Pressable>
-        <Pressable
-          variant="danger"
-          type="button"
-          onClick={() => {
-            onDelete(entry.id).catch(() => showToast('Eintrag konnte nicht gelöscht werden.', 'error'))
-          }}
-        >
-          <span className="inline-flex items-center justify-center gap-2">
-            <VitaIcon name="delete" tone="mono" size={20} />
-            Löschen
-          </span>
-        </Pressable>
+        <div className="flex gap-3 text-sm text-text-muted">
+          <span>{`${entry.menge} g`}</span>
+          {kalorien != null && <span>{`${kalorien} kcal`}</span>}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Pressable variant="secondary" type="button" onClick={() => setEditing(true)}>
+            <span className="inline-flex items-center justify-center gap-2">
+              <VitaIcon name="edit" tone="mono" size={20} />
+              Bearbeiten
+            </span>
+          </Pressable>
+          <Pressable
+            variant="danger"
+            type="button"
+            onClick={() => {
+              onDelete(entry.id).catch(() => showToast('Eintrag konnte nicht gelöscht werden.', 'error'))
+            }}
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              <VitaIcon name="delete" tone="mono" size={20} />
+              Löschen
+            </span>
+          </Pressable>
+        </div>
       </div>
       {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
           rendering the edit form only while open resets its draft state each

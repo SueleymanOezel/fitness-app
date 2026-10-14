@@ -3,6 +3,7 @@ import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-anal
 import { persoenlicheRekorde } from '../../lib/analysis/training-charts'
 import { REKORDE_TITEL } from '../../lib/analysis/chart-titles'
 import { datumsLabel } from '../../lib/analysis/tages-label'
+import { listClass, listRowClass } from '../../lib/ui-classes'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = REKORDE_TITEL
@@ -31,9 +32,9 @@ export default function PersonalRecordsList({
 
   return (
     <ChartFrame titel={TITEL} leer={rekorde.length < 1} picker={picker} leerCta={leerCta}>
-      <ul role="list">
+      <ul role="list" className={listClass}>
         {rekorde.map((rekord) => (
-          <li key={rekord.exercise_id}>
+          <li key={rekord.exercise_id} className={listRowClass}>
             <strong>{rekord.name}</strong>{' '}
             {`${zahl(rekord.einsRM)} kg (${rekord.gewicht} kg × ${rekord.wiederholungen}) am ${datumsLabel(rekord.tag)}`}
           </li>

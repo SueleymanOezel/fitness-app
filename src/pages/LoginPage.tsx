@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { inputClass } from '../lib/ui-classes'
+import { fieldLabelClass, inputClass } from '../lib/ui-classes'
 import Pressable from '../components/Pressable'
 
 type Mode = 'login' | 'signup'
@@ -87,12 +87,12 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4">
       <img src="/logo.webp" alt="VitaLoop" className="h-28 w-auto" />
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-        <h1 className="m-0 text-center text-lg font-semibold">
+      <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
+        <h1 className="m-0 text-lg font-semibold">
           {mode === 'login' ? 'Login' : 'Registrieren'}
         </h1>
-        <div className="text-left">
-          <label className="mb-1 block text-sm text-text-muted" htmlFor="email">
+        <div className="flex flex-col gap-1.5">
+          <label className={fieldLabelClass} htmlFor="email">
             E-Mail
           </label>
           <input
@@ -104,8 +104,8 @@ export default function LoginPage() {
             onChange={(event) => setEmail(event.target.value)}
           />
         </div>
-        <div className="text-left">
-          <label className="mb-1 block text-sm text-text-muted" htmlFor="password">
+        <div className="flex flex-col gap-1.5">
+          <label className={fieldLabelClass} htmlFor="password">
             Passwort
           </label>
           <input

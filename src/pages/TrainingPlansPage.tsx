@@ -1,6 +1,6 @@
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlans } from '../hooks/use-workout-plans'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, linkClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable, { PressableLink } from '../components/Pressable'
@@ -48,31 +48,39 @@ function PlansList({ userId }: { userId: string }) {
   return (
     <div>
       <h1>Meine Pläne</h1>
-      <ul role="list" className="space-y-4">
+      <ul role="list" className="flex flex-col gap-3">
         {plans.map((plan) => (
-          <li key={plan.id} className="block border-b-0">
+          <li key={plan.id}>
             <div className={`${cardClass} w-full`}>
-              <PressableLink to={`/training/plans/${plan.id}`}>{plan.name}</PressableLink>
-              {plan.aktiv && <span>aktiv</span>}
-              {!plan.aktiv && (
+              <div className="flex flex-wrap items-center gap-2">
+                <PressableLink to={`/training/plans/${plan.id}`} className={linkClass}>
+                  {plan.name}
+                </PressableLink>
+                {plan.aktiv && (
+                  <span className="rounded-full bg-surface-raised px-3 py-1 text-sm font-medium text-text">aktiv</span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {!plan.aktiv && (
+                  <Pressable
+                    variant="secondary"
+                    type="button"
+                    onClick={() => run(() => activatePlan(plan.id), 'Aktivieren fehlgeschlagen.')}
+                  >
+                    Aktivieren
+                  </Pressable>
+                )}
                 <Pressable
-                  variant="secondary"
+                  variant="danger"
                   type="button"
-                  onClick={() => run(() => activatePlan(plan.id), 'Aktivieren fehlgeschlagen.')}
+                  onClick={() => run(() => deletePlan(plan.id), 'Löschen fehlgeschlagen.')}
                 >
-                  Aktivieren
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <VitaIcon name="delete" tone="mono" size={20} />
+                    Löschen
+                  </span>
                 </Pressable>
-              )}
-              <Pressable
-                variant="danger"
-                type="button"
-                onClick={() => run(() => deletePlan(plan.id), 'Löschen fehlgeschlagen.')}
-              >
-                <span className="inline-flex items-center justify-center gap-2">
-                  <VitaIcon name="delete" tone="mono" size={20} />
-                  Löschen
-                </span>
-              </Pressable>
+              </div>
             </div>
           </li>
         ))}
@@ -83,7 +91,7 @@ function PlansList({ userId }: { userId: string }) {
           Neuer Plan
         </span>
       </PressableLink>
-      <PressableLink to="/training" className="flex items-center justify-center gap-2">
+      <PressableLink to="/training" className={linkClass}>
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Training
       </PressableLink>

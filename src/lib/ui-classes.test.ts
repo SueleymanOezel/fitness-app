@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buttonDangerClass,
   buttonPrimaryClass,
   buttonSecondaryClass,
   cardClass,
+  checkLabelClass,
+  fieldLabelClass,
   inputClass,
   interactiveClass,
+  linkClass,
+  listClass,
+  listRowClass,
   stickyActionClass,
 } from './ui-classes'
 
@@ -56,6 +62,10 @@ describe('ui-classes', () => {
     expect(inputClass).toContain('focus-visible:ring-accent')
   })
 
+  it('keeps field text at 16px regular even inside a small label (no iOS focus zoom)', () => {
+    expect(inputClass.split(' ')).toEqual(expect.arrayContaining(['text-base', 'font-normal']))
+  })
+
   it('exports the shared interactive-state classes for other components to reuse', () => {
     expect(interactiveClass).toContain('transition')
     expect(interactiveClass).not.toContain('active:scale')
@@ -74,5 +84,37 @@ describe('ui-classes', () => {
   it('keeps a bottom-anchored primary action above the floating nav', () => {
     expect(stickyActionClass).toContain('sticky')
     expect(stickyActionClass).toContain('bottom-[var(--nav-clearance)]')
+  })
+
+  it('raises every control off the card surface, so it stays visible inside a card', () => {
+    for (const cls of [buttonSecondaryClass, buttonDangerClass, inputClass]) {
+      expect(cls.split(' ')).toContain('bg-surface-raised')
+      expect(cls.split(' ')).not.toContain('bg-surface')
+    }
+  })
+
+  it('spaces blocks inside a card at 12px', () => {
+    expect(cardClass.split(' ')).toContain('space-y-3')
+  })
+
+  it('stacks a field label above its field in the quiet label style', () => {
+    expect(fieldLabelClass).toContain('flex-col')
+    expect(fieldLabelClass).toContain('text-text-muted')
+  })
+
+  it('gives checkbox labels and text links a 44px tap height', () => {
+    expect(checkLabelClass).toContain('min-h-11')
+    expect(linkClass).toContain('min-h-11')
+  })
+
+  it('gives text links the accessible accent tint and a visible keyboard focus', () => {
+    expect(linkClass).toContain('text-accent-text')
+    expect(linkClass).toContain('focus-visible:ring-2')
+  })
+
+  it('separates list rows with a quiet divider and lays them out left-aligned', () => {
+    expect(listClass).toContain('divide-y')
+    expect(listRowClass).toContain('items-center')
+    expect(listRowClass).not.toContain('justify-center')
   })
 })

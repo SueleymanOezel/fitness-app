@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { PRODUCT_COLUMNS, type Product } from '../lib/product-lookup'
 import { MAX_NAME_LENGTH } from '../lib/open-food-facts'
 import { parseNutrients } from '../lib/nutrients'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, fieldLabelClass, inputClass } from '../lib/ui-classes'
 import { VitaIcon } from './icons/VitaIcon'
 import Pressable from './Pressable'
 
@@ -72,45 +72,46 @@ export default function ManualProductForm({ barcode, onCreated, onCancel }: Prop
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <h2>Neues Produkt (Werte pro 100 g)</h2>
       <div className={cardClass}>
-        <label>
+        <label className={fieldLabelClass}>
           Name
-          <input value={name} onChange={(event) => setName(event.target.value)} />
+          <input className={inputClass} value={name} onChange={(event) => setName(event.target.value)} />
         </label>
-      <label>
+      <label className={fieldLabelClass}>
         Kalorien (kcal)
-        <input type="number" step="any" value={kalorien} onChange={(event) => setKalorien(event.target.value)} />
+        <input className={inputClass} type="number" step="any" value={kalorien} onChange={(event) => setKalorien(event.target.value)} />
       </label>
-      <label>
+      <label className={fieldLabelClass}>
         Eiweiß (g)
-        <input type="number" step="any" value={eiweiss} onChange={(event) => setEiweiss(event.target.value)} />
+        <input className={inputClass} type="number" step="any" value={eiweiss} onChange={(event) => setEiweiss(event.target.value)} />
       </label>
-      <label>
+      <label className={fieldLabelClass}>
         Fett (g)
-        <input type="number" step="any" value={fett} onChange={(event) => setFett(event.target.value)} />
+        <input className={inputClass} type="number" step="any" value={fett} onChange={(event) => setFett(event.target.value)} />
       </label>
-      <label>
+      <label className={fieldLabelClass}>
         Kohlenhydrate (g)
-        <input type="number" step="any" value={kohlenhydrate} onChange={(event) => setKohlenhydrate(event.target.value)} />
+        <input className={inputClass} type="number" step="any" value={kohlenhydrate} onChange={(event) => setKohlenhydrate(event.target.value)} />
       </label>
-      <label>
+      <label className={fieldLabelClass}>
         Ballaststoffe (g)
         <input
+          className={inputClass}
           type="number"
           step="any"
           value={ballaststoffe}
           onChange={(event) => setBallaststoffe(event.target.value)}
         />
       </label>
-      <label>
+      <label className={fieldLabelClass}>
         Zucker (g)
-        <input type="number" step="any" value={zucker} onChange={(event) => setZucker(event.target.value)} />
+        <input className={inputClass} type="number" step="any" value={zucker} onChange={(event) => setZucker(event.target.value)} />
       </label>
-      <label>
+      <label className={fieldLabelClass}>
         Salz (g)
-        <input type="number" step="any" value={salz} onChange={(event) => setSalz(event.target.value)} />
+        <input className={inputClass} type="number" step="any" value={salz} onChange={(event) => setSalz(event.target.value)} />
       </label>
       </div>
 
@@ -121,7 +122,7 @@ export default function ManualProductForm({ barcode, onCreated, onCancel }: Prop
           Produkt speichern
         </span>
       </Pressable>
-      <Pressable variant="secondary" type="button" onClick={onCancel}>
+      <Pressable variant="secondary" className="self-start" type="button" onClick={onCancel}>
         Abbrechen
       </Pressable>
     </form>

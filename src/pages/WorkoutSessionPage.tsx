@@ -8,7 +8,17 @@ import {
   type SessionSet,
   type SetValues,
 } from '../hooks/use-workout-session'
-import { cardClass, interactiveClass, labelClass, statClass, stickyActionClass } from '../lib/ui-classes'
+import {
+  cardClass,
+  checkLabelClass,
+  fieldLabelClass,
+  inputClass,
+  interactiveClass,
+  labelClass,
+  linkClass,
+  statClass,
+  stickyActionClass,
+} from '../lib/ui-classes'
 import Chip from '../components/Chip'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
@@ -112,7 +122,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
       <div>
         <h1>Training</h1>
         <p role="alert">Dieses Training gibt es nicht mehr.</p>
-        <PressableLink to="/training" className="flex items-center justify-center gap-2">
+        <PressableLink to="/training" className={linkClass}>
           <VitaIcon name="back" tone="brand" size={20} />
           Zurück zum Training
         </PressableLink>
@@ -128,11 +138,15 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
       <div>
         <h1>Training</h1>
         <p role="alert">Dieses Training ist bereits abgeschlossen.</p>
-        <PressableLink to={`/training/history/${session.id}`}>Zur Trainingseinheit</PressableLink>
-        <PressableLink to="/training" className="flex items-center justify-center gap-2">
-          <VitaIcon name="back" tone="brand" size={20} />
-          Zurück zum Training
-        </PressableLink>
+        <div className="flex flex-col">
+          <PressableLink to={`/training/history/${session.id}`} className={linkClass}>
+            Zur Trainingseinheit
+          </PressableLink>
+          <PressableLink to="/training" className={linkClass}>
+            <VitaIcon name="back" tone="brand" size={20} />
+            Zurück zum Training
+          </PressableLink>
+        </div>
       </div>
     )
   }
@@ -197,9 +211,9 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     <div>
       <h1>Training</h1>
       {pause !== null && <PauseTimer until={pause.until} sekunden={pause.sekunden} onDone={pauseOver} />}
-      <ul role="list" className="space-y-4">
+      <ul role="list" className="flex flex-col gap-3">
         {exercises.map((entry) => (
-          <li key={entry.exercise_id} className="block border-b-0">
+          <li key={entry.exercise_id}>
             <div className={`${cardClass} w-full`}>
               <div className="flex items-center gap-2">
                 <Pressable
@@ -282,13 +296,15 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
           />
         )}
       </Dialog>
-      <div className="mt-6">
+      <div className="flex flex-col gap-2">
         <p className={labelClass}>Körpergewicht für die kcal-Berechnung</p>
         <p className="text-xl font-bold tabular-nums">{gewichtKg === null ? '—' : `${gewichtKg} kg`}</p>
         {gewichtKg === null && (
           <>
             <p>Ohne Gewicht im Profil lässt sich der Verbrauch nicht berechnen.</p>
-            <Link to="/profile">Gewicht im Profil eintragen</Link>
+            <Link to="/profile" className={linkClass}>
+              Gewicht im Profil eintragen
+            </Link>
           </>
         )}
       </div>
@@ -325,33 +341,35 @@ function SessionCompletionScreen({
   return (
     <div>
       <CompletionCelebration>
-        <h1>Training abgeschlossen</h1>
-        <dl className="grid grid-cols-2 gap-4">
-          <Kennzahl label="Dauer" wert={dauerMinuten} einheit="Minuten" />
-          {kalorien != null && <Kennzahl label="Verbrauch" wert={Math.round(kalorien)} einheit="kcal" />}
-        </dl>
-        {neueRekorde.length > 0 && (
-          <section className="mt-6">
-            <h2>Neue Rekorde</h2>
-            <ul role="list" className="space-y-3">
-              {neueRekorde.map((rekord) => (
-                <li key={rekord.exercise_id} data-pr-card className={`${cardClass} relative overflow-hidden`}>
-                  <span
-                    data-sweep
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 opacity-0 bg-linear-to-r from-transparent via-accent/30 to-transparent"
-                  />
-                  <p className="font-semibold">{rekord.name}</p>
-                  <p className="text-2xl font-bold tracking-tight tabular-nums">{`${zahl(rekord.neuesEinsRM)} kg`}</p>
-                  <p className={labelClass}>
-                    {rekord.altesEinsRM == null ? 'erste Ausführung' : `vorher: ${zahl(rekord.altesEinsRM)} kg`}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-        <p data-reveal className="mt-6">{streakLoading ? '…' : streakText(streak)}</p>
+        <div className="flex flex-col gap-6">
+          <h1 className="text-center">Training abgeschlossen</h1>
+          <dl className="grid grid-cols-2 gap-4">
+            <Kennzahl label="Dauer" wert={dauerMinuten} einheit="Minuten" />
+            {kalorien != null && <Kennzahl label="Verbrauch" wert={Math.round(kalorien)} einheit="kcal" />}
+          </dl>
+          {neueRekorde.length > 0 && (
+            <section className="flex flex-col gap-3">
+              <h2>Neue Rekorde</h2>
+              <ul role="list" className="flex flex-col gap-3">
+                {neueRekorde.map((rekord) => (
+                  <li key={rekord.exercise_id} data-pr-card className={`${cardClass} relative overflow-hidden`}>
+                    <span
+                      data-sweep
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 opacity-0 bg-linear-to-r from-transparent via-accent/30 to-transparent"
+                    />
+                    <p className="font-semibold">{rekord.name}</p>
+                    <p className="text-2xl font-bold tracking-tight tabular-nums">{`${zahl(rekord.neuesEinsRM)} kg`}</p>
+                    <p className={labelClass}>
+                      {rekord.altesEinsRM == null ? 'erste Ausführung' : `vorher: ${zahl(rekord.altesEinsRM)} kg`}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          <p data-reveal>{streakLoading ? '…' : streakText(streak)}</p>
+        </div>
       </CompletionCelebration>
       <Pressable variant="primary" type="button" className={stickyActionClass} onClick={onFertig}>
         Fertig
@@ -397,7 +415,7 @@ function LoggedSets({ sets }: { sets: SessionSet[] }) {
   const aufwaermsaetze = sets.filter((set) => set.ist_aufwaermsatz)
 
   return (
-    <div>
+    <div className="space-y-2">
       {aufwaermsaetze.length > 0 && (
         <p className="text-sm text-text-muted">
           {aufwaermsaetze.length} {aufwaermsaetze.length === 1 ? 'Aufwärmsatz' : 'Aufwärmsätze'}
@@ -452,6 +470,7 @@ function SetForm({
 
   return (
     <form
+      className="flex flex-col gap-3"
       onSubmit={async (event) => {
         event.preventDefault()
         const gewichtValue = parseDecimal(gewicht)
@@ -480,7 +499,7 @@ function SetForm({
         setIstAufwaermsatz(false)
       }}
     >
-      <div className={cardClass}>
+      <div className="flex flex-col gap-3">
         <p>
           {istAufwaermsatz
             ? 'Aufwärmsatz — zählt nicht zum Ziel'
@@ -488,9 +507,10 @@ function SetForm({
               ? 'Alle Sätze erfasst'
               : `Satz ${completedCount + 1}${exercise.ziel_saetze == null ? '' : ` von ${exercise.ziel_saetze}`}`}
         </p>
-        <label>
+        <label className={fieldLabelClass}>
           Gewicht (kg)
           <input
+            className={inputClass}
             inputMode="decimal"
             value={gewicht}
             aria-invalid={fehler.gewicht}
@@ -502,9 +522,10 @@ function SetForm({
             Gewicht als Zahl ab 0 eingeben, z. B. 22,5.
           </p>
         )}
-        <label>
+        <label className={fieldLabelClass}>
           Wiederholungen
           <input
+            className={inputClass}
             inputMode="numeric"
             value={wiederholungen}
             aria-invalid={fehler.wiederholungen}
@@ -516,13 +537,13 @@ function SetForm({
             Wiederholungen als ganze Zahl ab 0 eingeben.
           </p>
         )}
-        <label>
-          Aufwärmsatz
+        <label className={checkLabelClass}>
           <input
             type="checkbox"
             checked={istAufwaermsatz}
             onChange={(event) => setIstAufwaermsatz(event.target.checked)}
           />
+          Aufwärmsatz
         </label>
         <fieldset className="flex flex-wrap gap-2">
           <legend>Wie viele hättest du noch geschafft?</legend>

@@ -12,7 +12,7 @@ describe('ZeitraumSwitch', () => {
   it('renders as rounded Chips with distinct active/inactive backgrounds', () => {
     render(<ZeitraumSwitch wert={90} onChange={vi.fn()} />)
     expect(screen.getByRole('button', { name: '90 Tage' })).toHaveClass('rounded-full', 'bg-accent')
-    expect(screen.getByRole('button', { name: '30 Tage' })).toHaveClass('rounded-full', 'bg-surface')
+    expect(screen.getByRole('button', { name: '30 Tage' })).toHaveClass('rounded-full', 'bg-surface-raised')
   })
 
   it('calls onChange with the picked value', () => {

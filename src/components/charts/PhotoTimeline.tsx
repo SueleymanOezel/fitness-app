@@ -4,6 +4,7 @@ import type { BodyMetricRow } from '../../lib/body-metrics'
 import { fotoZeitleiste } from '../../lib/analysis/body-charts'
 import { FOTOS_TITEL } from '../../lib/analysis/chart-titles'
 import { datumsLabel } from '../../lib/analysis/tages-label'
+import { listClass } from '../../lib/ui-classes'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = FOTOS_TITEL
@@ -35,9 +36,9 @@ export default function PhotoTimeline({
 
   return (
     <ChartFrame titel={TITEL} leer={punkte.length < 1} picker={picker} leerCta={leerCta}>
-      <ul role="list">
+      <ul role="list" className={listClass}>
         {punkte.map((punkt) => (
-          <li key={punkt.id}>
+          <li key={punkt.id} className="flex flex-col items-start gap-3 py-3">
             <span>{datumsLabel(punkt.datum)}</span>
             <span>
               {punkt.gewicht == null

@@ -59,4 +59,17 @@ describe('contrastRatio', () => {
   it('confirms the new accent-text value clears the 3:1 UI-component minimum against the nav pill', () => {
     expect(contrastRatio(ACCENT_TEXT, SURFACE_RAISED)).toBeGreaterThanOrEqual(3)
   })
+
+  // Block 1 Flächen-Regel: Bedienelemente liegen auf surface-raised, Text darauf muss AA schaffen.
+  it('clears AA for primary text on surface-raised (inactive chips, secondary buttons)', () => {
+    expect(contrastRatio('#fefeff', SURFACE_RAISED)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('documents that muted text on surface-raised fails AA, which is why chips use full text color', () => {
+    expect(contrastRatio('#90919a', SURFACE_RAISED)).toBeLessThan(4.5)
+  })
+
+  it('clears AA for the accent text tint on a card surface (text links in cards)', () => {
+    expect(contrastRatio(ACCENT_TEXT, SURFACE)).toBeGreaterThanOrEqual(4.5)
+  })
 })

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { cardClass } from '../../lib/ui-classes'
+import { cardClass, linkClass } from '../../lib/ui-classes'
 import { PressableLink } from '../Pressable'
 
 /**
@@ -42,7 +42,7 @@ export default function ChartFrame({
         <>
           <p>Noch nicht genug Daten für diesen Graphen.</p>
           {leerCta && (
-            <PressableLink to={leerCta.to} className="flex items-center justify-center gap-2">
+            <PressableLink to={leerCta.to} className={linkClass}>
               {leerCta.label}
             </PressableLink>
           )}

@@ -10,7 +10,7 @@ import {
   type BodyMetricValues,
 } from '../lib/body-metrics'
 import { ProfileWeightSyncError } from '../hooks/use-body-metrics'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, fieldLabelClass, inputClass } from '../lib/ui-classes'
 import { VitaIcon } from './icons/VitaIcon'
 import Pressable from './Pressable'
 
@@ -70,11 +70,12 @@ export default function BodyEntryForm({
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className={cardClass}>
-        <label>
+        <label className={fieldLabelClass}>
           Datum
           <input
+            className={inputClass}
             type="date"
             value={datum}
             // A future date — or 0007-08-24 from a mistyped year — would sort to
@@ -84,9 +85,10 @@ export default function BodyEntryForm({
           />
         </label>
         {MEASUREMENT_FIELDS.map((field) => (
-          <label key={field}>
+          <label key={field} className={fieldLabelClass}>
             {FIELD_LABELS[field]}
             <input
+              className={inputClass}
               type="number"
               // Every one of these columns is numeric: without step="any" the
               // browser rejects 82,5 and aborts the submit before we see it.
@@ -104,7 +106,7 @@ export default function BodyEntryForm({
           Speichern
         </span>
       </Pressable>
-      <Pressable variant="secondary" type="button" onClick={onClose}>
+      <Pressable variant="secondary" className="self-start" type="button" onClick={onClose}>
         Abbrechen
       </Pressable>
     </form>

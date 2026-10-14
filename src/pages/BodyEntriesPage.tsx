@@ -7,7 +7,7 @@ import {
   type BodyMetricRow,
 } from '../lib/body-metrics'
 import BodyEntryForm from '../components/BodyEntryForm'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, linkClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { useToast } from '../components/ToastProvider'
@@ -81,28 +81,30 @@ function Entries({ userId }: { userId: string }) {
       {error && <p role="alert">Werte konnten nicht geladen werden.</p>}
       {rows.length === 0 && <p>Noch keine Einträge.</p>}
 
-      <ul role="list" className="space-y-4">
+      <ul role="list" className="flex flex-col gap-3">
         {rows.map((entry) => (
-          <li key={entry.id} className="block border-b-0">
-            <div className={`${cardClass} w-full`}>
-              <span>{formatDate(entry.datum)}</span>
-              <span>{summarize(entry)}</span>
-              <Pressable
-                variant="secondary"
-                type="button"
-                onClick={() => setEditingId(entry.id)}
-              >
-                <span className="inline-flex items-center justify-center gap-2">
-                  <VitaIcon name="edit" tone="mono" size={20} />
-                  Bearbeiten
-                </span>
-              </Pressable>
-              <Pressable variant="danger" type="button" onClick={() => remove(entry.id)}>
-                <span className="inline-flex items-center justify-center gap-2">
-                  <VitaIcon name="delete" tone="mono" size={20} />
-                  Löschen
-                </span>
-              </Pressable>
+          <li key={entry.id}>
+            <div className={`${cardClass} flex flex-col`}>
+              <span className="font-semibold">{formatDate(entry.datum)}</span>
+              <span className="text-sm text-text-muted">{summarize(entry)}</span>
+              <div className="flex flex-wrap gap-2">
+                <Pressable
+                  variant="secondary"
+                  type="button"
+                  onClick={() => setEditingId(entry.id)}
+                >
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <VitaIcon name="edit" tone="mono" size={20} />
+                    Bearbeiten
+                  </span>
+                </Pressable>
+                <Pressable variant="danger" type="button" onClick={() => remove(entry.id)}>
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <VitaIcon name="delete" tone="mono" size={20} />
+                    Löschen
+                  </span>
+                </Pressable>
+              </div>
             </div>
           </li>
         ))}
@@ -140,7 +142,7 @@ function Entries({ userId }: { userId: string }) {
         )}
       </Dialog>
 
-      <PressableLink to="/body" className="flex items-center justify-center gap-2">
+      <PressableLink to="/body" className={linkClass}>
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Körperbereich
       </PressableLink>

@@ -5,7 +5,7 @@ import { useSession } from '../hooks/use-session'
 import { useProfile, type Profile } from '../hooks/use-profile'
 import CalorieGoalEditor from '../components/CalorieGoalEditor'
 import Dialog from '../components/Dialog'
-import { cardClass, inputClass } from '../lib/ui-classes'
+import { cardClass, fieldLabelClass, inputClass, labelClass } from '../lib/ui-classes'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable from '../components/Pressable'
 
@@ -160,7 +160,7 @@ function ProfileForm({ userId }: { userId: string }) {
       <div>
         <h1>Profil</h1>
         <p role="alert">Profil konnte nicht geladen werden.</p>
-        <Pressable variant="secondary" type="button" onClick={() => reload()}>
+        <Pressable variant="secondary" className="self-start" type="button" onClick={() => reload()}>
           <span className="inline-flex items-center justify-center gap-2">
             <VitaIcon name="retry" tone="mono" size={20} />
             Erneut versuchen
@@ -216,21 +216,21 @@ function DeleteAccountSection() {
 
   return (
     <>
-      <Pressable variant="danger" type="button" onClick={() => setDialogOpen(true)}>
+      <Pressable variant="danger" className="self-start" type="button" onClick={() => setDialogOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="delete" tone="mono" size={20} />
           Konto löschen
         </span>
       </Pressable>
       <Dialog open={dialogOpen} onClose={closeDialog}>
-        <div className={cardClass}>
+        <div className={`${cardClass} flex flex-col`}>
           <h2 className="m-0">Konto endgültig löschen?</h2>
           <p>
             Alle Trainings-, Ernährungs- und Körperdaten sowie Fortschrittsfotos werden
             unwiderruflich gelöscht, dein Login verschwindet. Das lässt sich nicht rückgängig
             machen.
           </p>
-          <label>
+          <label className={fieldLabelClass}>
             Bestätigung: {DELETE_CONFIRM_WORD} eingeben
             <input
               type="text"
@@ -255,7 +255,7 @@ function DeleteAccountSection() {
               Konto endgültig löschen
             </span>
           </Pressable>
-          <Pressable variant="secondary" type="button" onClick={closeDialog}>
+          <Pressable variant="secondary" className="self-start" type="button" onClick={closeDialog}>
             Abbrechen
           </Pressable>
         </div>
@@ -300,41 +300,45 @@ function LoadedProfileForm({
   return (
     <div>
       <h1>Profil</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className={cardClass}>
-          <label>
+          <label className={fieldLabelClass}>
             Name
-            <input value={draft.name} onChange={(event) => set('name', event.target.value)} />
+            <input className={inputClass} value={draft.name} onChange={(event) => set('name', event.target.value)} />
           </label>
-          <label>
+          <label className={fieldLabelClass}>
             Alter (Jahre)
             <input
+              className={inputClass}
               type="number"
               value={draft.alter}
               onChange={(event) => set('alter', event.target.value)}
             />
           </label>
-          <label>
+          <label className={fieldLabelClass}>
             Größe (cm)
             <input
+              className={inputClass}
               type="number"
               step="any"
               value={draft.groesse}
               onChange={(event) => set('groesse', event.target.value)}
             />
           </label>
-          <label>
+          <label className={fieldLabelClass}>
             Gewicht (kg)
             <input
+              className={inputClass}
               type="number"
               step="any"
               value={draft.aktuelles_gewicht}
               onChange={(event) => set('aktuelles_gewicht', event.target.value)}
             />
           </label>
-          <label>
+          <label className={fieldLabelClass}>
             Geschlecht
             <select
+              className={inputClass}
               value={draft.geschlecht}
               onChange={(event) => set('geschlecht', event.target.value)}
             >
@@ -346,9 +350,10 @@ function LoadedProfileForm({
               ))}
             </select>
           </label>
-          <label>
+          <label className={fieldLabelClass}>
             Aktivitätslevel
             <select
+              className={inputClass}
               value={draft.aktivitaetslevel}
               onChange={(event) => set('aktivitaetslevel', event.target.value)}
             >
@@ -360,9 +365,9 @@ function LoadedProfileForm({
               ))}
             </select>
           </label>
-          <label>
+          <label className={fieldLabelClass}>
             Ziel
-            <select value={draft.ziel} onChange={(event) => set('ziel', event.target.value)}>
+            <select className={inputClass} value={draft.ziel} onChange={(event) => set('ziel', event.target.value)}>
               <option value="">bitte wählen</option>
               {ZIEL.map(([value, label]) => (
                 <option key={value} value={value}>
@@ -371,9 +376,10 @@ function LoadedProfileForm({
               ))}
             </select>
           </label>
-          <label>
+          <label className={fieldLabelClass}>
             Ziel-Delta (kcal)
             <input
+              className={inputClass}
               type="number"
               step="any"
               value={draft.ziel_delta_kcal}
@@ -381,8 +387,8 @@ function LoadedProfileForm({
             />
           </label>
 
-          <fieldset>
-            <legend>Mahlzeiten</legend>
+          <fieldset className="flex flex-col gap-3">
+            <legend className={`${labelClass} mb-3`}>Mahlzeiten</legend>
             <p className="max-w-prose mx-auto">
               Leere Felder werden nicht angezeigt. Die ersten vier Mahlzeiten lassen sich
               umbenennen, aber nicht entfernen.
@@ -397,9 +403,10 @@ function LoadedProfileForm({
                 [6, 'mahlzeit_6_name'],
               ] as const
             ).map(([slot, field]) => (
-              <label key={slot}>
+              <label key={slot} className={fieldLabelClass}>
                 {`Mahlzeit ${slot}`}
                 <input
+                  className={inputClass}
                   maxLength={MAX_SECTION_NAME_LENGTH}
                   value={draft[field]}
                   onChange={(event) => set(field, event.target.value)}
@@ -428,11 +435,14 @@ function LoadedProfileForm({
         </Pressable>
       </form>
 
-      <h2>Tagesziel</h2>
-      <CalorieGoalEditor profile={profile} onUpdate={onUpdate} />
+      <section className="flex flex-col gap-3">
+        <h2>Tagesziel</h2>
+        <CalorieGoalEditor profile={profile} onUpdate={onUpdate} />
+      </section>
 
       <Pressable
         variant="secondary"
+        className="self-start"
         type="button"
         onClick={() => {
           supabase.auth.signOut().catch(() => {

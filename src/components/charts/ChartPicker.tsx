@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useProfile } from '../../hooks/use-profile'
 import { parseAuswahl, toggleAuswahl } from '../../lib/analysis/auswahl'
 import { CHART_IDS } from '../../lib/analysis/registry'
+import { checkLabelClass } from '../../lib/ui-classes'
 
 /**
  * The pinned charts, read from and written back to `profiles.analyse_auswahl`.
@@ -55,7 +56,7 @@ export default function ChartPicker({
   auswahl: ReturnType<typeof useChartSelection>
 }) {
   return (
-    <label>
+    <label className={checkLabelClass}>
       <input
         type="checkbox"
         checked={auswahl.istGewaehlt(id)}

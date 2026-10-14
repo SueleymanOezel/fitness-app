@@ -5,7 +5,14 @@
  * carry no state or behaviour, so a wrapper component would add an API
  * surface for nothing — a plain class string is the whole job.
  */
-export const cardClass = 'bg-surface rounded-3xl p-6'
+
+/**
+ * Rhythmus (Block 1): 24px zwischen Sektionen kommt aus dem Basis-Layer
+ * (main > *), 12px zwischen Blöcken in einer Karte kommt von hier
+ * (space-y-3), 8px zwischen zusammengehörigen Bedienelementen ist gap-2
+ * am Aufrufer. Eine Karte liegt nie in einer anderen Karte.
+ */
+export const cardClass = 'bg-surface rounded-3xl p-6 space-y-3'
 
 /**
  * Explizite transition-[...]-Liste (ohne transform/scale) + motion-reduce:transition-none statt eines separaten
@@ -29,12 +36,16 @@ export const interactiveClass =
 export const buttonPrimaryClass =
   `w-full rounded-2xl border-0 m-0 bg-accent px-4 py-3 font-semibold text-on-bright disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
 
+/**
+ * Flächen-Regel (Block 1): Bedienelemente liegen immer auf surface-raised —
+ * auf bg-surface wären sie in einer Karte unsichtbar (Audit 13.10.2026).
+ */
 export const buttonSecondaryClass =
-  `rounded-2xl border-0 m-0 bg-surface px-4 py-3 font-semibold text-text disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
+  `rounded-2xl border-0 m-0 bg-surface-raised px-4 py-3 font-semibold text-text disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
 
 /** Destructive action (delete, remove): same shape as secondary, danger-colored text. */
 export const buttonDangerClass =
-  `rounded-2xl border-0 m-0 bg-surface px-4 py-3 font-semibold text-danger disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
+  `rounded-2xl border-0 m-0 bg-surface-raised px-4 py-3 font-semibold text-danger disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
 
 /** Large figure (weight, PR, calories): bold, tight, digits that do not jump. */
 export const statClass = 'text-3xl font-bold tracking-tight tabular-nums'
@@ -49,7 +60,7 @@ export const labelClass = 'text-sm font-medium text-text-muted'
  * Bug, der beim Google-Button auf /login zuerst auffiel.
  */
 export const inputClass =
-  'w-full rounded-2xl m-0 border border-text-muted/30 bg-surface-raised px-4 py-3 text-text placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
+  'w-full rounded-2xl m-0 border border-text-muted/30 bg-surface-raised px-4 py-3 text-base font-normal text-text placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
 
 /**
  * For a primary action that would otherwise sit low enough on a page to
@@ -61,3 +72,20 @@ export const inputClass =
  * letting it scroll into the nav's own fixed band.
  */
 export const stickyActionClass = 'sticky bottom-[var(--nav-clearance)] z-10'
+
+/** Label über seinem Feld; das Feld darin trägt inputClass (heller Text). */
+export const fieldLabelClass = 'flex flex-col gap-1.5 text-sm font-medium text-text-muted'
+
+/** Checkbox/Radio links, Text rechts, eine 44px-Zeile. */
+export const checkLabelClass = 'flex min-h-11 items-center gap-3 text-text'
+
+/**
+ * Bereichs-/Zurück-Link als eigene Zeile (ersetzt die alte a-Basisregel).
+ * Links im Fließtext bekommen keine Klasse, nur die Farbe aus dem Basis-Layer.
+ */
+export const linkClass = `inline-flex min-h-11 items-center gap-2 rounded-lg text-accent-text underline-offset-4 hover:underline ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
+
+/** Liste in einer Karte: Zeilen mit dezenter Trennlinie statt Karte in Karte. */
+export const listClass = 'divide-y divide-text-muted/15'
+
+export const listRowClass = 'flex items-center gap-3 py-3'

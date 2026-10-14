@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { wochenKurzform } from '../../lib/analysis/home-charts'
 import { kalorienJeTag } from '../../lib/analysis/nutrition-charts'
 import { WOCHEN_KURZFORM_TITEL } from '../../lib/analysis/chart-titles'
+import { listClass, listRowClass } from '../../lib/ui-classes'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = WOCHEN_KURZFORM_TITEL
@@ -35,9 +36,9 @@ export default function WeeklySummaryList({
 
   return (
     <ChartFrame titel={TITEL} leer={zeilen.length < 1} picker={picker}>
-      <ul role="list">
+      <ul role="list" className={listClass}>
         {zeilen.map((zeile) => (
-          <li key={zeile.woche}>
+          <li key={zeile.woche} className={listRowClass}>
             <strong>{zeile.woche}</strong>{' '}
             {`${zeile.trainingseinheiten} ${zeile.trainingseinheiten === 1 ? 'Trainingseinheit' : 'Trainingseinheiten'}`}
             {zeile.kalorienschnitt != null && ` · Ø ${zeile.kalorienschnitt} kcal`}

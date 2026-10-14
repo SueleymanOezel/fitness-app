@@ -7,6 +7,7 @@ import BodyChartList from '../components/charts/BodyChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import { linkClass } from '../lib/ui-classes'
 import { PressableLink } from '../components/Pressable'
 
 export default function BodyAnalysisPage() {
@@ -50,7 +51,7 @@ function Analyse({ userId }: { userId: string }) {
           leerCta={{ label: 'Heute eintragen', to: '/body' }}
         />
       )}
-      <PressableLink to="/body" className="flex items-center justify-center gap-2">
+      <PressableLink to="/body" className={linkClass}>
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Körperbereich
       </PressableLink>

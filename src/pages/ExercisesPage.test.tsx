@@ -57,6 +57,18 @@ describe('ExercisesPage', () => {
     expect(screen.queryByText('Kniebeuge')).not.toBeInTheDocument()
   })
 
+  it('keeps list rows free of vertical child spacing (horizontal flex row)', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(exercisesResult())
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    const row = screen.getByText('Bankdrücken').closest('button')
+    expect(row).toHaveClass('bg-surface', 'rounded-3xl', 'p-6')
+    expect(row).not.toHaveClass('space-y-3')
+  })
+
   it('shows the German name and searches by it when a translation exists', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseExercises.mockReturnValue(
@@ -117,7 +129,7 @@ describe('ExercisesPage', () => {
     expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
     expect(screen.queryByText('Kniebeuge')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Brust' })).toHaveClass('bg-accent')
-    expect(screen.getByRole('button', { name: 'Alle' })).toHaveClass('bg-surface')
+    expect(screen.getByRole('button', { name: 'Alle' })).toHaveClass('bg-surface-raised')
   })
 
   it('resets the muscle-group filter with the Alle chip', async () => {
@@ -178,7 +190,7 @@ describe('ExercisesPage', () => {
     expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
     expect(screen.queryByText('Kniebeuge')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Langhantel' })).toHaveClass('bg-accent')
-    expect(screen.getByRole('button', { name: 'Alle Geräte' })).toHaveClass('bg-surface')
+    expect(screen.getByRole('button', { name: 'Alle Geräte' })).toHaveClass('bg-surface-raised')
   })
 
   it('resets the equipment filter with the Alle Geräte chip', async () => {

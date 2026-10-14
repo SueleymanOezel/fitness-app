@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import ProductPicker from './ProductPicker'
 import type { Product } from '../lib/product-lookup'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, fieldLabelClass, inputClass } from '../lib/ui-classes'
 import Pressable from './Pressable'
 
 type Props = {
@@ -44,19 +44,19 @@ export default function AddEntryFlow({ onAdd, onCancel }: Props) {
   }
 
   return (
-    <form onSubmit={handleConfirmQuantity}>
+    <form onSubmit={handleConfirmQuantity} className="flex flex-col gap-4">
       <div className={cardClass}>
         <p>{product.name}</p>
-        <label>
+        <label className={fieldLabelClass}>
           Menge (g)
-          <input type="number" step="any" value={menge} onChange={(event) => setMenge(event.target.value)} />
+          <input className={inputClass} type="number" step="any" value={menge} onChange={(event) => setMenge(event.target.value)} />
         </label>
       </div>
       {error && <p role="alert">{error}</p>}
       <Pressable variant="primary" type="submit">
         Hinzufügen
       </Pressable>
-      <Pressable variant="secondary" type="button" onClick={reset}>
+      <Pressable variant="secondary" className="self-start" type="button" onClick={reset}>
         Abbrechen
       </Pressable>
     </form>

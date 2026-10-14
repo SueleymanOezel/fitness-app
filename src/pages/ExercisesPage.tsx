@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useSession } from '../hooks/use-session'
 import { useExercises, type Exercise, type NewExercise } from '../hooks/use-exercises'
-import { cardClass, inputClass, interactiveClass } from '../lib/ui-classes'
+import { cardClass, fieldLabelClass, inputClass, interactiveClass, linkClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import ExerciseDetailDialog from '../components/ExerciseDetailDialog'
 import ExerciseFilterChips from '../components/ExerciseFilterChips'
@@ -52,7 +52,7 @@ function ExercisesList({ userId }: { userId: string }) {
       <div>
         <h1>Übungen</h1>
         <p role="alert">Übungen konnten nicht geladen werden.</p>
-        <PressableLink to="/training" className="flex items-center justify-center gap-2">
+        <PressableLink to="/training" className={linkClass}>
           <VitaIcon name="back" tone="brand" size={20} />
           Zurück zum Training
         </PressableLink>
@@ -89,14 +89,15 @@ function ExercisesList({ userId }: { userId: string }) {
         onEquipmentChange={setEquipment}
       />
       {filtered.length === 0 && <p>Keine Übungen gefunden.</p>}
-      <ul role="list" className="space-y-4">
+      <ul role="list" className="flex flex-col gap-3">
         {filtered.map((exercise, index) => {
           const caption = exerciseCaption(exercise)
           return (
-            <li key={exercise.id} className="list-in block border-b-0" style={{ animationDelay: revealDelay(index) }}>
+            <li key={exercise.id} className="list-in" style={{ animationDelay: revealDelay(index) }}>
+              {/* cardClass minus space-y-3: in a horizontal row the margins would offset the text against the thumbnail. */}
               <Pressable
                 type="button"
-                className={`${cardClass} ${interactiveClass} flex w-full items-center gap-4 text-left focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
+                className={`bg-surface rounded-3xl p-6 ${interactiveClass} flex w-full items-center gap-4 text-left focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
                 onClick={() => setSelectedExercise(exercise)}
               >
                 <ExerciseThumbnail bildUrl={exercise.bild_url} />
@@ -133,7 +134,7 @@ function ExercisesList({ userId }: { userId: string }) {
       <Dialog open={selectedExercise !== null} onClose={() => setSelectedExercise(null)}>
         {selectedExercise && <ExerciseDetailDialog exercise={selectedExercise} />}
       </Dialog>
-      <PressableLink to="/training" className="flex items-center justify-center gap-2">
+      <PressableLink to="/training" className={linkClass}>
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zum Training
       </PressableLink>
@@ -190,31 +191,31 @@ function NewExerciseForm({
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className={cardClass}>
-        <label>
+        <label className={fieldLabelClass}>
           Name
-          <input value={name} onChange={(event) => setName(event.target.value)} />
+          <input className={inputClass} value={name} onChange={(event) => setName(event.target.value)} />
         </label>
-        <label>
+        <label className={fieldLabelClass}>
           Kategorie
-          <input value={kategorie} onChange={(event) => setKategorie(event.target.value)} />
+          <input className={inputClass} value={kategorie} onChange={(event) => setKategorie(event.target.value)} />
         </label>
-        <label>
+        <label className={fieldLabelClass}>
           MET-Wert
-          <input type="number" step="any" value={metWert} onChange={(event) => setMetWert(event.target.value)} />
+          <input className={inputClass} type="number" step="any" value={metWert} onChange={(event) => setMetWert(event.target.value)} />
         </label>
-        <label>
+        <label className={fieldLabelClass}>
           Bild-URL
-          <input value={bildUrl} onChange={(event) => setBildUrl(event.target.value)} />
+          <input className={inputClass} value={bildUrl} onChange={(event) => setBildUrl(event.target.value)} />
         </label>
-        <label>
+        <label className={fieldLabelClass}>
           Schwierigkeitsgrad
-          <input value={schwierigkeitsgrad} onChange={(event) => setSchwierigkeitsgrad(event.target.value)} />
+          <input className={inputClass} value={schwierigkeitsgrad} onChange={(event) => setSchwierigkeitsgrad(event.target.value)} />
         </label>
-        <label>
+        <label className={fieldLabelClass}>
           Anleitung
-          <textarea value={anleitung} onChange={(event) => setAnleitung(event.target.value)} />
+          <textarea className={`${inputClass} min-h-28`} value={anleitung} onChange={(event) => setAnleitung(event.target.value)} />
         </label>
       </div>
       {error !== '' && <p role="alert">{error}</p>}
@@ -224,7 +225,7 @@ function NewExerciseForm({
           Speichern
         </span>
       </Pressable>
-      <Pressable variant="secondary" type="button" onClick={onCancel}>
+      <Pressable variant="secondary" className="self-start" type="button" onClick={onCancel}>
         Abbrechen
       </Pressable>
     </form>
