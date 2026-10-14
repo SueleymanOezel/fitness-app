@@ -52,29 +52,35 @@ function PlansList({ userId }: { userId: string }) {
         {plans.map((plan) => (
           <li key={plan.id}>
             <div className={`${cardClass} w-full`}>
-              <PressableLink to={`/training/plans/${plan.id}`} className={linkClass}>
-                {plan.name}
-              </PressableLink>
-              {plan.aktiv && <span>aktiv</span>}
-              {!plan.aktiv && (
+              <div className="flex flex-wrap items-center gap-2">
+                <PressableLink to={`/training/plans/${plan.id}`} className={linkClass}>
+                  {plan.name}
+                </PressableLink>
+                {plan.aktiv && (
+                  <span className="rounded-full bg-surface-raised px-3 py-1 text-sm font-medium text-text">aktiv</span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {!plan.aktiv && (
+                  <Pressable
+                    variant="secondary"
+                    type="button"
+                    onClick={() => run(() => activatePlan(plan.id), 'Aktivieren fehlgeschlagen.')}
+                  >
+                    Aktivieren
+                  </Pressable>
+                )}
                 <Pressable
-                  variant="secondary"
+                  variant="danger"
                   type="button"
-                  onClick={() => run(() => activatePlan(plan.id), 'Aktivieren fehlgeschlagen.')}
+                  onClick={() => run(() => deletePlan(plan.id), 'Löschen fehlgeschlagen.')}
                 >
-                  Aktivieren
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <VitaIcon name="delete" tone="mono" size={20} />
+                    Löschen
+                  </span>
                 </Pressable>
-              )}
-              <Pressable
-                variant="danger"
-                type="button"
-                onClick={() => run(() => deletePlan(plan.id), 'Löschen fehlgeschlagen.')}
-              >
-                <span className="inline-flex items-center justify-center gap-2">
-                  <VitaIcon name="delete" tone="mono" size={20} />
-                  Löschen
-                </span>
-              </Pressable>
+              </div>
             </div>
           </li>
         ))}

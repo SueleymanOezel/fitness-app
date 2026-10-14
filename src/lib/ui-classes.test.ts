@@ -62,6 +62,10 @@ describe('ui-classes', () => {
     expect(inputClass).toContain('focus-visible:ring-accent')
   })
 
+  it('keeps field text at 16px regular even inside a small label (no iOS focus zoom)', () => {
+    expect(inputClass.split(' ')).toEqual(expect.arrayContaining(['text-base', 'font-normal']))
+  })
+
   it('exports the shared interactive-state classes for other components to reuse', () => {
     expect(interactiveClass).toContain('transition')
     expect(interactiveClass).not.toContain('active:scale')

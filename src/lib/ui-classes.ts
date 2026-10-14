@@ -60,7 +60,7 @@ export const labelClass = 'text-sm font-medium text-text-muted'
  * Bug, der beim Google-Button auf /login zuerst auffiel.
  */
 export const inputClass =
-  'w-full rounded-2xl m-0 border border-text-muted/30 bg-surface-raised px-4 py-3 text-text placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
+  'w-full rounded-2xl m-0 border border-text-muted/30 bg-surface-raised px-4 py-3 text-base font-normal text-text placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
 
 /**
  * For a primary action that would otherwise sit low enough on a page to
