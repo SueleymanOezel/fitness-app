@@ -99,7 +99,27 @@ Seit 22.09.2026: Ein per `/graphify` gebauter Wissensgraph-Snapshot liegt unter 
 
 Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer Chat sofort weiß, was gemacht wurde und was als Nächstes ansteht.
 
-### ▶ Neuer Chat: genau hier weitermachen (Stand 13.10.2026)
+### ▶ Neuer Chat: genau hier weitermachen (Stand 14.10.2026)
+
+**Alles ist gemerged, deployed, live verifiziert und gepusht. Kein offener PR, keine aktive Worktree.** Live-Stand: `master` `ac7fc93` (PR #79), Live-Bundle `index-CunNHaud.js`.
+
+**Woran gerade gearbeitet wird:** Fixes aus dem Mobile-Audit vom 13.10.2026 (`.impeccable/critique/2026-10-13T20-53-41Z__vitaloop-web-app.md`, 16/40 Design). Nutzer-Entscheidung: vier Blöcke nacheinander, je eigene Spec → Plan → Umsetzung:
+1. ~~P0-Fix vorab~~ — erledigt (PR #77: Training ohne Profilgewicht abschließbar, Dezimalkomma im Satz).
+2. ~~**Block 1** Einheitliches Designsystem~~ — erledigt (PR #78 + Nachbesserung PR #79). Spec `docs/superpowers/specs/2026-10-13-einheitliches-designsystem-block1-design.md`, Plan `docs/superpowers/plans/2026-10-13-einheitliches-designsystem-block1-plan.md`, Wiki `Audit-Block-1-Designsystem`.
+3. **Block 2 — NÄCHSTER SCHRITT:** „spürbar hochwertiger“: Hero-Bereich je Tab inkl. Home-Dashboard (ehem. Phase 2d), kompakte Listen, Skeletons statt „Lädt…“, Leerzustände. Start mit `superpowers:brainstorming` (architektonisch → Spec → `writing-plans` → SDD in Worktree). Design-Aufgaben laufen über die Skills aus „Design-Workflow“ oben (`impeccable` zuerst); `PRODUCT.md` im Repo-Root beschreibt Nutzer, Szenen und Prinzipien.
+   Aus Block 1 hierher verschoben: uneinheitliche Position der Link-Gruppen auf Dashboards (Training/Ernährung über, Körper/Home unter den Charts), `space-y-4` (16 px) zwischen Chart-Karten statt 24 px, 36 px Luft oben/unten in der Mahlzeiten-Karte auf `/nutrition`, leere Mahlzeiten-Karte wenn `visibleSections` `[]` ist, `ExercisePicker` `space-y-1` / `LoggedSets` `space-y-2` statt `gap`.
+4. **Block 3** Ehrliche Daten/Logik (ehem. Vorhaben B): leerer Satz wird akzeptiert, Sätze nachträglich korrigieren, Löschen ohne Bestätigung/Undo, Körper-Datum-Edit erzeugt Duplikat, 404 = schwarzer Bildschirm, rohe englische Supabase-Fehler beim Login, englische Übungsnamen in Historie/Graphen/Analyse (`TrainingHistoryDetailPage` zeigt `set.exercise?.name`), „kcal verbraucht“ für Gegessenes, `aria-label` mit Gedankenstrich an Mahlzeiten-Links.
+5. **Block 4** Performance/PWA/Security: Katalog-Virtualisierung + kleine Bilder, Cache-Header (Assets immutable), Manifest/Service Worker, doppelte Supabase-Requests, 19× `auth_rls_initplan`, 6 unindizierte FKs, SECURITY-DEFINER-Grants, HIBP aus, ggf. ESLint-Abdeckung für `PressableLink` ohne Klasse.
+
+**Designsystem-Regeln seit Block 1 (gelten für jede neue UI):** Aussehen nur über Rezepte in `src/lib/ui-classes.ts` (`cardClass`, `inputClass`, `fieldLabelClass`, `checkLabelClass`, `linkClass`, `listClass`, `listRowClass`, `labelClass`, `statClass`, Button-Rezepte via `Pressable`-Variante). Basis-Layer in `src/index.css` ist nur Typo-Skala, Layout, 44-px-Tap-Höhen und `main > *` mit 24 px `gap`. Flächen: Seite `bg`, Karte `surface`, Bedienelement `surface-raised`; keine Karte in Karte. Kein `m-0`/`gap-*` neben `cardClass` (hebelt `space-y-3` aus bzw. verdoppelt); `cardClass` nie auf eine waagerechte Flex-Zeile. ESLint (`no-restricted-syntax`) erzwingt Klassen an Feldern, Labels und `Pressable`.
+
+**Ablauf-Regeln, die sich bewährt haben (zusätzlich zu den „Arbeitsregeln“ weiter unten):**
+- Merge macht der Nutzer. Ihn bitten: **nach dem Merge erst Bescheid geben, nicht gleich bauen.** Dann pullt Claude im Haupt-Checkout, nennt den Commit, erst dann Deploy-Befehl. Nach Deploy: Hash lokal = live **und** PR-Marker per `grep -l` in **allen** `dist/assets/*` suchen (kann in einem nachgeladenen Chunk liegen, z. B. `chart-titles-*.js`) und denselben Chunk live per `curl` prüfen.
+- Nach jedem Merge: Worktree entfernen (`git worktree remove`, bei Sperre bleibt nur der Ordner), Branch löschen, `graphify update` (aus `G:\Code Projekteitness-app`), Wiki-Seite + `Home.md` + `_Sidebar.md`, dieser Abschnitt.
+- Visuelle Prüfung: im Chrome des Nutzers per Claude-in-Chrome (`tabs_context_mcp`), Nutzer schaltet DevTools-Handyansicht ein. **Mausklicks hängen in VitaLoop-Tabs (CDP-Timeout)** → Buttons per `javascript_tool` mit `element.click()` auslösen. Für lokale Prüfung: `.env` aus dem Haupt-Checkout in die Worktree kopieren, `npx vite --port 518x`; der Nutzer muss sich auf `localhost` einmal selbst einloggen (Claude gibt kein Passwort ein).
+- Gesperrte Worktree-Ordner (`redesign-2c`, `design-block1`, `dialog-spacing` unter `.claude/worktrees/`) sind nur Reste, Registrierung und Branches sind weg — bei Gelegenheit löschen.
+
+#### Verlauf (ältere Übergabe-Notizen, nur bei Bedarf lesen)
 
 **Alles ist gemerged, deployed, live verifiziert und gepusht.** Zuletzt fertig: Redesign Phase 1 „Fundament“ (PR #73) und **Redesign Phase 2a „Gemeinsame Bausteine“ (PR #74, Merge-Commit `faa5651`)** — Details im Abschnitt „Bucket C“ weiter unten (Absatz „Redesign Phase 2a“). Wiki ist nachgezogen (Wiki-Commit `185debc`, inkl. Domain Model `0012`/`0013`). Keine offene Worktree, kein offener PR.
 
