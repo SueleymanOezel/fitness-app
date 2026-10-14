@@ -75,7 +75,7 @@ describe('BodyPage', () => {
     // The li stays a plain list item; cardClass belongs on the nested div only.
     const li = screen.getByText('82,5 kg').closest('li')
     expect(li).not.toHaveClass('bg-surface')
-    const card = screen.getByText('82,5 kg').closest('div')
+    const card = li?.firstElementChild
     expect(card).toHaveClass('bg-surface', 'rounded-3xl')
   })
 

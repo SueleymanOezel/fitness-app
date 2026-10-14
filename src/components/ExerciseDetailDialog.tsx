@@ -17,7 +17,7 @@ export default function ExerciseDetailDialog({ exercise }: { exercise: Exercise 
   const anleitung = exercise.anleitung_de ?? exercise.anleitung ?? []
 
   return (
-    <div className={`${cardClass} flex flex-col gap-4`}>
+    <div className={`${cardClass} flex flex-col`}>
       {exercise.bild_url && (
         <img
           src={exercise.bild_url}

@@ -78,20 +78,22 @@ function Dashboard({ userId }: { userId: string }) {
           const change = changeSince(rows, field)
           return (
             <li key={field}>
-              <div className={`${cardClass} w-full flex flex-col items-start gap-1`}>
-                <span className={labelClass}>{FIELD_LABELS[field]}</span>
-                <span className={statClass} data-testid={`wert-${field}`}>
-                  {latest == null ? '—' : `${formatValue(latest.value)} ${unitOf(field)}`}
-                </span>
-                {latest != null && (
-                  <span className="text-sm text-text-muted">{`Stand ${formatDate(latest.datum)}`}</span>
-                )}
-                {change != null && (
-                  <span className="text-sm text-text-muted">
-                    {/* U+2212 minus, not a hyphen: it lines up with digits. */}
-                    {`${change.delta < 0 ? '−' : '+'}${formatValue(Math.abs(change.delta))} ${unitOf(field)} seit ${formatDate(change.datum)}`}
+              <div className={`${cardClass} w-full`}>
+                <div className="flex flex-col items-start gap-1">
+                  <span className={labelClass}>{FIELD_LABELS[field]}</span>
+                  <span className={statClass} data-testid={`wert-${field}`}>
+                    {latest == null ? '—' : `${formatValue(latest.value)} ${unitOf(field)}`}
                   </span>
-                )}
+                  {latest != null && (
+                    <span className="text-sm text-text-muted">{`Stand ${formatDate(latest.datum)}`}</span>
+                  )}
+                  {change != null && (
+                    <span className="text-sm text-text-muted">
+                      {/* U+2212 minus, not a hyphen: it lines up with digits. */}
+                      {`${change.delta < 0 ? '−' : '+'}${formatValue(Math.abs(change.delta))} ${unitOf(field)} seit ${formatDate(change.datum)}`}
+                    </span>
+                  )}
+                </div>
               </div>
             </li>
           )
