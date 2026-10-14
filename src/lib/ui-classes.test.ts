@@ -34,6 +34,8 @@ describe('ui-classes', () => {
     expect(buttonSecondaryClass).toContain('rounded-2xl')
     expect(buttonSecondaryClass).toContain('border-0')
     expect(buttonSecondaryClass.split(' ')).not.toContain('m-0')
+    // m-0 would override a card's space-y-3 and glue stacked controls together.
+    expect(buttonDangerClass.split(' ')).not.toContain('m-0')
   })
 
   it('gives the primary button on-bright text instead of the near-white default, for AA contrast on accent', () => {
