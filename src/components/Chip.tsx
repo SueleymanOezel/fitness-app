@@ -16,7 +16,7 @@ export default function Chip({ active, className = '', ...props }: ChipProps) {
     <Pressable
       type="button"
       aria-pressed={active}
-      className={`rounded-full border-0 m-0 px-4 py-2 font-medium ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${
+      className={`rounded-full border-0 px-4 py-2 font-medium ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${
         active ? 'bg-accent text-on-bright' : 'bg-surface-raised text-text'
       } ${className}`}
       {...props}

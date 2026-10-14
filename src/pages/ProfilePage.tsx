@@ -224,7 +224,7 @@ function DeleteAccountSection() {
       </Pressable>
       <Dialog open={dialogOpen} onClose={closeDialog}>
         <div className={`${cardClass} flex flex-col`}>
-          <h2 className="m-0">Konto endgültig löschen?</h2>
+          <h2>Konto endgültig löschen?</h2>
           <p>
             Alle Trainings-, Ernährungs- und Körperdaten sowie Fortschrittsfotos werden
             unwiderruflich gelöscht, dein Login verschwindet. Das lässt sich nicht rückgängig

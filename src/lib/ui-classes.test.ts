@@ -25,7 +25,7 @@ describe('ui-classes', () => {
     expect(buttonPrimaryClass).toContain('w-full')
     expect(buttonPrimaryClass).toContain('rounded-2xl')
     expect(buttonPrimaryClass).toContain('border-0')
-    expect(buttonPrimaryClass).toContain('m-0')
+    expect(buttonPrimaryClass.split(' ')).not.toContain('m-0')
   })
 
   it('keeps the secondary button visually distinct from the primary one', () => {
@@ -33,7 +33,7 @@ describe('ui-classes', () => {
     expect(buttonSecondaryClass).not.toContain('w-full')
     expect(buttonSecondaryClass).toContain('rounded-2xl')
     expect(buttonSecondaryClass).toContain('border-0')
-    expect(buttonSecondaryClass).toContain('m-0')
+    expect(buttonSecondaryClass.split(' ')).not.toContain('m-0')
   })
 
   it('gives the primary button on-bright text instead of the near-white default, for AA contrast on accent', () => {
@@ -56,7 +56,7 @@ describe('ui-classes', () => {
   it('gives text inputs a raised look distinct from both the page and a card background, with focus feedback', () => {
     expect(inputClass).toContain('bg-surface-raised')
     expect(inputClass).toContain('w-full')
-    expect(inputClass).toContain('m-0')
+    expect(inputClass.split(' ')).not.toContain('m-0')
     expect(inputClass).toContain('rounded-2xl')
     expect(inputClass).toContain('focus-visible:ring-2')
     expect(inputClass).toContain('focus-visible:ring-accent')

@@ -88,7 +88,7 @@ export default function LoginPage() {
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4">
       <img src="/logo.webp" alt="VitaLoop" className="h-28 w-auto" />
       <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
-        <h1 className="m-0 text-lg font-semibold">
+        <h1 className="text-lg font-semibold">
           {mode === 'login' ? 'Login' : 'Registrieren'}
         </h1>
         <div className="flex flex-col gap-1.5">
@@ -130,7 +130,7 @@ export default function LoginPage() {
         </Pressable>
         <Pressable
           type="button"
-          className="w-full m-0 border-0 bg-transparent text-center text-sm text-text-muted underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="w-full border-0 bg-transparent text-center text-sm text-text-muted underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           onClick={toggleMode}
         >
           {mode === 'login' ? 'Noch keinen Account? Registrieren' : 'Schon registriert? Einloggen'}

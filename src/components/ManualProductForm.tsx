@@ -73,8 +73,8 @@ export default function ManualProductForm({ barcode, onCreated, onCancel }: Prop
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <h2>Neues Produkt (Werte pro 100 g)</h2>
       <div className={cardClass}>
+        <h2>Neues Produkt (Werte pro 100 g)</h2>
         <label className={fieldLabelClass}>
           Name
           <input className={inputClass} value={name} onChange={(event) => setName(event.target.value)} />

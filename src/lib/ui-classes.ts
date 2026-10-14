@@ -34,18 +34,18 @@ export const interactiveClass =
   'transition-[color,background-color,border-color,box-shadow,filter,opacity] duration-150 motion-reduce:transition-none hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
 
 export const buttonPrimaryClass =
-  `w-full rounded-2xl border-0 m-0 bg-accent px-4 py-3 font-semibold text-on-bright disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
+  `w-full rounded-2xl border-0 bg-accent px-4 py-3 font-semibold text-on-bright disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
 
 /**
  * Flächen-Regel (Block 1): Bedienelemente liegen immer auf surface-raised —
  * auf bg-surface wären sie in einer Karte unsichtbar (Audit 13.10.2026).
  */
 export const buttonSecondaryClass =
-  `rounded-2xl border-0 m-0 bg-surface-raised px-4 py-3 font-semibold text-text disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
+  `rounded-2xl border-0 bg-surface-raised px-4 py-3 font-semibold text-text disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
 
 /** Destructive action (delete, remove): same shape as secondary, danger-colored text. */
 export const buttonDangerClass =
-  `rounded-2xl border-0 m-0 bg-surface-raised px-4 py-3 font-semibold text-danger disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
+  `rounded-2xl border-0 bg-surface-raised px-4 py-3 font-semibold text-danger disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
 
 /** Large figure (weight, PR, calories): bold, tight, digits that do not jump. */
 export const statClass = 'text-3xl font-bold tracking-tight tabular-nums'
@@ -60,7 +60,7 @@ export const labelClass = 'text-sm font-medium text-text-muted'
  * Bug, der beim Google-Button auf /login zuerst auffiel.
  */
 export const inputClass =
-  'w-full rounded-2xl m-0 border border-text-muted/30 bg-surface-raised px-4 py-3 text-base font-normal text-text placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
+  'w-full rounded-2xl border border-text-muted/30 bg-surface-raised px-4 py-3 text-base font-normal text-text placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
 
 /**
  * For a primary action that would otherwise sit low enough on a page to
