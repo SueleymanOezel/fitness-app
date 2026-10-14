@@ -169,7 +169,7 @@ function DayBlock({
       <h2>{day.name}</h2>
       <TagMuskelSilhouette zonen={zonen} />
       {(canMoveUp || canMoveDown) && (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {canMoveUp && (
             <Pressable variant="secondary" className="min-w-11 px-3" type="button" onClick={() => onMoveDay('up')}>
               Tag nach oben

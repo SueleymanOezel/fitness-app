@@ -57,6 +57,18 @@ describe('ExercisesPage', () => {
     expect(screen.queryByText('Kniebeuge')).not.toBeInTheDocument()
   })
 
+  it('keeps list rows free of vertical child spacing (horizontal flex row)', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseExercises.mockReturnValue(exercisesResult())
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    const row = screen.getByText('Bankdrücken').closest('button')
+    expect(row).toHaveClass('bg-surface', 'rounded-3xl', 'p-6')
+    expect(row).not.toHaveClass('space-y-3')
+  })
+
   it('shows the German name and searches by it when a translation exists', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseExercises.mockReturnValue(

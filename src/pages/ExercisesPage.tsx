@@ -96,7 +96,7 @@ function ExercisesList({ userId }: { userId: string }) {
             <li key={exercise.id} className="list-in" style={{ animationDelay: revealDelay(index) }}>
               <Pressable
                 type="button"
-                className={`${cardClass} ${interactiveClass} flex w-full items-center gap-4 text-left focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
+                className={`bg-surface rounded-3xl p-6 ${interactiveClass} flex w-full items-center gap-4 text-left focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
                 onClick={() => setSelectedExercise(exercise)}
               >
                 <ExerciseThumbnail bildUrl={exercise.bild_url} />
