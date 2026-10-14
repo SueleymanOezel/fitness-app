@@ -9,7 +9,7 @@ import type { Exercise } from '../hooks/use-exercises'
  * read-only facts about the exercise, not toggleable filters, so they must
  * not carry Chip's button/aria-pressed semantics.
  */
-const tagClass = 'rounded-full bg-surface-raised px-4 py-2 font-medium text-text-muted'
+const tagClass = 'rounded-full bg-surface-raised px-4 py-2 font-medium text-text'
 
 export default function ExerciseDetailDialog({ exercise }: { exercise: Exercise }) {
   const name = exercise.name_de ?? exercise.name

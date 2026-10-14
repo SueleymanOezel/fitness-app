@@ -65,7 +65,7 @@ function Detail({ sessionId }: { sessionId: string }) {
         {sets.map((set) => (
           <li key={set.id}>
             <div className={`${cardClass} w-full`}>
-              {set.exercise?.name}
+              <p className="font-semibold">{set.exercise?.name}</p>
               <SetField
                 label="Gewicht (kg)"
                 stored={set.gewicht}

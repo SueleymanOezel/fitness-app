@@ -101,6 +101,7 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
         />
       ))}
       <form
+        className="flex flex-col gap-3"
         onSubmit={(event) => {
           event.preventDefault()
           if (newDayName.trim() === '') {

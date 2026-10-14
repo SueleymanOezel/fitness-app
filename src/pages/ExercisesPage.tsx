@@ -94,6 +94,7 @@ function ExercisesList({ userId }: { userId: string }) {
           const caption = exerciseCaption(exercise)
           return (
             <li key={exercise.id} className="list-in" style={{ animationDelay: revealDelay(index) }}>
+              {/* cardClass minus space-y-3: in a horizontal row the margins would offset the text against the thumbnail. */}
               <Pressable
                 type="button"
                 className={`bg-surface rounded-3xl p-6 ${interactiveClass} flex w-full items-center gap-4 text-left focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
