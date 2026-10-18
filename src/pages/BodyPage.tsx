@@ -14,11 +14,14 @@ import BodyChartList from '../components/charts/BodyChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { useBodyAnalysis } from '../hooks/use-body-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
-import { cardClass, labelClass, linkClass, statClass, stickyActionClass } from '../lib/ui-classes'
+import { cardClass, listClass, statClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
-import Pressable, { PressableLink } from '../components/Pressable'
+import Pressable from '../components/Pressable'
+import PageHero from '../components/PageHero'
+import LinkListCard from '../components/LinkListCard'
+import PageSkeleton, { ChartSkeleton } from '../components/PageSkeleton'
 
 /** German notation: comma as the decimal mark, at most one place. */
 function formatValue(value: number) {
@@ -40,14 +43,7 @@ export default function BodyPage() {
   const { session } = useSession()
   const userId = session?.user.id
 
-  if (!userId) {
-    return (
-      <div>
-        <h1>Körper</h1>
-        <p>Lädt…</p>
-      </div>
-    )
-  }
+  if (!userId) return <PageSkeleton titel="Körper" />
 
   return <Dashboard userId={userId} />
 }
@@ -58,59 +54,46 @@ function Dashboard({ userId }: { userId: string }) {
   const showToast = useToast()
   const auswahl = useChartSelection(userId)
 
-  if (loading) {
-    return (
-      <div>
-        <h1>Körper</h1>
-        <p>Lädt…</p>
-      </div>
-    )
-  }
+  if (loading) return <PageSkeleton titel="Körper" />
+
+  const gewicht = latestValue(rows, 'gewicht')
+  const gewichtAenderung = changeSince(rows, 'gewicht')
+  const weitereFelder = MEASUREMENT_FIELDS.filter((field) => field !== 'gewicht')
 
   return (
     <div>
       <h1>Körper</h1>
       {error && <p role="alert">Werte konnten nicht geladen werden.</p>}
 
-      <ul role="list" className="grid grid-cols-2 gap-4">
-        {MEASUREMENT_FIELDS.map((field) => {
-          const latest = latestValue(rows, field)
-          const change = changeSince(rows, field)
-          return (
-            <li key={field}>
-              <div className={`${cardClass} w-full`}>
-                <div className="flex flex-col items-start gap-1">
-                  <span className={labelClass}>{FIELD_LABELS[field]}</span>
-                  <span className={statClass} data-testid={`wert-${field}`}>
-                    {latest == null ? '—' : `${formatValue(latest.value)} ${unitOf(field)}`}
-                  </span>
-                  {latest != null && (
-                    <span className="text-sm text-text-muted">{`Stand ${formatDate(latest.datum)}`}</span>
-                  )}
-                  {change != null && (
-                    <span className="text-sm text-text-muted">
-                      {/* U+2212 minus, not a hyphen: it lines up with digits. */}
-                      {`${change.delta < 0 ? '−' : '+'}${formatValue(Math.abs(change.delta))} ${unitOf(field)} seit ${formatDate(change.datum)}`}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </li>
+      <PageHero
+        label={FIELD_LABELS.gewicht}
+        titel={gewicht == null ? '—' : `${formatValue(gewicht.value)} ${unitOf('gewicht')}`}
+        titelClass={statClass}
+        titelTestId="wert-gewicht"
+        untertitel={
+          gewicht == null ? (
+            'Noch kein Gewicht eingetragen.'
+          ) : (
+            <>
+              <span className="block">{`Stand ${formatDate(gewicht.datum)}`}</span>
+              {gewichtAenderung != null && (
+                <span className="block">
+                  {/* U+2212 minus, not a hyphen: it lines up with digits. */}
+                  {`${gewichtAenderung.delta < 0 ? '−' : '+'}${formatValue(Math.abs(gewichtAenderung.delta))} ${unitOf('gewicht')} seit ${formatDate(gewichtAenderung.datum)}`}
+                </span>
+              )}
+            </>
           )
-        })}
-      </ul>
-
-      <Pressable
-        variant="primary"
-        type="button"
-        className={stickyActionClass}
-        onClick={() => setFormOpen(true)}
-      >
-        <span className="inline-flex items-center justify-center gap-2">
-          <VitaIcon name="measurement" tone="mono" size={20} />
-          Heute eintragen
-        </span>
-      </Pressable>
+        }
+        action={
+          <Pressable variant="primary" type="button" onClick={() => setFormOpen(true)}>
+            <span className="inline-flex items-center justify-center gap-2">
+              <VitaIcon name="measurement" tone="mono" size={20} />
+              Heute eintragen
+            </span>
+          </Pressable>
+        }
+      />
       {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
           rendering the form only while open forces a fresh prefill from the
           current rows each time it opens, instead of showing the last
@@ -147,21 +130,38 @@ function Dashboard({ userId }: { userId: string }) {
         )}
       </Dialog>
 
-      <DashboardBodyCharts userId={userId} auswahl={auswahl.auswahl} />
-      <div className="flex flex-col">
-        <PressableLink to="/body/analyse" className={linkClass}>
-          <VitaIcon name="analysis" tone="brand" size={20} />
-          Analyse
-        </PressableLink>
-        <PressableLink to="/body/entries" className={linkClass}>
-          <VitaIcon name="history" tone="brand" size={20} />
-          Verlauf
-        </PressableLink>
-        <PressableLink to="/body/photos" className={linkClass}>
-          <VitaIcon name="photos" tone="brand" size={20} />
-          Fortschrittsfotos
-        </PressableLink>
+      <div className={cardClass}>
+        <ul role="list" className={listClass}>
+          {weitereFelder.map((field) => {
+            const latest = latestValue(rows, field)
+            const change = changeSince(rows, field)
+            return (
+              <li key={field} className="flex items-center justify-between gap-3 py-3">
+                <div className="min-w-0">
+                  <p>{FIELD_LABELS[field]}</p>
+                  {change != null && (
+                    <p className="text-sm text-text-muted">
+                      {`${change.delta < 0 ? '−' : '+'}${formatValue(Math.abs(change.delta))} ${unitOf(field)} seit ${formatDate(change.datum)}`}
+                    </p>
+                  )}
+                </div>
+                <span className="text-lg font-semibold tabular-nums" data-testid={`wert-${field}`}>
+                  {latest == null ? '—' : `${formatValue(latest.value)} ${unitOf(field)}`}
+                </span>
+              </li>
+            )
+          })}
+        </ul>
       </div>
+
+      <LinkListCard
+        items={[
+          { to: '/body/entries', label: 'Verlauf', icon: 'history' },
+          { to: '/body/photos', label: 'Fortschrittsfotos', icon: 'photos' },
+          { to: '/body/analyse', label: 'Analyse', icon: 'analysis' },
+        ]}
+      />
+      <DashboardBodyCharts userId={userId} auswahl={auswahl.auswahl} />
     </div>
   )
 }
@@ -180,7 +180,7 @@ function DashboardBodyCharts({ userId, auswahl }: { userId: string; auswahl: str
 
 function DashboardBodyChartsData({ userId, ids }: { userId: string; ids: string[] }) {
   const { rows, kalorien, fotos, loading, error } = useBodyAnalysis(userId, DASHBOARD_ZEITRAUM)
-  if (loading) return <p>Lädt…</p>
+  if (loading) return <ChartSkeleton />
   if (error) return <p role="alert">Graph konnte nicht geladen werden.</p>
   return (
     <BodyChartList

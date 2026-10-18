@@ -196,7 +196,7 @@ describe('App routing', () => {
     render(<App />)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Heute eintragen' }))
-    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '80' } })
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Gewicht (kg)' }), { target: { value: '80' } })
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
