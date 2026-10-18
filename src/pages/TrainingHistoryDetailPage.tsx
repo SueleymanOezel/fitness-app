@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useWorkoutSession } from '../hooks/use-workout-session'
 import { exerciseName } from '../lib/exercise-name'
+import { WIEDERHOLUNGEN_FEHLER } from '../lib/set-values'
 import { cardClass, checkLabelClass, fieldLabelClass, inputClass, linkClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
@@ -76,6 +77,7 @@ function Detail({ sessionId }: { sessionId: string }) {
                 label="Wiederholungen"
                 stored={set.wiederholungen}
                 integer
+                pflichtMeldung={WIEDERHOLUNGEN_FEHLER}
                 onCommit={(value) =>
                   run(() => updateSet(set.id, { wiederholungen: value }), 'Speichern fehlgeschlagen.')
                 }
@@ -143,6 +145,7 @@ function SetField({
   stored,
   max,
   integer,
+  pflichtMeldung,
   onCommit,
 }: {
   label: string
@@ -152,30 +155,52 @@ function SetField({
   /** rir and wiederholungen are integer columns: Postgres would round 2.6 to 3
    *  and store a value nobody typed. Gewicht is numeric and stays fractional. */
   integer?: boolean
+  /** Gesetzt = Pflichtfeld (mindestens 1): leer oder 0 wird abgelehnt und diese Meldung gezeigt. */
+  pflichtMeldung?: string
   onCommit: (value: number | null) => void
 }) {
   const [draft, setDraft] = useState(String(stored ?? ''))
+  const [meldung, setMeldung] = useState<string | null>(null)
 
   function commit() {
     const value = draft.trim() === '' ? null : Number(draft)
-    const rejected =
+    // Unverändert zuerst: ein alter Satz ohne Wiederholungen (null) darf beim bloßen
+    // Antippen und Verlassen weder schreiben noch eine Meldung auslösen.
+    if (value === stored) return
+    const ungueltig =
       value !== null &&
       (!Number.isFinite(value) ||
         value < 0 ||
         (max != null && value > max) ||
         (integer === true && !Number.isInteger(value)))
-    if (rejected) {
+    const fehlt = pflichtMeldung !== undefined && (value === null || value < 1)
+    if (ungueltig || fehlt) {
       setDraft(String(stored ?? ''))
+      setMeldung(pflichtMeldung ?? null)
       return
     }
-    if (value === stored) return
+    setMeldung(null)
     onCommit(value)
   }
 
   return (
     <label className={fieldLabelClass}>
       {label}
-      <input className={inputClass} value={draft} onChange={(event) => setDraft(event.target.value)} onBlur={commit} />
+      <input
+        className={inputClass}
+        value={draft}
+        aria-invalid={meldung !== null}
+        onChange={(event) => {
+          setDraft(event.target.value)
+          setMeldung(null)
+        }}
+        onBlur={commit}
+      />
+      {meldung && (
+        <span role="alert" className="text-sm font-normal text-danger">
+          {meldung}
+        </span>
+      )}
     </label>
   )
 }
