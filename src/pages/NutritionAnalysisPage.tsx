@@ -3,7 +3,7 @@ import { useSession } from '../hooks/use-session'
 import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
 import { useProfile } from '../hooks/use-profile'
 import ZeitraumSwitch from '../components/ZeitraumSwitch'
-import { useChartSelection } from '../components/charts/ChartPicker'
+import { useChartSelectionFor } from '../components/charts/ChartPicker'
 import NutritionChartList from '../components/charts/NutritionChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
@@ -31,8 +31,9 @@ export default function NutritionAnalysisPage() {
 function Analyse({ userId }: { userId: string }) {
   const [zeitraum, setZeitraum] = useState<Zeitraum>(STANDARD_ZEITRAUM)
   const { entries, sessions, loading, error } = useNutritionAnalysis(userId, zeitraum)
-  const { profile } = useProfile(userId)
-  const auswahl = useChartSelection(userId)
+  const profileResult = useProfile(userId)
+  const { profile } = profileResult
+  const auswahl = useChartSelectionFor(profileResult)
   // Reihenfolge ist die der Registry — kein Umsortieren, wie in der Spec.
   const ids = chartsFor('nutrition').map((chart) => chart.id)
 

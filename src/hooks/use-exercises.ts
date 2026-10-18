@@ -10,8 +10,6 @@ export type Exercise = {
   muskelgruppen_primaer: string[] | null
   muskelgruppen_sekundaer: string[] | null
   bild_url: string | null
-  anleitung: string[] | null
-  anleitung_de: string[] | null
   schwierigkeitsgrad: string | null
   met_wert: number | null
   created_by: string | null
@@ -28,6 +26,14 @@ export type NewExercise = {
   anleitung?: string[]
   schwierigkeitsgrad?: string
 }
+
+/**
+ * The list never shows the step-by-step instructions, and they are by far the
+ * biggest part of a row (~1.1 of ~1.4 MB for the whole library). They are read
+ * on demand for one exercise (useExerciseInstructions), not with every list.
+ */
+const LIST_COLUMNS =
+  'id, name, name_de, kategorie, equipment, muskelgruppen_primaer, muskelgruppen_sekundaer, bild_url, schwierigkeitsgrad, met_wert, created_by'
 
 const PAGE_SIZE = 500
 /** Stops a misconfigured db-max-rows from turning the loop into an endless one. */
@@ -53,7 +59,7 @@ export function useExercises(userId: string) {
       const from = page * PAGE_SIZE
       const { data, error: pageError } = await supabase
         .from('exercises')
-        .select('*')
+        .select(LIST_COLUMNS)
         // id as a tiebreaker: names are not unique, and without a total order
         // a row on a page boundary can come back twice or not at all.
         .order('name', { ascending: true })
@@ -92,4 +98,29 @@ export function useExercises(userId: string) {
   }
 
   return { exercises, loading, error, createExercise }
+}
+
+/** Instructions of one exercise, loaded when its detail dialog opens. */
+export function useExerciseInstructions(exerciseId: string) {
+  const [state, setState] = useState<{ id: string; anleitung: string[]; failed: boolean } | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    supabase
+      .from('exercises')
+      .select('anleitung, anleitung_de')
+      .eq('id', exerciseId)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return
+        const row = data as { anleitung: string[] | null; anleitung_de: string[] | null } | null
+        setState({ id: exerciseId, anleitung: row?.anleitung_de ?? row?.anleitung ?? [], failed: Boolean(error) })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [exerciseId])
+
+  const current = state?.id === exerciseId ? state : null
+  return { anleitung: current?.anleitung ?? [], loading: current === null, error: current?.failed ?? false }
 }

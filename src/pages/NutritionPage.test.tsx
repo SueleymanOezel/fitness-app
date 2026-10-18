@@ -382,7 +382,11 @@ vi.mock('../components/charts/ChartPicker', async () => {
   const actual = await vi.importActual<typeof import('../components/charts/ChartPicker')>(
     '../components/charts/ChartPicker',
   )
-  return { ...actual, useChartSelection: () => mockUseChartSelection() }
+  return {
+    ...actual,
+    useChartSelection: () => mockUseChartSelection(),
+    useChartSelectionFor: () => mockUseChartSelection(),
+  }
 })
 
 // Default for tests outside the "ausgewaehlte Graphen" describe below, which

@@ -2,7 +2,7 @@ import { cardClass } from '../lib/ui-classes'
 import { muskelgruppeLabel } from '../lib/muscle-group-labels'
 import { equipmentLabel } from '../lib/equipment-labels'
 import { levelLabel } from '../lib/level-labels'
-import type { Exercise } from '../hooks/use-exercises'
+import { useExerciseInstructions, type Exercise } from '../hooks/use-exercises'
 
 /**
  * Same visual look as an inactive Chip, but a plain span: these tags are
@@ -14,7 +14,7 @@ const tagClass = 'rounded-full bg-surface-raised px-4 py-2 font-medium text-text
 export default function ExerciseDetailDialog({ exercise }: { exercise: Exercise }) {
   const name = exercise.name_de ?? exercise.name
   const muskelgruppen = exercise.muskelgruppen_primaer ?? []
-  const anleitung = exercise.anleitung_de ?? exercise.anleitung ?? []
+  const { anleitung, loading, error } = useExerciseInstructions(exercise.id)
 
   return (
     <div className={`${cardClass} flex flex-col`}>
@@ -38,7 +38,11 @@ export default function ExerciseDetailDialog({ exercise }: { exercise: Exercise 
         </div>
       )}
       {exercise.schwierigkeitsgrad && <p>{levelLabel(exercise.schwierigkeitsgrad)}</p>}
-      {anleitung.length > 0 ? (
+      {loading ? (
+        <p role="status">Lädt…</p>
+      ) : error ? (
+        <p role="alert">Anleitung konnte nicht geladen werden.</p>
+      ) : anleitung.length > 0 ? (
         <ol className="flex list-decimal flex-col gap-2 pl-5">
           {anleitung.map((schritt, index) => (
             <li key={index}>{schritt}</li>

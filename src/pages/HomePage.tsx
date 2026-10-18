@@ -7,7 +7,7 @@ import { kalorienStatus } from '../lib/calorie-status'
 import { useActiveTrainingDay } from '../hooks/use-active-training-day'
 import { useBodyMetrics } from '../hooks/use-body-metrics'
 import { changeSince, latestValue } from '../lib/body-change'
-import { useChartSelection } from '../components/charts/ChartPicker'
+import { useChartSelectionFor } from '../components/charts/ChartPicker'
 import HomeChartList from '../components/charts/HomeChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { useHomeAnalysis } from '../hooks/use-home-analysis'
@@ -37,12 +37,13 @@ export default function HomePage() {
 }
 
 function Dashboard({ userId }: { userId: string }) {
-  const { profile, loading: profileLoading } = useProfile(userId)
+  const profileResult = useProfile(userId)
+  const { profile, loading: profileLoading } = profileResult
   const { entries, loading: entriesLoading } = useFoodEntries(userId)
   const { plan, day, loading: trainingLoading, error: trainingError } = useActiveTrainingDay(userId)
   const { rows, loading: rowsLoading, error: rowsError } = useBodyMetrics(userId)
   const { streak, loading: streakLoading } = useTrainingStreak(userId)
-  const auswahl = useChartSelection(userId)
+  const auswahl = useChartSelectionFor(profileResult)
 
   if (profileLoading || entriesLoading || trainingLoading || rowsLoading || streakLoading) {
     return <PageSkeleton titel="Home" />

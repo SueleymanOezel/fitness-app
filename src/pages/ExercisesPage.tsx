@@ -10,6 +10,7 @@ import { VitaIcon } from '../components/icons/VitaIcon'
 import { matchesExerciseFilter, uniqueEquipment, uniqueMuskelgruppen } from '../lib/exercise-filters'
 import { exerciseCaption, revealDelay } from '../lib/exercise-caption'
 import Pressable, { PressableLink } from '../components/Pressable'
+import { useVisibleCount } from '../hooks/use-visible-count'
 
 export default function ExercisesPage() {
   const { session } = useSession()
@@ -34,6 +35,7 @@ function ExercisesList({ userId }: { userId: string }) {
   const [equipment, setEquipment] = useState<string | null>(null)
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const { count, showMore } = useVisibleCount(`${query}|${muskelgruppe}|${equipment}`)
 
   if (loading) {
     return (
@@ -67,6 +69,8 @@ function ExercisesList({ userId }: { userId: string }) {
     .filter((exercise) => matchesExerciseFilter(exercise, { query, muskelgruppe, equipment }))
     .sort((a, b) => (a.name_de ?? a.name).localeCompare(b.name_de ?? b.name, 'de'))
 
+  const gefiltert = filtered.length
+
   return (
     <div>
       <h1>Übungen</h1>
@@ -90,7 +94,7 @@ function ExercisesList({ userId }: { userId: string }) {
       />
       {filtered.length === 0 && <p>Keine Übungen gefunden.</p>}
       <ul role="list" className="flex flex-col gap-3">
-        {filtered.map((exercise, index) => {
+        {filtered.slice(0, count).map((exercise, index) => {
           const caption = exerciseCaption(exercise)
           return (
             <li key={exercise.id} className="list-in" style={{ animationDelay: revealDelay(index) }}>
@@ -110,6 +114,11 @@ function ExercisesList({ userId }: { userId: string }) {
           )
         })}
       </ul>
+      {gefiltert > count && (
+        <Pressable variant="secondary" type="button" className="w-full" onClick={showMore}>
+          {`Mehr anzeigen (${gefiltert - count} weitere)`}
+        </Pressable>
+      )}
       <Pressable variant="primary" type="button" onClick={() => setDialogOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="add" tone="mono" size={20} />

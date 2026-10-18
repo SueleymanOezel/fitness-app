@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
-import ChartPicker, { useChartSelection } from './ChartPicker'
+import ChartPicker, { useChartSelection, useChartSelectionFor } from './ChartPicker'
 
 const updateProfile = vi.fn()
 const profil = { analyse_auswahl: ['T1'] }
@@ -13,6 +13,16 @@ beforeEach(() => {
   vi.clearAllMocks()
   updateProfile.mockResolvedValue(undefined)
   profil.analyse_auswahl = ['T1']
+})
+
+describe('useChartSelectionFor', () => {
+  it('uses the profile it is given instead of fetching its own', () => {
+    const eigenes = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() =>
+      useChartSelectionFor({ profile: { analyse_auswahl: ['K1'] } as never, updateProfile: eigenes }),
+    )
+    expect(result.current.auswahl).toEqual(['K1'])
+  })
 })
 
 describe('useChartSelection', () => {

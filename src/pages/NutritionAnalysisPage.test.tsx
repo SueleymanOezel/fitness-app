@@ -23,7 +23,7 @@ vi.mock('../components/charts/ChartPicker', async () => {
   return {
     ...actual,
     default: () => <span data-testid="picker" />,
-    useChartSelection: () => ({
+    useChartSelectionFor: () => ({
       auswahl: [],
       istGewaehlt: () => false,
       umschalten: vi.fn(),
