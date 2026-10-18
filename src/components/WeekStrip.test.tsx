@@ -16,4 +16,10 @@ describe('WeekStrip', () => {
     expect(eintraege[2]).toHaveTextContent('trainiert, heute')
     expect(eintraege[3]).toHaveTextContent('kein Training')
   })
+
+  it('says once what the colours mean', () => {
+    render(<WeekStrip tage={wochenStreifen([], '2026-10-14')} />)
+    expect(screen.getByText('trainiert', { selector: 'span' })).toBeInTheDocument()
+    expect(screen.getByText('heute', { selector: 'span' })).toBeInTheDocument()
+  })
 })

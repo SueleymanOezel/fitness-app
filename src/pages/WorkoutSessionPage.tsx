@@ -41,6 +41,7 @@ import { dauerText } from '../lib/dauer'
 import { abschlussZahlen, type Vergleich } from '../lib/abschluss'
 import { zahlDe } from '../lib/zahl'
 import { useActiveTrainingDay } from '../hooks/use-active-training-day'
+import { SATZ_LEGENDE } from '../components/LoggedSets'
 
 export default function WorkoutSessionPage() {
   const { session } = useSession()
@@ -339,6 +340,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
           </li>
         ))}
       </ul>
+      {sets.length > 0 && <p className={labelClass}>{SATZ_LEGENDE}</p>}
       <SetEditDialog
         set={bearbeiteterSatz}
         onClose={() => setBearbeiteterSatz(null)}

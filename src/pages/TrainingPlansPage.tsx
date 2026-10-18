@@ -49,6 +49,9 @@ function PlansList({ userId }: { userId: string }) {
                 <div className="flex flex-wrap items-center gap-2">
                   <PressableLink to={`/training/plans/${plan.id}`} className={linkClass}>
                     {plan.name}
+                    <span aria-hidden="true" className="text-text-muted">
+                      ›
+                    </span>
                   </PressableLink>
                   {plan.aktiv && (
                     <span className="rounded-full bg-surface-raised px-3 py-1 text-sm font-medium text-text">aktiv</span>

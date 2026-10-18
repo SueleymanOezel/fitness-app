@@ -24,6 +24,13 @@ describe('BottomNav', () => {
     expect(screen.getByRole('link', { name: 'Körper' })).toHaveAttribute('href', '/body')
   })
 
+  it('labels every icon with a visible word', () => {
+    renderNav()
+    for (const wort of ['Home', 'Training', 'Ernährung', 'Körper']) {
+      expect(screen.getByText(wort)).toBeInTheDocument()
+    }
+  })
+
   it('keeps the pill symmetric and capped: safe area as offset, not as inner padding', () => {
     renderNav()
     const nav = screen.getByRole('navigation')

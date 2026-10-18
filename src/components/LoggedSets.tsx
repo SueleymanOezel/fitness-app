@@ -4,6 +4,9 @@ import type { SessionSet } from '../hooks/use-workout-session'
 import { interactiveClass, labelClass } from '../lib/ui-classes'
 import { zahlDe } from '../lib/zahl'
 
+/** Shown once under the set tables of a page: the two abbreviations a newcomer cannot guess. */
+export const SATZ_LEGENDE = 'Aufw. = Aufwärmsatz · RIR = Wiederholungen in Reserve, also wie viele noch gegangen wären'
+
 /**
  * The sets of one exercise as a read-only table (Satz | kg | Wdh. | RIR).
  * Warm-ups appear as rows ("Aufw."); the visible number counts working sets

@@ -132,6 +132,8 @@ describe('ProfilePage', () => {
     expect(screen.getByLabelText('Aktivitätslevel')).toHaveValue('moderat')
     expect(screen.getByLabelText('Ziel')).toHaveValue('halten')
     expect(screen.getByLabelText('Ziel-Delta (kcal)')).toHaveValue(500)
+    // The term is explained right at the field and read out with it.
+    expect(screen.getByLabelText('Ziel-Delta (kcal)')).toHaveAccessibleDescription(/unter deinem Verbrauch/)
   })
 
   it('writes every field in a single update when saving', async () => {
