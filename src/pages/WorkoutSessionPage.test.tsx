@@ -15,7 +15,9 @@ const mockUseExercises = vi.fn()
 vi.mock('../hooks/use-exercises', () => ({ useExercises: (userId: string) => mockUseExercises(userId) }))
 
 const mockUseWorkoutSession = vi.fn()
+const mockUseLetzteWerte = vi.fn<(...args: unknown[]) => Map<string, unknown>>(() => new Map())
 vi.mock('../hooks/use-workout-session', () => ({
+  useLetzteWerte: (...args: unknown[]) => mockUseLetzteWerte(...args),
   useWorkoutSession: (sessionId: string) => mockUseWorkoutSession(sessionId),
 }))
 
@@ -503,15 +505,22 @@ describe('WorkoutSessionPage', () => {
     expect(screen.getByRole('button', { name: '3' })).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('pins the finish action above the nav and labels the body weight', async () => {
+  it('keeps the finish action out of the thumb path: not sticky, not primary, and it asks first', async () => {
     signedIn()
-    mockUseWorkoutSession.mockReturnValue(sessionResult())
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
 
     renderPage()
     await screen.findByText('Bankdrücken')
 
-    expect(screen.getByRole('button', { name: 'Training abschließen' })).toHaveClass('sticky')
+    const abschliessen = screen.getByRole('button', { name: 'Training abschließen' })
+    expect(abschliessen).not.toHaveClass('sticky')
+    expect(abschliessen).not.toHaveClass('bg-accent')
     expect(screen.getByText('Körpergewicht für die kcal-Berechnung')).toBeInTheDocument()
+
+    fireEvent.click(abschliessen)
+    expect(await screen.findByRole('heading', { name: 'Training abschließen?' })).toBeInTheDocument()
+    expect(result.completeSession).not.toHaveBeenCalled()
   })
 
   it('renders the exercise name as a borderless card header', async () => {
@@ -531,6 +540,7 @@ describe('WorkoutSessionPage', () => {
     await screen.findByText('Bankdrücken')
 
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Abschließen' }))
 
     await waitFor(() => expect(result.completeSession).toHaveBeenCalledWith(80))
   })
@@ -546,6 +556,7 @@ describe('WorkoutSessionPage', () => {
     expect(screen.getByText('—')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Gewicht im Profil eintragen' })).toHaveAttribute('href', '/profile')
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Abschließen' }))
 
     await waitFor(() => expect(result.completeSession).toHaveBeenCalledWith(null))
   })
@@ -598,6 +609,7 @@ describe('WorkoutSessionPage', () => {
     await screen.findByText('Bankdrücken')
 
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Abschließen' }))
 
     expect(await screen.findByText('Training abgeschlossen')).toBeInTheDocument()
     expect(screen.getByText('25')).toHaveAttribute('data-count-to', '25')
@@ -621,6 +633,7 @@ describe('WorkoutSessionPage', () => {
     await screen.findByText('Bankdrücken')
 
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Abschließen' }))
 
     expect(await screen.findByText('Training abgeschlossen')).toBeInTheDocument()
     expect(screen.getByText('Minuten')).toBeInTheDocument()
@@ -658,6 +671,7 @@ describe('WorkoutSessionPage', () => {
     await screen.findByText('Bankdrücken')
 
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Abschließen' }))
 
     // The synchronous part of completeSession() (including our simulated
     // reload) has already committed its render by the time fireEvent.click
@@ -683,6 +697,7 @@ describe('WorkoutSessionPage', () => {
     await screen.findByText('Bankdrücken')
 
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Abschließen' }))
 
     expect(await screen.findByText('Neue Rekorde')).toBeInTheDocument()
     expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
@@ -700,6 +715,7 @@ describe('WorkoutSessionPage', () => {
     await screen.findByText('Bankdrücken')
 
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Abschließen' }))
 
     expect(await screen.findByText('Training abgeschlossen')).toBeInTheDocument()
     expect(screen.queryByText('Neue Rekorde')).not.toBeInTheDocument()
@@ -714,6 +730,7 @@ describe('WorkoutSessionPage', () => {
     await screen.findByText('Bankdrücken')
 
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Abschließen' }))
 
     expect(await screen.findByText('Training abgeschlossen')).toBeInTheDocument()
     expect(screen.queryByText('Neue Rekorde')).not.toBeInTheDocument()
@@ -727,6 +744,7 @@ describe('WorkoutSessionPage', () => {
     await screen.findByText('Bankdrücken')
 
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Abschließen' }))
     await screen.findByText('Training abgeschlossen')
 
     expect(mockNavigate).not.toHaveBeenCalled()
@@ -740,6 +758,7 @@ describe('WorkoutSessionPage', () => {
     await screen.findByText('Bankdrücken')
 
     fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Abschließen' }))
     await screen.findByText('Training abgeschlossen')
 
     fireEvent.click(screen.getByRole('button', { name: 'Fertig' }))
@@ -826,6 +845,7 @@ describe('WorkoutSessionPage', () => {
 
     renderPage()
     fireEvent.click(await screen.findByText('Bankdrücken'))
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '' } })
     fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
 
     expect(await screen.findByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
@@ -868,6 +888,7 @@ describe('WorkoutSessionPage', () => {
 
     renderPage()
     fireEvent.click(await screen.findByText('Bankdrücken'))
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '' } })
     fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
     expect(await screen.findByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
 
@@ -970,5 +991,112 @@ describe('WorkoutSessionPage', () => {
     await waitFor(() =>
       expect(result.updateSet).toHaveBeenCalledWith('w1', expect.objectContaining({ ist_aufwaermsatz: false })),
     )
+  })
+
+  describe('one-handed between sets', () => {
+    it('opens on the next set: title is the plan day, elapsed time shows, the form is already there', () => {
+      signedIn()
+      mockUseWorkoutSession.mockReturnValue(
+        sessionResult({
+          session: {
+            id: 's1',
+            workout_plan_day_id: 'd1',
+            gestartet_am: new Date(Date.now() - 32 * 60000).toISOString(),
+            beendet_am: null,
+            gesamt_kalorien: null,
+            tag_name: 'Tag A – Drücken',
+          },
+        }),
+      )
+
+      renderPage()
+
+      expect(screen.getByRole('heading', { level: 1, name: 'Tag A – Drücken' })).toBeInTheDocument()
+      expect(screen.getByText('Läuft seit 32 min · 0 Sätze')).toBeInTheDocument()
+      // No tap on the exercise name needed; reps start at the plan's target.
+      expect(screen.getByLabelText('Wiederholungen')).toHaveValue('10')
+      expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue('')
+    })
+
+    it('starts from the last set of today and keeps the values after logging', async () => {
+      signedIn()
+      const result = sessionResult({ sets: [loggedSet({ gewicht: 72.5, wiederholungen: 8 })] })
+      mockUseWorkoutSession.mockReturnValue(result)
+
+      renderPage()
+      expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue('72,5')
+      expect(screen.getByLabelText('Wiederholungen')).toHaveValue('8')
+
+      fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+
+      await waitFor(() =>
+        expect(result.logSet).toHaveBeenCalledWith('ex1', 2, expect.objectContaining({ gewicht: 72.5, wiederholungen: 8 })),
+      )
+      expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue('72,5')
+      expect(screen.getByLabelText('Wiederholungen')).toHaveValue('8')
+    })
+
+    it('starts the first set from the last workout and says so', () => {
+      signedIn()
+      mockUseLetzteWerte.mockReturnValue(new Map([['ex1', { gewicht: 70, wiederholungen: 8 }]]))
+      mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+      renderPage()
+
+      expect(screen.getByText('Letztes Training: 70 kg × 8')).toBeInTheDocument()
+      expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue('70')
+      expect(screen.getByLabelText('Wiederholungen')).toHaveValue('8')
+      mockUseLetzteWerte.mockReturnValue(new Map())
+    })
+
+    it('changes weight and reps in steps with - and +', () => {
+      signedIn()
+      mockUseWorkoutSession.mockReturnValue(sessionResult({ sets: [loggedSet({ gewicht: 60, wiederholungen: 10 })] }))
+
+      renderPage()
+      fireEvent.click(screen.getByRole('button', { name: 'Gewicht (kg): 2,5 kg mehr' }))
+      expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue('62,5')
+      fireEvent.click(screen.getByRole('button', { name: 'Gewicht (kg): 2,5 kg weniger' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Gewicht (kg): 2,5 kg weniger' }))
+      expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue('57,5')
+      fireEvent.click(screen.getByRole('button', { name: 'Wiederholungen: 1 Wiederholung weniger' }))
+      expect(screen.getByLabelText('Wiederholungen')).toHaveValue('9')
+    })
+
+    it('never steps below the minimum', () => {
+      signedIn()
+      mockUseWorkoutSession.mockReturnValue(sessionResult({ sets: [loggedSet({ gewicht: 1, wiederholungen: 1 })] }))
+
+      renderPage()
+      fireEvent.click(screen.getByRole('button', { name: 'Gewicht (kg): 2,5 kg weniger' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Wiederholungen: 1 Wiederholung weniger' }))
+      expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue('0')
+      expect(screen.getByLabelText('Wiederholungen')).toHaveValue('1')
+    })
+
+    it('lets the rest be extended by 30 s or skipped', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      signedIn()
+      const result = sessionResult({ sets: [loggedSet()] })
+      mockUseWorkoutSession.mockReturnValue(result)
+
+      renderPage()
+      fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+      expect(await screen.findByRole('timer')).toHaveTextContent('1:30')
+
+      fireEvent.click(screen.getByRole('button', { name: '+30 s' }))
+      await waitFor(() => expect(screen.getByRole('timer')).toHaveTextContent(/2:00|1:5[0-9]/))
+
+      fireEvent.click(screen.getByRole('button', { name: 'Überspringen' }))
+      expect(screen.queryByRole('timer')).not.toBeInTheDocument()
+    })
+
+    it('formats the body weight with a decimal comma', () => {
+      signedIn(82.4)
+      mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+      renderPage()
+      expect(screen.getByText('82,4 kg')).toBeInTheDocument()
+    })
   })
 })

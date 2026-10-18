@@ -13,8 +13,10 @@ vi.mock('../hooks/use-active-training-day', () => ({
 
 const mockStartWorkoutSession = vi.fn()
 const mockNavigate = vi.fn()
+const mockUseOffeneSession = vi.fn((): unknown => null)
 vi.mock('../hooks/use-workout-session', () => ({
   startWorkoutSession: (userId: string, dayId: string) => mockStartWorkoutSession(userId, dayId),
+  useOffeneSession: () => mockUseOffeneSession(),
 }))
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')
@@ -349,5 +351,18 @@ describe('TrainingPage – ausgewaehlte Graphen', () => {
     expect(screen.queryByText('Kein aktiver Plan.')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
     expect(reload).toHaveBeenCalled()
+  })
+
+  it('offers to resume a running workout instead of suggesting the next day', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseActiveTrainingDay.mockReturnValue(activeDay)
+    mockUseOffeneSession.mockReturnValue({ id: 's9', gestartet_am: new Date().toISOString(), tag_name: 'Tag A' })
+
+    zeigeDashboard()
+
+    expect(screen.getByRole('link', { name: 'Fortsetzen' })).toHaveAttribute('href', '/training/session/s9')
+    expect(screen.getByText('Training läuft')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Training starten' })).not.toBeInTheDocument()
+    mockUseOffeneSession.mockReturnValue(null)
   })
 })

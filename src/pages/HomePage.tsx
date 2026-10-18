@@ -16,6 +16,8 @@ import { useTrainingStreak } from '../hooks/use-training-streak'
 import { streakText } from '../lib/streak'
 import { PressableLink } from '../components/Pressable'
 import PageHero from '../components/PageHero'
+import OpenSessionHero from '../components/OpenSessionHero'
+import { useOffeneSession } from '../hooks/use-workout-session'
 import ProgressRing from '../components/ProgressRing'
 import StatStrip, { type StatTile } from '../components/StatStrip'
 import LinkListCard from '../components/LinkListCard'
@@ -43,6 +45,7 @@ function Dashboard({ userId }: { userId: string }) {
   const { plan, day, loading: trainingLoading, error: trainingError } = useActiveTrainingDay(userId)
   const { rows, loading: rowsLoading, error: rowsError } = useBodyMetrics(userId)
   const { streak, loading: streakLoading } = useTrainingStreak(userId)
+  const offen = useOffeneSession(userId)
   const auswahl = useChartSelectionFor(profileResult)
 
   if (profileLoading || entriesLoading || trainingLoading || rowsLoading || streakLoading) {
@@ -101,7 +104,8 @@ function Dashboard({ userId }: { userId: string }) {
           }
         />
       )}
-      {plan != null && day != null && (
+      {offen !== null && <OpenSessionHero offen={offen} />}
+      {offen === null && plan != null && day != null && (
         <PageHero
           label="Heute · Training"
           titel={day.name}

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useActiveTrainingDay } from '../hooks/use-active-training-day'
-import { startWorkoutSession } from '../hooks/use-workout-session'
+import { startWorkoutSession, useOffeneSession } from '../hooks/use-workout-session'
 import { useTrainingStreak } from '../hooks/use-training-streak'
 import { useChartSelection } from '../components/charts/ChartPicker'
 import { useTrainingAnalysis } from '../hooks/use-training-analysis'
@@ -16,6 +16,7 @@ import { wochenStreifen } from '../lib/streak'
 import { localDay } from '../lib/local-time'
 import Pressable, { PressableLink } from '../components/Pressable'
 import PageHero from '../components/PageHero'
+import OpenSessionHero from '../components/OpenSessionHero'
 import WeekStrip from '../components/WeekStrip'
 import LinkListCard from '../components/LinkListCard'
 import EmptyState from '../components/EmptyState'
@@ -35,6 +36,7 @@ export default function TrainingPage() {
 function Dashboard({ userId }: { userId: string }) {
   const { plan, day, loading, error, reload } = useActiveTrainingDay(userId)
   const { tage, loading: streakLoading } = useTrainingStreak(userId)
+  const offen = useOffeneSession(userId)
   const navigate = useNavigate()
   const [starting, setStarting] = useState(false)
   const showToast = useToast()
@@ -100,7 +102,8 @@ function Dashboard({ userId }: { userId: string }) {
           }
         />
       )}
-      {plan != null && day != null && (
+      {offen !== null && <OpenSessionHero offen={offen} />}
+      {offen === null && plan != null && day != null && (
         <PageHero
           label={`Heute · ${plan.name}`}
           titel={day.name}

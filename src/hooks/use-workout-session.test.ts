@@ -205,7 +205,7 @@ describe('useWorkoutSession', () => {
 
     expect(result.current.loading).toBe(true)
     await waitFor(() => expect(result.current.loading).toBe(false))
-    expect(result.current.session).toEqual(sessionRow)
+    expect(result.current.session).toEqual({ ...sessionRow, tag_name: null })
     expect(result.current.exercises).toEqual([
       {
         id: 'se1',
@@ -577,5 +577,52 @@ describe('useWorkoutSession deleteSet', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     await expect(result.current.deleteSet(setRow.id)).rejects.toThrow()
+  })
+})
+
+describe('useLetzteWerte', () => {
+  it('takes the newest working set per exercise from other sessions', async () => {
+    const builder = createQueryBuilder({
+      data: [
+        { exercise_id: 'ex1', gewicht: 72.5, wiederholungen: 8, abgeschlossen_am: '2026-10-16T18:00:00Z' },
+        { exercise_id: 'ex1', gewicht: 70, wiederholungen: 8, abgeschlossen_am: '2026-10-14T18:00:00Z' },
+        { exercise_id: 'ex2', gewicht: 20, wiederholungen: 12, abgeschlossen_am: '2026-10-16T18:10:00Z' },
+      ],
+    })
+    mockTables({ workout_session_sets: builder })
+
+    const { useLetzteWerte } = await import('./use-workout-session')
+    const { result } = renderHook(() => useLetzteWerte('s1', ['ex1', 'ex2']))
+
+    await waitFor(() => expect(result.current.get('ex1')).toEqual({ gewicht: 72.5, wiederholungen: 8 }))
+    expect(result.current.get('ex2')).toEqual({ gewicht: 20, wiederholungen: 12 })
+    expect(builder.neq).toHaveBeenCalledWith('workout_session_id', 's1')
+    expect(builder.eq).toHaveBeenCalledWith('ist_aufwaermsatz', false)
+  })
+})
+
+describe('useOffeneSession', () => {
+  it('finds a recent unfinished session with its day name', async () => {
+    const builder = createQueryBuilder({
+      data: [{ id: 's9', gestartet_am: '2026-10-18T07:00:00Z', workout_plan_days: { name: 'Tag A' } }],
+    })
+    mockTables({ workout_sessions: builder })
+
+    const { useOffeneSession } = await import('./use-workout-session')
+    const { result } = renderHook(() => useOffeneSession('u1'))
+
+    await waitFor(() => expect(result.current).toEqual({ id: 's9', gestartet_am: '2026-10-18T07:00:00Z', tag_name: 'Tag A' }))
+    expect(builder.is).toHaveBeenCalledWith('beendet_am', null)
+    expect(builder.gte).toHaveBeenCalled()
+  })
+
+  it('is null when nothing is running', async () => {
+    mockTables({ workout_sessions: createQueryBuilder({ data: [] }) })
+
+    const { useOffeneSession } = await import('./use-workout-session')
+    const { result } = renderHook(() => useOffeneSession('u1'))
+
+    await waitFor(() => expect(mockFrom).toHaveBeenCalled())
+    expect(result.current).toBeNull()
   })
 })

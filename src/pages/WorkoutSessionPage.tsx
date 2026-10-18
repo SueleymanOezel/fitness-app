@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
 import {
+  useLetzteWerte,
   useWorkoutSession,
   type SessionExercise,
   type SessionSet,
@@ -29,6 +30,7 @@ import SetEditDialog from '../components/SetEditDialog'
 import { useTrainingStreak } from '../hooks/use-training-streak'
 import { streakText } from '../lib/streak'
 import { parseSetInput } from '../lib/set-values'
+import { parseDecimal } from '../lib/parse-decimal'
 import type { NeuerRekord } from '../lib/analysis/training-charts'
 import Pressable, { PressableLink } from '../components/Pressable'
 import CompletionCelebration from '../components/CompletionCelebration'
@@ -63,6 +65,10 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     removeExerciseFromSession,
   } = useWorkoutSession(sessionId)
   const { exercises: katalogUebungen } = useExercises(userId)
+  const letzteWerte = useLetzteWerte(
+    sessionId,
+    exercises.map((entry) => entry.exercise_id),
+  )
   const [openExerciseId, setOpenExerciseId] = useState<string | null>(null)
   const [pause, setPause] = useState<{ until: number; sekunden: number } | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -148,7 +154,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     setPause(null)
     // The pause ends where the next set begins: stay on this exercise while it
     // still has target sets left, otherwise open the next one.
-    const current = exercises.find((entry) => entry.exercise_id === openExerciseId)
+    const current = exercises.find((entry) => entry.exercise_id === aktuelleId)
     if (!current) return
     const done = workingSetCount(current.exercise_id)
     if (targetReached(current.ziel_saetze, done)) {
@@ -182,6 +188,34 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     setAbschluss({ neueRekorde, dauerMinuten, kalorien: ergebnis.gesamtKalorien })
   }
 
+  // The exercise that is open: the one the user tapped, otherwise the first one
+  // whose target is not reached yet — the session opens straight on the next set.
+  const sortiert = [...exercises].sort((a, b) => a.reihenfolge - b.reihenfolge)
+  const aktuelleId =
+    openExerciseId ??
+    (sortiert.find((entry) => !targetReached(entry.ziel_saetze, workingSetCount(entry.exercise_id))) ?? sortiert[0])
+      ?.exercise_id ??
+    null
+  const arbeitssaetzeGesamt = sets.filter((set) => !set.ist_aufwaermsatz).length
+
+  /**
+   * Where the form starts: the last working set of this exercise today, else its
+   * last working set from an earlier workout, else just the target reps. Only a
+   * suggestion in the fields — nothing is stored until "Satz abschließen".
+   */
+  function vorschlagFuer(entry: SessionExercise): Vorschlag | null {
+    const heute = sets
+      .filter((set) => set.exercise_id === entry.exercise_id && !set.ist_aufwaermsatz)
+      .sort((a, b) => b.satz_nummer - a.satz_nummer)[0]
+    if (heute) return { gewicht: heute.gewicht, wiederholungen: heute.wiederholungen, ausLetztemTraining: false }
+    const frueher = letzteWerte.get(entry.exercise_id)
+    if (frueher) return { ...frueher, ausLetztemTraining: true }
+    if (entry.ziel_wiederholungen != null) {
+      return { gewicht: null, wiederholungen: entry.ziel_wiederholungen, ausLetztemTraining: false }
+    }
+    return null
+  }
+
   async function addExercises(exerciseIds: string[]) {
     try {
       await addExercisesToSession(exerciseIds)
@@ -192,8 +226,18 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
 
   return (
     <div>
-      <h1>Training</h1>
-      {pause !== null && <PauseTimer until={pause.until} sekunden={pause.sekunden} onDone={pauseOver} />}
+      <div className="flex flex-col gap-1">
+        <h1>{session.tag_name ?? 'Training'}</h1>
+        <Laufzeit seit={session.gestartet_am} saetze={arbeitssaetzeGesamt} />
+      </div>
+      {pause !== null && (
+        <PauseTimer
+          until={pause.until}
+          sekunden={pause.sekunden}
+          onDone={pauseOver}
+          onLaenger={() => setPause({ until: pause.until + 30_000, sekunden: pause.sekunden })}
+        />
+      )}
       <ul role="list" className="flex flex-col gap-3">
         {exercises.map((entry) => (
           <li key={entry.exercise_id}>
@@ -219,15 +263,18 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                   />
                 )}
               </div>
-              {openExerciseId === entry.exercise_id && (
+              {aktuelleId === entry.exercise_id && (
                 <LoggedSets
                   sets={sets.filter((set) => set.exercise_id === entry.exercise_id)}
                   onEdit={setBearbeiteterSatz}
                 />
               )}
-              {openExerciseId === entry.exercise_id && (
+              {aktuelleId === entry.exercise_id && (
                 <SetForm
+                  // Remounts once the earlier workout's values arrive, so they land in the fields.
+                  key={`${entry.exercise_id}-${letzteWerte.has(entry.exercise_id)}`}
                   exercise={entry}
+                  vorschlag={vorschlagFuer(entry)}
                   completedCount={workingSetCount(entry.exercise_id)}
                   onLog={async (values) => {
                     // satz_nummer stays a running order over every set of the
@@ -293,7 +340,9 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
       </Dialog>
       <div className="flex flex-col gap-2">
         <p className={labelClass}>Körpergewicht für die kcal-Berechnung</p>
-        <p className="text-xl font-bold tabular-nums">{gewichtKg === null ? '—' : `${gewichtKg} kg`}</p>
+        <p className="text-xl font-bold tabular-nums">
+          {gewichtKg === null ? '—' : `${gewichtKg.toLocaleString('de-DE')} kg`}
+        </p>
         {gewichtKg === null && (
           <>
             <p>Ohne Gewicht im Profil lässt sich der Verbrauch nicht berechnen.</p>
@@ -303,14 +352,42 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
           </>
         )}
       </div>
-      <Pressable variant="primary" type="button" className={stickyActionClass} onClick={complete}>
-        <span className="inline-flex items-center justify-center gap-2">
-          <VitaIcon name="save" tone="mono" size={20} />
-          Training abschließen
-        </span>
-      </Pressable>
+      {/* Not sticky and not primary: it sat right under "Satz abschließen" and one
+          mistap ended the workout for good. Now it is the last thing on the page
+          and asks first. */}
+      <ConfirmDelete
+        variante="secondary"
+        className="w-full"
+        label="Training abschließen"
+        icon={<VitaIcon name="save" tone="mono" size={20} />}
+        titel="Training abschließen?"
+        text={`${arbeitssaetzeGesamt} ${arbeitssaetzeGesamt === 1 ? 'Satz' : 'Sätze'} erfasst. Danach lässt sich das Training nicht mehr fortsetzen.`}
+        bestaetigen="Abschließen"
+        onConfirm={complete}
+      />
     </div>
   )
+}
+
+/** Elapsed time and working sets under the title; ticks every 30 s. */
+function Laufzeit({ seit, saetze }: { seit: string; saetze: number }) {
+  const [jetzt, setJetzt] = useState(() => Date.now())
+  useEffect(() => {
+    const interval = setInterval(() => setJetzt(Date.now()), 30_000)
+    return () => clearInterval(interval)
+  }, [])
+  const minuten = Math.max(0, Math.floor((jetzt - new Date(seit).getTime()) / 60000))
+  const dauer = minuten < 60 ? `${minuten} min` : `${Math.floor(minuten / 60)} h ${minuten % 60} min`
+  return (
+    <p className={labelClass}>{`Läuft seit ${dauer} · ${saetze} ${saetze === 1 ? 'Satz' : 'Sätze'}`}</p>
+  )
+}
+
+type Vorschlag = { gewicht: number | null; wiederholungen: number | null; ausLetztemTraining: boolean }
+
+/** Deutsch geschrieben, ohne überflüssige Nachkommastellen (72,5 statt 72.5). */
+function alsText(wert: number | null) {
+  return wert == null ? '' : wert.toLocaleString('de-DE', { maximumFractionDigits: 2 })
 }
 
 /** Eine Zahl mit einer Nachkommastelle, deutsch geschrieben — wie in PersonalRecordsList.tsx. */
@@ -453,7 +530,7 @@ function LoggedSets({ sets, onEdit }: { sets: SessionSet[]; onEdit: (set: Sessio
                   {label}
                 </Pressable>
               </td>
-              <td className="py-1">{set.gewicht ?? '—'}</td>
+              <td className="py-1">{set.gewicht == null ? '—' : alsText(set.gewicht)}</td>
               <td className="py-1">{set.wiederholungen ?? '—'}</td>
               <td className="py-1">{set.rir ?? '—'}</td>
             </tr>
@@ -466,15 +543,17 @@ function LoggedSets({ sets, onEdit }: { sets: SessionSet[]; onEdit: (set: Sessio
 
 function SetForm({
   exercise,
+  vorschlag,
   completedCount,
   onLog,
 }: {
   exercise: SessionExercise
+  vorschlag: Vorschlag | null
   completedCount: number
   onLog: (values: SetValues) => Promise<boolean>
 }) {
-  const [gewicht, setGewicht] = useState('')
-  const [wiederholungen, setWiederholungen] = useState('')
+  const [gewicht, setGewicht] = useState(() => alsText(vorschlag?.gewicht ?? null))
+  const [wiederholungen, setWiederholungen] = useState(() => alsText(vorschlag?.wiederholungen ?? null))
   const [rir, setRir] = useState<number | null>(null)
   const [istAufwaermsatz, setIstAufwaermsatz] = useState(false)
   const [fehler, setFehler] = useState<{ gewicht?: string; wiederholungen?: string }>({})
@@ -497,8 +576,7 @@ function SetForm({
           ist_aufwaermsatz: istAufwaermsatz,
         })
         if (!stored) return
-        setGewicht('')
-        setWiederholungen('')
+        // Weight and reps stay: the next set is usually the same, one tap away.
         setRir(null)
         // ponytail: reset to a working set rather than keeping the toggle on.
         // Forgetting it on silently files real sets as warm-ups, which is the
@@ -514,31 +592,36 @@ function SetForm({
               ? 'Alle Sätze erfasst'
               : `Satz ${completedCount + 1}${exercise.ziel_saetze == null ? '' : ` von ${exercise.ziel_saetze}`}`}
         </p>
-        <label className={fieldLabelClass}>
-          Gewicht (kg)
-          <input
-            className={inputClass}
-            inputMode="decimal"
-            value={gewicht}
-            aria-invalid={fehler.gewicht !== undefined}
-            onChange={(event) => setGewicht(event.target.value)}
-          />
-        </label>
+        {vorschlag?.ausLetztemTraining && (
+          <p className={labelClass}>
+            {`Letztes Training: ${vorschlag.gewicht == null ? '—' : `${alsText(vorschlag.gewicht)} kg`} × ${alsText(vorschlag.wiederholungen) || '—'}`}
+          </p>
+        )}
+        <ZahlFeld
+          label="Gewicht (kg)"
+          wert={gewicht}
+          onChange={setGewicht}
+          schritt={2.5}
+          minimum={0}
+          einheit="kg"
+          inputMode="decimal"
+          ungueltig={fehler.gewicht !== undefined}
+        />
         {fehler.gewicht && (
           <p role="alert" className="text-sm text-danger">
             {fehler.gewicht}
           </p>
         )}
-        <label className={fieldLabelClass}>
-          Wiederholungen
-          <input
-            className={inputClass}
-            inputMode="numeric"
-            value={wiederholungen}
-            aria-invalid={fehler.wiederholungen !== undefined}
-            onChange={(event) => setWiederholungen(event.target.value)}
-          />
-        </label>
+        <ZahlFeld
+          label="Wiederholungen"
+          wert={wiederholungen}
+          onChange={setWiederholungen}
+          schritt={1}
+          minimum={1}
+          einheit="Wiederholung"
+          inputMode="numeric"
+          ungueltig={fehler.wiederholungen !== undefined}
+        />
         {fehler.wiederholungen && (
           <p role="alert" className="text-sm text-danger">
             {fehler.wiederholungen}
@@ -554,7 +637,9 @@ function SetForm({
         </label>
         <RirChips value={rir} onChange={setRir} />
       </div>
-      <Pressable variant="primary" type="submit">
+      {/* Sticky above the nav: the one action between sets stays under the thumb
+          while the form is on screen, without scrolling past the RIR row. */}
+      <Pressable variant="primary" type="submit" className={stickyActionClass}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="start" tone="mono" size={20} />
           Satz abschließen
@@ -564,12 +649,91 @@ function SetForm({
   )
 }
 
+/**
+ * A number field with − and + beside it, sized for a thumb: between sets the
+ * usual change is one step, not a new number typed on the keyboard.
+ */
+function ZahlFeld({
+  label,
+  wert,
+  onChange,
+  schritt,
+  minimum,
+  einheit,
+  inputMode,
+  ungueltig,
+}: {
+  label: string
+  wert: string
+  onChange: (next: string) => void
+  schritt: number
+  minimum: number
+  einheit: string
+  inputMode: 'decimal' | 'numeric'
+  ungueltig: boolean
+}) {
+  const id = useId()
+  function verschiebe(richtung: 1 | -1) {
+    const aktuell = parseDecimal(wert)
+    const basis = typeof aktuell === 'number' ? aktuell : richtung === 1 ? minimum - schritt : minimum
+    onChange(alsText(Math.max(minimum, Math.round((basis + richtung * schritt) * 100) / 100)))
+  }
+  const schrittText = `${alsText(schritt)} ${einheit === 'kg' ? 'kg' : schritt === 1 ? einheit : `${einheit}en`}`
+  // The label points at the input only: wrapping all three controls in one <label>
+  // would name the "−" button instead (first labelable descendant).
+  return (
+    <div className="flex flex-col gap-2">
+      <label htmlFor={id} className={fieldLabelClass}>
+        {label}
+      </label>
+      <span className="flex items-center gap-2">
+        <Pressable
+          variant="secondary"
+          type="button"
+          className="min-w-11 shrink-0 px-3!"
+          aria-label={`${label}: ${schrittText} weniger`}
+          onClick={() => verschiebe(-1)}
+        >
+          −
+        </Pressable>
+        <input
+          id={id}
+          className={`${inputClass} text-center`}
+          inputMode={inputMode}
+          value={wert}
+          aria-invalid={ungueltig}
+          onChange={(event) => onChange(event.target.value)}
+        />
+        <Pressable
+          variant="secondary"
+          type="button"
+          className="min-w-11 shrink-0 px-3!"
+          aria-label={`${label}: ${schrittText} mehr`}
+          onClick={() => verschiebe(1)}
+        >
+          +
+        </Pressable>
+      </span>
+    </div>
+  )
+}
+
 // eslint-disable-next-line react-refresh/only-export-components -- exportiert für Tests
 export function formatPause(sekunden: number) {
   return `${Math.floor(sekunden / 60)}:${String(sekunden % 60).padStart(2, '0')}`
 }
 
-function PauseTimer({ until, sekunden, onDone }: { until: number; sekunden: number; onDone: () => void }) {
+function PauseTimer({
+  until,
+  sekunden,
+  onDone,
+  onLaenger,
+}: {
+  until: number
+  sekunden: number
+  onDone: () => void
+  onLaenger: () => void
+}) {
   // Seeded from the configured pause rather than from Date.now(): reading the
   // clock during render is impure and would differ between renders.
   const [remainingSeconds, setRemainingSeconds] = useState(sekunden)
@@ -597,9 +761,19 @@ function PauseTimer({ until, sekunden, onDone }: { until: number; sekunden: numb
   }, [until])
 
   return (
-    <div className={`${cardClass} sticky top-0 z-10`} role="timer">
-      <p className={labelClass}>Pause</p>
-      <p className={statClass}>{formatPause(remainingSeconds)}</p>
+    <div className={`${cardClass} sticky top-0 z-10`}>
+      <div role="timer">
+        <p className={labelClass}>Pause</p>
+        <p className={statClass}>{formatPause(remainingSeconds)}</p>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <Pressable variant="secondary" type="button" onClick={onLaenger}>
+          +30 s
+        </Pressable>
+        <Pressable variant="secondary" type="button" onClick={onDone}>
+          Überspringen
+        </Pressable>
+      </div>
     </div>
   )
 }
