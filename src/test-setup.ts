@@ -4,6 +4,9 @@ import { cleanup } from '@testing-library/react'
 
 afterEach(() => {
   cleanup()
+  // The hooks keep a last-known copy in localStorage (src/lib/stale-cache.ts); one test's data
+  // must not make the next one start with a cache.
+  localStorage.clear()
 })
 
 // Recharts' ResponsiveContainer measures its parent through ResizeObserver and

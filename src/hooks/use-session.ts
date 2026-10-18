@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { cacheLeeren } from '../lib/stale-cache'
 
 /**
  * The last session this tab learned about. Every page calls useSession() on its
@@ -29,6 +30,8 @@ export function useSession() {
 
     const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
       bekannteSession = newSession
+      // Signed out (or the session expired for good): the last-known copies of this user's data go with it.
+      if (newSession === null) cacheLeeren()
       setSession(newSession)
       setLoading(false)
     })

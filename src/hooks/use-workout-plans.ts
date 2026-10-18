@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useStaleState } from './use-stale-state'
 
 export type WorkoutPlan = {
   id: string
@@ -11,8 +12,7 @@ export type WorkoutPlan = {
 }
 
 export function useWorkoutPlans(userId: string) {
-  const [plans, setPlans] = useState<WorkoutPlan[]>([])
-  const [loading, setLoading] = useState(true)
+  const { daten: plans, loading, gelungen, gescheitert } = useStaleState<WorkoutPlan[]>(userId, 'workout-plans', [])
   const [error, setError] = useState(false)
   const requestId = useRef(0)
 
@@ -26,10 +26,10 @@ export function useWorkoutPlans(userId: string) {
       .eq('user_id', userId)
       .order('name', { ascending: true })
     if (current !== requestId.current) return
-    setError(Boolean(loadError))
-    setPlans((data ?? []) as WorkoutPlan[])
-    setLoading(false)
-  }, [userId])
+    // With a last-known copy (offline) the old list stays and is not an error.
+    const fehlerAnzeigen = loadError ? !gescheitert([]) : (gelungen((data ?? []) as WorkoutPlan[]), false)
+    setError(fehlerAnzeigen)
+  }, [userId, gelungen, gescheitert])
 
   useEffect(() => {
     const tracker = requestId

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useStaleState } from './use-stale-state'
 
 export type Profile = {
   id: string
@@ -22,8 +23,7 @@ export type Profile = {
 }
 
 export function useProfile(userId: string) {
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { daten: profile, loading, gelungen, gescheitert } = useStaleState<Profile | null>(userId, 'profile', null)
   const [error, setError] = useState(false)
   const requestId = useRef(0)
   const pending = useRef<Promise<unknown>>(Promise.resolve())
@@ -37,10 +37,11 @@ export function useProfile(userId: string) {
       .eq('id', userId)
       .maybeSingle()
     if (current !== requestId.current) return
-    setProfile(data as Profile | null)
-    setError(Boolean(loadError) || data == null)
-    setLoading(false)
-  }, [userId])
+    // With a last-known copy (offline) the old profile stays and is not an error.
+    const laden = !loadError && data != null
+    const fehlerAnzeigen = laden ? (gelungen(data as Profile), false) : !gescheitert(data as Profile | null)
+    setError(fehlerAnzeigen)
+  }, [userId, gelungen, gescheitert])
 
   useEffect(() => {
     const tracker = requestId
@@ -65,7 +66,7 @@ export function useProfile(userId: string) {
         .select('*')
         .maybeSingle()
       if (updateError || !data) throw new Error('profile update failed')
-      setProfile(data as Profile)
+      gelungen(data as Profile)
     })
     pending.current = run.catch(() => {})
     return run

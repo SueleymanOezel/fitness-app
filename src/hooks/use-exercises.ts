@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useStaleState } from './use-stale-state'
 
 export type Exercise = {
   id: string
@@ -40,8 +41,7 @@ const PAGE_SIZE = 500
 const MAX_PAGES = 40
 
 export function useExercises(userId: string) {
-  const [exercises, setExercises] = useState<Exercise[]>([])
-  const [loading, setLoading] = useState(true)
+  const { daten: exercises, loading, gelungen, gescheitert } = useStaleState<Exercise[]>(userId, 'exercises', [])
   const [error, setError] = useState(false)
   const requestId = useRef(0)
 
@@ -76,10 +76,10 @@ export function useExercises(userId: string) {
     }
 
     if (current !== requestId.current) return
-    setExercises(failed ? [] : all)
-    setError(failed)
-    setLoading(false)
-  }, [])
+    // With a last-known copy (offline) the old library stays and is not an error.
+    const fehlerAnzeigen = failed ? !gescheitert([]) : (gelungen(all), false)
+    setError(fehlerAnzeigen)
+  }, [gelungen, gescheitert])
 
   useEffect(() => {
     const tracker = requestId

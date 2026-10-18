@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 
 const mockGetSession = vi.fn()
 const mockOnAuthStateChange = vi.fn()
@@ -54,5 +54,25 @@ describe('useSession', () => {
     const zweiter = renderHook(() => useSession())
     expect(zweiter.result.current.loading).toBe(false)
     expect(zweiter.result.current.session).toEqual({ user: { id: 'u1' } })
+  })
+
+  it('drops every last-known data copy when the user signs out', async () => {
+    const { cacheSchreiben, cacheLesen } = await import('../lib/stale-cache')
+    cacheSchreiben('u1', 'profile', { id: 'u1' })
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } })
+    let melden: (event: string, session: unknown) => void = () => {}
+    mockOnAuthStateChange.mockImplementation((callback: typeof melden) => {
+      melden = callback
+      return { data: { subscription: { unsubscribe: vi.fn() } } }
+    })
+
+    const { useSession } = await import('./use-session')
+    const { result } = renderHook(() => useSession())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(cacheLesen('u1', 'profile')).toEqual({ id: 'u1' })
+
+    act(() => melden('SIGNED_OUT', null))
+
+    expect(cacheLesen('u1', 'profile')).toBeUndefined()
   })
 })
