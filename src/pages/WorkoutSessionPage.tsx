@@ -423,9 +423,12 @@ function LoggedSets({ sets, onEdit }: { sets: SessionSet[]; onEdit: (set: Sessio
   // zählt nur Arbeitssätze, Aufwärmsätze tragen "Aufw." (siehe workingSetCount).
   const sortiert = [...sets].sort((a, b) => a.satz_nummer - b.satz_nummer)
   const nummern = new Map<string, number>()
+  const aufwaermNummern = new Map<string, number>()
   let arbeitssaetze = 0
+  let aufwaermsaetze = 0
   for (const set of sortiert) {
-    if (!set.ist_aufwaermsatz) nummern.set(set.id, (arbeitssaetze += 1))
+    if (set.ist_aufwaermsatz) aufwaermNummern.set(set.id, (aufwaermsaetze += 1))
+    else nummern.set(set.id, (arbeitssaetze += 1))
   }
 
   return (
@@ -456,8 +459,12 @@ function LoggedSets({ sets, onEdit }: { sets: SessionSet[]; onEdit: (set: Sessio
                 <Pressable
                   variant="bare"
                   type="button"
-                  className="min-h-11 min-w-11 text-left"
-                  aria-label={set.ist_aufwaermsatz ? 'Aufwärmsatz bearbeiten' : `Satz ${label} bearbeiten`}
+                  className={`min-h-11 min-w-11 rounded-lg text-left focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${interactiveClass}`}
+                  aria-label={
+                    set.ist_aufwaermsatz
+                      ? `Aufw. ${aufwaermNummern.get(set.id)} bearbeiten`
+                      : `Satz ${label} bearbeiten`
+                  }
                 >
                   {label}
                 </Pressable>

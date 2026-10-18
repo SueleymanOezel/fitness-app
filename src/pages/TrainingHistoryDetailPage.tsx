@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useWorkoutSession } from '../hooks/use-workout-session'
 import { exerciseName } from '../lib/exercise-name'
+import { parseDecimal } from '../lib/parse-decimal'
 import { WIEDERHOLUNGEN_FEHLER } from '../lib/set-values'
 import { cardClass, checkLabelClass, fieldLabelClass, inputClass, linkClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
@@ -67,7 +68,7 @@ function Detail({ sessionId }: { sessionId: string }) {
         {sets.map((set) => (
           <li key={set.id}>
             <div className={`${cardClass} w-full`}>
-              <p className="font-semibold">{exerciseName(set.exercise)}</p>
+              <p className="font-semibold">{exerciseName(set.exercise) || 'Unbekannte Übung'}</p>
               <SetField
                 label="Gewicht (kg)"
                 stored={set.gewicht}
@@ -163,17 +164,13 @@ function SetField({
   const [meldung, setMeldung] = useState<string | null>(null)
 
   function commit() {
-    const value = draft.trim() === '' ? null : Number(draft)
+    const value = parseDecimal(draft, { integer })
     // Unverändert zuerst: ein alter Satz ohne Wiederholungen (null) darf beim bloßen
     // Antippen und Verlassen weder schreiben noch eine Meldung auslösen.
     if (value === stored) return
-    const ungueltig =
-      value !== null &&
-      (!Number.isFinite(value) ||
-        value < 0 ||
-        (max != null && value > max) ||
-        (integer === true && !Number.isInteger(value)))
-    const fehlt = pflichtMeldung !== undefined && (value === null || value < 1)
+    // undefined = unlesbar (z. B. "1e1") oder Bruch in einem Ganzzahlfeld.
+    const ungueltig = value === undefined || (value !== null && (value < 0 || (max != null && value > max)))
+    const fehlt = pflichtMeldung !== undefined && (value === null || (value !== undefined && value < 1))
     if (ungueltig || fehlt) {
       setDraft(String(stored ?? ''))
       setMeldung(pflichtMeldung ?? null)

@@ -187,6 +187,59 @@ describe('TrainingHistoryDetailPage', () => {
     expect(screen.queryByText(WIEDERHOLUNGEN_FEHLER)).not.toBeInTheDocument()
   })
 
+  it('accepts a weight typed with a German decimal comma', () => {
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    const field = screen.getByLabelText('Gewicht (kg)')
+    fireEvent.change(field, { target: { value: '62,5' } })
+    fireEvent.blur(field)
+
+    expect(result.updateSet).toHaveBeenCalledWith('set1', { gewicht: 62.5 })
+  })
+
+  it('rejects exponent notation in the repetitions, like the session dialog', () => {
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    const field = screen.getByLabelText('Wiederholungen')
+    fireEvent.change(field, { target: { value: '1e1' } })
+    fireEvent.blur(field)
+
+    expect(result.updateSet).not.toHaveBeenCalled()
+    expect(field).toHaveValue('10')
+    expect(screen.getByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
+  })
+
+  it('clears the message and the invalid mark once the repetitions are typed again', () => {
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+
+    const field = screen.getByLabelText('Wiederholungen')
+    fireEvent.change(field, { target: { value: '' } })
+    fireEvent.blur(field)
+    expect(screen.getByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
+    expect(field).toHaveAttribute('aria-invalid', 'true')
+
+    fireEvent.change(field, { target: { value: '5' } })
+
+    expect(screen.queryByText(WIEDERHOLUNGEN_FEHLER)).not.toBeInTheDocument()
+    expect(field).toHaveAttribute('aria-invalid', 'false')
+  })
+
+  it('names a set of a deleted exercise instead of showing an empty heading', () => {
+    mockUseWorkoutSession.mockReturnValue(sessionResult({ sets: [{ ...set, exercise: null }] }))
+
+    renderPage()
+
+    expect(screen.getByText('Unbekannte Übung')).toBeInTheDocument()
+  })
+
   it('still lets the weight be emptied (bodyweight)', async () => {
     const result = sessionResult()
     mockUseWorkoutSession.mockReturnValue(result)

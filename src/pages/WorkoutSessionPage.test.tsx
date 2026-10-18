@@ -231,7 +231,7 @@ describe('WorkoutSessionPage', () => {
     expect(zeilen[1]).toHaveTextContent('60')
     expect(zeilen[1]).toHaveTextContent('10')
     expect(zeilen[1]).toHaveTextContent('—') // rir der Fixture ist null
-    expect(within(zeilen[2]).getByRole('button', { name: 'Aufwärmsatz bearbeiten' })).toBeInTheDocument()
+    expect(within(zeilen[2]).getByRole('button', { name: 'Aufw. 1 bearbeiten' })).toBeInTheDocument()
     expect(zeilen[2]).toHaveTextContent('Aufw.')
     expect(zeilen[2]).toHaveTextContent('20')
     expect(within(zeilen[3]).getByRole('button', { name: 'Satz 2 bearbeiten' })).toBeInTheDocument()
@@ -913,6 +913,26 @@ describe('WorkoutSessionPage', () => {
     expect(screen.getAllByRole('heading', { name: 'Satz bearbeiten' })).toHaveLength(1)
   })
 
+  it('numbers several warm-ups so every row button has its own name and a focus ring', () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({
+        sets: [
+          loggedSet({ id: 'w1', satz_nummer: 1, ist_aufwaermsatz: true }),
+          loggedSet({ id: 'w2', satz_nummer: 2, ist_aufwaermsatz: true }),
+          loggedSet({ id: 'a1', satz_nummer: 3 }),
+        ],
+      }),
+    )
+
+    renderPage()
+    fireEvent.click(screen.getByText('Bankdrücken'))
+
+    expect(screen.getByRole('button', { name: 'Aufw. 1 bearbeiten' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Aufw. 2 bearbeiten' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Satz 1 bearbeiten' }).className).toContain('focus-visible:ring-offset-2')
+  })
+
   it('lets a warm-up be turned into a working set from the dialog', async () => {
     signedIn()
     const result = sessionResult({ sets: [loggedSet({ id: 'w1', satz_nummer: 1, ist_aufwaermsatz: true })] })
@@ -920,7 +940,7 @@ describe('WorkoutSessionPage', () => {
 
     renderPage()
     fireEvent.click(screen.getByText('Bankdrücken'))
-    fireEvent.click(screen.getByRole('button', { name: 'Aufwärmsatz bearbeiten' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Aufw. 1 bearbeiten' }))
 
     const dialog = within(screen.getByRole('heading', { name: 'Satz bearbeiten' }).closest('form') as HTMLElement)
     expect(dialog.getByLabelText('Aufwärmsatz')).toBeChecked()
