@@ -19,15 +19,16 @@ import {
   statClass,
   stickyActionClass,
 } from '../lib/ui-classes'
-import Chip from '../components/Chip'
+import RirChips from '../components/RirChips'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { useExercises } from '../hooks/use-exercises'
 import Dialog from '../components/Dialog'
 import ExercisePicker from '../components/ExercisePicker'
+import SetEditDialog from '../components/SetEditDialog'
 import { useTrainingStreak } from '../hooks/use-training-streak'
 import { streakText } from '../lib/streak'
-import { parseDecimal } from '../lib/parse-decimal'
+import { parseSetInput } from '../lib/set-values'
 import type { NeuerRekord } from '../lib/analysis/training-charts'
 import Pressable, { PressableLink } from '../components/Pressable'
 import CompletionCelebration from '../components/CompletionCelebration'
@@ -57,6 +58,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     sets,
     loading,
     logSet,
+    updateSet,
     completeSession,
     ermittleNeueRekorde,
     addExercisesToSession,
@@ -66,6 +68,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
   const [openExerciseId, setOpenExerciseId] = useState<string | null>(null)
   const [pause, setPause] = useState<{ until: number; sekunden: number } | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [bearbeiteterSatz, setBearbeiteterSatz] = useState<SessionSet | null>(null)
   const [abschluss, setAbschluss] = useState<{
     neueRekorde: NeuerRekord[]
     dauerMinuten: number
@@ -239,7 +242,10 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                 )}
               </div>
               {openExerciseId === entry.exercise_id && (
-                <LoggedSets sets={sets.filter((set) => set.exercise_id === entry.exercise_id)} />
+                <LoggedSets
+                  sets={sets.filter((set) => set.exercise_id === entry.exercise_id)}
+                  onEdit={setBearbeiteterSatz}
+                />
               )}
               {openExerciseId === entry.exercise_id && (
                 <SetForm
@@ -271,6 +277,11 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
           </li>
         ))}
       </ul>
+      <SetEditDialog
+        set={bearbeiteterSatz}
+        onClose={() => setBearbeiteterSatz(null)}
+        onSave={(setId, patch) => updateSet(setId, patch)}
+      />
       <Pressable variant="secondary" type="button" className="w-full" onClick={() => setPickerOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="add" tone="mono" size={20} />
@@ -390,9 +401,6 @@ function Kennzahl({ label, wert, einheit }: { label: string; wert: number; einhe
   )
 }
 
-/** 0 = nothing left in the tank, 5 = five more reps were there. */
-const RIR_VALUES = [0, 1, 2, 3, 4, 5] as const
-
 // ziel_saetze = 0 means "no target", not "already done": the schema has no CHECK
 // on the column and the plan editor only rejects negative values.
 function targetReached(zielSaetze: number | null, done: number) {
@@ -400,53 +408,75 @@ function targetReached(zielSaetze: number | null, done: number) {
 }
 
 /**
- * Read-only history of what's already logged for the open exercise, shown
- * above SetForm so the next set (the form itself) reads as the one still
- * outstanding. Numbered like the "Satz N von M" status line below it — by
- * position among working sets, not by satz_nummer, which also counts
- * warm-ups (see workingSetCount).
+ * History of what's already logged for the open exercise, shown above SetForm
+ * so the next set (the form itself) reads as the one still outstanding.
+ * Warm-ups appear as rows ("Aufw."); the visible number counts working sets
+ * only, like the "Satz N von M" status line below — satz_nummer also counts
+ * warm-ups (see workingSetCount). A row opens the correction dialog.
  */
-function LoggedSets({ sets }: { sets: SessionSet[] }) {
+function LoggedSets({ sets, onEdit }: { sets: SessionSet[]; onEdit: (set: SessionSet) => void }) {
   // Snapshot beim Aufklappen: nur danach erfasste Sätze blenden ein.
   const [bekannteIds] = useState(() => new Set(sets.map((set) => set.id)))
   if (sets.length === 0) return null
 
-  const arbeitssaetze = sets.filter((set) => !set.ist_aufwaermsatz).sort((a, b) => a.satz_nummer - b.satz_nummer)
-  const aufwaermsaetze = sets.filter((set) => set.ist_aufwaermsatz)
+  // Reihenfolge wie erfasst (satz_nummer zählt alle Sätze); die sichtbare Nummer
+  // zählt nur Arbeitssätze, Aufwärmsätze tragen "Aufw." (siehe workingSetCount).
+  const sortiert = [...sets].sort((a, b) => a.satz_nummer - b.satz_nummer)
+  const nummern = new Map<string, number>()
+  const aufwaermNummern = new Map<string, number>()
+  let arbeitssaetze = 0
+  let aufwaermsaetze = 0
+  for (const set of sortiert) {
+    if (set.ist_aufwaermsatz) aufwaermNummern.set(set.id, (aufwaermsaetze += 1))
+    else nummern.set(set.id, (arbeitssaetze += 1))
+  }
 
   return (
-    <div className="flex flex-col gap-2">
-      {aufwaermsaetze.length > 0 && (
-        <p className="text-sm text-text-muted">
-          {aufwaermsaetze.length} {aufwaermsaetze.length === 1 ? 'Aufwärmsatz' : 'Aufwärmsätze'}
-        </p>
-      )}
-      {arbeitssaetze.length > 0 && (
-        <table aria-label="Erfasste Sätze" className="w-full text-left tabular-nums">
-          <thead>
-            <tr className={labelClass}>
-              <th className="py-1 font-medium">Satz</th>
-              <th className="py-1 font-medium">kg</th>
-              <th className="py-1 font-medium">Wdh.</th>
-              <th className="py-1 font-medium">RIR</th>
+    <table aria-label="Erfasste Sätze" className="w-full text-left tabular-nums">
+      <thead>
+        <tr className={labelClass}>
+          <th className="py-1 font-medium">Satz</th>
+          <th className="py-1 font-medium">kg</th>
+          <th className="py-1 font-medium">Wdh.</th>
+          <th className="py-1 font-medium">RIR</th>
+        </tr>
+      </thead>
+      <tbody>
+        {sortiert.map((set) => {
+          const label = set.ist_aufwaermsatz ? 'Aufw.' : String(nummern.get(set.id))
+          return (
+            // Der Zeilenklick öffnet die Korrektur; der Button in der ersten Zelle ist der
+            // Zugang für Tastatur und Screenreader — sein Klick steigt zum <tr> auf und
+            // hat bewusst keinen eigenen Handler (sonst öffnete der Dialog doppelt).
+            <tr
+              key={set.id}
+              onClick={() => onEdit(set)}
+              className={`cursor-pointer border-t border-text-muted/20 ${set.ist_aufwaermsatz ? 'text-text-muted' : ''} ${
+                bekannteIds.has(set.id) ? '' : 'row-in'
+              }`}
+            >
+              <td className="py-1">
+                <Pressable
+                  variant="bare"
+                  type="button"
+                  className={`min-h-11 min-w-11 rounded-lg text-left focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${interactiveClass}`}
+                  aria-label={
+                    set.ist_aufwaermsatz
+                      ? `Aufw. ${aufwaermNummern.get(set.id)} bearbeiten`
+                      : `Satz ${label} bearbeiten`
+                  }
+                >
+                  {label}
+                </Pressable>
+              </td>
+              <td className="py-1">{set.gewicht ?? '—'}</td>
+              <td className="py-1">{set.wiederholungen ?? '—'}</td>
+              <td className="py-1">{set.rir ?? '—'}</td>
             </tr>
-          </thead>
-          <tbody>
-            {arbeitssaetze.map((set, index) => (
-              <tr
-                key={set.id}
-                className={`border-t border-text-muted/20 ${bekannteIds.has(set.id) ? '' : 'row-in'}`}
-              >
-                <td className="py-1">{index + 1}</td>
-                <td className="py-1">{set.gewicht ?? '—'}</td>
-                <td className="py-1">{set.wiederholungen ?? '—'}</td>
-                <td className="py-1">{set.rir ?? '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
+          )
+        })}
+      </tbody>
+    </table>
   )
 }
 
@@ -463,29 +493,22 @@ function SetForm({
   const [wiederholungen, setWiederholungen] = useState('')
   const [rir, setRir] = useState<number | null>(null)
   const [istAufwaermsatz, setIstAufwaermsatz] = useState(false)
-  const [fehler, setFehler] = useState<{ gewicht: boolean; wiederholungen: boolean }>({
-    gewicht: false,
-    wiederholungen: false,
-  })
+  const [fehler, setFehler] = useState<{ gewicht?: string; wiederholungen?: string }>({})
 
   return (
     <form
       className="flex flex-col gap-3"
       onSubmit={async (event) => {
         event.preventDefault()
-        const gewichtValue = parseDecimal(gewicht)
-        const wiederholungenValue = parseDecimal(wiederholungen, { integer: true })
-        // Refuse rather than store the set without the value: "22,5" used to become NaN and land as null.
-        const gewichtUngueltig = gewichtValue === undefined || (gewichtValue !== null && gewichtValue < 0)
-        const wiederholungenUngueltig =
-          wiederholungenValue === undefined || (wiederholungenValue !== null && wiederholungenValue < 0)
-        setFehler({ gewicht: gewichtUngueltig, wiederholungen: wiederholungenUngueltig })
-        if (gewichtUngueltig || wiederholungenUngueltig) return
+        // Eine Regel für alle Wege, einen Satz zu speichern (src/lib/set-values.ts).
+        const eingabe = parseSetInput(gewicht, wiederholungen)
+        setFehler(eingabe.ok ? {} : eingabe.fehler)
+        if (!eingabe.ok) return
         // Only clear on a stored set: wiping the fields after a failed save
         // would force the user to type everything again.
         const stored = await onLog({
-          gewicht: gewichtValue ?? null,
-          wiederholungen: wiederholungenValue ?? null,
+          gewicht: eingabe.values.gewicht,
+          wiederholungen: eingabe.values.wiederholungen,
           rir,
           ist_aufwaermsatz: istAufwaermsatz,
         })
@@ -513,13 +536,13 @@ function SetForm({
             className={inputClass}
             inputMode="decimal"
             value={gewicht}
-            aria-invalid={fehler.gewicht}
+            aria-invalid={fehler.gewicht !== undefined}
             onChange={(event) => setGewicht(event.target.value)}
           />
         </label>
         {fehler.gewicht && (
           <p role="alert" className="text-sm text-danger">
-            Gewicht als Zahl ab 0 eingeben, z. B. 22,5.
+            {fehler.gewicht}
           </p>
         )}
         <label className={fieldLabelClass}>
@@ -528,13 +551,13 @@ function SetForm({
             className={inputClass}
             inputMode="numeric"
             value={wiederholungen}
-            aria-invalid={fehler.wiederholungen}
+            aria-invalid={fehler.wiederholungen !== undefined}
             onChange={(event) => setWiederholungen(event.target.value)}
           />
         </label>
         {fehler.wiederholungen && (
           <p role="alert" className="text-sm text-danger">
-            Wiederholungen als ganze Zahl ab 0 eingeben.
+            {fehler.wiederholungen}
           </p>
         )}
         <label className={checkLabelClass}>
@@ -545,20 +568,7 @@ function SetForm({
           />
           Aufwärmsatz
         </label>
-        <fieldset className="flex flex-wrap gap-2">
-          <legend>Wie viele hättest du noch geschafft?</legend>
-          {RIR_VALUES.map((value) => (
-            <Chip
-              key={value}
-              active={rir === value}
-              // Pressed rather than disabled: tapping the same value again clears
-              // it, so a mistap does not stick for the rest of the session.
-              onClick={() => setRir(rir === value ? null : value)}
-            >
-              {value === 5 ? '5+' : String(value)}
-            </Chip>
-          ))}
-        </fieldset>
+        <RirChips value={rir} onChange={setRir} />
       </div>
       <Pressable variant="primary" type="submit">
         <span className="inline-flex items-center justify-center gap-2">

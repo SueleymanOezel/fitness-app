@@ -257,6 +257,35 @@ describe('useTrainingAnalysis sets', () => {
     expect(result.current.sets[0].muskelgruppen).toEqual([])
   })
 
+  it('uses the German exercise name when there is one', async () => {
+    ergebnis = { data: [session], error: null }
+    satzErgebnis = {
+      data: [
+        {
+          id: 'x1',
+          workout_session_id: 's1',
+          exercise_id: 'e1',
+          satz_nummer: 1,
+          gewicht: 80,
+          wiederholungen: 8,
+          ist_aufwaermsatz: false,
+          exercises: { name: 'Bench Press', name_de: 'Bankdrücken', muskelgruppen_primaer: ['brust'] },
+        },
+      ],
+      error: null,
+    }
+    const { result } = renderHook(() => useTrainingAnalysis('u1', 30))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.sets[0].exercise_name).toBe('Bankdrücken')
+  })
+
+  it('selects name_de in the embed so no chart shows the English name', async () => {
+    ergebnis = { data: [session], error: null }
+    renderHook(() => useTrainingAnalysis('u1', 30))
+    await waitFor(() => expect(select).toHaveBeenCalledWith('workout_session_sets', expect.stringContaining('name_de')))
+  })
+
   it('reports a failed set load like a failed session load', async () => {
     ergebnis = { data: [session], error: null }
     satzErgebnis = { data: null, error: { message: 'boom' } }

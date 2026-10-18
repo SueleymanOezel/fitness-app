@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import TrainingHistoryDetailPage from './TrainingHistoryDetailPage'
 import { renderWithProviders } from '../test-render'
+import { WIEDERHOLUNGEN_FEHLER } from '../lib/set-values'
 
 const mockUseWorkoutSession = vi.fn()
 vi.mock('../hooks/use-workout-session', () => ({
@@ -70,6 +71,23 @@ describe('TrainingHistoryDetailPage', () => {
     expect(screen.getByText('400 kcal')).toBeInTheDocument()
   })
 
+  it('shows the German exercise name, falling back to the English one', async () => {
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({
+        sets: [
+          { ...set, id: 'a', exercise: { id: 'ex1', name: 'Bench Press', name_de: 'Bankdrücken', met_wert: 5 } },
+          { ...set, id: 'b', exercise: { id: 'ex2', name: 'Cable Row', name_de: null, met_wert: 5 } },
+        ],
+      }),
+    )
+
+    renderPage()
+
+    expect(await screen.findByText('Bankdrücken')).toBeInTheDocument()
+    expect(screen.queryByText('Bench Press')).not.toBeInTheDocument()
+    expect(screen.getByText('Cable Row')).toBeInTheDocument()
+  })
+
   it('corrects a set once the field is left, not on every keystroke', async () => {
     const result = sessionResult()
     mockUseWorkoutSession.mockReturnValue(result)
@@ -111,6 +129,128 @@ describe('TrainingHistoryDetailPage', () => {
     fireEvent.blur(field)
 
     expect(result.updateSet).not.toHaveBeenCalled()
+  })
+
+  it('does not let the repetitions be emptied, restores the value and says why', () => {
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    const field = screen.getByLabelText('Wiederholungen')
+    fireEvent.change(field, { target: { value: '' } })
+    fireEvent.blur(field)
+
+    expect(result.updateSet).not.toHaveBeenCalled()
+    expect(field).toHaveValue('10')
+    expect(screen.getByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
+  })
+
+  it('does not let the repetitions be set to zero', () => {
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    const field = screen.getByLabelText('Wiederholungen')
+    fireEvent.change(field, { target: { value: '0' } })
+    fireEvent.blur(field)
+
+    expect(result.updateSet).not.toHaveBeenCalled()
+    expect(field).toHaveValue('10')
+    expect(screen.getByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
+  })
+
+  it('still corrects the repetitions to another valid number', async () => {
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    const field = screen.getByLabelText('Wiederholungen')
+    fireEvent.change(field, { target: { value: '12' } })
+    fireEvent.blur(field)
+
+    await waitFor(() => expect(result.updateSet).toHaveBeenCalledWith('set1', { wiederholungen: 12 }))
+    expect(screen.queryByText(WIEDERHOLUNGEN_FEHLER)).not.toBeInTheDocument()
+  })
+
+  it('shows no message for an old set without repetitions that is merely visited', () => {
+    const result = sessionResult({ sets: [{ ...set, wiederholungen: null }] })
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    fireEvent.blur(screen.getByLabelText('Wiederholungen'))
+
+    expect(result.updateSet).not.toHaveBeenCalled()
+    expect(screen.queryByText(WIEDERHOLUNGEN_FEHLER)).not.toBeInTheDocument()
+  })
+
+  it('accepts a weight typed with a German decimal comma', () => {
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    const field = screen.getByLabelText('Gewicht (kg)')
+    fireEvent.change(field, { target: { value: '62,5' } })
+    fireEvent.blur(field)
+
+    expect(result.updateSet).toHaveBeenCalledWith('set1', { gewicht: 62.5 })
+  })
+
+  it('rejects exponent notation in the repetitions, like the session dialog', () => {
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    const field = screen.getByLabelText('Wiederholungen')
+    fireEvent.change(field, { target: { value: '1e1' } })
+    fireEvent.blur(field)
+
+    expect(result.updateSet).not.toHaveBeenCalled()
+    expect(field).toHaveValue('10')
+    expect(screen.getByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
+  })
+
+  it('clears the message and the invalid mark once the repetitions are typed again', () => {
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+
+    const field = screen.getByLabelText('Wiederholungen')
+    fireEvent.change(field, { target: { value: '' } })
+    fireEvent.blur(field)
+    expect(screen.getByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
+    expect(field).toHaveAttribute('aria-invalid', 'true')
+
+    fireEvent.change(field, { target: { value: '5' } })
+
+    expect(screen.queryByText(WIEDERHOLUNGEN_FEHLER)).not.toBeInTheDocument()
+    expect(field).toHaveAttribute('aria-invalid', 'false')
+  })
+
+  it('names a set of a deleted exercise instead of showing an empty heading', () => {
+    mockUseWorkoutSession.mockReturnValue(sessionResult({ sets: [{ ...set, exercise: null }] }))
+
+    renderPage()
+
+    expect(screen.getByText('Unbekannte Übung')).toBeInTheDocument()
+  })
+
+  it('still lets the weight be emptied (bodyweight)', async () => {
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    const field = screen.getByLabelText('Gewicht (kg)')
+    fireEvent.change(field, { target: { value: '' } })
+    fireEvent.blur(field)
+
+    await waitFor(() => expect(result.updateSet).toHaveBeenCalledWith('set1', { gewicht: null }))
   })
 
   it('still accepts a fractional weight, which is a numeric column', () => {
