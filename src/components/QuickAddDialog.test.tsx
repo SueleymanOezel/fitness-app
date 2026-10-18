@@ -87,4 +87,10 @@ describe('QuickAddDialog', () => {
     expect(screen.queryByRole('button', { name: 'Stub hinzufügen' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Profil/ })).toHaveAttribute('href', '/profile')
   })
+
+  it('nennt die gewählte Mahlzeit im Titel und folgt dem Wechsel', () => {
+    zeige()
+    fireEvent.click(screen.getByRole('button', { name: 'Snacks' }))
+    expect(screen.getByRole('heading', { name: 'Eintrag für Snacks' })).toBeInTheDocument()
+  })
 })

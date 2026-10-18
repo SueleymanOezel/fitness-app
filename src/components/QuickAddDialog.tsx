@@ -42,8 +42,11 @@ function QuickAddForm({ sections, addEntry, onClose }: Omit<Props, 'open'>) {
     )
   }
 
+  const name = sections.find((section) => section.slot === slot)?.name
+
   return (
     <div className="flex flex-col gap-4">
+      <h2>{name ? `Eintrag für ${name}` : 'Eintrag hinzufügen'}</h2>
       <div className={cardClass}>
         <div role="group" aria-label="Mahlzeit" className="flex flex-wrap gap-2">
           {sections.map((section) => (

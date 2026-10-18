@@ -135,7 +135,7 @@ describe('AddEntryFlow', () => {
     fireEvent.change(screen.getByLabelText('Barcode-Nummer eingeben'), {
       target: { value: '8076809580144' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Suchen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Barcode prüfen' }))
 
     await waitFor(() => expect(screen.getByText('Gefundenes Produkt')).toBeInTheDocument())
     expect(mockFindOrFetch).toHaveBeenCalledWith('8076809580144')
@@ -146,7 +146,7 @@ describe('AddEntryFlow', () => {
     render(<AddEntryFlow onAdd={vi.fn().mockResolvedValue(undefined)} />)
 
     fireEvent.change(screen.getByLabelText('Barcode-Nummer eingeben'), { target: { value: '123' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Suchen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Barcode prüfen' }))
 
     expect(screen.getByRole('alert')).toHaveTextContent('8–14 Ziffern')
     expect(mockFindOrFetch).not.toHaveBeenCalled()

@@ -128,6 +128,7 @@ function SectionBlock({
               rendering AddEntryFlow only while open resets its product/quantity/error
               state each time it opens, instead of showing the last attempt's leftovers. */}
           <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+            {dialogOpen && <h2>{`Eintrag für ${name}`}</h2>}
             {dialogOpen && (
               <AddEntryFlow
                 onAdd={async (productId, menge) => {

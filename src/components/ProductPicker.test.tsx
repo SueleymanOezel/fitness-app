@@ -47,7 +47,7 @@ describe('ProductPicker', () => {
     fireEvent.change(screen.getByLabelText('Barcode-Nummer eingeben'), {
       target: { value: '4001234567890' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Suchen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Barcode prüfen' }))
 
     await waitFor(() => expect(onPicked).toHaveBeenCalledWith(product))
   })
@@ -71,7 +71,7 @@ describe('ProductPicker', () => {
     render(<ProductPicker onPicked={vi.fn()} onCancel={vi.fn()} />)
 
     fireEvent.change(screen.getByLabelText('Barcode-Nummer eingeben'), { target: { value: '123' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Suchen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Barcode prüfen' }))
 
     expect(screen.getByRole('alert')).toHaveTextContent('8–14 Ziffern')
     expect(mockFindOrFetch).not.toHaveBeenCalled()
@@ -96,7 +96,7 @@ describe('ProductPicker', () => {
     render(<ProductPicker onPicked={vi.fn()} onCancel={vi.fn()} />)
 
     fireEvent.change(screen.getByLabelText('Barcode-Nummer eingeben'), { target: { value: '123' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Suchen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Barcode prüfen' }))
     expect(screen.getByRole('alert')).toHaveTextContent('8–14 Ziffern')
 
     fireEvent.click(screen.getByRole('button', { name: 'Barcode scannen' }))

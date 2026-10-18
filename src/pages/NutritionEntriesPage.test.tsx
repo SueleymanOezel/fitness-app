@@ -22,6 +22,7 @@ vi.mock('../lib/product-edit', () => ({
 }))
 
 vi.mock('../lib/product-lookup', () => ({
+  PRODUCT_COLUMNS: 'id, name',
   findOrFetchProductByBarcode: () =>
     Promise.resolve({ id: 'p1', name: 'Testprodukt', barcode: '8076809580144', kalorien: 100 }),
 }))
@@ -207,7 +208,7 @@ describe('NutritionEntriesPage', () => {
     fireEvent.change(section.getByLabelText('Barcode-Nummer eingeben'), {
       target: { value: '8076809580144' },
     })
-    fireEvent.click(section.getByRole('button', { name: 'Suchen' }))
+    fireEvent.click(section.getByRole('button', { name: 'Barcode prüfen' }))
 
     await waitFor(() => expect(section.getByLabelText('Menge (g)')).toBeInTheDocument())
     fireEvent.click(section.getByRole('button', { name: 'Hinzufügen' }))
@@ -248,7 +249,7 @@ describe('NutritionEntriesPage', () => {
     fireEvent.change(section.getByLabelText('Barcode-Nummer eingeben'), {
       target: { value: '8076809580144' },
     })
-    fireEvent.click(section.getByRole('button', { name: 'Suchen' }))
+    fireEvent.click(section.getByRole('button', { name: 'Barcode prüfen' }))
 
     await waitFor(() => expect(section.getByLabelText('Menge (g)')).toBeInTheDocument())
     fireEvent.click(section.getByRole('button', { name: 'Hinzufügen' }))
@@ -278,7 +279,7 @@ describe('NutritionEntriesPage', () => {
     fireEvent.click(section.getByRole('button', { name: 'Eintrag hinzufügen' }))
     fireEvent.change(section.getByLabelText('Barcode-Nummer eingeben'), { target: { value: '123' } })
     // '123' is not a valid barcode length — this leaves an inline error and no lookup call.
-    fireEvent.click(section.getByRole('button', { name: 'Suchen' }))
+    fireEvent.click(section.getByRole('button', { name: 'Barcode prüfen' }))
     expect(section.getByRole('alert')).toHaveTextContent('8–14 Ziffern')
 
     // The dialog's own close button (Dialog.tsx's built-in "Schließen", not
