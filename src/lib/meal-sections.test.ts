@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mealSections, visibleSections } from './meal-sections'
+import { abschnittFuerUhrzeit, mealSections, visibleSections } from './meal-sections'
 
 const names = {
   mahlzeit_1_name: 'Frühstück',
@@ -120,5 +120,31 @@ describe('visibleSections', () => {
       { slot: 3, name: 'Abendessen' },
       { slot: 4, name: 'Snacks' },
     ])
+  })
+})
+
+describe('abschnittFuerUhrzeit', () => {
+  const vier = mealSections(names)
+  const um = (stunde: number) => new Date(2026, 9, 18, stunde, 30)
+
+  it('wählt nach Tageszeit den 1. bis 4. Abschnitt', () => {
+    expect(abschnittFuerUhrzeit(vier, um(7))).toBe(1)
+    expect(abschnittFuerUhrzeit(vier, um(12))).toBe(2)
+    expect(abschnittFuerUhrzeit(vier, um(18))).toBe(3)
+    expect(abschnittFuerUhrzeit(vier, um(22))).toBe(4)
+  })
+
+  it('begrenzt auf die vorhandene Anzahl', () => {
+    const zwei = vier.slice(0, 2)
+    expect(abschnittFuerUhrzeit(zwei, um(22))).toBe(2)
+  })
+
+  it('liefert die Slot-Nummer, nicht die Position', () => {
+    const luecke = [{ slot: 2, name: 'A' }, { slot: 5, name: 'B' }]
+    expect(abschnittFuerUhrzeit(luecke, um(12))).toBe(5)
+  })
+
+  it('liefert null ohne Abschnitte', () => {
+    expect(abschnittFuerUhrzeit([], um(12))).toBeNull()
   })
 })

@@ -57,3 +57,15 @@ export function visibleSections(
   if (used.has(null)) sections.push({ slot: null, name: UNASSIGNED_LABEL })
   return sections
 }
+
+/**
+ * Vorbelegung für den Schnell-Eintrag: nach Tageszeit der 1.–4. benannte
+ * Abschnitt (vor 10 Uhr, bis 15, bis 21, danach), begrenzt auf die vorhandene
+ * Anzahl. Nach Position statt nach Name, weil die Namen frei editierbar sind.
+ */
+export function abschnittFuerUhrzeit(sections: MealSection[], jetzt: Date): number | null {
+  if (sections.length === 0) return null
+  const stunde = jetzt.getHours()
+  const position = stunde < 10 ? 0 : stunde < 15 ? 1 : stunde < 21 ? 2 : 3
+  return sections[Math.min(position, sections.length - 1)].slot
+}
