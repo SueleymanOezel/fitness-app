@@ -7,6 +7,8 @@ function createQueryBuilder(result: { data: unknown; error?: unknown }) {
     insert: vi.fn(() => builder),
     order: vi.fn(() => builder),
     range: vi.fn(() => builder),
+    eq: vi.fn(() => builder),
+    maybeSingle: vi.fn(() => Promise.resolve(result)),
     then: (resolve: (value: typeof result) => unknown) => resolve(result),
   }
   return builder
@@ -128,5 +130,68 @@ describe('useExercises', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     expect(builder.order).toHaveBeenCalledWith('id', { ascending: true })
+  })
+})
+
+describe('list columns', () => {
+  it('does not load the long instructions with the list', async () => {
+    const builder = createQueryBuilder({ data: [exercise] })
+    mockFrom.mockReturnValue(builder)
+
+    const { useExercises } = await import('./use-exercises')
+    const { result } = renderHook(() => useExercises('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    const columns = (builder.select as ReturnType<typeof vi.fn>).mock.calls[0][0] as string
+    expect(columns).not.toContain('anleitung')
+    expect(columns).not.toBe('*')
+    expect(columns).toContain('name_de')
+  })
+})
+
+describe('useExerciseInstructions', () => {
+  it('reads the instructions of one exercise, German first', async () => {
+    const builder = createQueryBuilder({ data: { anleitung: ['A'], anleitung_de: ['Schritt A'] } })
+    mockFrom.mockReturnValue(builder)
+
+    const { useExerciseInstructions } = await import('./use-exercises')
+    const { result } = renderHook(() => useExerciseInstructions('ex1'))
+
+    expect(result.current.loading).toBe(true)
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.anleitung).toEqual(['Schritt A'])
+    expect(builder.eq).toHaveBeenCalledWith('id', 'ex1')
+  })
+
+  it('falls back to the English steps when there is no translation', async () => {
+    mockFrom.mockReturnValue(createQueryBuilder({ data: { anleitung: ['A'], anleitung_de: null } }))
+
+    const { useExerciseInstructions } = await import('./use-exercises')
+    const { result } = renderHook(() => useExerciseInstructions('ex1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.anleitung).toEqual(['A'])
+  })
+
+  it('reports an error instead of an empty instruction list', async () => {
+    mockFrom.mockReturnValue(createQueryBuilder({ data: null, error: { message: 'boom' } }))
+
+    const { useExerciseInstructions } = await import('./use-exercises')
+    const { result } = renderHook(() => useExerciseInstructions('ex1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.error).toBe(true)
+  })
+
+  it('does not show the previous exercise while the next one loads', async () => {
+    mockFrom.mockReturnValue(createQueryBuilder({ data: { anleitung: ['A'], anleitung_de: null } }))
+
+    const { useExerciseInstructions } = await import('./use-exercises')
+    const { result, rerender } = renderHook(({ id }) => useExerciseInstructions(id), { initialProps: { id: 'ex1' } })
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    mockFrom.mockReturnValue(createQueryBuilder({ data: { anleitung: ['B'], anleitung_de: null } }))
+    rerender({ id: 'ex2' })
+    expect(result.current.loading).toBe(true)
+    expect(result.current.anleitung).toEqual([])
+    await waitFor(() => expect(result.current.anleitung).toEqual(['B']))
   })
 })

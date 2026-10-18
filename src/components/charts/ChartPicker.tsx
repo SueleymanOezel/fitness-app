@@ -14,7 +14,18 @@ import { checkLabelClass } from '../../lib/ui-classes'
 // Hook and checkbox are one unit by design (see brief); this only affects fast refresh.
 // eslint-disable-next-line react-refresh/only-export-components
 export function useChartSelection(userId: string) {
-  const { profile, updateProfile } = useProfile(userId)
+  return useChartSelectionFor(useProfile(userId))
+}
+
+/**
+ * Same as useChartSelection for a page that already holds the profile: a
+ * second useProfile would send the same request twice for the same screen.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export function useChartSelectionFor({
+  profile,
+  updateProfile,
+}: Pick<ReturnType<typeof useProfile>, 'profile' | 'updateProfile'>) {
   const [fehler, setFehler] = useState('')
 
   const auswahl = parseAuswahl(profile?.analyse_auswahl, CHART_IDS)

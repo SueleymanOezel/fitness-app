@@ -6,7 +6,10 @@ const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
 
 const mockUseExercises = vi.fn()
-vi.mock('../hooks/use-exercises', () => ({ useExercises: (userId: string) => mockUseExercises(userId) }))
+vi.mock('../hooks/use-exercises', () => ({
+  useExercises: (userId: string) => mockUseExercises(userId),
+  useExerciseInstructions: () => ({ anleitung: ['Schritt eins.', 'Schritt zwei.'], loading: false, error: false }),
+}))
 
 afterEach(() => cleanup())
 
@@ -19,8 +22,6 @@ const exercise = {
   muskelgruppen_primaer: ['chest'],
   muskelgruppen_sekundaer: [],
   bild_url: null,
-  anleitung: ['Schritt eins.', 'Schritt zwei.'],
-  anleitung_de: null,
   schwierigkeitsgrad: 'beginner',
   met_wert: 5,
   created_by: null,
@@ -419,5 +420,26 @@ describe('ExercisesPage', () => {
 
     expect(screen.getByRole('alert')).toBeInTheDocument()
     expect(screen.queryByLabelText('Suche')).not.toBeInTheDocument()
+  })
+
+  it('renders only the first 50 exercises, shows more on demand and starts again at the top after a new search', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const viele = Array.from({ length: 120 }, (_, index) => ({
+      ...exercise,
+      id: `ex${index}`,
+      name: `Übung ${String(index).padStart(3, '0')}`,
+    }))
+    mockUseExercises.mockReturnValue(exercisesResult({ exercises: viele }))
+
+    const { default: ExercisesPage } = await import('./ExercisesPage')
+    renderWithProviders(<ExercisesPage />)
+
+    expect(screen.getAllByRole('button', { name: /^Übung \d{3}/ })).toHaveLength(50)
+    fireEvent.click(screen.getByRole('button', { name: 'Mehr anzeigen (70 weitere)' }))
+    expect(screen.getAllByRole('button', { name: /^Übung \d{3}/ })).toHaveLength(100)
+
+    fireEvent.change(screen.getByLabelText('Suche'), { target: { value: 'Übung 0' } })
+    expect(screen.getAllByRole('button', { name: /^Übung 0\d{2}/ })).toHaveLength(50)
+    expect(screen.getByRole('button', { name: 'Mehr anzeigen (50 weitere)' })).toBeInTheDocument()
   })
 })

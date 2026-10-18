@@ -74,4 +74,22 @@ describe('ExercisePicker', () => {
 
     expect(screen.getByText('Keine Übungen gefunden.')).toBeInTheDocument()
   })
+
+  it('renders only the first 50 hits, shows the rest on demand, and still finds hits beyond them by search', () => {
+    const viele: PickableExercise[] = Array.from({ length: 120 }, (_, index) => ({
+      ...benchPress,
+      id: `ex${index}`,
+      name: `Übung ${String(index).padStart(3, '0')}`,
+      name_de: `Übung ${String(index).padStart(3, '0')}`,
+    }))
+    render(<ExercisePicker exercises={viele} alreadyAdded={[]} onAddSelected={vi.fn()} />)
+
+    expect(screen.getAllByRole('button', { name: /^Übung \d{3}/ })).toHaveLength(50)
+    fireEvent.click(screen.getByRole('button', { name: 'Mehr anzeigen (70 weitere)' }))
+    expect(screen.getAllByRole('button', { name: /^Übung \d{3}/ })).toHaveLength(100)
+
+    fireEvent.change(screen.getByLabelText('Übung suchen'), { target: { value: 'Übung 119' } })
+    expect(screen.getAllByRole('button', { name: /^Übung \d{3}/ })).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: /Mehr anzeigen/ })).not.toBeInTheDocument()
+  })
 })

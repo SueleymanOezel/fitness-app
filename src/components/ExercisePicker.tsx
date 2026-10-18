@@ -11,6 +11,7 @@ import {
 } from '../lib/exercise-filters'
 import { exerciseCaption, revealDelay } from '../lib/exercise-caption'
 import Pressable from './Pressable'
+import { useVisibleCount } from '../hooks/use-visible-count'
 
 export type PickableExercise = {
   id: string
@@ -42,6 +43,7 @@ export default function ExercisePicker({
   const [muskelgruppe, setMuskelgruppe] = useState<string | null>(null)
   const [equipment, setEquipment] = useState<string | null>(null)
   const [selected, setSelected] = useState<string[]>([])
+  const { count, showMore } = useVisibleCount(`${query}|${muskelgruppe}|${equipment}`)
 
   // Already-added exercises are filtered out rather than silently rejected by
   // the hook's duplicate guard, which would look like a dead row.
@@ -59,7 +61,11 @@ export default function ExercisePicker({
   // per exercise, not one per muscle group — see the domain-model note on
   // volume being split across groups for charts, which is a different,
   // numeric-conservation concern that doesn't apply to a UI list).
-  const groups = muskelgruppe === null ? groupByMuskelgruppe(filtered) : [{ gruppe: '', exercises: filtered }]
+  // Only the first `count` hits are rendered (thumbnails are third-party requests); they are cut
+  // before grouping so a section never shows more than the list allows.
+  const gefiltert = filtered.length
+  const sichtbar = filtered.slice(0, count)
+  const groups = muskelgruppe === null ? groupByMuskelgruppe(sichtbar) : [{ gruppe: '', exercises: sichtbar }]
 
   function toggle(exerciseId: string) {
     setSelected((current) =>
@@ -121,6 +127,11 @@ export default function ExercisePicker({
           </ul>
         </div>
       ))}
+      {gefiltert > count && (
+        <Pressable variant="secondary" type="button" className="w-full" onClick={showMore}>
+          {`Mehr anzeigen (${gefiltert - count} weitere)`}
+        </Pressable>
+      )}
       {/* Sticky so it stays reachable once the (now ungated, potentially
           long) list scrolls inside the dialog's own scroll box. */}
       <div className="sticky bottom-0 bg-surface pt-2">

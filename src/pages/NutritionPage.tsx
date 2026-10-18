@@ -14,7 +14,7 @@ import StatStrip from '../components/StatStrip'
 import LinkListCard from '../components/LinkListCard'
 import QuickAddDialog from '../components/QuickAddDialog'
 import PageSkeleton, { ChartSkeleton } from '../components/PageSkeleton'
-import { useChartSelection } from '../components/charts/ChartPicker'
+import { useChartSelectionFor } from '../components/charts/ChartPicker'
 import NutritionChartList from '../components/charts/NutritionChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
@@ -32,9 +32,10 @@ export default function NutritionPage() {
 }
 
 function NutritionDashboard({ userId }: { userId: string }) {
-  const { profile, loading: profileLoading, error: profileError, reload } = useProfile(userId)
+  const profileResult = useProfile(userId)
+  const { profile, loading: profileLoading, error: profileError, reload } = profileResult
   const { entries, loading: entriesLoading, addEntry } = useFoodEntries(userId)
-  const auswahl = useChartSelection(userId)
+  const auswahl = useChartSelectionFor(profileResult)
   const [addOpen, setAddOpen] = useState(false)
 
   if (profileLoading || entriesLoading) return <PageSkeleton titel="Ernährung" />
