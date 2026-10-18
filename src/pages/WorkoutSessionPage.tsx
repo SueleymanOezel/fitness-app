@@ -19,7 +19,7 @@ import {
   statClass,
   stickyActionClass,
 } from '../lib/ui-classes'
-import Chip from '../components/Chip'
+import RirChips from '../components/RirChips'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { useExercises } from '../hooks/use-exercises'
@@ -27,7 +27,7 @@ import Dialog from '../components/Dialog'
 import ExercisePicker from '../components/ExercisePicker'
 import { useTrainingStreak } from '../hooks/use-training-streak'
 import { streakText } from '../lib/streak'
-import { parseDecimal } from '../lib/parse-decimal'
+import { parseSetInput } from '../lib/set-values'
 import type { NeuerRekord } from '../lib/analysis/training-charts'
 import Pressable, { PressableLink } from '../components/Pressable'
 import CompletionCelebration from '../components/CompletionCelebration'
@@ -390,9 +390,6 @@ function Kennzahl({ label, wert, einheit }: { label: string; wert: number; einhe
   )
 }
 
-/** 0 = nothing left in the tank, 5 = five more reps were there. */
-const RIR_VALUES = [0, 1, 2, 3, 4, 5] as const
-
 // ziel_saetze = 0 means "no target", not "already done": the schema has no CHECK
 // on the column and the plan editor only rejects negative values.
 function targetReached(zielSaetze: number | null, done: number) {
@@ -463,29 +460,22 @@ function SetForm({
   const [wiederholungen, setWiederholungen] = useState('')
   const [rir, setRir] = useState<number | null>(null)
   const [istAufwaermsatz, setIstAufwaermsatz] = useState(false)
-  const [fehler, setFehler] = useState<{ gewicht: boolean; wiederholungen: boolean }>({
-    gewicht: false,
-    wiederholungen: false,
-  })
+  const [fehler, setFehler] = useState<{ gewicht?: string; wiederholungen?: string }>({})
 
   return (
     <form
       className="flex flex-col gap-3"
       onSubmit={async (event) => {
         event.preventDefault()
-        const gewichtValue = parseDecimal(gewicht)
-        const wiederholungenValue = parseDecimal(wiederholungen, { integer: true })
-        // Refuse rather than store the set without the value: "22,5" used to become NaN and land as null.
-        const gewichtUngueltig = gewichtValue === undefined || (gewichtValue !== null && gewichtValue < 0)
-        const wiederholungenUngueltig =
-          wiederholungenValue === undefined || (wiederholungenValue !== null && wiederholungenValue < 0)
-        setFehler({ gewicht: gewichtUngueltig, wiederholungen: wiederholungenUngueltig })
-        if (gewichtUngueltig || wiederholungenUngueltig) return
+        // Eine Regel für alle Wege, einen Satz zu speichern (src/lib/set-values.ts).
+        const eingabe = parseSetInput(gewicht, wiederholungen)
+        setFehler(eingabe.ok ? {} : eingabe.fehler)
+        if (!eingabe.ok) return
         // Only clear on a stored set: wiping the fields after a failed save
         // would force the user to type everything again.
         const stored = await onLog({
-          gewicht: gewichtValue ?? null,
-          wiederholungen: wiederholungenValue ?? null,
+          gewicht: eingabe.values.gewicht,
+          wiederholungen: eingabe.values.wiederholungen,
           rir,
           ist_aufwaermsatz: istAufwaermsatz,
         })
@@ -513,13 +503,13 @@ function SetForm({
             className={inputClass}
             inputMode="decimal"
             value={gewicht}
-            aria-invalid={fehler.gewicht}
+            aria-invalid={fehler.gewicht !== undefined}
             onChange={(event) => setGewicht(event.target.value)}
           />
         </label>
         {fehler.gewicht && (
           <p role="alert" className="text-sm text-danger">
-            Gewicht als Zahl ab 0 eingeben, z. B. 22,5.
+            {fehler.gewicht}
           </p>
         )}
         <label className={fieldLabelClass}>
@@ -528,13 +518,13 @@ function SetForm({
             className={inputClass}
             inputMode="numeric"
             value={wiederholungen}
-            aria-invalid={fehler.wiederholungen}
+            aria-invalid={fehler.wiederholungen !== undefined}
             onChange={(event) => setWiederholungen(event.target.value)}
           />
         </label>
         {fehler.wiederholungen && (
           <p role="alert" className="text-sm text-danger">
-            Wiederholungen als ganze Zahl ab 0 eingeben.
+            {fehler.wiederholungen}
           </p>
         )}
         <label className={checkLabelClass}>
@@ -545,20 +535,7 @@ function SetForm({
           />
           Aufwärmsatz
         </label>
-        <fieldset className="flex flex-wrap gap-2">
-          <legend>Wie viele hättest du noch geschafft?</legend>
-          {RIR_VALUES.map((value) => (
-            <Chip
-              key={value}
-              active={rir === value}
-              // Pressed rather than disabled: tapping the same value again clears
-              // it, so a mistap does not stick for the rest of the session.
-              onClick={() => setRir(rir === value ? null : value)}
-            >
-              {value === 5 ? '5+' : String(value)}
-            </Chip>
-          ))}
-        </fieldset>
+        <RirChips value={rir} onChange={setRir} />
       </div>
       <Pressable variant="primary" type="submit">
         <span className="inline-flex items-center justify-center gap-2">

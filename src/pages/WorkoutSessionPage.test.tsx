@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import WorkoutSessionPage, { formatPause } from './WorkoutSessionPage'
 import { renderWithProviders } from '../test-render'
+import { WIEDERHOLUNGEN_FEHLER, GEWICHT_FEHLER } from '../lib/set-values'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -421,6 +422,7 @@ describe('WorkoutSessionPage', () => {
     renderPage()
 
     fireEvent.click(screen.getByText('Bankdrücken'))
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
     fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
 
     // Third row in the table even though it is only the second working set —
@@ -452,6 +454,7 @@ describe('WorkoutSessionPage', () => {
 
     fireEvent.click(screen.getByText('Bankdrücken'))
     fireEvent.click(screen.getByRole('button', { name: '2' }))
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
     fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
 
     await waitFor(() =>
@@ -552,8 +555,8 @@ describe('WorkoutSessionPage', () => {
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '-5' } })
     fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
 
-    expect(await screen.findByText('Gewicht als Zahl ab 0 eingeben, z. B. 22,5.')).toBeInTheDocument()
-    expect(screen.getByText('Wiederholungen als ganze Zahl ab 0 eingeben.')).toBeInTheDocument()
+    expect(await screen.findByText(GEWICHT_FEHLER)).toBeInTheDocument()
+    expect(screen.getByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
     expect(result.logSet).not.toHaveBeenCalled()
     expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue('abc')
   })
@@ -789,5 +792,63 @@ describe('WorkoutSessionPage', () => {
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
     expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue('60')
     expect(screen.getByLabelText('Wiederholungen')).toHaveValue('10')
+  })
+
+  it('refuses a completely empty set and says why', async () => {
+    signedIn()
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+    fireEvent.click(await screen.findByText('Bankdrücken'))
+    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+
+    expect(await screen.findByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
+    expect(screen.getByLabelText('Wiederholungen')).toHaveAttribute('aria-invalid', 'true')
+    expect(result.logSet).not.toHaveBeenCalled()
+  })
+
+  it('refuses zero repetitions', async () => {
+    signedIn()
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+    fireEvent.click(await screen.findByText('Bankdrücken'))
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '0' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+
+    expect(await screen.findByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
+    expect(result.logSet).not.toHaveBeenCalled()
+  })
+
+  it('stores a bodyweight set without a weight', async () => {
+    signedIn()
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+    fireEvent.click(await screen.findByText('Bankdrücken'))
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '8' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+
+    await waitFor(() =>
+      expect(result.logSet).toHaveBeenCalledWith('ex1', 1, expect.objectContaining({ gewicht: null, wiederholungen: 8 })),
+    )
+  })
+
+  it('clears the message once the set is valid', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+    fireEvent.click(await screen.findByText('Bankdrücken'))
+    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    expect(await screen.findByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+
+    await waitFor(() => expect(screen.queryByText(WIEDERHOLUNGEN_FEHLER)).not.toBeInTheDocument())
   })
 })
