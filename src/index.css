@@ -232,3 +232,11 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .list-in { animation: none; }
 }
+
+@keyframes ring-fill {
+  from { stroke-dashoffset: var(--ring-length); }
+}
+.ring-fill { animation: ring-fill 700ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .ring-fill { animation: none; }
+}
