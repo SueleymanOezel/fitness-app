@@ -138,13 +138,14 @@ describe('HomePage', () => {
     stubDefaults()
     mockUseTrainingStreak.mockReturnValue({ streak: { wochen: 4, dieseWoche: 0, ziel: 3 }, loading: false })
     renderWithProviders(<HomePage />)
-    expect(screen.getByText('4 Wochen im Plan · diese Woche 0 von 3')).toBeInTheDocument()
+    expect(screen.getByText('4')).toBeInTheDocument()
+    expect(screen.getByText('Diese Woche 0 von 3')).toBeInTheDocument()
   })
 
   it('shows a message instead of a streak count when there is none yet', () => {
     stubDefaults()
     renderWithProviders(<HomePage />)
-    expect(screen.getByText('Noch keine Woche im Plan.')).toBeInTheDocument()
+    expect(screen.getByText('Diese Woche 0 von 3')).toBeInTheDocument()
   })
 
   it('does not query Home analysis data without a pinned selection', () => {

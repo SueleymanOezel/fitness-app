@@ -88,7 +88,7 @@ describe('FoodEntryList', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Bearbeiten' }))
+    fireEvent.click(screen.getByRole('button', { name: /bearbeiten/ }))
     expect(screen.getByLabelText('Menge (g)')).toHaveValue(150)
 
     fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }))
@@ -107,7 +107,8 @@ describe('FoodEntryList', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+    fireEvent.click(screen.getByRole('button', { name: /bearbeiten/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Eintrag löschen' }))
     fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     expect(onDelete).toHaveBeenCalledWith('e1')
@@ -125,7 +126,8 @@ describe('FoodEntryList', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+    fireEvent.click(screen.getByRole('button', { name: /bearbeiten/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Eintrag löschen' }))
     fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     await waitFor(() =>

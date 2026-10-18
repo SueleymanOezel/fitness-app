@@ -99,7 +99,7 @@ describe('BodyEntriesPage', () => {
     mockUseBodyMetrics.mockReturnValue(metricsResult())
 
     renderPage()
-    fireEvent.click(screen.getAllByRole('button', { name: 'Bearbeiten' })[1])
+    fireEvent.click(screen.getAllByRole('button', { name: /bearbeiten/ })[1])
 
     expect(screen.getByLabelText('Datum')).toHaveValue('2026-08-17')
     expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(83.3)
@@ -111,7 +111,8 @@ describe('BodyEntriesPage', () => {
     mockUseBodyMetrics.mockReturnValue(result)
 
     renderPage()
-    fireEvent.click(screen.getAllByRole('button', { name: 'Löschen' })[0])
+    fireEvent.click(screen.getAllByRole('button', { name: /bearbeiten/ })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'Eintrag löschen' }))
     fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     await waitFor(() => expect(result.deleteEntry).toHaveBeenCalledWith('c'))
@@ -123,7 +124,8 @@ describe('BodyEntriesPage', () => {
     mockUseBodyMetrics.mockReturnValue(result)
 
     renderPage()
-    fireEvent.click(screen.getAllByRole('button', { name: 'Löschen' })[0])
+    fireEvent.click(screen.getAllByRole('button', { name: /bearbeiten/ })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'Eintrag löschen' }))
     fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     expect(await screen.findByRole('alert')).toBeInTheDocument()
@@ -137,7 +139,7 @@ describe('BodyEntriesPage', () => {
     mockUseBodyMetrics.mockReturnValue(result)
 
     renderPage()
-    fireEvent.click(screen.getAllByRole('button', { name: 'Bearbeiten' })[0])
+    fireEvent.click(screen.getAllByRole('button', { name: /bearbeiten/ })[0])
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
     const notice = await screen.findByRole('alert')
@@ -153,7 +155,8 @@ describe('BodyEntriesPage', () => {
     mockUseBodyMetrics.mockReturnValue(result)
 
     renderPage()
-    fireEvent.click(screen.getAllByRole('button', { name: 'Löschen' })[0])
+    fireEvent.click(screen.getAllByRole('button', { name: /bearbeiten/ })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'Eintrag löschen' }))
     fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     const notice = await screen.findByRole('alert')
@@ -167,13 +170,13 @@ describe('BodyEntriesPage', () => {
     mockUseBodyMetrics.mockReturnValue(metricsResult())
 
     renderPage()
-    fireEvent.click(screen.getAllByRole('button', { name: 'Bearbeiten' })[1])
+    fireEvent.click(screen.getAllByRole('button', { name: /bearbeiten/ })[1])
     fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '99' } })
     fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }))
 
     expect(screen.queryByLabelText('Gewicht (kg)')).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Bearbeiten' })[1])
+    fireEvent.click(screen.getAllByRole('button', { name: /bearbeiten/ })[1])
     expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(83.3)
   })
 
@@ -183,7 +186,8 @@ describe('BodyEntriesPage', () => {
     mockUseBodyMetrics.mockReturnValue(result)
 
     renderPage()
-    fireEvent.click(screen.getAllByRole('button', { name: 'Löschen' })[0])
+    fireEvent.click(screen.getAllByRole('button', { name: /bearbeiten/ })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'Eintrag löschen' }))
 
     expect(result.deleteEntry).not.toHaveBeenCalled()
     expect(screen.getByRole('heading', { name: 'Eintrag löschen?' })).toBeInTheDocument()
@@ -195,7 +199,7 @@ describe('BodyEntriesPage', () => {
     mockUseBodyMetrics.mockReturnValue(result)
 
     renderPage()
-    fireEvent.click(screen.getAllByRole('button', { name: 'Bearbeiten' })[1])
+    fireEvent.click(screen.getAllByRole('button', { name: /bearbeiten/ })[1])
     fireEvent.change(screen.getByLabelText('Datum'), { target: { value: '2026-08-10' } })
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
@@ -210,7 +214,7 @@ describe('BodyEntriesPage', () => {
     mockUseBodyMetrics.mockReturnValue(result)
 
     renderPage()
-    fireEvent.click(screen.getAllByRole('button', { name: 'Bearbeiten' })[1])
+    fireEvent.click(screen.getAllByRole('button', { name: /bearbeiten/ })[1])
     fireEvent.change(screen.getByLabelText('Datum'), { target: { value: '2026-08-24' } })
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 

@@ -104,7 +104,7 @@ describe('NutritionEntriesPage', () => {
   it('changes an entry amount through the edit form', async () => {
     const result = await renderPage()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Bearbeiten' }))
+    fireEvent.click(screen.getByRole('button', { name: /bearbeiten/ }))
     fireEvent.change(screen.getByLabelText('Menge (g)'), { target: { value: '200' } })
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
@@ -116,7 +116,8 @@ describe('NutritionEntriesPage', () => {
   it('deletes an entry', async () => {
     const result = await renderPage()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+    fireEvent.click(screen.getByRole('button', { name: /bearbeiten/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Eintrag löschen' }))
     fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     await waitFor(() => expect(result.deleteEntry).toHaveBeenCalledWith('e1'))

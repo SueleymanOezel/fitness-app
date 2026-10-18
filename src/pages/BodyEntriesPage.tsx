@@ -1,13 +1,9 @@
 import { useState } from 'react'
 import { useSession } from '../hooks/use-session'
 import { ProfileWeightSyncError, useBodyMetrics } from '../hooks/use-body-metrics'
-import {
-  FIELD_LABELS,
-  MEASUREMENT_FIELDS,
-  type BodyMetricRow,
-} from '../lib/body-metrics'
+import { MEASUREMENT_FIELDS, feldTeile, type BodyMetricRow } from '../lib/body-metrics'
 import BodyEntryForm from '../components/BodyEntryForm'
-import { cardClass, linkClass, listClass } from '../lib/ui-classes'
+import { cardClass, interactiveClass, linkClass, listClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { useToast } from '../components/ToastProvider'
@@ -22,10 +18,14 @@ function formatDate(iso: string) {
   return `${day}.${month}.${year}`
 }
 
-/** Only the measurements that were actually taken, so a row stays readable. */
+/** Only the measurements that were actually taken, so a row stays readable: "82,4 kg · Bauchumfang 86 cm". */
 function summarize(entry: BodyMetricRow) {
   return MEASUREMENT_FIELDS.filter((field) => entry[field] != null)
-    .map((field) => `${FIELD_LABELS[field]}: ${zahlDe(entry[field] as number)}`)
+    .map((field) => {
+      const { name, einheit } = feldTeile(field)
+      const wert = `${zahlDe(entry[field] as number)} ${einheit}`
+      return field === 'gewicht' ? wert : `${name} ${wert}`
+    })
     .join(' · ')
 }
 
@@ -85,23 +85,23 @@ function Entries({ userId }: { userId: string }) {
         <div className={cardClass}>
           <ul role="list" className={listClass}>
             {rows.map((entry) => (
-              <li key={entry.id} className="flex flex-col gap-2 py-3">
-                <span className="font-semibold">{formatDate(entry.datum)}</span>
-                <span className="text-sm text-text-muted">{summarize(entry)}</span>
-                <div className="flex flex-wrap gap-2">
-                  <Pressable variant="secondary" type="button" onClick={() => setEditingId(entry.id)}>
-                    <span className="inline-flex items-center justify-center gap-2">
-                      <VitaIcon name="edit" tone="mono" size={20} />
-                      Bearbeiten
-                    </span>
-                  </Pressable>
-                  <ConfirmDelete
-                    label="Löschen"
-                    titel="Eintrag löschen?"
-                    text={`Die Werte vom ${formatDate(entry.datum)} werden gelöscht.`}
-                    onConfirm={() => remove(entry.id)}
-                  />
-                </div>
+              <li key={entry.id}>
+                {/* The row is the edit control, like a set in the training history; delete sits in the dialog. */}
+                <Pressable
+                  variant="bare"
+                  type="button"
+                  className={`flex w-full items-center gap-3 rounded-lg py-3 text-left ${interactiveClass}`}
+                  onClick={() => setEditingId(entry.id)}
+                >
+                  <span className="flex flex-1 flex-col gap-1">
+                    <span className="font-semibold">{formatDate(entry.datum)}</span>
+                    <span className="text-sm text-text-muted">{summarize(entry)}</span>
+                  </span>
+                  <span className="sr-only">bearbeiten</span>
+                  <span aria-hidden="true" className="text-text-muted">
+                    ›
+                  </span>
+                </Pressable>
               </li>
             ))}
           </ul>
@@ -136,6 +136,18 @@ function Entries({ userId }: { userId: string }) {
               }
             }}
             onClose={() => setEditingId(null)}
+          />
+        )}
+        {editingEntry && (
+          <ConfirmDelete
+            label="Eintrag löschen"
+            className="w-full"
+            titel="Eintrag löschen?"
+            text={`Die Werte vom ${formatDate(editingEntry.datum)} werden gelöscht.`}
+            onConfirm={async () => {
+              await remove(editingEntry.id)
+              setEditingId(null)
+            }}
           />
         )}
       </Dialog>

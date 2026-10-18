@@ -19,5 +19,6 @@ export function wochenLabel(montag: string): string {
     (donnerstag.getTime() - jahresStart.getTime()) / 86_400_000,
   )
   const woche = Math.floor(tageSeitJahresStart / 7) + 1
-  return `${donnerstag.getFullYear()}-KW${woche}`
+  // Short year keeps weeks of different years apart once the history spans a new year.
+  return `KW ${woche}/${String(donnerstag.getFullYear()).slice(2)}`
 }

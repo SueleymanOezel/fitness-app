@@ -33,6 +33,12 @@ export const FIELD_LABELS: Record<MeasurementField, string> = {
   koerperfettanteil: 'Körperfettanteil (%)',
 }
 
+/** "Bauchumfang" and "cm" from "Bauchumfang (cm)" — for places where the value already shows the unit. */
+export function feldTeile(field: MeasurementField): { name: string; einheit: string } {
+  const [, name, einheit] = /^(.*) \((.*)\)$/.exec(FIELD_LABELS[field])!
+  return { name, einheit }
+}
+
 /**
  * Checked before writing rather than left to the database: a rejected row would
  * come back as an unreadable constraint error instead of a usable message.

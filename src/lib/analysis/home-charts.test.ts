@@ -44,7 +44,7 @@ describe('wochenKurzform', () => {
     const zeilen = wochenKurzform(sessions, tagesKalorien, gewichte)
     expect(zeilen).toEqual([
       {
-        woche: '2026-KW34',
+        woche: 'KW 34/26',
         trainingseinheiten: 2,
         kalorienschnitt: 2100,
         gewichtsAenderung: -0.5,
@@ -56,7 +56,7 @@ describe('wochenKurzform', () => {
     const sessions = [{ beendet_am: '2026-08-18T10:00:00Z' }]
     const zeilen = wochenKurzform(sessions, [], [])
     expect(zeilen).toEqual([
-      { woche: '2026-KW34', trainingseinheiten: 1, kalorienschnitt: null, gewichtsAenderung: null },
+      { woche: 'KW 34/26', trainingseinheiten: 1, kalorienschnitt: null, gewichtsAenderung: null },
     ])
   })
 
