@@ -139,16 +139,19 @@ function Entries({ userId }: { userId: string }) {
           />
         )}
         {editingEntry && (
-          <ConfirmDelete
-            label="Eintrag löschen"
-            className="w-full"
-            titel="Eintrag löschen?"
-            text={`Die Werte vom ${formatDate(editingEntry.datum)} werden gelöscht.`}
-            onConfirm={async () => {
-              await remove(editingEntry.id)
-              setEditingId(null)
-            }}
-          />
+          // Set apart from "Abbrechen", as in the set dialog: one mistap must not delete.
+          <div className="border-t border-text-muted/15 pt-4">
+            <ConfirmDelete
+              label="Eintrag löschen"
+              className="w-full"
+              titel="Eintrag löschen?"
+              text={`Die Werte vom ${formatDate(editingEntry.datum)} werden gelöscht.`}
+              onConfirm={async () => {
+                await remove(editingEntry.id)
+                setEditingId(null)
+              }}
+            />
+          </div>
         )}
       </Dialog>
 

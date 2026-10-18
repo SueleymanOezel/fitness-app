@@ -19,6 +19,31 @@ describe('BodyEntryForm', () => {
     expect(screen.getByText('Umfänge und Körperfett')).toBeInTheDocument()
   })
 
+  it('is titled for a new entry and names the date when correcting one', () => {
+    const { unmount } = render(<BodyEntryForm onSave={vi.fn()} onClose={vi.fn()} />)
+    expect(screen.getByRole('heading', { name: 'Werte eintragen' })).toBeInTheDocument()
+    unmount()
+
+    render(
+      <BodyEntryForm
+        entry={{
+          id: 'a',
+          datum: '2026-08-17',
+          gewicht: 83.3,
+          bauchumfang: null,
+          beinumfang: null,
+          armumfang: null,
+          ruckenumfang: null,
+          brustumfang: null,
+          koerperfettanteil: null,
+        }}
+        onSave={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+    expect(screen.getByRole('heading', { name: 'Werte vom 17.08.2026' })).toBeInTheDocument()
+  })
+
   it('shows the other measurements unfolded when the corrected entry has some', () => {
     const { container } = render(
       <BodyEntryForm

@@ -294,6 +294,18 @@ describe('FoodEntryEditForm', () => {
     expect(onSave.mock.calls[0][1]).not.toHaveProperty('zeitpunkt')
   })
 
+  it('has a title and folds the product values behind a summary', async () => {
+    const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
+    const { container } = render(
+      <FoodEntryEditForm entry={{ ...entry, mahlzeit: 1 }} userId="u1" sections={sections} onSave={vi.fn()} onClose={vi.fn()} />,
+    )
+    expect(screen.getByRole('heading', { name: 'Eintrag bearbeiten' })).toBeInTheDocument()
+    expect(container.querySelector('details')).not.toHaveAttribute('open')
+    expect(screen.getByText('Nährwerte des Produkts ändern')).toBeInTheDocument()
+    // An entry that already has a section offers no way back to "unassigned".
+    expect(screen.queryByRole('button', { name: 'Ohne Zuordnung' })).not.toBeInTheDocument()
+  })
+
   it('moves the entry to another section', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined)
     const { default: FoodEntryEditForm } = await import('./FoodEntryEditForm')
@@ -307,7 +319,7 @@ describe('FoodEntryEditForm', () => {
       />,
     )
 
-    fireEvent.change(screen.getByLabelText('Mahlzeit'), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Mittagessen' }))
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
     await waitFor(() =>
@@ -328,8 +340,8 @@ describe('FoodEntryEditForm', () => {
       />,
     )
 
-    expect(screen.getByLabelText('Mahlzeit')).toHaveValue('')
-    fireEvent.change(screen.getByLabelText('Mahlzeit'), { target: { value: '1' } })
+    expect(screen.getByRole('button', { name: 'Ohne Zuordnung' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Frühstück' }))
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
     await waitFor(() =>
