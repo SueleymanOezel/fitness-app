@@ -5,7 +5,10 @@ import RirChips from './RirChips'
 import ConfirmDelete from './ConfirmDelete'
 import type { SessionSet } from '../hooks/use-workout-session'
 import { parseSetInput } from '../lib/set-values'
-import { cardClass, checkLabelClass, fieldLabelClass, inputClass } from '../lib/ui-classes'
+import { cardClass, checkLabelClass, labelClass } from '../lib/ui-classes'
+import { exerciseName } from '../lib/exercise-name'
+import { zahlDe } from '../lib/zahl'
+import ZahlFeld from './ZahlFeld'
 
 export type SetPatch = {
   gewicht: number | null
@@ -47,7 +50,8 @@ function SetEditForm({
   onSave: Props['onSave']
   onDelete: Props['onDelete']
 }) {
-  const [gewicht, setGewicht] = useState(set.gewicht == null ? '' : String(set.gewicht))
+  // Same field and number format as the live form: "72,5", not "72.5", and −/+ instead of the keyboard.
+  const [gewicht, setGewicht] = useState(set.gewicht == null ? '' : zahlDe(set.gewicht))
   const [wiederholungen, setWiederholungen] = useState(set.wiederholungen == null ? '' : String(set.wiederholungen))
   const [rir, setRir] = useState<number | null>(set.rir)
   const [istAufwaermsatz, setIstAufwaermsatz] = useState(set.ist_aufwaermsatz)
@@ -74,32 +78,35 @@ function SetEditForm({
 
   return (
     <form className={cardClass} onSubmit={submit}>
-      <h2>Satz bearbeiten</h2>
-      <label className={fieldLabelClass}>
-        Gewicht (kg)
-        <input
-          className={inputClass}
-          inputMode="decimal"
-          value={gewicht}
-          aria-invalid={fehler.gewicht !== undefined}
-          onChange={(event) => setGewicht(event.target.value)}
-        />
-      </label>
+      <div className="flex flex-col gap-1">
+        <h2>Satz bearbeiten</h2>
+        <p className={labelClass}>{exerciseName(set.exercise) || 'Unbekannte Übung'}</p>
+      </div>
+      <ZahlFeld
+        label="Gewicht (kg)"
+        wert={gewicht}
+        onChange={setGewicht}
+        schritt={2.5}
+        minimum={0}
+        einheit="kg"
+        inputMode="decimal"
+        ungueltig={fehler.gewicht !== undefined}
+      />
       {fehler.gewicht && (
         <p role="alert" className="text-sm text-danger">
           {fehler.gewicht}
         </p>
       )}
-      <label className={fieldLabelClass}>
-        Wiederholungen
-        <input
-          className={inputClass}
-          inputMode="numeric"
-          value={wiederholungen}
-          aria-invalid={fehler.wiederholungen !== undefined}
-          onChange={(event) => setWiederholungen(event.target.value)}
-        />
-      </label>
+      <ZahlFeld
+        label="Wiederholungen"
+        wert={wiederholungen}
+        onChange={setWiederholungen}
+        schritt={1}
+        minimum={1}
+        einheit="Wiederholung"
+        inputMode="numeric"
+        ungueltig={fehler.wiederholungen !== undefined}
+      />
       {fehler.wiederholungen && (
         <p role="alert" className="text-sm text-danger">
           {fehler.wiederholungen}

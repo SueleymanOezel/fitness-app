@@ -86,16 +86,19 @@ function FoodEntryRow({
           />
         )}
         {editing && (
-          <ConfirmDelete
-            label="Eintrag löschen"
-            className="w-full"
-            titel="Eintrag löschen?"
-            text={`${label} wird aus deinem Tagebuch entfernt.`}
-            onConfirm={async () => {
-              await onDelete(entry.id)
-              setEditing(false)
-            }}
-          />
+          // Set apart from "Abbrechen", as in the set dialog: one mistap must not delete.
+          <div className="border-t border-text-muted/15 pt-4">
+            <ConfirmDelete
+              label="Eintrag löschen"
+              className="w-full"
+              titel="Eintrag löschen?"
+              text={`${label} wird aus deinem Tagebuch entfernt.`}
+              onConfirm={async () => {
+                await onDelete(entry.id)
+                setEditing(false)
+              }}
+            />
+          </div>
         )}
       </Dialog>
     </li>

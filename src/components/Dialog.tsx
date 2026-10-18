@@ -113,7 +113,7 @@ export default function Dialog({
       className="m-auto max-w-none rounded-3xl bg-transparent p-0 backdrop:bg-bg/70 backdrop:backdrop-blur-sm"
     >
       {/* Feste Breite statt Inhaltsbreite: sonst schrumpft der Dialog auf dem Handy auf seinen schmalsten Inhalt. */}
-      <div ref={contentRef} className="flex w-[min(28rem,calc(100vw-2rem))] flex-col gap-4">
+      <div ref={contentRef} className="flex w-[min(28rem,calc(100vw-2rem))] flex-col gap-4 [&>h2]:px-6">
         {children}
       </div>
       <Pressable

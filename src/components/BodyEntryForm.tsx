@@ -96,6 +96,7 @@ export default function BodyEntryForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className={cardClass}>
+        <h2>{entry ? `Werte vom ${entry.datum.split('-').reverse().join('.')}` : 'Werte eintragen'}</h2>
         <label className={fieldLabelClass}>
           Datum
           <input
@@ -117,15 +118,18 @@ export default function BodyEntryForm({
         </details>
       </div>
       {error !== '' && <p role="alert">{error}</p>}
-      <Pressable variant="primary" type="submit" disabled={saving}>
-        <span className="inline-flex items-center justify-center gap-2">
-          <VitaIcon name="save" tone="mono" size={20} />
-          Speichern
-        </span>
-      </Pressable>
-      <Pressable variant="secondary" className="self-start" type="button" onClick={onClose}>
-        Abbrechen
-      </Pressable>
+      {/* Sticky: with the measurements unfolded the form is taller than the screen. */}
+      <div className="sticky bottom-0 flex flex-col gap-2 rounded-3xl bg-bg/90 py-2 backdrop-blur-sm">
+        <Pressable variant="primary" type="submit" disabled={saving}>
+          <span className="inline-flex items-center justify-center gap-2">
+            <VitaIcon name="save" tone="mono" size={20} />
+            Speichern
+          </span>
+        </Pressable>
+        <Pressable variant="secondary" type="button" onClick={onClose}>
+          Abbrechen
+        </Pressable>
+      </div>
     </form>
   )
 }

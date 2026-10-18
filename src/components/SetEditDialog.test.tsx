@@ -37,6 +37,26 @@ describe('SetEditDialog', () => {
     expect(formular().getByLabelText('Aufwärmsatz')).not.toBeChecked()
   })
 
+  it('names the exercise and writes the weight the German way, like the live form', () => {
+    render(<SetEditDialog set={{ ...satz, gewicht: 72.5 }} onClose={vi.fn()} onSave={vi.fn()} onDelete={vi.fn()} />)
+
+    expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
+    expect(formular().getByLabelText('Gewicht (kg)')).toHaveValue('72,5')
+  })
+
+  it('steps weight and reps with − and + instead of the keyboard', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined)
+    render(<SetEditDialog set={satz} onClose={vi.fn()} onSave={onSave} onDelete={vi.fn()} />)
+
+    fireEvent.click(formular().getByRole('button', { name: 'Gewicht (kg): 2,5 kg mehr' }))
+    fireEvent.click(formular().getByRole('button', { name: 'Wiederholungen: 1 Wiederholung weniger' }))
+    fireEvent.click(formular().getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith('set1', expect.objectContaining({ gewicht: 62.5, wiederholungen: 9 })),
+    )
+  })
+
   it('prefills an empty weight as empty, not as "null"', () => {
     render(<SetEditDialog set={{ ...satz, gewicht: null }} onClose={vi.fn()} onSave={vi.fn()} onDelete={vi.fn()} />)
     expect(formular().getByLabelText('Gewicht (kg)')).toHaveValue('')

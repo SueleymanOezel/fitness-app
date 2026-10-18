@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
@@ -12,8 +12,6 @@ import {
 import {
   cardClass,
   checkLabelClass,
-  fieldLabelClass,
-  inputClass,
   interactiveClass,
   labelClass,
   linkClass,
@@ -28,10 +26,10 @@ import Dialog from '../components/Dialog'
 import ExercisePicker from '../components/ExercisePicker'
 import SetEditDialog from '../components/SetEditDialog'
 import LoggedSets from '../components/LoggedSets'
+import ZahlFeld from '../components/ZahlFeld'
 import { useTrainingStreak } from '../hooks/use-training-streak'
 import { streakText } from '../lib/streak'
 import { parseSetInput } from '../lib/set-values'
-import { parseDecimal } from '../lib/parse-decimal'
 import type { NeuerRekord } from '../lib/analysis/training-charts'
 import Pressable, { PressableLink } from '../components/Pressable'
 import CompletionCelebration from '../components/CompletionCelebration'
@@ -599,75 +597,6 @@ function SetForm({
         </span>
       </Pressable>
     </form>
-  )
-}
-
-/**
- * A number field with − and + beside it, sized for a thumb: between sets the
- * usual change is one step, not a new number typed on the keyboard.
- */
-function ZahlFeld({
-  label,
-  wert,
-  onChange,
-  schritt,
-  minimum,
-  einheit,
-  inputMode,
-  ungueltig,
-}: {
-  label: string
-  wert: string
-  onChange: (next: string) => void
-  schritt: number
-  minimum: number
-  einheit: string
-  inputMode: 'decimal' | 'numeric'
-  ungueltig: boolean
-}) {
-  const id = useId()
-  function verschiebe(richtung: 1 | -1) {
-    const aktuell = parseDecimal(wert)
-    const basis = typeof aktuell === 'number' ? aktuell : richtung === 1 ? minimum - schritt : minimum
-    onChange(alsText(Math.max(minimum, Math.round((basis + richtung * schritt) * 100) / 100)))
-  }
-  const schrittText = `${alsText(schritt)} ${einheit === 'kg' ? 'kg' : schritt === 1 ? einheit : `${einheit}en`}`
-  // The label points at the input only: wrapping all three controls in one <label>
-  // would name the "−" button instead (first labelable descendant).
-  return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={id} className={fieldLabelClass}>
-        {label}
-      </label>
-      <span className="flex items-center gap-2">
-        <Pressable
-          variant="secondary"
-          type="button"
-          className="min-w-11 shrink-0 px-3!"
-          aria-label={`${label}: ${schrittText} weniger`}
-          onClick={() => verschiebe(-1)}
-        >
-          −
-        </Pressable>
-        <input
-          id={id}
-          className={`${inputClass} text-center`}
-          inputMode={inputMode}
-          value={wert}
-          aria-invalid={ungueltig}
-          onChange={(event) => onChange(event.target.value)}
-        />
-        <Pressable
-          variant="secondary"
-          type="button"
-          className="min-w-11 shrink-0 px-3!"
-          aria-label={`${label}: ${schrittText} mehr`}
-          onClick={() => verschiebe(1)}
-        >
-          +
-        </Pressable>
-      </span>
-    </div>
   )
 }
 

@@ -9,6 +9,7 @@ import { MAX_NAME_LENGTH } from '../lib/open-food-facts'
 import { UNASSIGNED_LABEL, type MealSection } from '../lib/meal-sections'
 import type { Product } from '../lib/product-lookup'
 import type { EntryPatch, FoodEntry } from '../hooks/use-food-entries'
+import Chip from './Chip'
 import Pressable from './Pressable'
 
 type Props = {
@@ -150,6 +151,7 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className={`${cardClass} flex flex-col`}>
+        <h2>Eintrag bearbeiten</h2>
         <label className={fieldLabelClass}>
           Menge (g)
           <input className={inputClass} type="number" step="any" value={menge} onChange={(event) => setMenge(event.target.value)} />
@@ -163,17 +165,26 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
             onChange={(event) => setZeitpunkt(event.target.value)}
           />
         </label>
-        <label className={fieldLabelClass}>
-          Mahlzeit
-          <select className={inputClass} value={mahlzeit} onChange={(event) => setMahlzeit(event.target.value)}>
-            <option value="">{UNASSIGNED_LABEL}</option>
+        {/* Chips like when the entry was added; "ohne Zuordnung" only for old entries that have none. */}
+        <div className="flex flex-col gap-1.5">
+          <span className={fieldLabelClass}>Mahlzeit</span>
+          <div role="group" aria-label="Mahlzeit" className="flex flex-wrap gap-2">
+            {entry.mahlzeit == null && (
+              <Chip active={mahlzeit === ''} onClick={() => setMahlzeit('')}>
+                {UNASSIGNED_LABEL}
+              </Chip>
+            )}
             {sections.map((section) => (
-              <option key={section.slot} value={String(section.slot)}>
+              <Chip
+                key={section.slot}
+                active={mahlzeit === String(section.slot)}
+                onClick={() => setMahlzeit(String(section.slot))}
+              >
                 {section.name}
-              </option>
+              </Chip>
             ))}
-          </select>
-        </label>
+          </div>
+        </div>
 
         <p>{swapped ? swapped.name : (product?.name ?? 'Unbekanntes Produkt')}</p>
         <Pressable variant="secondary" className="self-start" type="button" onClick={() => setPicking(true)}>
@@ -181,59 +192,63 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
         </Pressable>
 
         {!swapped && product && (
-          <fieldset className="flex flex-col gap-3">
-            <legend className={`${labelClass} mb-3`}>Nährwerte pro 100 g</legend>
-            <label className={fieldLabelClass}>
-              Name
-              <input className={inputClass} value={name} onChange={(event) => setName(event.target.value)} />
-            </label>
-            <label className={fieldLabelClass}>
-              Kalorien (kcal)
-              <input
-                className={inputClass}
-                type="number"
-                step="any"
-                value={kalorien}
-                onChange={(event) => setKalorien(event.target.value)}
-              />
-            </label>
-            <label className={fieldLabelClass}>
-              Eiweiß (g)
-              <input className={inputClass} type="number" step="any" value={eiweiss} onChange={(event) => setEiweiss(event.target.value)} />
-            </label>
-            <label className={fieldLabelClass}>
-              Fett (g)
-              <input className={inputClass} type="number" step="any" value={fett} onChange={(event) => setFett(event.target.value)} />
-            </label>
-            <label className={fieldLabelClass}>
-              Kohlenhydrate (g)
-              <input
-                className={inputClass}
-                type="number"
-                step="any"
-                value={kohlenhydrate}
-                onChange={(event) => setKohlenhydrate(event.target.value)}
-              />
-            </label>
-            <label className={fieldLabelClass}>
-              Ballaststoffe (g)
-              <input
-                className={inputClass}
-                type="number"
-                step="any"
-                value={ballaststoffe}
-                onChange={(event) => setBallaststoffe(event.target.value)}
-              />
-            </label>
-            <label className={fieldLabelClass}>
-              Zucker (g)
-              <input className={inputClass} type="number" step="any" value={zucker} onChange={(event) => setZucker(event.target.value)} />
-            </label>
-            <label className={fieldLabelClass}>
-              Salz (g)
-              <input className={inputClass} type="number" step="any" value={salz} onChange={(event) => setSalz(event.target.value)} />
-            </label>
-          </fieldset>
+          // Folded: correcting the amount is the everyday case, editing the product the exception.
+          <details>
+            <summary className="min-h-11 cursor-pointer py-2.5 font-medium">Nährwerte des Produkts ändern</summary>
+            <fieldset className="flex flex-col gap-3 pt-2">
+              <legend className={`${labelClass} mb-3`}>Nährwerte pro 100 g</legend>
+              <label className={fieldLabelClass}>
+                Name
+                <input className={inputClass} value={name} onChange={(event) => setName(event.target.value)} />
+              </label>
+              <label className={fieldLabelClass}>
+                Kalorien (kcal)
+                <input
+                  className={inputClass}
+                  type="number"
+                  step="any"
+                  value={kalorien}
+                  onChange={(event) => setKalorien(event.target.value)}
+                />
+              </label>
+              <label className={fieldLabelClass}>
+                Eiweiß (g)
+                <input className={inputClass} type="number" step="any" value={eiweiss} onChange={(event) => setEiweiss(event.target.value)} />
+              </label>
+              <label className={fieldLabelClass}>
+                Fett (g)
+                <input className={inputClass} type="number" step="any" value={fett} onChange={(event) => setFett(event.target.value)} />
+              </label>
+              <label className={fieldLabelClass}>
+                Kohlenhydrate (g)
+                <input
+                  className={inputClass}
+                  type="number"
+                  step="any"
+                  value={kohlenhydrate}
+                  onChange={(event) => setKohlenhydrate(event.target.value)}
+                />
+              </label>
+              <label className={fieldLabelClass}>
+                Ballaststoffe (g)
+                <input
+                  className={inputClass}
+                  type="number"
+                  step="any"
+                  value={ballaststoffe}
+                  onChange={(event) => setBallaststoffe(event.target.value)}
+                />
+              </label>
+              <label className={fieldLabelClass}>
+                Zucker (g)
+                <input className={inputClass} type="number" step="any" value={zucker} onChange={(event) => setZucker(event.target.value)} />
+              </label>
+              <label className={fieldLabelClass}>
+                Salz (g)
+                <input className={inputClass} type="number" step="any" value={salz} onChange={(event) => setSalz(event.target.value)} />
+              </label>
+            </fieldset>
+          </details>
         )}
       </div>
 
@@ -244,7 +259,7 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
           Speichern
         </span>
       </Pressable>
-      <Pressable variant="secondary" className="self-start" type="button" onClick={onClose}>
+      <Pressable variant="secondary" type="button" onClick={onClose}>
         Abbrechen
       </Pressable>
     </form>
