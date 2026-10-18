@@ -13,7 +13,7 @@ import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-anal
 import { wiederholungenJeSatz } from '../../lib/analysis/training-charts'
 import { WIEDERHOLUNGEN_JE_SATZ_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
-import { CHART_MINT, CHART_PALETTE } from '../../lib/analysis/chart-colors'
+import { CHART_MINT, CHART_PALETTE, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 import ExerciseSelect from './ExerciseSelect'
 import { useUebungsauswahl } from './useUebungsauswahl'
@@ -63,10 +63,10 @@ export default function RepsPerSetChart({
     >
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={punkte}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="label" />
+          <CartesianGrid {...gitterProps} />
+          <XAxis {...achseProps} dataKey="label" />
           {/* allowDecimals: halbe Wiederholungen gibt es nicht. */}
-          <YAxis allowDecimals={false} />
+          <YAxis {...yAchseProps} allowDecimals={false} />
           <Tooltip />
           {reihen.satzNummern.map((nummer, index) => (
             <Line

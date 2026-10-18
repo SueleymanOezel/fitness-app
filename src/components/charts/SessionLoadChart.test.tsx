@@ -10,6 +10,24 @@ const sitzung = (id: string, tag: string, kalorien: number | null) => ({
 })
 
 describe('SessionLoadChart', () => {
+  it('draws minutes and calories as two charts, never one chart with two y-scales', () => {
+    const { container } = render(
+      <SessionLoadChart sessions={[sitzung('s1', '2026-08-17', 400), sitzung('s2', '2026-08-24', 420)]} />,
+    )
+    const charts = container.querySelectorAll('.recharts-wrapper')
+    expect(charts).toHaveLength(2)
+    for (const chart of charts) {
+      expect(chart.querySelectorAll('.recharts-yAxis')).toHaveLength(1)
+    }
+  })
+
+  it('leaves out the calorie chart when no session has calories', () => {
+    const { container } = render(
+      <SessionLoadChart sessions={[sitzung('s1', '2026-08-17', null), sitzung('s2', '2026-08-24', null)]} />,
+    )
+    expect(container.querySelectorAll('.recharts-wrapper')).toHaveLength(1)
+  })
+
   it('draws a bar per session and a line for the calories', () => {
     const { container } = render(
       <SessionLoadChart

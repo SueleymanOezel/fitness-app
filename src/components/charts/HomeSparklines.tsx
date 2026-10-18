@@ -4,6 +4,7 @@ import { gewichtsTrend } from '../../lib/analysis/body-charts'
 import { kalorienJeTag } from '../../lib/analysis/nutrition-charts'
 import { TRENDS_TITEL } from '../../lib/analysis/chart-titles'
 import { CHART_BLUE, CHART_MINT } from '../../lib/analysis/chart-colors'
+import { zahlDe } from '../../lib/zahl'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = TRENDS_TITEL
@@ -26,10 +27,26 @@ export default function HomeSparklines({
 }) {
   const gewicht = gewichtsTrend(rows)
   const kalorien = kalorienJeTag(entries)
+  const gewichtJetzt = gewicht.length > 0 ? gewicht[gewicht.length - 1].trend : null
+  const kalorienSchnitt =
+    kalorien.length > 0 ? Math.round(kalorien.reduce((summe, tag) => summe + tag.kalorien, 0) / kalorien.length) : null
 
   return (
     <ChartFrame titel={TITEL} leer={gewicht.length < 2 && kalorien.length < 2} picker={picker}>
-      <div className="grid grid-cols-2 gap-2">
+      {/* Each line names what it is and where it stands; a bare squiggle says nothing. */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+        <p className="flex flex-col text-sm text-text-muted">
+          Gewicht (Trend)
+          <span className="text-base font-semibold text-text tabular-nums">
+            {gewichtJetzt == null ? '—' : `${zahlDe(gewichtJetzt, 1)} kg`}
+          </span>
+        </p>
+        <p className="flex flex-col text-sm text-text-muted">
+          Kalorien pro Tag
+          <span className="text-base font-semibold text-text tabular-nums">
+            {kalorienSchnitt == null ? '—' : `Ø ${kalorienSchnitt} kcal`}
+          </span>
+        </p>
         <ResponsiveContainer width="100%" height={60}>
           <LineChart data={gewicht}>
             <Line

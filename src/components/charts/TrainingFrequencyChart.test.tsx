@@ -5,6 +5,19 @@ import TrainingFrequencyChart from './TrainingFrequencyChart'
 const am = (monat: number, tag: number) => new Date(2026, monat - 1, tag, 18, 0).toISOString()
 
 describe('TrainingFrequencyChart', () => {
+  it('states the weekly average', () => {
+    render(
+      <TrainingFrequencyChart
+        sessions={[
+          { id: 'a', gestartet_am: am(8, 17), beendet_am: am(8, 17), gesamt_kalorien: null },
+          { id: 'b', gestartet_am: am(8, 19), beendet_am: am(8, 19), gesamt_kalorien: null },
+          { id: 'c', gestartet_am: am(8, 24), beendet_am: am(8, 24), gesamt_kalorien: null },
+        ]}
+      />,
+    )
+    expect(screen.getByText('Ø 1,5 Einheiten pro Woche')).toBeInTheDocument()
+  })
+
   it('draws one bar per week that had a session', () => {
     // Tick text is a Recharts layout heuristic (interval="preserveEnd") that
     // measures text differently in jsdom than in a browser, so it cannot carry

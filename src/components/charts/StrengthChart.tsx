@@ -13,7 +13,7 @@ import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-anal
 import { kraftverlauf } from '../../lib/analysis/training-charts'
 import { KRAFTVERLAUF_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
-import { CHART_MINT } from '../../lib/analysis/chart-colors'
+import { CHART_MINT, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 import ExerciseSelect from './ExerciseSelect'
 import { useUebungsauswahl } from './useUebungsauswahl'
@@ -58,11 +58,11 @@ export default function StrengthChart({
     >
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={punkte}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="label" />
+          <CartesianGrid {...gitterProps} />
+          <XAxis {...achseProps} dataKey="label" />
           {/* Nicht bei null beginnen: die interessante Spanne sind ein paar
               Kilo, eine Achse ab 0 macht daraus eine Gerade. */}
-          <YAxis domain={['dataMin - 5', 'dataMax + 5']} />
+          <YAxis {...yAchseProps} domain={['auto', 'auto']} />
           <Tooltip formatter={(wert?: ValueType) => [`${tooltipZahl(wert)} kg`, 'geschätztes 1RM']} />
           <Line type="monotone" dataKey="wert" stroke={CHART_MINT} dot={false} />
         </LineChart>

@@ -14,9 +14,9 @@ import { gewichtsTrend } from '../../lib/analysis/body-charts'
 import type { BodyMetricRow } from '../../lib/body-metrics'
 import { GEWICHTSVERLAUF_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
-import { CHART_BLUE, CHART_MINT } from '../../lib/analysis/chart-colors'
+import { CHART_BLUE, CHART_MINT, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
-import { tooltipZahl } from '../../lib/zahl'
+import { tooltipZahl, zahlDe } from '../../lib/zahl'
 
 export const TITEL = GEWICHTSVERLAUF_TITEL
 
@@ -34,15 +34,23 @@ export default function WeightTrendChart({
     label: tagesLabel(punkt.datum),
   }))
 
+  const erster = punkte[0]
+  const letzter = punkte[punkte.length - 1]
+  const delta = letzter && erster ? letzter.gewicht - erster.gewicht : 0
+  const zusammenfassung =
+    punkte.length < 2
+      ? undefined
+      : `${zahlDe(letzter.gewicht, 1)} kg · ${delta === 0 ? '±' : delta < 0 ? '−' : '+'}${zahlDe(Math.abs(delta), 1)} kg seit ${erster.label}`
+
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker} leerCta={leerCta}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker} leerCta={leerCta} zusammenfassung={zusammenfassung}>
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={punkte}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="label" />
+          <CartesianGrid {...gitterProps} />
+          <XAxis {...achseProps} dataKey="label" />
           {/* The interesting range is a few kilos wide; a zero-based axis would
               flatten every change into a straight line. */}
-          <YAxis domain={['dataMin - 1', 'dataMax + 1']} tickFormatter={(wert: number) => wert.toFixed(1)} />
+          <YAxis {...yAchseProps} domain={['auto', 'auto']} />
           <Tooltip formatter={(wert?: ValueType) => [`${tooltipZahl(wert)} kg`, '']} />
           <Line type="monotone" dataKey="gewicht" name="Gewicht" stroke={CHART_BLUE} dot={false} />
           <Line type="monotone" dataKey="trend" name="Trend" stroke={CHART_MINT} strokeWidth={2} dot={false} />

@@ -14,7 +14,7 @@ import { aenderungsrate } from '../../lib/analysis/body-charts'
 import type { BodyMetricRow } from '../../lib/body-metrics'
 import { AENDERUNGSRATE_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
-import { CHART_GRID, CHART_MINT } from '../../lib/analysis/chart-colors'
+import { CHART_GRID, CHART_MINT, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = AENDERUNGSRATE_TITEL
@@ -37,9 +37,9 @@ export default function WeightChangeRateChart({
     <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={punkte}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="label" />
-          <YAxis tickFormatter={(wert: number) => wert.toFixed(1)} />
+          <CartesianGrid {...gitterProps} />
+          <XAxis {...achseProps} dataKey="label" />
+          <YAxis {...yAchseProps} />
           {/* extendDomain: sonst verwirft Recharts die Linie, sobald alle Raten
               auf derselben Seite der Null liegen — also genau dann, wenn die
               Null die Aussage des Graphen traegt. */}

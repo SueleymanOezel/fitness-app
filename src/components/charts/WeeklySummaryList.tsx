@@ -39,7 +39,7 @@ export default function WeeklySummaryList({
       <ul role="list" className={listClass}>
         {zeilen.map((zeile) => (
           <li key={zeile.woche} className={listRowClass}>
-            <strong>{zeile.woche}</strong>{' '}
+            <strong className="whitespace-nowrap">{zeile.woche}</strong>{' '}
             {`${zeile.trainingseinheiten} ${zeile.trainingseinheiten === 1 ? 'Trainingseinheit' : 'Trainingseinheiten'}`}
             {zeile.kalorienschnitt != null && ` · Ø ${zeile.kalorienschnitt} kcal`}
             {zeile.gewichtsAenderung != null && ` · ${vorzeichen(zeile.gewichtsAenderung)} kg`}

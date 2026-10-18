@@ -13,6 +13,7 @@ export default function ChartFrame({
   picker,
   vorspann,
   leerCta,
+  zusammenfassung,
   children,
 }: {
   titel: string
@@ -31,6 +32,11 @@ export default function ChartFrame({
    * alle ihre Charts gesetzt, nicht pro Chart-Typ einzeln.
    */
   leerCta?: { label: string; to: string }
+  /**
+   * The chart's message in one sentence ("82,4 kg · −2,1 kg seit 20.09."):
+   * readable at a glance and the text alternative for a screen reader.
+   */
+  zusammenfassung?: string
   children: ReactNode
 }) {
   return (
@@ -48,7 +54,12 @@ export default function ChartFrame({
           )}
         </>
       ) : (
-        children
+        <>
+          {zusammenfassung && <p className="text-sm text-text-muted">{zusammenfassung}</p>}
+          <div role={zusammenfassung ? 'img' : undefined} aria-label={zusammenfassung}>
+            {children}
+          </div>
+        </>
       )}
     </section>
   )

@@ -10,6 +10,11 @@ const eintrag = (tag: number, kalorien: number) => ({
 })
 
 describe('CaloriesPerDayChart', () => {
+  it('states the daily average against the goal', () => {
+    render(<CaloriesPerDayChart entries={[eintrag(23, 1800), eintrag(24, 2100)]} ziel={2414} />)
+    expect(screen.getByText('Ø 1950 kcal pro Tag · Ziel 2414 kcal')).toBeInTheDocument()
+  })
+
   it('draws a point per logged day', () => {
     // Tick text is a Recharts layout heuristic and cannot carry this
     // assertion in jsdom (see the training frequency chart's test). The mark
