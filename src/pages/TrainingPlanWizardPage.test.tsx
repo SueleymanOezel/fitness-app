@@ -31,10 +31,12 @@ describe('TrainingPlanWizardPage', () => {
     const { default: TrainingPlanWizardPage } = await import('./TrainingPlanWizardPage')
     renderWithProviders(<TrainingPlanWizardPage />)
 
+    expect(screen.getByText('Schritt 1 von 3')).toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Push/Pull/Legs' } })
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
 
     expect(screen.getByRole('heading', { name: 'Wie oft möchtest du trainieren?' })).toBeInTheDocument()
+    expect(screen.getByText('Schritt 2 von 3')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '3× pro Woche' }))
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
 

@@ -126,6 +126,14 @@ describe('TrainingHistoryDetailPage', () => {
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
   })
 
+  it('explains the abbreviations of the set table once', () => {
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+
+    expect(screen.getByText(/Aufw\. = Aufwärmsatz · RIR = Wiederholungen in Reserve/)).toBeInTheDocument()
+  })
+
   it('names a set of a deleted exercise instead of showing an empty heading', () => {
     mockUseWorkoutSession.mockReturnValue(sessionResult({ sets: [{ ...set, exercise: null }] }))
 

@@ -77,12 +77,12 @@
   /*
    * Matches BottomNav's own box exactly (src/components/BottomNav.tsx): its
    * offset from the bottom edge (1rem + env(safe-area-inset-bottom), so it sits
-   * above the home indicator) + p-2 (0.5rem top and bottom) + h-11 icons
-   * (2.75rem) + a 0.5rem buffer. If BottomNav's sizing classes change, this
+   * above the home indicator) + p-2 (0.5rem top and bottom) + h-12 tabs
+   * (3rem, icon plus label) + a 0.5rem buffer. If BottomNav's sizing classes change, this
    * value must change with them — there is no shared source of truth between
    * the two other than this comment.
    */
-  --nav-clearance: calc(1rem + env(safe-area-inset-bottom) + 0.5rem + 2.75rem + 0.5rem + 0.5rem);
+  --nav-clearance: calc(1rem + env(safe-area-inset-bottom) + 0.5rem + 3rem + 0.5rem + 0.5rem);
 
   @media (max-width: 1024px) {
     font-size: 16px;

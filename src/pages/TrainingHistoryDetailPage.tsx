@@ -7,7 +7,7 @@ import { cardClass, labelClass, linkClass } from '../lib/ui-classes'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { PressableLink } from '../components/Pressable'
 import ConfirmDelete from '../components/ConfirmDelete'
-import LoggedSets from '../components/LoggedSets'
+import LoggedSets, { SATZ_LEGENDE } from '../components/LoggedSets'
 import SetEditDialog from '../components/SetEditDialog'
 import PageSkeleton from '../components/PageSkeleton'
 
@@ -67,6 +67,7 @@ function Detail({ sessionId }: { sessionId: string }) {
           <LoggedSets sets={uebungsSaetze} onEdit={setBearbeiteterSatz} />
         </section>
       ))}
+      {sets.length > 0 && <p className={labelClass}>{SATZ_LEGENDE}</p>}
       <SetEditDialog
         set={bearbeiteterSatz}
         onClose={() => setBearbeiteterSatz(null)}

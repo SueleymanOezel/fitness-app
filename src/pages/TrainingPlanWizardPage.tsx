@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlans } from '../hooks/use-workout-plans'
-import { fieldLabelClass, inputClass, linkClass } from '../lib/ui-classes'
+import { fieldLabelClass, inputClass, labelClass, linkClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Chip from '../components/Chip'
@@ -65,7 +65,10 @@ function Wizard({ userId }: { userId: string }) {
 
   return (
     <div>
-      <h1>Neuer Plan</h1>
+      <div className="flex flex-col gap-1">
+        <h1>Neuer Plan</h1>
+        <p className={labelClass}>{`Schritt ${step} von 3`}</p>
+      </div>
       {step === 1 && (
         <section className="flex flex-col gap-3">
           <label className={fieldLabelClass}>

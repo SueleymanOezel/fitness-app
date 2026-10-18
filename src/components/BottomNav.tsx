@@ -19,14 +19,20 @@ function NavTab({ to, label, icon, end }: (typeof tabs)[number]) {
       ref={ref}
       to={to}
       end={end}
-      aria-label={label}
+      // Icon plus word: four icons alone left a first-time user guessing.
       className={({ isActive }) =>
-        `flex h-11 w-11 items-center justify-center rounded-full ${interactiveClass} focus-visible:ring-text focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised ${
-          isActive ? 'text-accent-text' : 'text-text-muted'
+        `flex h-12 min-w-16 flex-col items-center justify-center gap-0.5 rounded-2xl text-[11px] font-medium leading-none ${interactiveClass} focus-visible:ring-text focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised ${
+          // Small labels need 4.5:1: accent-text only on the darker active fill (5.4:1), not on the pill (3.5:1).
+          isActive ? 'bg-surface text-accent-text' : 'text-text/75'
         }`
       }
     >
-      {({ isActive }) => <VitaIcon name={icon} tone={isActive ? 'brand' : 'mono'} />}
+      {({ isActive }) => (
+        <>
+          <VitaIcon name={icon} tone={isActive ? 'brand' : 'mono'} size={22} />
+          {label}
+        </>
+      )}
     </NavLink>
   )
 }

@@ -375,10 +375,14 @@ function LoadedProfileForm({
               className={inputClass}
               type="number"
               step="any"
+              aria-describedby="ziel-delta-hinweis"
               value={draft.ziel_delta_kcal}
               onChange={(event) => set('ziel_delta_kcal', event.target.value)}
             />
           </label>
+          <p id="ziel-delta-hinweis" className="-mt-1 text-sm text-text-muted">
+            So viele kcal pro Tag unter deinem Verbrauch (abnehmen) oder darüber (zunehmen). 300–500 sind üblich.
+          </p>
 
           <fieldset className="flex flex-col gap-3">
             <legend className={`${labelClass} mb-3`}>Mahlzeiten</legend>
