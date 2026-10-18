@@ -39,10 +39,10 @@ function NavTab({ to, label, icon, end }: (typeof tabs)[number]) {
  */
 export default function BottomNav() {
   return (
-    <nav
-      className="sticky bottom-4 mx-4 flex justify-around rounded-full bg-surface-raised p-2"
-      style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
-    >
+    // Lifted above the home indicator instead of padded inside: a safe-area padding
+    // made the pill taller at the bottom and the icons sat off-centre on iPhones.
+    // Capped and centred so a desktop window does not stretch four icons across 700px.
+    <nav className="sticky bottom-[calc(1rem+env(safe-area-inset-bottom))] mx-auto flex w-[calc(100%-2rem)] max-w-sm justify-around rounded-full bg-surface-raised p-2">
       {tabs.map((tab) => (
         <NavTab key={tab.to} {...tab} />
       ))}

@@ -24,6 +24,13 @@ describe('BottomNav', () => {
     expect(screen.getByRole('link', { name: 'Körper' })).toHaveAttribute('href', '/body')
   })
 
+  it('keeps the pill symmetric and capped: safe area as offset, not as inner padding', () => {
+    renderNav()
+    const nav = screen.getByRole('navigation')
+    expect(nav).toHaveClass('max-w-sm', 'p-2', 'bottom-[calc(1rem+env(safe-area-inset-bottom))]')
+    expect(nav.style.paddingBottom).toBe('')
+  })
+
   it('marks the active area distinctly from the inactive ones', () => {
     renderNav('/training')
     const active = screen.getByRole('link', { name: 'Training' })
