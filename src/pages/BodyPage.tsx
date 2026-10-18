@@ -67,7 +67,8 @@ function Dashboard({ userId }: { userId: string }) {
       {error && <p role="alert">Werte konnten nicht geladen werden.</p>}
 
       <PageHero
-        label={FIELD_LABELS.gewicht}
+        // The value already says kg; "Gewicht (kg)" above "82,4 kg" said it twice.
+        label={feldTeile('gewicht').name}
         titel={gewicht == null ? '—' : `${formatValue(gewicht.value)} ${unitOf('gewicht')}`}
         titelClass={statClass}
         titelTestId="wert-gewicht"
