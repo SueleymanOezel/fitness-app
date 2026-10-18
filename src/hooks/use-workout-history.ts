@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useStaleState } from './use-stale-state'
 
 export type SessionSummary = {
   id: string
@@ -19,8 +20,7 @@ type RawRow = {
 }
 
 export function useWorkoutHistory(userId: string) {
-  const [sessions, setSessions] = useState<SessionSummary[]>([])
-  const [loading, setLoading] = useState(true)
+  const { daten: sessions, loading, gelungen, gescheitert } = useStaleState<SessionSummary[]>(userId, 'workout-history', [])
   const [error, setError] = useState(false)
   const requestId = useRef(0)
 
@@ -34,21 +34,21 @@ export function useWorkoutHistory(userId: string) {
 
     if (current !== requestId.current) return
 
+    const liste = ((data ?? []) as unknown as RawRow[]).map((row) => ({
+      id: row.id,
+      gestartet_am: row.gestartet_am,
+      beendet_am: row.beendet_am,
+      gesamt_kalorien: row.gesamt_kalorien,
+      // A deleted day or plan leaves the session itself intact — it just loses its labels.
+      tag_name: row.workout_plan_days?.name ?? null,
+      plan_name: row.workout_plan_days?.workout_plans?.name ?? null,
+    }))
+
     // A failed read resolves with data: null; without this it renders as an empty history.
-    setError(Boolean(loadError))
-    setSessions(
-      ((data ?? []) as unknown as RawRow[]).map((row) => ({
-        id: row.id,
-        gestartet_am: row.gestartet_am,
-        beendet_am: row.beendet_am,
-        gesamt_kalorien: row.gesamt_kalorien,
-        // A deleted day or plan leaves the session itself intact — it just loses its labels.
-        tag_name: row.workout_plan_days?.name ?? null,
-        plan_name: row.workout_plan_days?.workout_plans?.name ?? null,
-      })),
-    )
-    setLoading(false)
-  }, [userId])
+    // With a last-known copy (offline) the old list stays and is not an error.
+    const fehlerAnzeigen = loadError ? !gescheitert([]) : (gelungen(liste), false)
+    setError(fehlerAnzeigen)
+  }, [userId, gelungen, gescheitert])
 
   useEffect(() => {
     const tracker = requestId

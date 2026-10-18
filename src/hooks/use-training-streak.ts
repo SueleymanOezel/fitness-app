@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { seitenweiseLaden } from '../lib/paged-query'
 import { aktuellerStreak, trainingstage } from '../lib/streak'
 import { localDay } from '../lib/local-time'
+import { useStaleState } from './use-stale-state'
 
 /**
  * Aktueller Trainings-Streak, ungebunden an einen Zeitraum — ein Streak kann
@@ -13,9 +14,12 @@ import { localDay } from '../lib/local-time'
  * unterschiedliche Werte zeigen koennen.
  */
 export function useTrainingStreak(userId: string) {
-  const [streak, setStreak] = useState(0)
-  const [tage, setTage] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
+  // The finished-session timestamps are what is kept; streak and days are derived from them for today's date.
+  const { daten: rows, loading, gelungen, gescheitert } = useStaleState<{ beendet_am: string | null }[]>(
+    userId,
+    'training-streak',
+    [],
+  )
   const requestId = useRef(0)
 
   const reload = useCallback(async () => {
@@ -30,10 +34,12 @@ export function useTrainingStreak(userId: string) {
         .range(from, to),
     )
     if (current !== requestId.current) return
-    setStreak(ergebnis.failed ? 0 : aktuellerStreak(ergebnis.rows, localDay(new Date().toISOString())))
-    setTage(ergebnis.failed ? [] : trainingstage(ergebnis.rows))
-    setLoading(false)
-  }, [userId])
+    if (ergebnis.failed) {
+      gescheitert([])
+    } else {
+      gelungen(ergebnis.rows)
+    }
+  }, [userId, gelungen, gescheitert])
 
   useEffect(() => {
     const tracker = requestId
@@ -43,5 +49,7 @@ export function useTrainingStreak(userId: string) {
     }
   }, [reload])
 
+  const streak = aktuellerStreak(rows, localDay(new Date().toISOString()))
+  const tage = trainingstage(rows)
   return { streak, tage, loading }
 }

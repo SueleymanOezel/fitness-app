@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useStaleState } from './use-stale-state'
 import { MEASUREMENT_FIELDS, type BodyMetricRow, type BodyMetricValues } from '../lib/body-metrics'
 
 const COLUMNS = `id, datum, ${MEASUREMENT_FIELDS.join(', ')}`
@@ -21,8 +22,7 @@ export class DatumBelegtError extends Error {
 }
 
 export function useBodyMetrics(userId: string) {
-  const [rows, setRows] = useState<BodyMetricRow[]>([])
-  const [loading, setLoading] = useState(true)
+  const { daten: rows, loading, gelungen, gescheitert } = useStaleState<BodyMetricRow[]>(userId, 'body-metrics', [])
   const [error, setError] = useState(false)
   const requestId = useRef(0)
 
@@ -34,10 +34,12 @@ export function useBodyMetrics(userId: string) {
       .eq('user_id', userId)
       .order('datum', { ascending: false })
     if (current !== requestId.current) return
-    setRows((data ?? []) as unknown as BodyMetricRow[])
-    setError(Boolean(loadError))
-    setLoading(false)
-  }, [userId])
+    // With a last-known copy (offline) the old rows stay and are not an error.
+    const fehlerAnzeigen = loadError
+      ? !gescheitert([])
+      : (gelungen((data ?? []) as unknown as BodyMetricRow[]), false)
+    setError(fehlerAnzeigen)
+  }, [userId, gelungen, gescheitert])
 
   useEffect(() => {
     const tracker = requestId

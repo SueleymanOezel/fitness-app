@@ -2,13 +2,20 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { nextTrainingDay, type PlanDay } from '../lib/next-training-day'
 import type { WorkoutPlan } from './use-workout-plans'
+import { useStaleState } from './use-stale-state'
 
 export type NamedPlanDay = PlanDay & { name: string }
 
 export function useActiveTrainingDay(userId: string) {
-  const [plan, setPlan] = useState<WorkoutPlan | null>(null)
-  const [day, setDay] = useState<NamedPlanDay | null>(null)
-  const [loading, setLoading] = useState(true)
+  const {
+    daten: { plan, day },
+    loading,
+    gelungen,
+    gescheitert,
+  } = useStaleState<{ plan: WorkoutPlan | null; day: NamedPlanDay | null }>(userId, 'active-training-day', {
+    plan: null,
+    day: null,
+  })
   const [error, setError] = useState(false)
   const requestId = useRef(0)
 
@@ -54,11 +61,16 @@ export function useActiveTrainingDay(userId: string) {
 
     if (current !== requestId.current) return
 
-    setError(failed)
-    setPlan(failed ? null : activePlan)
-    setDay(failed || !activePlan ? null : (nextTrainingDay(days, lastCompletedDayId) as NamedPlanDay | null))
-    setLoading(false)
-  }, [userId])
+    // With a last-known copy (offline) the old plan and day stay and are not an error.
+    const fehlerAnzeigen = failed
+      ? !gescheitert({ plan: null, day: null })
+      : (gelungen({
+          plan: activePlan,
+          day: activePlan ? (nextTrainingDay(days, lastCompletedDayId) as NamedPlanDay | null) : null,
+        }),
+        false)
+    setError(fehlerAnzeigen)
+  }, [userId, gelungen, gescheitert])
 
   useEffect(() => {
     const tracker = requestId

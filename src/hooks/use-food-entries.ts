@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { PRODUCT_COLUMNS, type Product } from '../lib/product-lookup'
+import { localDay } from '../lib/local-time'
+import { useStaleState } from './use-stale-state'
 
 export type FoodEntry = {
   id: string
@@ -28,8 +30,12 @@ export function todayRange() {
 }
 
 export function useFoodEntries(userId: string) {
-  const [entries, setEntries] = useState<FoodEntry[]>([])
-  const [loading, setLoading] = useState(true)
+  // One copy per local day: yesterday's entries must never pass for today's.
+  const { daten: entries, loading, gelungen, gescheitert } = useStaleState<FoodEntry[]>(
+    userId,
+    `food-entries@${localDay(new Date().toISOString())}`,
+    [],
+  )
   const requestId = useRef(0)
 
   const reload = useCallback(async () => {
@@ -37,7 +43,7 @@ export function useFoodEntries(userId: string) {
     // newest request may write state (and none may write after unmount).
     const current = ++requestId.current
     const { start, end } = todayRange()
-    const { data } = await supabase
+    const { data, error: loadError } = await supabase
       .from('food_entries')
       .select(
         `id, menge, zeitpunkt, product_id, mahlzeit, products(${PRODUCT_COLUMNS}, created_by)`,
@@ -47,9 +53,12 @@ export function useFoodEntries(userId: string) {
       .lt('zeitpunkt', end)
       .order('zeitpunkt', { ascending: true })
     if (current !== requestId.current) return
-    setEntries((data ?? []) as unknown as FoodEntry[])
-    setLoading(false)
-  }, [userId])
+    if (loadError) {
+      gescheitert([])
+    } else {
+      gelungen((data ?? []) as unknown as FoodEntry[])
+    }
+  }, [userId, gelungen, gescheitert])
 
   useEffect(() => {
     const tracker = requestId
