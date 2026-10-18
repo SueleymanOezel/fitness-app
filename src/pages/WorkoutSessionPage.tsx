@@ -15,6 +15,8 @@ import {
   interactiveClass,
   labelClass,
   linkClass,
+  listClass,
+  listRowClass,
   statClass,
   stickyActionClass,
 } from '../lib/ui-classes'
@@ -36,6 +38,9 @@ import CompletionCelebration from '../components/CompletionCelebration'
 import ConfirmDelete from '../components/ConfirmDelete'
 import PageSkeleton from '../components/PageSkeleton'
 import { dauerText } from '../lib/dauer'
+import { abschlussZahlen, type Vergleich } from '../lib/abschluss'
+import { zahlDe } from '../lib/zahl'
+import { useActiveTrainingDay } from '../hooks/use-active-training-day'
 
 export default function WorkoutSessionPage() {
   const { session } = useSession()
@@ -75,11 +80,16 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
   const [pauseEnde, setPauseEnde] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [bearbeiteterSatz, setBearbeiteterSatz] = useState<SessionSet | null>(null)
-  const [abschluss, setAbschluss] = useState<{
-    neueRekorde: NeuerRekord[]
-    dauerMinuten: number
-    kalorien: number | null
-  } | null>(null)
+  const [abschluss, setAbschluss] = useState<
+    | ({
+        neueRekorde: NeuerRekord[]
+        dauerMinuten: number
+        kalorien: number | null
+        /** The plan day just trained, so the screen can tell the next one apart from a stale copy. */
+        tagId: string | null
+      } & ReturnType<typeof abschlussZahlen>)
+    | null
+  >(null)
   const [abschlussLaeuft, setAbschlussLaeuft] = useState(false)
   const showToast = useToast()
   const navigate = useNavigate()
@@ -97,13 +107,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
 
   if (abschluss !== null) {
     return (
-      <SessionCompletionScreen
-        userId={userId}
-        dauerMinuten={abschluss.dauerMinuten}
-        kalorien={abschluss.kalorien}
-        neueRekorde={abschluss.neueRekorde}
-        onFertig={() => navigate('/training')}
-      />
+      <SessionCompletionScreen userId={userId} {...abschluss} onFertig={() => navigate('/training')} />
     )
   }
 
@@ -198,7 +202,13 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     const dauerMinuten = Math.round(
       (new Date(ergebnis.beendetAm).getTime() - new Date(session.gestartet_am).getTime()) / 60000,
     )
-    setAbschluss({ neueRekorde, dauerMinuten, kalorien: ergebnis.gesamtKalorien })
+    setAbschluss({
+      neueRekorde,
+      dauerMinuten,
+      kalorien: ergebnis.gesamtKalorien,
+      ...abschlussZahlen(sets, sortiert, letzteWerte),
+      tagId: session.workout_plan_day_id,
+    })
   }
 
   // The exercise that is open: the one the user tapped, otherwise the first one
@@ -422,15 +432,28 @@ function SessionCompletionScreen({
   dauerMinuten,
   kalorien,
   neueRekorde,
+  saetze,
+  volumen,
+  vergleiche,
+  tagId,
   onFertig,
 }: {
   userId: string
   dauerMinuten: number
   kalorien: number | null
   neueRekorde: NeuerRekord[]
+  saetze: number
+  volumen: number
+  vergleiche: Vergleich[]
+  tagId: string | null
   onFertig: () => void
 }) {
   const { streak, loading: streakLoading } = useTrainingStreak(userId)
+  const { day: naechsterTag } = useActiveTrainingDay(userId)
+  // The hook first shows its stored copy, which is still the day just trained;
+  // the next day only counts once the fresh rotation has replaced it.
+  const naechster = naechsterTag && naechsterTag.id !== tagId ? naechsterTag.name : null
+  const mitVorher = vergleiche.filter((vergleich) => vergleich.vorher != null)
 
   return (
     <div>
@@ -440,7 +463,27 @@ function SessionCompletionScreen({
           <dl className="grid grid-cols-2 gap-4">
             <Kennzahl label="Dauer" wert={dauerMinuten} einheit="Minuten" />
             {kalorien != null && <Kennzahl label="Verbrauch" wert={Math.round(kalorien)} einheit="kcal" />}
+            <Kennzahl label="Sätze" wert={saetze} einheit={saetze === 1 ? 'Satz' : 'Sätze'} />
+            {volumen > 0 && <Kennzahl label="Volumen" wert={volumen} einheit="kg" />}
           </dl>
+          {mitVorher.length > 0 && (
+            <section data-reveal className="flex flex-col gap-3">
+              <h2>Im Vergleich zum letzten Mal</h2>
+              <ul role="list" className={`${cardClass} ${listClass}`}>
+                {mitVorher.map((vergleich) => (
+                  <li key={vergleich.exercise_id} className={`${listRowClass} justify-between`}>
+                    <span className="flex min-w-0 flex-col">
+                      <span className="truncate font-medium">{vergleich.name}</span>
+                      <span className={labelClass}>
+                        {`${satzText(vergleich.heute)} · zuletzt ${satzText(vergleich.vorher!)}`}
+                      </span>
+                    </span>
+                    <Differenz heute={vergleich.heute.gewicht} vorher={vergleich.vorher!.gewicht} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           {neueRekorde.length > 0 && (
             <section className="flex flex-col gap-3">
               <h2>Neue Rekorde</h2>
@@ -465,12 +508,31 @@ function SessionCompletionScreen({
             </section>
           )}
           <p data-reveal>{streakLoading ? '…' : streakText(streak)}</p>
+          {naechster && <p data-reveal className={labelClass}>{`Nächstes Mal: ${naechster}`}</p>}
         </div>
       </CompletionCelebration>
       <Pressable variant="primary" type="button" className={stickyActionClass} onClick={onFertig}>
         Fertig
       </Pressable>
     </div>
+  )
+}
+
+/** "72,5 kg × 8", or "8 Wdh." for a set without weight. */
+function satzText({ gewicht, wiederholungen }: { gewicht: number | null; wiederholungen: number | null }) {
+  const wdh = wiederholungen ?? '–'
+  return gewicht == null || gewicht === 0 ? `${wdh} Wdh.` : `${zahlDe(gewicht)} kg × ${wdh}`
+}
+
+/** The weight change on the heaviest set; nothing to say when either side has no weight. */
+function Differenz({ heute, vorher }: { heute: number | null; vorher: number | null }) {
+  if (heute == null || vorher == null || (heute === 0 && vorher === 0)) return null
+  const delta = Math.round((heute - vorher) * 100) / 100
+  const text = delta === 0 ? '±0 kg' : `${delta > 0 ? '+' : '−'}${zahlDe(Math.abs(delta))} kg`
+  return (
+    <span className={`shrink-0 font-semibold tabular-nums ${delta > 0 ? 'text-accent-text' : 'text-text-muted'}`}>
+      {text}
+    </span>
   )
 }
 

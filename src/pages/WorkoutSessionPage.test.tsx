@@ -26,6 +26,9 @@ vi.mock('../hooks/use-training-streak', () => ({
   useTrainingStreak: (userId: string) => mockUseTrainingStreak(userId),
 }))
 
+const mockUseActiveTrainingDay = vi.fn(() => ({ plan: null, day: null, loading: false, error: false, reload: vi.fn() }))
+vi.mock('../hooks/use-active-training-day', () => ({ useActiveTrainingDay: () => mockUseActiveTrainingDay() }))
+
 vi.mock('../lib/gsap-loader', () => ({ loadGsap: vi.fn(() => new Promise(() => {})) }))
 
 const mockNavigate = vi.fn()
@@ -672,6 +675,57 @@ describe('WorkoutSessionPage', () => {
     expect(screen.getByText('3 Wochen im Plan · diese Woche 0 von 3')).toBeInTheDocument()
     // The live session view is gone, not just covered.
     expect(screen.queryByRole('button', { name: 'Training abschließen' })).not.toBeInTheDocument()
+  })
+
+  it('adds sets, volume, the comparison with last time and the next plan day', async () => {
+    signedIn()
+    mockUseLetzteWerte.mockReturnValue(new Map([['ex1', { gewicht: 60, wiederholungen: 10 }]]))
+    mockUseActiveTrainingDay.mockReturnValue({
+      plan: null,
+      // d1 (the day just trained) would be the stale copy and must not show up as "next".
+      day: { id: 'd2', name: 'Tag B – Ziehen' },
+      loading: false,
+      error: false,
+      reload: vi.fn(),
+    } as never)
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({
+        sets: [loggedSet({ id: 'w', gewicht: 40, ist_aufwaermsatz: true }), loggedSet({ id: 'a', satz_nummer: 2, gewicht: 62.5, wiederholungen: 10 })],
+      }),
+    )
+
+    renderPage()
+    fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Abschließen' }))
+    await screen.findByText('Training abgeschlossen')
+
+    expect(screen.getByText('Sätze', { selector: 'dt' }).closest('div')).toHaveTextContent('1')
+    expect(screen.getByText('625')).toHaveAttribute('data-count-to', '625') // 62,5 kg × 10, warm-up left out
+    expect(screen.getByText('Im Vergleich zum letzten Mal')).toBeInTheDocument()
+    expect(screen.getByText('62,5 kg × 10 · zuletzt 60 kg × 10')).toBeInTheDocument()
+    expect(screen.getByText('+2,5 kg')).toBeInTheDocument()
+    expect(screen.getByText('Nächstes Mal: Tag B – Ziehen')).toBeInTheDocument()
+    mockUseLetzteWerte.mockReturnValue(new Map())
+  })
+
+  it('does not call the day just trained the next one while the rotation is still a stale copy', async () => {
+    signedIn()
+    mockUseActiveTrainingDay.mockReturnValue({
+      plan: null,
+      day: { id: 'd1', name: 'Tag A' },
+      loading: false,
+      error: false,
+      reload: vi.fn(),
+    } as never)
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+    fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Abschließen' }))
+    await screen.findByText('Training abgeschlossen')
+
+    expect(screen.queryByText(/Nächstes Mal/)).not.toBeInTheDocument()
+    expect(screen.queryByText('Im Vergleich zum letzten Mal')).not.toBeInTheDocument()
   })
 
   it('shows only the duration when no calories were computed', async () => {
