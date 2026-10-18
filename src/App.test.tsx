@@ -234,4 +234,15 @@ describe('App routing', () => {
       await screen.findByRole('heading', { name: 'Analyse' }, { timeout: 5000 }),
     ).toBeInTheDocument()
   })
+
+  it('shows a not-found page with a way home for an unknown address when signed in', async () => {
+    window.history.pushState({}, '', '/gibt-es-nicht')
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+
+    const { default: App } = await import('./App')
+    render(<App />)
+
+    expect(screen.getByRole('heading', { name: 'Seite nicht gefunden' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Zur Startseite' })).toHaveAttribute('href', '/')
+  })
 })

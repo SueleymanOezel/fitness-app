@@ -23,8 +23,8 @@ describe('LinkListCard', () => {
   })
 
   it('zeigt einen Wert rechts und kann den zugänglichen Namen überschreiben', () => {
-    zeige([{ to: '/c', label: 'Frühstück', wert: '150 kcal', ariaLabel: 'Frühstück — 150 kcal' }])
-    const link = screen.getByRole('link', { name: 'Frühstück — 150 kcal' })
+    zeige([{ to: '/c', label: 'Frühstück', wert: '150 kcal', ariaLabel: 'Frühstück, 150 kcal' }])
+    const link = screen.getByRole('link', { name: 'Frühstück, 150 kcal' })
     expect(link).toHaveTextContent('150 kcal')
   })
 

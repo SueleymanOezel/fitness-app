@@ -11,6 +11,7 @@ import BodyEntriesPage from './pages/BodyEntriesPage'
 import BodyPhotosPage from './pages/BodyPhotosPage'
 import NutritionEntriesPage from './pages/NutritionEntriesPage'
 import ProfilePage from './pages/ProfilePage'
+import NotFoundPage from './pages/NotFoundPage'
 import TrainingPlansPage from './pages/TrainingPlansPage'
 import TrainingPlanWizardPage from './pages/TrainingPlanWizardPage'
 import TrainingPlanEditPage from './pages/TrainingPlanEditPage'
@@ -88,6 +89,7 @@ export default function App() {
             }
           />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

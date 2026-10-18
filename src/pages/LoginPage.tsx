@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { fieldLabelClass, inputClass } from '../lib/ui-classes'
 import Pressable from '../components/Pressable'
+import { authFehlerText } from '../lib/auth-errors'
 
 type Mode = 'login' | 'signup'
 
@@ -36,7 +37,7 @@ export default function LoginPage() {
         const { data, error: authError } = await supabase.auth.signUp({ email, password })
 
         if (authError) {
-          setError(authError.message)
+          setError(authFehlerText(authError))
           return
         }
 
@@ -55,7 +56,7 @@ export default function LoginPage() {
       })
 
       if (authError) {
-        setError(authError.message)
+        setError(authFehlerText(authError))
         return
       }
 
@@ -81,7 +82,7 @@ export default function LoginPage() {
       provider: 'google',
       options: { redirectTo: window.location.origin },
     })
-    if (authError) setError(authError.message)
+    if (authError) setError(authFehlerText(authError))
   }
 
   return (
