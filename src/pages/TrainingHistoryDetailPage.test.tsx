@@ -70,6 +70,23 @@ describe('TrainingHistoryDetailPage', () => {
     expect(screen.getByText('400 kcal')).toBeInTheDocument()
   })
 
+  it('shows the German exercise name, falling back to the English one', async () => {
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({
+        sets: [
+          { ...set, id: 'a', exercise: { id: 'ex1', name: 'Bench Press', name_de: 'Bankdrücken', met_wert: 5 } },
+          { ...set, id: 'b', exercise: { id: 'ex2', name: 'Cable Row', name_de: null, met_wert: 5 } },
+        ],
+      }),
+    )
+
+    renderPage()
+
+    expect(await screen.findByText('Bankdrücken')).toBeInTheDocument()
+    expect(screen.queryByText('Bench Press')).not.toBeInTheDocument()
+    expect(screen.getByText('Cable Row')).toBeInTheDocument()
+  })
+
   it('corrects a set once the field is left, not on every keystroke', async () => {
     const result = sessionResult()
     mockUseWorkoutSession.mockReturnValue(result)

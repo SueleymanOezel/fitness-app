@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useWorkoutSession } from '../hooks/use-workout-session'
+import { exerciseName } from '../lib/exercise-name'
 import { cardClass, checkLabelClass, fieldLabelClass, inputClass, linkClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
@@ -65,7 +66,7 @@ function Detail({ sessionId }: { sessionId: string }) {
         {sets.map((set) => (
           <li key={set.id}>
             <div className={`${cardClass} w-full`}>
-              <p className="font-semibold">{set.exercise?.name}</p>
+              <p className="font-semibold">{exerciseName(set.exercise)}</p>
               <SetField
                 label="Gewicht (kg)"
                 stored={set.gewicht}

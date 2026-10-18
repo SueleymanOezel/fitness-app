@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { seitenweiseLaden } from '../lib/paged-query'
+import { exerciseName } from '../lib/exercise-name'
 import { rangeStart, type Zeitraum } from '../lib/analysis/zeitraum'
 
 export type AnalysisSession = {
@@ -30,12 +31,12 @@ type RawSet = {
   gewicht: number | null
   wiederholungen: number | null
   ist_aufwaermsatz: boolean
-  exercises: { name: string; muskelgruppen_primaer: string[] | null } | null
+  exercises: { name: string; name_de: string | null; muskelgruppen_primaer: string[] | null } | null
 }
 
 const COLUMNS = 'id, gestartet_am, beendet_am, gesamt_kalorien'
 const SET_COLUMNS =
-  'id, workout_session_id, exercise_id, satz_nummer, gewicht, wiederholungen, ist_aufwaermsatz, exercises(name, muskelgruppen_primaer)'
+  'id, workout_session_id, exercise_id, satz_nummer, gewicht, wiederholungen, ist_aufwaermsatz, exercises(name, name_de, muskelgruppen_primaer)'
 
 /** Ein geloeschter Uebungseintrag laesst den Satz stehen; er verliert nur seinen Namen. */
 const UNBEKANNTE_UEBUNG = 'Unbekannte Uebung'
@@ -127,7 +128,7 @@ export function useTrainingAnalysis(userId: string, zeitraum: Zeitraum) {
             id: row.id,
             workout_session_id: row.workout_session_id,
             exercise_id: row.exercise_id,
-            exercise_name: row.exercises?.name ?? UNBEKANNTE_UEBUNG,
+            exercise_name: exerciseName(row.exercises) || UNBEKANNTE_UEBUNG,
             muskelgruppen: row.exercises?.muskelgruppen_primaer ?? [],
             satz_nummer: row.satz_nummer,
             gewicht: row.gewicht,
