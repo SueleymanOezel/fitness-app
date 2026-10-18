@@ -369,11 +369,64 @@ describe('WorkoutSessionPage', () => {
 
     // The pause is over and the first exercise has no sets left, so the form
     // now belongs to the second exercise.
-    await waitFor(() => expect(screen.queryByText(/Pause/)).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByRole('timer')).not.toBeInTheDocument())
+    expect(screen.getByRole('status')).toHaveTextContent('Satz 1 von 2 · Kniebeuge')
     expect(screen.getByRole('button', { name: 'Satz abschließen' })).toBeInTheDocument()
     expect(screen.getByText('Kniebeuge').closest('li')).toContainElement(
       screen.getByRole('button', { name: 'Satz abschließen' }),
     )
+  })
+
+  it('signals the end of a pause that ran out: accent bar with the next set, and a vibration where available', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const vibrate = vi.fn()
+    Object.defineProperty(navigator, 'vibrate', { value: vibrate, configurable: true })
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+
+    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '60' } })
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    await screen.findByRole('timer')
+
+    await act(async () => {
+      vi.advanceTimersByTime(90_000)
+    })
+
+    const signal = await screen.findByRole('status')
+    expect(signal).toHaveTextContent('Pause vorbei')
+    // The mock returns the same (empty) set list, so the next set is still number 1 of 2.
+    expect(signal).toHaveTextContent('Satz 1 von 2 · Bankdrücken')
+    expect(vibrate).toHaveBeenCalledTimes(1)
+
+    // findByRole resolves on the DOM commit; under load the effect that arms the 6 s
+    // timeout may not have run yet. An empty act flushes it first.
+    await act(async () => {})
+    await act(async () => {
+      vi.advanceTimersByTime(6_000)
+    })
+    expect(screen.queryByText('Pause vorbei')).not.toBeInTheDocument()
+    Reflect.deleteProperty(navigator, 'vibrate')
+  })
+
+  it('gives no end signal when the pause is skipped by hand', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+
+    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '60' } })
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    await screen.findByRole('timer')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Überspringen' }))
+
+    expect(screen.queryByRole('timer')).not.toBeInTheDocument()
+    expect(screen.queryByText('Pause vorbei')).not.toBeInTheDocument()
   })
 
   it('says all sets are logged instead of counting past the target', () => {

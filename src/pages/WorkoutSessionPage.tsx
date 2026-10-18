@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
@@ -73,6 +73,8 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
   )
   const [openExerciseId, setOpenExerciseId] = useState<string | null>(null)
   const [pause, setPause] = useState<{ until: number; sekunden: number } | null>(null)
+  /** Text of the "Pause vorbei" bar; null = not showing. */
+  const [pauseEnde, setPauseEnde] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [bearbeiteterSatz, setBearbeiteterSatz] = useState<SessionSet | null>(null)
   const [abschluss, setAbschluss] = useState<{
@@ -152,18 +154,29 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
 
   const gewichtKg = profile?.aktuelles_gewicht ?? null
 
-  function pauseOver() {
+  /** `signal`: the timer ran out on its own — the user may be looking away, so say so. A skip needs no signal. */
+  function pauseOver(signal: boolean) {
     setPause(null)
     // The pause ends where the next set begins: stay on this exercise while it
     // still has target sets left, otherwise open the next one.
     const current = exercises.find((entry) => entry.exercise_id === aktuelleId)
     if (!current) return
-    const done = workingSetCount(current.exercise_id)
-    if (targetReached(current.ziel_saetze, done)) {
+    let weiter: SessionExercise | undefined = current
+    if (targetReached(current.ziel_saetze, workingSetCount(current.exercise_id))) {
       const sorted = [...exercises].sort((a, b) => a.reihenfolge - b.reihenfolge)
       const index = sorted.findIndex((entry) => entry.exercise_id === current.exercise_id)
-      setOpenExerciseId(sorted[index + 1]?.exercise_id ?? null)
+      weiter = sorted[index + 1]
+      setOpenExerciseId(weiter?.exercise_id ?? null)
     }
+    if (!signal) return
+    // Not on iOS Safari; there the accent bar alone carries the signal.
+    navigator.vibrate?.([200, 100, 200])
+    const naechster = weiter ? workingSetCount(weiter.exercise_id) + 1 : 0
+    setPauseEnde(
+      weiter
+        ? `Satz ${naechster}${weiter.ziel_saetze ? ` von ${weiter.ziel_saetze}` : ''} · ${weiter.name}`
+        : 'Alle Übungen erledigt.',
+    )
   }
 
   async function complete() {
@@ -226,8 +239,14 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     }
   }
 
+  const leisteUnten = pause !== null || pauseEnde !== null
+
   return (
-    <div>
+    // While the bottom bar is up, "Satz abschließen" floats above it and the page can scroll past it.
+    <div
+      className={leisteUnten ? 'pb-24' : undefined}
+      style={leisteUnten ? ({ '--nav-clearance': LEISTE_ABSTAND } as CSSProperties) : undefined}
+    >
       <div className="flex flex-col gap-1">
         <h1>{session.tag_name ?? 'Training'}</h1>
         <Laufzeit seit={session.gestartet_am} saetze={arbeitssaetzeGesamt} />
@@ -236,10 +255,12 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
         <PauseTimer
           until={pause.until}
           sekunden={pause.sekunden}
-          onDone={pauseOver}
+          onDone={() => pauseOver(true)}
+          onSkip={() => pauseOver(false)}
           onLaenger={() => setPause({ until: pause.until + 30_000, sekunden: pause.sekunden })}
         />
       )}
+      {pauseEnde !== null && <PauseEnde text={pauseEnde} onClose={() => setPauseEnde(null)} />}
       <ul role="list" className="flex flex-col gap-3">
         {exercises.map((entry) => (
           <li key={entry.exercise_id}>
@@ -295,6 +316,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                       showToast('Satz konnte nicht gespeichert werden.', 'error')
                       return false
                     }
+                    setPauseEnde(null)
                     if (entry.pausenzeit_sekunden) {
                       setPause({
                         until: Date.now() + entry.pausenzeit_sekunden * 1000,
@@ -654,15 +676,23 @@ export function formatPause(sekunden: number) {
   return `${Math.floor(sekunden / 60)}:${String(sekunden % 60).padStart(2, '0')}`
 }
 
+/** Bottom edge of the screen, above the safe area: the thumb zone, where the next tap happens anyway. */
+const leisteClass =
+  'fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 mx-auto max-w-[40rem] overflow-hidden rounded-3xl shadow-lg shadow-black/40'
+/** --nav-clearance while the bar is up: the bar's height plus a gap, so sticky actions sit above it. */
+const LEISTE_ABSTAND = 'calc(1rem + env(safe-area-inset-bottom) + 5.25rem)'
+
 function PauseTimer({
   until,
   sekunden,
   onDone,
+  onSkip,
   onLaenger,
 }: {
   until: number
   sekunden: number
   onDone: () => void
+  onSkip: () => void
   onLaenger: () => void
 }) {
   // Seeded from the configured pause rather than from Date.now(): reading the
@@ -691,20 +721,56 @@ function PauseTimer({
     return () => clearInterval(interval)
   }, [until])
 
+  // +30 s can push the remaining time past the configured pause: the bar then simply stays full.
+  const anteil = remainingSeconds / Math.max(sekunden, remainingSeconds, 1)
+
   return (
-    <div className={`${cardClass} sticky top-0 z-10`}>
-      <div role="timer">
-        <p className={labelClass}>Pause</p>
-        <p className={statClass}>{formatPause(remainingSeconds)}</p>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <Pressable variant="secondary" type="button" onClick={onLaenger}>
+    <div className={`${leisteClass} bg-surface ring-1 ring-inset ring-text-muted/25`}>
+      <div className="flex items-center gap-2 p-2">
+        <div role="timer" className="flex flex-1 items-baseline gap-2 pl-3">
+          <span className={labelClass}>Pause</span>
+          <span className="text-2xl font-bold tabular-nums">{formatPause(remainingSeconds)}</span>
+        </div>
+        <Pressable variant="secondary" type="button" className="px-3!" onClick={onLaenger}>
           +30 s
         </Pressable>
-        <Pressable variant="secondary" type="button" onClick={onDone}>
+        <Pressable variant="secondary" type="button" className="px-3!" onClick={onSkip}>
           Überspringen
         </Pressable>
       </div>
+      <div
+        aria-hidden="true"
+        className="h-1 bg-accent transition-[width] duration-300 ease-linear motion-reduce:transition-none"
+        style={{ width: `${anteil * 100}%` }}
+      />
+    </div>
+  )
+}
+
+/** Replaces the timer when it runs out: a color change at the edge of vision, readable in a glance. */
+function PauseEnde({ text, onClose }: { text: string; onClose: () => void }) {
+  // Same ref trick as PauseTimer: the parent's fresh onClose must not restart the 6 s.
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
+  useEffect(() => {
+    const timeout = setTimeout(() => onCloseRef.current(), 6000)
+    return () => clearTimeout(timeout)
+  }, [text])
+
+  return (
+    <div role="status" className={`${leisteClass} pause-ende bg-accent text-on-bright`}>
+      <Pressable
+        variant="bare"
+        type="button"
+        className="flex w-full min-w-0 flex-col items-start px-5 py-2.5 text-left"
+        onClick={onClose}
+      >
+        <span className="text-lg font-bold">Pause vorbei</span>
+        {/* One line: a long exercise name must not grow the bar into the button above it. */}
+        <span className="w-full truncate text-sm font-medium">{text}</span>
+      </Pressable>
     </div>
   )
 }

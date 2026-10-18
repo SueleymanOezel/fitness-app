@@ -19,6 +19,30 @@ describe('AppLayout', () => {
     expect(link).toHaveClass('min-h-11', 'min-w-11')
   })
 
+  it('drops the tab bar in the live workout and offers the way back at the top instead', () => {
+    render(
+      <MemoryRouter initialEntries={['/training/session/s1']}>
+        <AppLayout>
+          <p>content</p>
+        </AppLayout>
+      </MemoryRouter>,
+    )
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Profil' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Zurück zum Training' })).toHaveAttribute('href', '/training')
+  })
+
+  it('keeps the tab bar everywhere else', () => {
+    render(
+      <MemoryRouter initialEntries={['/training']}>
+        <AppLayout>
+          <p>content</p>
+        </AppLayout>
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('navigation')).toBeInTheDocument()
+  })
+
   it('tells the user when the device goes offline and hides the notice when it is back', () => {
     render(
       <MemoryRouter>
