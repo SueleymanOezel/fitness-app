@@ -10,6 +10,7 @@ import { VitaIcon } from '../components/icons/VitaIcon'
 import { PressableLink } from '../components/Pressable'
 import ConfirmDelete from '../components/ConfirmDelete'
 import PageSkeleton from '../components/PageSkeleton'
+import { zahlDe } from '../lib/zahl'
 
 export default function TrainingHistoryDetailPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -143,7 +144,7 @@ function SetField({
   pflichtMeldung?: string
   onCommit: (value: number | null) => void
 }) {
-  const [draft, setDraft] = useState(String(stored ?? ''))
+  const [draft, setDraft] = useState(stored == null ? '' : zahlDe(stored))
   const [meldung, setMeldung] = useState<string | null>(null)
 
   function commit() {
@@ -155,7 +156,7 @@ function SetField({
     const ungueltig = value === undefined || (value !== null && (value < 0 || (max != null && value > max)))
     const fehlt = pflichtMeldung !== undefined && (value === null || (value !== undefined && value < 1))
     if (ungueltig || fehlt) {
-      setDraft(String(stored ?? ''))
+      setDraft(stored == null ? '' : zahlDe(stored))
       setMeldung(pflichtMeldung ?? null)
       return
     }

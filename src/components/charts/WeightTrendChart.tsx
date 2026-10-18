@@ -16,6 +16,7 @@ import { GEWICHTSVERLAUF_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
 import { CHART_BLUE, CHART_MINT } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
+import { tooltipZahl } from '../../lib/zahl'
 
 export const TITEL = GEWICHTSVERLAUF_TITEL
 
@@ -42,7 +43,7 @@ export default function WeightTrendChart({
           {/* The interesting range is a few kilos wide; a zero-based axis would
               flatten every change into a straight line. */}
           <YAxis domain={['dataMin - 1', 'dataMax + 1']} tickFormatter={(wert: number) => wert.toFixed(1)} />
-          <Tooltip formatter={(wert?: ValueType) => [`${wert} kg`, '']} />
+          <Tooltip formatter={(wert?: ValueType) => [`${tooltipZahl(wert)} kg`, '']} />
           <Line type="monotone" dataKey="gewicht" name="Gewicht" stroke={CHART_BLUE} dot={false} />
           <Line type="monotone" dataKey="trend" name="Trend" stroke={CHART_MINT} strokeWidth={2} dot={false} />
           <Legend />

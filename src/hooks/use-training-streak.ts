@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { seitenweiseLaden } from '../lib/paged-query'
-import { aktuellerStreak, trainingstage } from '../lib/streak'
+import { trainingstage, wochenImPlan } from '../lib/streak'
 import { localDay } from '../lib/local-time'
 import { useStaleState } from './use-stale-state'
 
 /**
  * Aktueller Trainings-Streak, ungebunden an einen Zeitraum — ein Streak kann
- * aelter sein als jedes Dashboard-Fenster (90 Tage), siehe aktuellerStreak in
+ * aelter sein als jedes Dashboard-Fenster (90 Tage), siehe wochenImPlan in
  * src/lib/streak.ts. Verwendet an drei Stellen: der Home-Statuskarte, dem
  * Abschluss-Screen (WorkoutSessionPage.tsx) und dem Wochenstreifen
  * (TrainingPage) — alle rufen diesen Hook auf, damit sie nie
@@ -15,10 +15,11 @@ import { useStaleState } from './use-stale-state'
  */
 export function useTrainingStreak(userId: string) {
   // The finished-session timestamps are what is kept; streak and days are derived from them for today's date.
-  const { daten: rows, loading, gelungen, gescheitert } = useStaleState<{ beendet_am: string | null }[]>(
+  // `ziel` (Trainingstage pro Woche) comes from the active plan; without one a week with any training counts.
+  const { daten, loading, gelungen, gescheitert } = useStaleState<{ rows: { beendet_am: string | null }[]; ziel: number }>(
     userId,
-    'training-streak',
-    [],
+    'training-streak-v2',
+    { rows: [], ziel: 1 },
   )
   const requestId = useRef(0)
 
@@ -33,11 +34,18 @@ export function useTrainingStreak(userId: string) {
         .order('id', { ascending: true })
         .range(from, to),
     )
+    const { data: planRows } = await supabase
+      .from('workout_plans')
+      .select('haeufigkeit_pro_woche')
+      .eq('user_id', userId)
+      .eq('aktiv', true)
+      .limit(1)
     if (current !== requestId.current) return
+    const ziel = ((planRows ?? []) as { haeufigkeit_pro_woche: number | null }[])[0]?.haeufigkeit_pro_woche ?? 1
     if (ergebnis.failed) {
-      gescheitert([])
+      gescheitert({ rows: [], ziel: 1 })
     } else {
-      gelungen(ergebnis.rows)
+      gelungen({ rows: ergebnis.rows, ziel })
     }
   }, [userId, gelungen, gescheitert])
 
@@ -49,7 +57,7 @@ export function useTrainingStreak(userId: string) {
     }
   }, [reload])
 
-  const streak = aktuellerStreak(rows, localDay(new Date().toISOString()))
-  const tage = trainingstage(rows)
+  const tage = trainingstage(daten.rows)
+  const streak = wochenImPlan(tage, localDay(new Date().toISOString()), daten.ziel)
   return { streak, tage, loading }
 }

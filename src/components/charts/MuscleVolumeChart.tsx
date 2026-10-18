@@ -7,6 +7,7 @@ import { VOLUMEN_JE_MUSKELGRUPPE_TITEL } from '../../lib/analysis/chart-titles'
 import { CHART_PALETTE } from '../../lib/analysis/chart-colors'
 import { muskelgruppeLabel } from '../../lib/muscle-group-labels'
 import ChartFrame from './ChartFrame'
+import { tooltipZahl } from '../../lib/zahl'
 
 export const TITEL = VOLUMEN_JE_MUSKELGRUPPE_TITEL
 
@@ -29,7 +30,7 @@ export default function MuscleVolumeChart({
           <XAxis dataKey="muskelgruppe" tickFormatter={muskelgruppeLabel} />
           <YAxis />
           <Tooltip
-            formatter={(wert?: ValueType) => [`${wert} kg`, 'Volumen']}
+            formatter={(wert?: ValueType) => [`${tooltipZahl(wert)} kg`, 'Volumen']}
             labelFormatter={(muskelgruppe) => (typeof muskelgruppe === 'string' ? muskelgruppeLabel(muskelgruppe) : muskelgruppe)}
           />
           <Bar dataKey="volumen" fill={CHART_PALETTE[0]}>

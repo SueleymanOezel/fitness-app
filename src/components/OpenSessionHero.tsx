@@ -3,6 +3,7 @@ import PageHero from './PageHero'
 import { PressableLink } from './Pressable'
 import { VitaIcon } from './icons/VitaIcon'
 import type { OffeneSession } from '../hooks/use-workout-session'
+import { dauerText } from '../lib/dauer'
 
 /**
  * A workout that is still running wins over "what's next": Home and Training
@@ -20,7 +21,7 @@ export default function OpenSessionHero({ offen }: { offen: OffeneSession }) {
     <PageHero
       label="Training läuft"
       titel={offen.tag_name ?? 'Training'}
-      untertitel={`seit ${minuten} min`}
+      untertitel={`seit ${dauerText(minuten)}`}
       action={
         <PressableLink variant="primary" to={`/training/session/${offen.id}`}>
           <span className="inline-flex items-center justify-center gap-2">

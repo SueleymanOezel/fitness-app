@@ -27,7 +27,13 @@ describe('PersonalRecordsList', () => {
       <PersonalRecordsList sessions={[sitzung('s1', '2026-08-17')]} sets={[satz('s1', 100)]} />,
     )
     expect(screen.getByText('Bankdruecken')).toBeInTheDocument()
-    expect(screen.getByText('116,7 kg (100 kg × 5) am 17.08.2026')).toBeInTheDocument()
+    expect(screen.getByText('≈ 116,7 kg geschätztes 1RM (100 kg × 5) am 17.08.2026')).toBeInTheDocument()
+  })
+
+  it('shows a bodyweight record as reps, not as 0 kg', () => {
+    render(<PersonalRecordsList sessions={[sitzung('s1', '2026-08-17')]} sets={[satz('s1', 0)]} />)
+    expect(screen.getByText('5 Wdh. mit Körpergewicht am 17.08.2026')).toBeInTheDocument()
+    expect(screen.queryByText(/0,0 kg/)).not.toBeInTheDocument()
   })
 
   it('states the empty case without records', () => {

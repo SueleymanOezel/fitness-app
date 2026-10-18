@@ -35,7 +35,7 @@ afterEach(() => {
 })
 
 beforeEach(() => {
-  mockUseTrainingStreak.mockReturnValue({ streak: 0, tage: [], loading: false })
+  mockUseTrainingStreak.mockReturnValue({ streak: { wochen: 0, dieseWoche: 0, ziel: 3 }, tage: [], loading: false })
 })
 
 const activeDay = {
@@ -190,7 +190,7 @@ describe('TrainingPage', () => {
   it('keeps the hero and announces loading while the streak loads', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseActiveTrainingDay.mockReturnValue(activeDay)
-    mockUseTrainingStreak.mockReturnValue({ streak: 0, tage: [], loading: true })
+    mockUseTrainingStreak.mockReturnValue({ streak: { wochen: 0, dieseWoche: 0, ziel: 3 }, tage: [], loading: true })
 
     zeigeDashboard()
 
@@ -203,7 +203,7 @@ describe('TrainingPage', () => {
     vi.setSystemTime(new Date(2026, 9, 14, 12, 0)) // Mittwoch
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseActiveTrainingDay.mockReturnValue(activeDay)
-    mockUseTrainingStreak.mockReturnValue({ streak: 1, tage: ['2026-10-12', '2026-10-14'], loading: false })
+    mockUseTrainingStreak.mockReturnValue({ streak: { wochen: 1, dieseWoche: 0, ziel: 3 }, tage: ['2026-10-12', '2026-10-14'], loading: false })
 
     zeigeDashboard()
 

@@ -9,6 +9,7 @@ import { CHART_MINT } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 import ExerciseSelect from './ExerciseSelect'
 import { useUebungsauswahl } from './useUebungsauswahl'
+import { tooltipZahl } from '../../lib/zahl'
 
 export const TITEL = VOLUMEN_JE_UEBUNG_TITEL
 
@@ -52,7 +53,7 @@ export default function ExerciseVolumeChart({
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="label" />
           <YAxis />
-          <Tooltip formatter={(wert?: ValueType) => [`${wert} kg`, 'Volumen']} />
+          <Tooltip formatter={(wert?: ValueType) => [`${tooltipZahl(wert)} kg`, 'Volumen']} />
           <Bar dataKey="wert" fill={CHART_MINT} />
         </BarChart>
       </ResponsiveContainer>

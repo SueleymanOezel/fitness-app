@@ -47,7 +47,7 @@ function stubDefaults() {
   mockUseFoodEntries.mockReturnValue({ entries: [], loading: false, addEntry: vi.fn(), updateEntry: vi.fn(), deleteEntry: vi.fn() })
   mockUseActiveTrainingDay.mockReturnValue({ plan: null, day: null, loading: false })
   mockUseBodyMetrics.mockReturnValue({ rows: [], loading: false, error: false, saveEntry: vi.fn(), deleteEntry: vi.fn(), reload: vi.fn() })
-  mockUseTrainingStreak.mockReturnValue({ streak: 0, loading: false })
+  mockUseTrainingStreak.mockReturnValue({ streak: { wochen: 0, dieseWoche: 0, ziel: 3 }, loading: false })
   // No chart pinned by default: use-home-analysis must not be exercised at
   // all in that case (asserted below), this stub only guards against a
   // regression accidentally calling it and crashing on a destructure of
@@ -136,15 +136,15 @@ describe('HomePage', () => {
 
   it('shows the current streak', () => {
     stubDefaults()
-    mockUseTrainingStreak.mockReturnValue({ streak: 4, loading: false })
+    mockUseTrainingStreak.mockReturnValue({ streak: { wochen: 4, dieseWoche: 0, ziel: 3 }, loading: false })
     renderWithProviders(<HomePage />)
-    expect(screen.getByText('4 Tage in Folge')).toBeInTheDocument()
+    expect(screen.getByText('4 Wochen im Plan · diese Woche 0 von 3')).toBeInTheDocument()
   })
 
   it('shows a message instead of a streak count when there is none yet', () => {
     stubDefaults()
     renderWithProviders(<HomePage />)
-    expect(screen.getByText('Noch kein Trainingstag.')).toBeInTheDocument()
+    expect(screen.getByText('Noch keine Woche im Plan.')).toBeInTheDocument()
   })
 
   it('does not query Home analysis data without a pinned selection', () => {
@@ -185,7 +185,7 @@ describe('HomePage', () => {
 
   it('shows a skeleton while anything loads', () => {
     stubDefaults()
-    mockUseTrainingStreak.mockReturnValue({ streak: 0, loading: true })
+    mockUseTrainingStreak.mockReturnValue({ streak: { wochen: 0, dieseWoche: 0, ziel: 3 }, loading: true })
     renderWithProviders(<HomePage />)
     expect(screen.getByRole('status')).toHaveTextContent('Lädt…')
   })

@@ -167,6 +167,10 @@ const satzIn = (
 })
 
 describe('epley1RM', () => {
+  it('has no one-rep max for a bodyweight set (0 kg)', () => {
+    expect(epley1RM(0, 12)).toBeNull()
+  })
+
   it('computes weight x (1 + reps / 30)', () => {
     expect(epley1RM(100, 0)).toBe(100)
     expect(epley1RM(100, 30)).toBe(200)
@@ -452,6 +456,7 @@ describe('persoenlicheRekorde', () => {
       {
         exercise_id: 'e1',
         name: 'Bankdruecken',
+        art: 'einsRM',
         einsRM: 116.7,
         gewicht: 100,
         wiederholungen: 5,
@@ -469,13 +474,28 @@ describe('persoenlicheRekorde', () => {
     expect(rekorde[0].tag).toBe('2026-08-17')
   })
 
-  it('ignores warm-up sets and sets without a usable estimate', () => {
+  it('ignores warm-up sets', () => {
     expect(
-      persoenlicheRekorde(
-        [sitzung('s1', '2026-08-17')],
-        [satzIn('s1', 'e1', 200, 5, true), satzIn('s1', 'e1', null, 5)],
-      ),
+      persoenlicheRekorde([sitzung('s1', '2026-08-17')], [satzIn('s1', 'e1', 200, 5, true)]),
     ).toEqual([])
+  })
+
+  it('rates a bodyweight exercise by most reps instead of a made-up "0,0 kg"', () => {
+    const rekorde = persoenlicheRekorde(
+      [sitzung('s1', '2026-08-17'), sitzung('s2', '2026-08-24')],
+      [satzIn('s1', 'e1', 0, 8), satzIn('s2', 'e1', null, 11), satzIn('s2', 'e1', 0, 9)],
+    )
+    expect(rekorde).toEqual([
+      expect.objectContaining({ art: 'wiederholungen', wiederholungen: 11, tag: '2026-08-24' }),
+    ])
+  })
+
+  it('lets a weighted set beat a bodyweight record of the same exercise', () => {
+    const rekorde = persoenlicheRekorde(
+      [sitzung('s1', '2026-08-17')],
+      [satzIn('s1', 'e1', 0, 15), satzIn('s1', 'e1', 10, 6)],
+    )
+    expect(rekorde[0]).toEqual(expect.objectContaining({ art: 'einsRM', gewicht: 10, wiederholungen: 6 }))
   })
 
   it('sorts by estimated 1RM, heaviest first', () => {
