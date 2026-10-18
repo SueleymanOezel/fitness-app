@@ -52,6 +52,11 @@ describe('QuickAddDialog', () => {
     expect(screen.getByRole('button', { name: 'Frühstück' })).toHaveAttribute('aria-pressed', 'false')
   })
 
+  it('legt die Mahlzeit-Chips auf eine Karte', () => {
+    zeige()
+    expect(screen.getByRole('group', { name: 'Mahlzeit' }).parentElement).toHaveClass('bg-surface', 'rounded-3xl')
+  })
+
   it('speichert in den gewählten Abschnitt und schließt', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 9, 18, 8, 0))

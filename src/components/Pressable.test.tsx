@@ -64,4 +64,19 @@ describe('PressableLink', () => {
     expect(link).toHaveClass('bg-accent')
     expect(attach).toHaveBeenCalledWith(link)
   })
+
+  it('primary link is a full-width block, a bare link stays inline', () => {
+    render(
+      <MemoryRouter>
+        <PressableLink to="/a" variant="primary">
+          Primär
+        </PressableLink>
+        <PressableLink to="/b">Text</PressableLink>
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('link', { name: 'Primär' })).toHaveClass('block', 'text-center', 'w-full', 'bg-accent')
+    const bare = screen.getByRole('link', { name: 'Text' })
+    expect(bare).not.toHaveClass('block')
+    expect(bare).not.toHaveClass('text-center')
+  })
 })

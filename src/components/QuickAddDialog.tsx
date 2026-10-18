@@ -4,7 +4,7 @@ import Chip from './Chip'
 import Dialog from './Dialog'
 import { PressableLink } from './Pressable'
 import { abschnittFuerUhrzeit, type MealSection } from '../lib/meal-sections'
-import { linkClass } from '../lib/ui-classes'
+import { cardClass, linkClass } from '../lib/ui-classes'
 
 type Props = {
   open: boolean
@@ -44,12 +44,14 @@ function QuickAddForm({ sections, addEntry, onClose }: Omit<Props, 'open'>) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div role="group" aria-label="Mahlzeit" className="flex flex-wrap gap-2">
-        {sections.map((section) => (
-          <Chip key={section.slot} active={section.slot === slot} onClick={() => setSlot(section.slot)}>
-            {section.name}
-          </Chip>
-        ))}
+      <div className={cardClass}>
+        <div role="group" aria-label="Mahlzeit" className="flex flex-wrap gap-2">
+          {sections.map((section) => (
+            <Chip key={section.slot} active={section.slot === slot} onClick={() => setSlot(section.slot)}>
+              {section.name}
+            </Chip>
+          ))}
+        </div>
       </div>
       <AddEntryFlow
         onAdd={async (productId, menge) => {
