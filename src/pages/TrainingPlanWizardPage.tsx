@@ -7,6 +7,7 @@ import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Chip from '../components/Chip'
 import Pressable, { PressableLink } from '../components/Pressable'
+import PageSkeleton from '../components/PageSkeleton'
 
 const HAEUFIGKEITEN = [1, 2, 3, 4, 5, 6, 7]
 const STANDARD_DAUER_WOCHEN = 4
@@ -16,12 +17,7 @@ export default function TrainingPlanWizardPage() {
   const userId = session?.user.id
 
   if (!userId) {
-    return (
-      <div>
-        <h1>Neuer Plan</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Neuer Plan" />
   }
 
   return <Wizard userId={userId} />

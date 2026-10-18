@@ -9,17 +9,13 @@ import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { PressableLink } from '../components/Pressable'
 import ConfirmDelete from '../components/ConfirmDelete'
+import PageSkeleton from '../components/PageSkeleton'
 
 export default function TrainingHistoryDetailPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
 
   if (!sessionId) {
-    return (
-      <div>
-        <h1>Trainingseinheit</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Trainingseinheit" variante="liste" />
   }
 
   return <Detail sessionId={sessionId} />
@@ -31,12 +27,7 @@ function Detail({ sessionId }: { sessionId: string }) {
   const navigate = useNavigate()
 
   if (loading) {
-    return (
-      <div>
-        <h1>Trainingseinheit</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Trainingseinheit" variante="liste" />
   }
 
   if (!session) {

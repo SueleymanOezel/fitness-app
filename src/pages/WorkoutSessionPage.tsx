@@ -33,6 +33,7 @@ import type { NeuerRekord } from '../lib/analysis/training-charts'
 import Pressable, { PressableLink } from '../components/Pressable'
 import CompletionCelebration from '../components/CompletionCelebration'
 import ConfirmDelete from '../components/ConfirmDelete'
+import PageSkeleton from '../components/PageSkeleton'
 
 export default function WorkoutSessionPage() {
   const { session } = useSession()
@@ -40,12 +41,7 @@ export default function WorkoutSessionPage() {
   const userId = session?.user.id
 
   if (!userId || !sessionId) {
-    return (
-      <div>
-        <h1>Training</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Training" />
   }
 
   return <LiveSession userId={userId} sessionId={sessionId} />
@@ -88,12 +84,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
   // Both queries are independent: without waiting for the profile too, a user
   // who has a weight stored is told for a moment that they have none.
   if (loading || profileLoading) {
-    return (
-      <div>
-        <h1>Training</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Training" />
   }
 
   if (abschluss !== null) {
@@ -114,12 +105,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
   // window would hit the "already completed" fallback below and flash it over
   // what should be the completion screen.
   if (abschlussLaeuft) {
-    return (
-      <div>
-        <h1>Training</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Training" />
   }
 
   if (!session) {

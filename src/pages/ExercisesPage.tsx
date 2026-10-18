@@ -11,18 +11,14 @@ import { matchesExerciseFilter, uniqueEquipment, uniqueMuskelgruppen } from '../
 import { exerciseCaption, revealDelay } from '../lib/exercise-caption'
 import Pressable, { PressableLink } from '../components/Pressable'
 import { useVisibleCount } from '../hooks/use-visible-count'
+import PageSkeleton from '../components/PageSkeleton'
 
 export default function ExercisesPage() {
   const { session } = useSession()
   const userId = session?.user.id
 
   if (!userId) {
-    return (
-      <div>
-        <h1>Übungen</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Übungen" variante="liste" />
   }
 
   return <ExercisesList userId={userId} />
@@ -38,12 +34,7 @@ function ExercisesList({ userId }: { userId: string }) {
   const { count, showMore } = useVisibleCount(`${query}|${muskelgruppe}|${equipment}`)
 
   if (loading) {
-    return (
-      <div>
-        <h1>Übungen</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Übungen" variante="liste" />
   }
 
   if (loadError) {

@@ -13,6 +13,7 @@ import TagMuskelSilhouette from '../components/TagMuskelSilhouette'
 import ExercisePicker, { type PickableExercise } from '../components/ExercisePicker'
 import Pressable, { PressableLink } from '../components/Pressable'
 import ConfirmDelete from '../components/ConfirmDelete'
+import PageSkeleton from '../components/PageSkeleton'
 
 export default function TrainingPlanEditPage() {
   const { session } = useSession()
@@ -20,12 +21,7 @@ export default function TrainingPlanEditPage() {
   const userId = session?.user.id
 
   if (!userId || !planId) {
-    return (
-      <div>
-        <h1>Plan bearbeiten</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Plan bearbeiten" />
   }
 
   return <PlanEditor userId={userId} planId={planId} />
@@ -49,12 +45,7 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
   const showToast = useToast()
 
   if (loading) {
-    return (
-      <div>
-        <h1>Plan bearbeiten</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Plan bearbeiten" />
   }
 
   if (!plan) {

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 
 const mockGetSession = vi.fn()
@@ -14,6 +14,11 @@ vi.mock('../lib/supabase', () => ({
 }))
 
 describe('useSession', () => {
+  beforeEach(async () => {
+    const { vergissSession } = await import('./use-session')
+    vergissSession()
+  })
+
   it('starts loading, then resolves the session from getSession', async () => {
     mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } })
     mockOnAuthStateChange.mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } })
@@ -36,5 +41,18 @@ describe('useSession', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.session).toBeNull()
+  })
+
+  it('starts with the session an earlier mount already learned, so a tab switch shows no loading screen', async () => {
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } })
+    mockOnAuthStateChange.mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } })
+
+    const { useSession } = await import('./use-session')
+    const erster = renderHook(() => useSession())
+    await waitFor(() => expect(erster.result.current.loading).toBe(false))
+
+    const zweiter = renderHook(() => useSession())
+    expect(zweiter.result.current.loading).toBe(false)
+    expect(zweiter.result.current.session).toEqual({ user: { id: 'u1' } })
   })
 })

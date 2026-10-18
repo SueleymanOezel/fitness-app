@@ -4,8 +4,10 @@ import { ToastProvider } from './ToastProvider'
 import { VitaIcon } from './icons/VitaIcon'
 import { PressableLink } from './Pressable'
 import { interactiveClass } from '../lib/ui-classes'
+import { useOnline } from '../hooks/use-online'
 
 export default function AppLayout({ children }: { children: ReactNode }) {
+  const online = useOnline()
   return (
     <ToastProvider>
       <div>
@@ -19,6 +21,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <VitaIcon name="profile" />
           </PressableLink>
         </header>
+        {!online && (
+          <p role="status" className="mx-4 rounded-2xl bg-surface-raised px-4 py-2 text-sm">
+            Du bist offline. Du siehst den letzten Stand, Änderungen lassen sich gerade nicht speichern.
+          </p>
+        )}
         <main>{children}</main>
         <BottomNav />
       </div>

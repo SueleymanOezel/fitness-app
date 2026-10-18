@@ -8,6 +8,7 @@ import Dialog from '../components/Dialog'
 import { cardClass, fieldLabelClass, inputClass, labelClass } from '../lib/ui-classes'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable from '../components/Pressable'
+import PageSkeleton from '../components/PageSkeleton'
 
 type Draft = {
   name: string
@@ -132,12 +133,7 @@ export default function ProfilePage() {
   const userId = session?.user.id
 
   if (!userId) {
-    return (
-      <div>
-        <h1>Profil</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Profil" />
   }
 
   return <ProfileForm userId={userId} />
@@ -147,12 +143,7 @@ function ProfileForm({ userId }: { userId: string }) {
   const { profile, loading, error, reload, updateProfile } = useProfile(userId)
 
   if (loading) {
-    return (
-      <div>
-        <h1>Profil</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Profil" />
   }
 
   if (error || !profile) {
