@@ -125,6 +125,21 @@ describe('LoginPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Mit Google anmelden' }))
 
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('boom'))
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Das hat nicht geklappt'))
+  })
+
+  it('shows a German message for wrong credentials, not the raw server text', async () => {
+    mockSignIn.mockResolvedValue({
+      data: { session: null },
+      error: { code: 'invalid_credentials', message: 'Invalid login credentials' },
+    })
+    await renderLoginPage()
+
+    fireEvent.change(screen.getByLabelText('E-Mail'), { target: { value: 'a@b.de' } })
+    fireEvent.change(screen.getByLabelText('Passwort'), { target: { value: 'falschfalsch' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Einloggen' }))
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('E-Mail oder Passwort stimmt nicht.'))
+    expect(screen.getByRole('alert')).not.toHaveTextContent('Invalid')
   })
 })

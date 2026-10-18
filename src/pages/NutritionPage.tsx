@@ -100,8 +100,8 @@ function NutritionDashboard({ userId }: { userId: string }) {
               to: '/nutrition/entries',
               label: section.name,
               wert: kcal,
-              // aria-label hält den Namen "<Abschnitt> — <kcal>" als eine Einheit, obwohl die kcal optisch rechts stehen.
-              ariaLabel: `${section.name} — ${kcal}`,
+              // aria-label hält den Namen "<Abschnitt>, <kcal>" als eine Einheit, obwohl die kcal optisch rechts stehen.
+              ariaLabel: `${section.name}, ${kcal}`,
             }
           })}
         />
