@@ -40,13 +40,22 @@ export default function AddEntryFlow({ onAdd, onCancel }: Props) {
   }
 
   if (!product) {
-    return <ProductPicker onPicked={setProduct} onCancel={onCancel ?? reset} />
+    return (
+      <ProductPicker
+        onPicked={(picked, letzteMenge) => {
+          setProduct(picked)
+          // A repeated meal is usually the same portion as last time.
+          if (letzteMenge != null) setMenge(String(letzteMenge))
+        }}
+        onCancel={onCancel ?? reset}
+      />
+    )
   }
 
   return (
     <form onSubmit={handleConfirmQuantity} className="flex flex-col gap-4">
       <div className={cardClass}>
-        <p>{product.name}</p>
+        <p className="font-semibold">{product.name}</p>
         <label className={fieldLabelClass}>
           Menge (g)
           <input className={inputClass} type="number" step="any" value={menge} onChange={(event) => setMenge(event.target.value)} />
