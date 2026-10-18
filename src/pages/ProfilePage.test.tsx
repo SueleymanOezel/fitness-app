@@ -249,8 +249,8 @@ describe('ProfilePage', () => {
 
     expect(screen.getByLabelText('Name').closest('div')).toHaveClass('bg-surface', 'rounded-3xl')
     expect(screen.getByRole('button', { name: 'Speichern' })).toHaveClass('bg-accent')
-    expect(screen.getByRole('button', { name: 'Logout' })).not.toHaveClass('bg-accent')
-    expect(screen.getByRole('button', { name: 'Logout' })).toHaveClass('rounded-2xl')
+    expect(screen.getByRole('button', { name: 'Abmelden' })).not.toHaveClass('bg-accent')
+    expect(screen.getByRole('button', { name: 'Abmelden' })).toHaveClass('rounded-2xl')
   })
 
   it('constrains the meal-section hint text to a readable line length', async () => {

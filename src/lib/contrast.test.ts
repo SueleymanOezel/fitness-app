@@ -23,6 +23,7 @@ describe('contrastRatio', () => {
   const ACCENT = '#8766ed'
   const ACCENT_TEXT = '#a288f1'
   const DANGER = '#f27a6b'
+  const DANGER_TEXT = '#f8a094'
 
   it('confirms the old text-muted value FAILS AA text contrast against surface', () => {
     expect(contrastRatio('#5e5f66', SURFACE)).toBeLessThan(4.5)
@@ -54,6 +55,11 @@ describe('contrastRatio', () => {
   it('confirms the new accent-text value clears AA text contrast for links on bg and surface', () => {
     expect(contrastRatio(ACCENT_TEXT, BG)).toBeGreaterThanOrEqual(4.5)
     expect(contrastRatio(ACCENT_TEXT, SURFACE)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('confirms danger as button text fails on surface-raised and danger-text clears AA there', () => {
+    expect(contrastRatio(DANGER, SURFACE_RAISED)).toBeLessThan(4.5)
+    expect(contrastRatio(DANGER_TEXT, SURFACE_RAISED)).toBeGreaterThanOrEqual(4.5)
   })
 
   it('confirms the new accent-text value clears the 3:1 UI-component minimum against the nav pill', () => {

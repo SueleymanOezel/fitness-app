@@ -45,7 +45,7 @@ export const buttonSecondaryClass =
 
 /** Destructive action (delete, remove): same shape as secondary, danger-colored text. */
 export const buttonDangerClass =
-  `rounded-2xl border-0 bg-surface-raised px-4 py-3 font-semibold text-danger disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
+  `rounded-2xl border-0 bg-surface-raised px-4 py-3 font-semibold text-danger-text disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
 
 /** Large figure (weight, PR, calories): bold, tight, digits that do not jump. */
 export const statClass = 'text-3xl font-bold tracking-tight tabular-nums'

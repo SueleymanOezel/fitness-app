@@ -33,6 +33,12 @@
    * the accent hue is a foreground color on a dark background.
    */
   --color-accent-text: #a288f1;
+  /*
+   * --color-danger as button TEXT on surface-raised is 3.7:1 (needs 4.5:1) —
+   * see src/lib/contrast.test.ts. Same hue, lighter, used only for the danger
+   * button label; --color-danger stays the toast background.
+   */
+  --color-danger-text: #f8a094;
 
   --color-text: #fefeff;
   --color-text-muted: #90919a;
@@ -100,6 +106,12 @@ body {
 }
 
 @layer base {
+  /* Recharts colors legend labels with the series color inline; #4f6ca5 (Gewicht) is 3.0:1 on a card.
+     The swatch keeps the series color, the label is plain text. */
+  .recharts-legend-item-text {
+    color: var(--color-text) !important;
+  }
+
   /*
    * Block 1: Tailwinds Preflight setzt Ränder, Margins, Paddings, Button-
    * Hintergründe und Listen bereits zurück. Hier steht nur, was Preflight

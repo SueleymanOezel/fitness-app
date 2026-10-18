@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [hinweis, setHinweis] = useState<string | null>(null)
   const navigate = useNavigate()
 
   function validate(): string | null {
@@ -68,8 +69,27 @@ export default function LoginPage() {
     }
   }
 
+  async function handleForgotPassword() {
+    setError(null)
+    setHinweis(null)
+    if (!email.trim()) {
+      setError('Bitte trag zuerst deine E-Mail-Adresse ein.')
+      return
+    }
+    const { error: authError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    if (authError) {
+      setError(authFehlerText(authError))
+      return
+    }
+    // Same text whether or not the address has an account — it must not reveal which e-mails are registered.
+    setHinweis('Wenn es zu dieser E-Mail ein Konto gibt, haben wir dir einen Link zum Zurücksetzen geschickt.')
+  }
+
   function toggleMode() {
     setError(null)
+    setHinweis(null)
     setMode(mode === 'login' ? 'signup' : 'login')
   }
 
@@ -90,7 +110,7 @@ export default function LoginPage() {
       <img src="/logo.webp" alt="VitaLoop" className="h-28 w-auto" />
       <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
         <h1 className="text-lg font-semibold">
-          {mode === 'login' ? 'Login' : 'Registrieren'}
+          {mode === 'login' ? 'Einloggen' : 'Registrieren'}
         </h1>
         <div className="flex flex-col gap-1.5">
           <label className={fieldLabelClass} htmlFor="email">
@@ -118,9 +138,23 @@ export default function LoginPage() {
             onChange={(event) => setPassword(event.target.value)}
           />
         </div>
+        {mode === 'login' && (
+          <Pressable
+            type="button"
+            className="self-end border-0 bg-transparent text-sm text-accent-text underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            onClick={handleForgotPassword}
+          >
+            Passwort vergessen?
+          </Pressable>
+        )}
         {error && (
           <p role="alert" className="text-sm text-danger">
             {error}
+          </p>
+        )}
+        {hinweis && (
+          <p role="status" className="text-sm">
+            {hinweis}
           </p>
         )}
         <Pressable variant="primary" type="submit" disabled={submitting}>
@@ -134,7 +168,7 @@ export default function LoginPage() {
           className="w-full border-0 bg-transparent text-center text-sm text-text-muted underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           onClick={toggleMode}
         >
-          {mode === 'login' ? 'Noch keinen Account? Registrieren' : 'Schon registriert? Einloggen'}
+          {mode === 'login' ? 'Noch kein Konto? Registrieren' : 'Schon registriert? Einloggen'}
         </Pressable>
       </form>
     </div>

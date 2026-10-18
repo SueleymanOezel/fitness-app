@@ -11,6 +11,36 @@ afterEach(() => {
 })
 
 describe('BodyEntryForm', () => {
+  it('marks the weight as the field the dialog focuses and folds the other measurements', () => {
+    const { container } = render(<BodyEntryForm onSave={vi.fn()} onClose={vi.fn()} />)
+
+    expect(screen.getByLabelText('Gewicht (kg)')).toHaveAttribute('data-autofocus')
+    expect(container.querySelector('details')).not.toHaveAttribute('open')
+    expect(screen.getByText('Umfänge und Körperfett')).toBeInTheDocument()
+  })
+
+  it('shows the other measurements unfolded when the corrected entry has some', () => {
+    const { container } = render(
+      <BodyEntryForm
+        entry={{
+          id: 'a',
+          datum: '2026-08-17',
+          gewicht: 83.3,
+          bauchumfang: 90,
+          beinumfang: null,
+          armumfang: null,
+          ruckenumfang: null,
+          brustumfang: null,
+          koerperfettanteil: null,
+        }}
+        onSave={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+
+    expect(container.querySelector('details')).toHaveAttribute('open')
+  })
+
   it('defaults the date to today', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2026, 7, 24, 9, 0, 0))

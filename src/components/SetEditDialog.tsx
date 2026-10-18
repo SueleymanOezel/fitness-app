@@ -118,18 +118,22 @@ function SetEditForm({
       <Pressable variant="primary" type="submit" disabled={busy}>
         Speichern
       </Pressable>
-      <Pressable variant="secondary" type="button" onClick={onClose}>
+      <Pressable variant="secondary" type="button" className="w-full" onClick={onClose}>
         Abbrechen
       </Pressable>
-      <ConfirmDelete
-        label="Satz löschen"
-        titel="Satz löschen?"
-        text="Dieser Satz wird aus dem Training entfernt."
-        onConfirm={async () => {
-          await onDelete(set.id)
-          onClose()
-        }}
-      />
+      {/* Abgesetzt: direkt neben „Abbrechen“ war ein Fehltipp ein gelöschter Satz. */}
+      <div className="border-t border-text-muted/15 pt-4">
+        <ConfirmDelete
+          label="Satz löschen"
+          className="w-full"
+          titel="Satz löschen?"
+          text="Dieser Satz wird aus dem Training entfernt."
+          onConfirm={async () => {
+            await onDelete(set.id)
+            onClose()
+          }}
+        />
+      </div>
     </form>
   )
 }
