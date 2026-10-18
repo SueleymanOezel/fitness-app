@@ -15,6 +15,7 @@ import Pressable, { PressableLink } from '../components/Pressable'
 import EmptyState from '../components/EmptyState'
 import ConfirmDelete from '../components/ConfirmDelete'
 import PageSkeleton from '../components/PageSkeleton'
+import { zahlDe } from '../lib/zahl'
 
 function formatDate(iso: string) {
   const [year, month, day] = iso.split('-')
@@ -24,7 +25,7 @@ function formatDate(iso: string) {
 /** Only the measurements that were actually taken, so a row stays readable. */
 function summarize(entry: BodyMetricRow) {
   return MEASUREMENT_FIELDS.filter((field) => entry[field] != null)
-    .map((field) => `${FIELD_LABELS[field]}: ${entry[field]}`)
+    .map((field) => `${FIELD_LABELS[field]}: ${zahlDe(entry[field] as number)}`)
     .join(' · ')
 }
 

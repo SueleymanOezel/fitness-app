@@ -36,7 +36,9 @@ export default function PersonalRecordsList({
         {rekorde.map((rekord) => (
           <li key={rekord.exercise_id} className={listRowClass}>
             <strong>{rekord.name}</strong>{' '}
-            {`${zahl(rekord.einsRM)} kg (${rekord.gewicht} kg × ${rekord.wiederholungen}) am ${datumsLabel(rekord.tag)}`}
+            {rekord.art === 'wiederholungen'
+              ? `${rekord.wiederholungen} Wdh. mit Körpergewicht am ${datumsLabel(rekord.tag)}`
+              : `≈ ${zahl(rekord.einsRM)} kg geschätztes 1RM (${rekord.gewicht.toLocaleString('de-DE')} kg × ${rekord.wiederholungen}) am ${datumsLabel(rekord.tag)}`}
           </li>
         ))}
       </ul>

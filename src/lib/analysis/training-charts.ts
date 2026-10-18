@@ -92,7 +92,8 @@ export type UebungsPunkt = { tag: string; wert: number }
  * Leistung von null, sondern keine Angabe.
  */
 export function epley1RM(gewicht: number | null, wiederholungen: number | null): number | null {
-  if (gewicht == null || wiederholungen == null) return null
+  // 0 kg (a bodyweight set) has no one-rep max; "0,0 kg" as a record would be a made-up number.
+  if (gewicht == null || wiederholungen == null || gewicht <= 0) return null
   return gewicht * (1 + wiederholungen / 30)
 }
 
@@ -275,6 +276,8 @@ export function dauerUndKalorien(sessions: AnalysisSession[]): SessionPunkt[] {
 export type Rekord = {
   exercise_id: string
   name: string
+  /** `einsRM`: estimated one-rep max (Epley). `wiederholungen`: bodyweight exercise, best = most reps. */
+  art: 'einsRM' | 'wiederholungen'
   einsRM: number
   gewicht: number
   wiederholungen: number
@@ -306,24 +309,44 @@ export function persoenlicheRekorde(sessions: AnalysisSession[], sets: AnalysisS
   const beste = new Map<string, Rekord>()
   for (const satz of sortierteSaetze) {
     if (satz.ist_aufwaermsatz) continue
-    const einsRM = epley1RM(satz.gewicht, satz.wiederholungen)
     const tag = tagJeSession.get(satz.workout_session_id)
-    if (einsRM == null || tag == null) continue
-    const gerundet = runde(einsRM)
+    if (tag == null || satz.wiederholungen == null || satz.wiederholungen <= 0) continue
+    const einsRM = epley1RM(satz.gewicht, satz.wiederholungen)
     const bisher = beste.get(satz.exercise_id)
-    if (bisher && bisher.einsRM >= gerundet) continue
-    beste.set(satz.exercise_id, {
-      exercise_id: satz.exercise_id,
-      name: satz.exercise_name,
-      einsRM: gerundet,
-      gewicht: satz.gewicht as number,
-      wiederholungen: satz.wiederholungen as number,
-      tag,
-    })
+    if (einsRM != null) {
+      // A weighted set always beats a bodyweight record of the same exercise.
+      const gerundet = runde(einsRM)
+      if (bisher && bisher.art === 'einsRM' && bisher.einsRM >= gerundet) continue
+      beste.set(satz.exercise_id, {
+        exercise_id: satz.exercise_id,
+        name: satz.exercise_name,
+        art: 'einsRM',
+        einsRM: gerundet,
+        gewicht: satz.gewicht as number,
+        wiederholungen: satz.wiederholungen,
+        tag,
+      })
+    } else {
+      if (bisher && (bisher.art === 'einsRM' || bisher.wiederholungen >= satz.wiederholungen)) continue
+      beste.set(satz.exercise_id, {
+        exercise_id: satz.exercise_id,
+        name: satz.exercise_name,
+        art: 'wiederholungen',
+        einsRM: 0,
+        gewicht: 0,
+        wiederholungen: satz.wiederholungen,
+        tag,
+      })
+    }
   }
 
+  // Weighted records by estimated 1RM first, bodyweight records (most reps) after them.
   return [...beste.values()].sort(
-    (a, b) => b.einsRM - a.einsRM || a.name.localeCompare(b.name, 'de'),
+    (a, b) =>
+      Number(a.art === 'wiederholungen') - Number(b.art === 'wiederholungen') ||
+      b.einsRM - a.einsRM ||
+      b.wiederholungen - a.wiederholungen ||
+      a.name.localeCompare(b.name, 'de'),
   )
 }
 

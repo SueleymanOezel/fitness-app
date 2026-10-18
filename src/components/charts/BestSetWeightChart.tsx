@@ -17,6 +17,7 @@ import { CHART_MINT } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 import ExerciseSelect from './ExerciseSelect'
 import { useUebungsauswahl } from './useUebungsauswahl'
+import { tooltipZahl } from '../../lib/zahl'
 
 export const TITEL = BESTES_SATZGEWICHT_TITEL
 
@@ -60,7 +61,7 @@ export default function BestSetWeightChart({
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="label" />
           <YAxis domain={['dataMin - 5', 'dataMax + 5']} />
-          <Tooltip formatter={(wert?: ValueType) => [`${wert} kg`, 'bestes Satzgewicht']} />
+          <Tooltip formatter={(wert?: ValueType) => [`${tooltipZahl(wert)} kg`, 'bestes Satzgewicht']} />
           <Line type="monotone" dataKey="wert" stroke={CHART_MINT} dot={false} />
         </LineChart>
       </ResponsiveContainer>

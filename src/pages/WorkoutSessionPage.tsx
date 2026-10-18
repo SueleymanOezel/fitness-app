@@ -36,6 +36,7 @@ import Pressable, { PressableLink } from '../components/Pressable'
 import CompletionCelebration from '../components/CompletionCelebration'
 import ConfirmDelete from '../components/ConfirmDelete'
 import PageSkeleton from '../components/PageSkeleton'
+import { dauerText } from '../lib/dauer'
 
 export default function WorkoutSessionPage() {
   const { session } = useSession()
@@ -377,7 +378,7 @@ function Laufzeit({ seit, saetze }: { seit: string; saetze: number }) {
     return () => clearInterval(interval)
   }, [])
   const minuten = Math.max(0, Math.floor((jetzt - new Date(seit).getTime()) / 60000))
-  const dauer = minuten < 60 ? `${minuten} min` : `${Math.floor(minuten / 60)} h ${minuten % 60} min`
+  const dauer = dauerText(minuten)
   return (
     <p className={labelClass}>{`Läuft seit ${dauer} · ${saetze} ${saetze === 1 ? 'Satz' : 'Sätze'}`}</p>
   )
@@ -431,9 +432,11 @@ function SessionCompletionScreen({
                       className="pointer-events-none absolute inset-0 opacity-0 bg-linear-to-r from-transparent via-accent/30 to-transparent"
                     />
                     <p className="font-semibold">{rekord.name}</p>
-                    <p className="text-2xl font-bold tracking-tight tabular-nums">{`${zahl(rekord.neuesEinsRM)} kg`}</p>
+                    <p className="text-2xl font-bold tracking-tight tabular-nums">{`≈ ${zahl(rekord.neuesEinsRM)} kg`}</p>
                     <p className={labelClass}>
-                      {rekord.altesEinsRM == null ? 'erste Ausführung' : `vorher: ${zahl(rekord.altesEinsRM)} kg`}
+                      {rekord.altesEinsRM == null
+                        ? 'geschätztes 1RM · erste Ausführung'
+                        : `geschätztes 1RM · vorher ≈ ${zahl(rekord.altesEinsRM)} kg`}
                     </p>
                   </li>
                 ))}

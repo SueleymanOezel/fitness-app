@@ -34,6 +34,8 @@ function einseitigerBuilder(antwort: () => Ergebnis) {
       range(...args)
       return Promise.resolve(antwort())
     },
+    // The active plan's weekly target (second query).
+    limit: () => Promise.resolve({ data: [{ haeufigkeit_pro_woche: 2 }], error: null }),
   }
   return builder
 }
@@ -57,7 +59,9 @@ describe('useTrainingStreak', () => {
     }
     const { result } = renderHook(() => useTrainingStreak('u1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
-    expect(result.current.streak).toBe(2)
+    // 23 and 24 Aug 2026 are Sunday and Monday: two different weeks, the running one
+    // (Mon 24th) has 1 of 2 days, the week before only 1 of 2 — no full week yet.
+    expect(result.current.streak).toEqual({ wochen: 0, dieseWoche: 1, ziel: 2 })
     expect(result.current.tage).toHaveLength(2)
   })
 
@@ -80,7 +84,7 @@ describe('useTrainingStreak', () => {
     ergebnis = { data: null, error: { message: 'boom' } }
     const { result } = renderHook(() => useTrainingStreak('u1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
-    expect(result.current.streak).toBe(0)
+    expect(result.current.streak.wochen).toBe(0)
     expect(result.current.tage).toEqual([])
   })
 })

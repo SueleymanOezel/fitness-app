@@ -2,47 +2,62 @@ import { localDay } from './local-time'
 
 const pad = (value: number) => String(value).padStart(2, '0')
 
-/**
- * Vorheriger Kalendertag ueber lokale Kalenderfelder statt Millisekunden-
- * Subtraktion — dieselbe Vorsicht wie home-charts.ts's naechsterTag: ein
- * Millisekunden-Sprung driftet ueber einen Sommerzeitwechsel um eine Stunde.
- */
-function vorherigerTag(tag: string): string {
+function montagVon(tag: string): string {
   const [jahr, monat, tagZahl] = tag.split('-').map(Number)
-  const vorher = new Date(jahr, monat - 1, tagZahl - 1)
-  return `${vorher.getFullYear()}-${pad(vorher.getMonth() + 1)}-${pad(vorher.getDate())}`
+  const seitMontag = (new Date(jahr, monat - 1, tagZahl).getDay() + 6) % 7
+  const montag = new Date(jahr, monat - 1, tagZahl - seitMontag)
+  return `${montag.getFullYear()}-${pad(montag.getMonth() + 1)}-${pad(montag.getDate())}`
+}
+
+function montagDavor(montag: string): string {
+  const [jahr, monat, tagZahl] = montag.split('-').map(Number)
+  const davor = new Date(jahr, monat - 1, tagZahl - 7)
+  return `${davor.getFullYear()}-${pad(davor.getMonth() + 1)}-${pad(davor.getDate())}`
+}
+
+export type PlanStreak = {
+  /** Aufeinanderfolgende Wochen (Mo–So), in denen das Wochenziel erreicht wurde. */
+  wochen: number
+  /** Trainingstage der laufenden Woche. */
+  dieseWoche: number
+  /** Trainingstage pro Woche laut aktivem Plan (ohne Plan: 1). */
+  ziel: number
 }
 
 /**
- * Aufeinanderfolgende Trainingstage bis heute, rueckwaerts gezaehlt. Dieselbe
- * "Trainingstag"-Definition wie in home-charts.ts's aktivitaetsraster:
- * mindestens eine Session mit gesetztem `beendet_am` an diesem Kalendertag.
- *
- * Hat heute noch kein Training stattgefunden, bricht das den Streak nicht
- * sofort — die Zaehlung beginnt dann bei gestern. Ohne diese Ausnahme wuerde
- * die Home-Karte morgens, bevor trainiert wurde, immer "0 Tage" zeigen, obwohl
- * der Streak faktisch noch intakt ist.
+ * Streak in Plan-Wochen statt Kalendertagen (Nutzer-Entscheidung 18.10.2026):
+ * ein Kalendertag-Streak bestraft genau den 3×-pro-Woche-Plan, den die App selbst
+ * baut. Eine Woche zählt, wenn sie mindestens `ziel` Trainingstage hat. Die
+ * laufende Woche bricht den Streak nicht, solange sie das Ziel noch erreichen
+ * kann; sie zählt mit, sobald sie es erreicht hat.
  */
-export function aktuellerStreak(sessions: { beendet_am: string | null }[], heute: string): number {
-  const trainingstage = new Set<string>()
-  for (const session of sessions) {
-    if (session.beendet_am != null) trainingstage.add(localDay(session.beendet_am))
+export function wochenImPlan(tage: string[], heute: string, ziel: number): PlanStreak {
+  const wochenziel = Math.max(1, ziel)
+  const jeWoche = new Map<string, number>()
+  for (const tag of new Set(tage)) {
+    const montag = montagVon(tag)
+    jeWoche.set(montag, (jeWoche.get(montag) ?? 0) + 1)
   }
 
-  let tag = trainingstage.has(heute) ? heute : vorherigerTag(heute)
-  let anzahl = 0
-  while (trainingstage.has(tag)) {
-    anzahl += 1
-    tag = vorherigerTag(tag)
+  const dieseWocheMontag = montagVon(heute)
+  const dieseWoche = jeWoche.get(dieseWocheMontag) ?? 0
+  let woche = dieseWoche >= wochenziel ? dieseWocheMontag : montagDavor(dieseWocheMontag)
+  let wochen = 0
+  while ((jeWoche.get(woche) ?? 0) >= wochenziel) {
+    wochen += 1
+    woche = montagDavor(woche)
   }
-  return anzahl
+  return { wochen, dieseWoche, ziel: wochenziel }
 }
 
 /** Einheitlicher Text an beiden Stellen, die den Streak zeigen (Home-Karte, Abschluss-Screen). */
-export function streakText(streak: number): string {
-  if (streak === 0) return 'Noch kein Trainingstag.'
-  if (streak === 1) return 'Erster Trainingstag.'
-  return `${streak} Tage in Folge`
+export function streakText({ wochen, dieseWoche, ziel }: PlanStreak): string {
+  const fortschritt = `diese Woche ${dieseWoche} von ${ziel}`
+  if (wochen === 0) {
+    return dieseWoche === 0 ? 'Noch keine Woche im Plan.' : `Diese Woche ${dieseWoche} von ${ziel}`
+  }
+  const serie = `${wochen} ${wochen === 1 ? 'Woche' : 'Wochen'} im Plan`
+  return dieseWoche >= ziel ? serie : `${serie} · ${fortschritt}`
 }
 
 /** Sortierte, eindeutige lokale Kalendertage mit mindestens einer beendeten Session. */

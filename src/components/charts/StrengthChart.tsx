@@ -17,6 +17,7 @@ import { CHART_MINT } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 import ExerciseSelect from './ExerciseSelect'
 import { useUebungsauswahl } from './useUebungsauswahl'
+import { tooltipZahl } from '../../lib/zahl'
 
 export const TITEL = KRAFTVERLAUF_TITEL
 
@@ -62,7 +63,7 @@ export default function StrengthChart({
           {/* Nicht bei null beginnen: die interessante Spanne sind ein paar
               Kilo, eine Achse ab 0 macht daraus eine Gerade. */}
           <YAxis domain={['dataMin - 5', 'dataMax + 5']} />
-          <Tooltip formatter={(wert?: ValueType) => [`${wert} kg`, 'geschätztes 1RM']} />
+          <Tooltip formatter={(wert?: ValueType) => [`${tooltipZahl(wert)} kg`, 'geschätztes 1RM']} />
           <Line type="monotone" dataKey="wert" stroke={CHART_MINT} dot={false} />
         </LineChart>
       </ResponsiveContainer>

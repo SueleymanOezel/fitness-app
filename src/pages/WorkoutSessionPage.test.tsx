@@ -100,7 +100,7 @@ function signedIn(weight: number | null = 80) {
   mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
   mockUseProfile.mockReturnValue({ profile: { aktuelles_gewicht: weight }, loading: false, error: false })
   mockUseExercises.mockReturnValue({ exercises: [], loading: false, createExercise: vi.fn() })
-  mockUseTrainingStreak.mockReturnValue({ streak: 0, loading: false })
+  mockUseTrainingStreak.mockReturnValue({ streak: { wochen: 0, dieseWoche: 0, ziel: 3 }, loading: false })
 }
 
 describe('formatPause', () => {
@@ -603,7 +603,7 @@ describe('WorkoutSessionPage', () => {
       completeSession: vi.fn().mockResolvedValue({ beendetAm: '2026-08-21T10:25:00.000Z', gesamtKalorien: 187.4 }),
     })
     mockUseWorkoutSession.mockReturnValue(result)
-    mockUseTrainingStreak.mockReturnValue({ streak: 3, loading: false })
+    mockUseTrainingStreak.mockReturnValue({ streak: { wochen: 3, dieseWoche: 0, ziel: 3 }, loading: false })
 
     renderPage()
     await screen.findByText('Bankdrücken')
@@ -616,7 +616,7 @@ describe('WorkoutSessionPage', () => {
     expect(screen.getByText('Minuten')).toBeInTheDocument()
     expect(screen.getByText('187')).toBeInTheDocument()
     expect(screen.getByText('kcal')).toBeInTheDocument()
-    expect(screen.getByText('3 Tage in Folge')).toBeInTheDocument()
+    expect(screen.getByText('3 Wochen im Plan · diese Woche 0 von 3')).toBeInTheDocument()
     // The live session view is gone, not just covered.
     expect(screen.queryByRole('button', { name: 'Training abschließen' })).not.toBeInTheDocument()
   })
@@ -627,7 +627,7 @@ describe('WorkoutSessionPage', () => {
       completeSession: vi.fn().mockResolvedValue({ beendetAm: '2026-08-21T10:25:00.000Z', gesamtKalorien: null }),
     })
     mockUseWorkoutSession.mockReturnValue(result)
-    mockUseTrainingStreak.mockReturnValue({ streak: 3, loading: false })
+    mockUseTrainingStreak.mockReturnValue({ streak: { wochen: 3, dieseWoche: 0, ziel: 3 }, loading: false })
 
     renderPage()
     await screen.findByText('Bankdrücken')
@@ -701,10 +701,10 @@ describe('WorkoutSessionPage', () => {
 
     expect(await screen.findByText('Neue Rekorde')).toBeInTheDocument()
     expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
-    expect(screen.getByText('116,7 kg')).toBeInTheDocument()
-    expect(screen.getByText('vorher: 105,0 kg')).toBeInTheDocument()
-    expect(screen.getByText('80,0 kg')).toBeInTheDocument()
-    expect(screen.getByText('erste Ausführung')).toBeInTheDocument()
+    expect(screen.getByText('≈ 116,7 kg')).toBeInTheDocument()
+    expect(screen.getByText('geschätztes 1RM · vorher ≈ 105,0 kg')).toBeInTheDocument()
+    expect(screen.getByText('≈ 80,0 kg')).toBeInTheDocument()
+    expect(screen.getByText('geschätztes 1RM · erste Ausführung')).toBeInTheDocument()
   })
 
   it('omits the records section instead of showing an empty one', async () => {

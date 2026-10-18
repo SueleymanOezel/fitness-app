@@ -61,7 +61,7 @@ function Dashboard({ userId }: { userId: string }) {
   const gewichtsAenderung = changeSince(rows, 'gewicht')
 
   const kacheln: StatTile[] = [
-    { label: 'Streak', wert: streak === 0 ? '—' : String(streak), hinweis: streakText(streak) },
+    { label: 'Wochen im Plan', wert: streak.wochen === 0 ? '—' : String(streak.wochen), hinweis: streakText(streak) },
     {
       label: 'Gewicht',
       wert: gewichtAktuell == null ? '—' : `${formatValue(gewichtAktuell.value)} kg`,
