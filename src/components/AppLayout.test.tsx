@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import AppLayout from './AppLayout'
 
@@ -17,5 +17,26 @@ describe('AppLayout', () => {
     )
     const link = screen.getByRole('link', { name: 'Profil' })
     expect(link).toHaveClass('min-h-11', 'min-w-11')
+  })
+
+  it('tells the user when the device goes offline and hides the notice when it is back', () => {
+    render(
+      <MemoryRouter>
+        <AppLayout>
+          <p>content</p>
+        </AppLayout>
+      </MemoryRouter>,
+    )
+    expect(screen.queryByText(/Du bist offline/)).not.toBeInTheDocument()
+
+    act(() => {
+      window.dispatchEvent(new Event('offline'))
+    })
+    expect(screen.getByRole('status')).toHaveTextContent('Du bist offline')
+
+    act(() => {
+      window.dispatchEvent(new Event('online'))
+    })
+    expect(screen.queryByText(/Du bist offline/)).not.toBeInTheDocument()
   })
 })

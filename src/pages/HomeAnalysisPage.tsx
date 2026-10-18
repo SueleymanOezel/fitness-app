@@ -9,18 +9,14 @@ import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { linkClass } from '../lib/ui-classes'
 import { PressableLink } from '../components/Pressable'
+import PageSkeleton, { ChartSkeleton } from '../components/PageSkeleton'
 
 export default function HomeAnalysisPage() {
   const { session } = useSession()
   const userId = session?.user.id
 
   if (!userId) {
-    return (
-      <div>
-        <h1>Analyse</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Analyse" />
   }
 
   return <Analyse userId={userId} />
@@ -40,7 +36,7 @@ function Analyse({ userId }: { userId: string }) {
       {error && <p role="alert">Daten konnten nicht geladen werden.</p>}
       {auswahl.fehler !== '' && <p role="alert">{auswahl.fehler}</p>}
       {loading ? (
-        <p>Lädt…</p>
+        <ChartSkeleton />
       ) : (
         <HomeChartList ids={ids} sessions={sessions} entries={entries} rows={rows} zeitraum={zeitraum} auswahl={auswahl} />
       )}

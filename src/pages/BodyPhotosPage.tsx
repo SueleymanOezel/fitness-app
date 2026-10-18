@@ -7,6 +7,7 @@ import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { PressableLink } from '../components/Pressable'
 import ConfirmDelete from '../components/ConfirmDelete'
+import PageSkeleton from '../components/PageSkeleton'
 
 function formatDate(iso: string) {
   const [year, month, day] = iso.split('-')
@@ -18,12 +19,7 @@ export default function BodyPhotosPage() {
   const userId = session?.user.id
 
   if (!userId) {
-    return (
-      <div>
-        <h1>Fortschrittsfotos</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Fortschrittsfotos" variante="liste" />
   }
 
   return <Photos userId={userId} />
@@ -36,12 +32,7 @@ function Photos({ userId }: { userId: string }) {
   const showToast = useToast()
 
   if (loading) {
-    return (
-      <div>
-        <h1>Fortschrittsfotos</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Fortschrittsfotos" variante="liste" />
   }
 
   async function choose(event: ChangeEvent<HTMLInputElement>) {

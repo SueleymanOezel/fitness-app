@@ -19,6 +19,7 @@ import ExercisesPage from './pages/ExercisesPage'
 import WorkoutSessionPage from './pages/WorkoutSessionPage'
 import TrainingHistoryPage from './pages/TrainingHistoryPage'
 import TrainingHistoryDetailPage from './pages/TrainingHistoryDetailPage'
+import PageSkeleton from './components/PageSkeleton'
 
 // Lazy on purpose: recharts is about 136 kB gzipped and nothing on the login
 // or home screen needs it. The dashboards pull it in on their first visit
@@ -46,7 +47,7 @@ export default function App() {
           <Route
             path="/home/analyse"
             element={
-              <Suspense fallback={<p>Lädt…</p>}>
+              <Suspense fallback={<PageSkeleton titel="Analyse" />}>
                 <HomeAnalysisPage />
               </Suspense>
             }
@@ -62,7 +63,7 @@ export default function App() {
           <Route
             path="/training/analyse"
             element={
-              <Suspense fallback={<p>Lädt…</p>}>
+              <Suspense fallback={<PageSkeleton titel="Analyse" />}>
                 <TrainingAnalysisPage />
               </Suspense>
             }
@@ -72,7 +73,7 @@ export default function App() {
           <Route
             path="/nutrition/analyse"
             element={
-              <Suspense fallback={<p>Lädt…</p>}>
+              <Suspense fallback={<PageSkeleton titel="Analyse" />}>
                 <NutritionAnalysisPage />
               </Suspense>
             }
@@ -83,7 +84,7 @@ export default function App() {
           <Route
             path="/body/analyse"
             element={
-              <Suspense fallback={<p>Lädt…</p>}>
+              <Suspense fallback={<PageSkeleton titel="Analyse" />}>
                 <BodyAnalysisPage />
               </Suspense>
             }
