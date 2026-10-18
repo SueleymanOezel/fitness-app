@@ -3,7 +3,16 @@ import { useParams } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlan, type DayExercisePatch, type WorkoutPlanDay } from '../hooks/use-workout-plans'
 import { useExercises } from '../hooks/use-exercises'
-import { cardClass, fieldLabelClass, inputClass, linkClass, listClass, listRowClass } from '../lib/ui-classes'
+import {
+  cardClass,
+  fieldLabelClass,
+  inputClass,
+  interactiveClass,
+  labelClass,
+  linkClass,
+  listClass,
+  listRowClass,
+} from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import ExerciseThumbnail from '../components/ExerciseThumbnail'
 import { useToast } from '../components/ToastProvider'
@@ -148,6 +157,8 @@ function DayBlock({
   onMoveExercise: (exerciseRowId: string, direction: 'up' | 'down') => void
 }) {
   const [pickerOpen, setPickerOpen] = useState(false)
+  // One exercise open at a time, like the live session — the day stays a short list.
+  const [offen, setOffen] = useState<string | null>(null)
 
   // Muscle data isn't in day.exercises[].exercise (that embed only selects
   // id/name/name_de/bild_url) — matched against the already-loaded catalog
@@ -180,51 +191,64 @@ function DayBlock({
           <li key={row.id} className={`${listRowClass} items-start`}>
             <ExerciseThumbnail bildUrl={row.exercise?.bild_url ?? null} />
             <div className="flex flex-1 flex-col gap-2">
-              <span className="block font-medium">{row.exercise?.name_de ?? row.exercise?.name}</span>
-              <TargetField
-                label="Sätze"
-                stored={row.ziel_saetze}
-                onCommit={(value) => onUpdateExercise(row.id, { ziel_saetze: value })}
-              />
-              <TargetField
-                label="Wiederholungen"
-                stored={row.ziel_wiederholungen}
-                onCommit={(value) => onUpdateExercise(row.id, { ziel_wiederholungen: value })}
-              />
-              <TargetField
-                label="Pause (Sekunden)"
-                stored={row.pausenzeit_sekunden}
-                onCommit={(value) => onUpdateExercise(row.id, { pausenzeit_sekunden: value })}
-              />
-              <div className="flex flex-wrap gap-2">
-                {index > 0 && (
-                  <Pressable
-                    variant="secondary"
-                    className="min-w-11 px-3"
-                    type="button"
-                    onClick={() => onMoveExercise(row.id, 'up')}
-                  >
-                    Nach oben
-                  </Pressable>
-                )}
-                {index < day.exercises.length - 1 && (
-                  <Pressable
-                    variant="secondary"
-                    className="min-w-11 px-3"
-                    type="button"
-                    onClick={() => onMoveExercise(row.id, 'down')}
-                  >
-                    Nach unten
-                  </Pressable>
-                )}
-                <ConfirmDelete
-                  label="Entfernen"
-                  titel="Übung aus dem Tag entfernen?"
-                  text="Nur der Plan ändert sich. Bereits aufgezeichnete Trainings bleiben unverändert."
-                  bestaetigen="Ja, entfernen"
-                  onConfirm={() => onRemoveExercise(row.id)}
-                />
-              </div>
+              <Pressable
+                variant="bare"
+                type="button"
+                aria-expanded={offen === row.id}
+                className={`flex min-h-11 flex-col items-start rounded-lg text-left ${interactiveClass}`}
+                onClick={() => setOffen(offen === row.id ? null : row.id)}
+              >
+                <span className="font-medium">{row.exercise?.name_de ?? row.exercise?.name}</span>
+                <span className={labelClass}>{zielText(row)}</span>
+              </Pressable>
+              {offen === row.id && (
+                <>
+                  <TargetField
+                    label="Sätze"
+                    stored={row.ziel_saetze}
+                    onCommit={(value) => onUpdateExercise(row.id, { ziel_saetze: value })}
+                  />
+                  <TargetField
+                    label="Wiederholungen"
+                    stored={row.ziel_wiederholungen}
+                    onCommit={(value) => onUpdateExercise(row.id, { ziel_wiederholungen: value })}
+                  />
+                  <TargetField
+                    label="Pause (Sekunden)"
+                    stored={row.pausenzeit_sekunden}
+                    onCommit={(value) => onUpdateExercise(row.id, { pausenzeit_sekunden: value })}
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    {index > 0 && (
+                      <Pressable
+                        variant="secondary"
+                        className="min-w-11 px-3"
+                        type="button"
+                        onClick={() => onMoveExercise(row.id, 'up')}
+                      >
+                        Nach oben
+                      </Pressable>
+                    )}
+                    {index < day.exercises.length - 1 && (
+                      <Pressable
+                        variant="secondary"
+                        className="min-w-11 px-3"
+                        type="button"
+                        onClick={() => onMoveExercise(row.id, 'down')}
+                      >
+                        Nach unten
+                      </Pressable>
+                    )}
+                    <ConfirmDelete
+                      label="Entfernen"
+                      titel="Übung aus dem Tag entfernen?"
+                      text="Nur der Plan ändert sich. Bereits aufgezeichnete Trainings bleiben unverändert."
+                      bestaetigen="Ja, entfernen"
+                      onConfirm={() => onRemoveExercise(row.id)}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </li>
         ))}
@@ -258,6 +282,16 @@ function DayBlock({
       </Dialog>
     </section>
   )
+}
+
+/** "3 × 8 · 120 s" — the targets at a glance; a missing value shows as "–". */
+function zielText(row: { ziel_saetze: number | null; ziel_wiederholungen: number | null; pausenzeit_sekunden: number | null }) {
+  const teile: string[] = []
+  if (row.ziel_saetze != null || row.ziel_wiederholungen != null) {
+    teile.push(`${row.ziel_saetze ?? '–'} × ${row.ziel_wiederholungen ?? '–'}`)
+  }
+  if (row.pausenzeit_sekunden != null) teile.push(`${row.pausenzeit_sekunden} s`)
+  return teile.length > 0 ? teile.join(' · ') : 'Keine Ziele'
 }
 
 /**
