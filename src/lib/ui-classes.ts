@@ -89,3 +89,14 @@ export const linkClass = `inline-flex min-h-11 items-center gap-2 rounded-lg tex
 export const listClass = 'divide-y divide-text-muted/15'
 
 export const listRowClass = 'flex items-center gap-3 py-3'
+
+/** Platzhalter-Block für Ladezustände; pulsiert nur ohne prefers-reduced-motion. */
+export const skeletonClass = 'rounded-2xl bg-surface-raised animate-pulse motion-reduce:animate-none'
+
+/** Titel eines PageHero: eine Stufe unter statClass, damit er neben dem Ring nicht umbricht. */
+export const heroTitleClass = 'text-2xl font-bold tracking-tight tabular-nums'
+
+/** Kennzahl-Kachel im StatStrip: eigene Fläche auf der Seite, Label und Wert eine Stufe kleiner als im Hero. */
+export const tileClass = 'rounded-2xl bg-surface p-3 space-y-1'
+export const tileLabelClass = 'text-xs font-medium text-text-muted'
+export const tileValueClass = 'text-xl font-bold tracking-tight tabular-nums'
