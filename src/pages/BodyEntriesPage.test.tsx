@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import BodyEntriesPage from './BodyEntriesPage'
-import { ProfileWeightSyncError } from '../hooks/use-body-metrics'
+import { DatumBelegtError, ProfileWeightSyncError } from '../hooks/use-body-metrics'
 import { renderWithProviders } from '../test-render'
 
 const mockUseSession = vi.fn()
@@ -112,6 +112,7 @@ describe('BodyEntriesPage', () => {
 
     renderPage()
     fireEvent.click(screen.getAllByRole('button', { name: 'Löschen' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     await waitFor(() => expect(result.deleteEntry).toHaveBeenCalledWith('c'))
   })
@@ -123,6 +124,7 @@ describe('BodyEntriesPage', () => {
 
     renderPage()
     fireEvent.click(screen.getAllByRole('button', { name: 'Löschen' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     expect(await screen.findByRole('alert')).toBeInTheDocument()
   })
@@ -152,6 +154,7 @@ describe('BodyEntriesPage', () => {
 
     renderPage()
     fireEvent.click(screen.getAllByRole('button', { name: 'Löschen' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     const notice = await screen.findByRole('alert')
     expect(notice).toHaveTextContent(/Eintrag gelöscht/)
@@ -172,5 +175,45 @@ describe('BodyEntriesPage', () => {
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Bearbeiten' })[1])
     expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(83.3)
+  })
+
+  it('does not delete on the first tap, only after the confirmation', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const result = metricsResult()
+    mockUseBodyMetrics.mockReturnValue(result)
+
+    renderPage()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Löschen' })[0])
+
+    expect(result.deleteEntry).not.toHaveBeenCalled()
+    expect(screen.getByRole('heading', { name: 'Eintrag löschen?' })).toBeInTheDocument()
+  })
+
+  it('updates the edited row by id so a changed date does not leave a duplicate behind', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const result = metricsResult()
+    mockUseBodyMetrics.mockReturnValue(result)
+
+    renderPage()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Bearbeiten' })[1])
+    fireEvent.change(screen.getByLabelText('Datum'), { target: { value: '2026-08-10' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() =>
+      expect(result.saveEntry).toHaveBeenCalledWith('2026-08-10', expect.objectContaining({ gewicht: 83.3 }), 'a'),
+    )
+  })
+
+  it('tells the user when the new date already has an entry', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const result = metricsResult({ saveEntry: vi.fn().mockRejectedValue(new DatumBelegtError()) })
+    mockUseBodyMetrics.mockReturnValue(result)
+
+    renderPage()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Bearbeiten' })[1])
+    fireEvent.change(screen.getByLabelText('Datum'), { target: { value: '2026-08-24' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Für dieses Datum gibt es schon einen Eintrag.')
   })
 })

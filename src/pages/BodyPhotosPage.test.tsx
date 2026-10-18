@@ -103,6 +103,7 @@ describe('BodyPhotosPage', () => {
 
     renderPage()
     fireEvent.click(screen.getAllByRole('button', { name: 'Löschen' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     await waitFor(() =>
       expect(result.deletePhoto).toHaveBeenCalledWith(

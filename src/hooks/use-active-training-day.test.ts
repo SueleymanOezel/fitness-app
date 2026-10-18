@@ -102,3 +102,31 @@ describe('useActiveTrainingDay', () => {
     expect(result.current.day).toBeNull()
   })
 })
+
+describe('useActiveTrainingDay load failure', () => {
+  it('reports an error instead of "no active plan" when the plan read fails', async () => {
+    mockFrom.mockImplementation(() => createQueryBuilder({ data: null, error: { message: 'boom' } }))
+
+    const { useActiveTrainingDay } = await import('./use-active-training-day')
+    const { result } = renderHook(() => useActiveTrainingDay('u1'))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.error).toBe(true)
+    expect(result.current.plan).toBeNull()
+  })
+
+  it('reports an error when only the day read fails', async () => {
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'workout_plans') return createQueryBuilder({ data: [plan] })
+      if (table === 'workout_plan_days') return createQueryBuilder({ data: null, error: { message: 'boom' } })
+      return createQueryBuilder({ data: [] })
+    })
+
+    const { useActiveTrainingDay } = await import('./use-active-training-day')
+    const { result } = renderHook(() => useActiveTrainingDay('u1'))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.error).toBe(true)
+    expect(result.current.day).toBeNull()
+  })
+})

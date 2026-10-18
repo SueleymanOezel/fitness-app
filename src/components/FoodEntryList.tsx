@@ -3,7 +3,7 @@ import FoodEntryEditForm from './FoodEntryEditForm'
 import { cardClass, listClass } from '../lib/ui-classes'
 import Dialog from './Dialog'
 import { VitaIcon } from './icons/VitaIcon'
-import { useToast } from './ToastProvider'
+import ConfirmDelete from './ConfirmDelete'
 import type { MealSection } from '../lib/meal-sections'
 import type { EntryPatch, FoodEntry } from '../hooks/use-food-entries'
 import Pressable from './Pressable'
@@ -47,7 +47,6 @@ function FoodEntryRow({
   onDelete,
 }: { entry: FoodEntry } & Pick<Props, 'userId' | 'sections' | 'onUpdateEntry' | 'onDelete'>) {
   const [editing, setEditing] = useState(false)
-  const showToast = useToast()
   const label = entry.products?.name ?? 'Unbekanntes Produkt'
   const kalorien = entry.products ? Math.round((entry.products.kalorien * entry.menge) / 100) : null
 
@@ -68,18 +67,12 @@ function FoodEntryRow({
               Bearbeiten
             </span>
           </Pressable>
-          <Pressable
-            variant="danger"
-            type="button"
-            onClick={() => {
-              onDelete(entry.id).catch(() => showToast('Eintrag konnte nicht gelöscht werden.', 'error'))
-            }}
-          >
-            <span className="inline-flex items-center justify-center gap-2">
-              <VitaIcon name="delete" tone="mono" size={20} />
-              Löschen
-            </span>
-          </Pressable>
+          <ConfirmDelete
+            label="Löschen"
+            titel="Eintrag löschen?"
+            text={`${label} wird aus deinem Tagebuch entfernt.`}
+            onConfirm={() => onDelete(entry.id)}
+          />
         </div>
       </div>
       {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —

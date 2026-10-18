@@ -5,6 +5,8 @@ import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable, { PressableLink } from '../components/Pressable'
 import EmptyState from '../components/EmptyState'
+import ConfirmDelete from '../components/ConfirmDelete'
+import LoadError from '../components/LoadError'
 import PageSkeleton from '../components/PageSkeleton'
 
 export default function TrainingPlansPage() {
@@ -17,10 +19,11 @@ export default function TrainingPlansPage() {
 }
 
 function PlansList({ userId }: { userId: string }) {
-  const { plans, loading, deletePlan, activatePlan } = useWorkoutPlans(userId)
+  const { plans, loading, error, reload, deletePlan, activatePlan } = useWorkoutPlans(userId)
   const showToast = useToast()
 
   if (loading) return <PageSkeleton titel="Meine Pläne" variante="liste" />
+  if (error) return <LoadError titel="Meine Pläne" text="Pläne konnten nicht geladen werden." onRetry={reload} />
 
   // The hooks reject on a failed write; without this the rejection would go
   // unhandled and the user would see nothing at all. A write failure is
@@ -61,16 +64,12 @@ function PlansList({ userId }: { userId: string }) {
                       Aktivieren
                     </Pressable>
                   )}
-                  <Pressable
-                    variant="danger"
-                    type="button"
-                    onClick={() => run(() => deletePlan(plan.id), 'Löschen fehlgeschlagen.')}
-                  >
-                    <span className="inline-flex items-center justify-center gap-2">
-                      <VitaIcon name="delete" tone="mono" size={20} />
-                      Löschen
-                    </span>
-                  </Pressable>
+                  <ConfirmDelete
+                    label="Löschen"
+                    titel="Plan löschen?"
+                    text={`„${plan.name}“ mit allen Tagen und Übungen wird gelöscht. Deine bisherigen Trainings bleiben erhalten.`}
+                    onConfirm={() => deletePlan(plan.id)}
+                  />
                 </div>
               </li>
             ))}

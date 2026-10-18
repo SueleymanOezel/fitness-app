@@ -108,6 +108,7 @@ describe('FoodEntryList', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     expect(onDelete).toHaveBeenCalledWith('e1')
   })
@@ -125,9 +126,10 @@ describe('FoodEntryList', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     await waitFor(() =>
-      expect(screen.getByRole('alert')).toHaveTextContent('nicht gelöscht'),
+      expect(screen.getByRole('alert')).toHaveTextContent('nicht geklappt'),
     )
   })
 })

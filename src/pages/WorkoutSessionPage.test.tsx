@@ -76,6 +76,7 @@ function sessionResult(overrides: Partial<ReturnType<typeof mockUseWorkoutSessio
     loading: false,
     logSet: vi.fn().mockResolvedValue(undefined),
     updateSet: vi.fn().mockResolvedValue(undefined),
+    deleteSet: vi.fn().mockResolvedValue(undefined),
     completeSession: vi.fn().mockResolvedValue({ beendetAm: '2026-08-21T10:20:00.000Z', gesamtKalorien: 187 }),
     ermittleNeueRekorde: vi.fn().mockResolvedValue([]),
     deleteSession: vi.fn().mockResolvedValue(undefined),
@@ -155,6 +156,7 @@ describe('WorkoutSessionPage', () => {
     renderPage()
 
     fireEvent.click(screen.getByRole('button', { name: 'Entfernen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ja, entfernen' }))
 
     await waitFor(() => expect(result.removeExerciseFromSession).toHaveBeenCalledWith('se1'))
   })
@@ -177,6 +179,24 @@ describe('WorkoutSessionPage', () => {
     renderPage()
 
     expect(screen.queryByRole('button', { name: 'Entfernen' })).not.toBeInTheDocument()
+  })
+
+  it('numbers a new set after the highest used number, so a deleted middle set cannot cause a duplicate', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    signedIn()
+    // Set 2 was deleted: the count is 2, but number 3 is still in use.
+    const result = sessionResult({
+      sets: [loggedSet({ id: 'set1', satz_nummer: 1 }), loggedSet({ id: 'set3', satz_nummer: 3 })],
+    })
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+
+    fireEvent.click(screen.getByText('Bankdrücken'))
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+
+    await waitFor(() => expect(result.logSet).toHaveBeenCalledWith('ex1', 4, expect.anything()))
   })
 
   it('logs a set and starts the pause timer', async () => {

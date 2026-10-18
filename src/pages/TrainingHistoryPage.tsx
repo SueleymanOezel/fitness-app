@@ -4,6 +4,7 @@ import { cardClass, linkClass, listClass, listRowClass } from '../lib/ui-classes
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { PressableLink } from '../components/Pressable'
 import EmptyState from '../components/EmptyState'
+import LoadError from '../components/LoadError'
 import PageSkeleton from '../components/PageSkeleton'
 
 export default function TrainingHistoryPage() {
@@ -16,9 +17,12 @@ export default function TrainingHistoryPage() {
 }
 
 function HistoryList({ userId }: { userId: string }) {
-  const { sessions, loading } = useWorkoutHistory(userId)
+  const { sessions, loading, error, reload } = useWorkoutHistory(userId)
 
   if (loading) return <PageSkeleton titel="Trainingshistorie" variante="liste" />
+  if (error) {
+    return <LoadError titel="Trainingshistorie" text="Trainings konnten nicht geladen werden." onRetry={reload} />
+  }
 
   return (
     <div>

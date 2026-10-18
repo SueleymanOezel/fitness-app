@@ -1,12 +1,12 @@
 import { useState, type ChangeEvent } from 'react'
 import { useSession } from '../hooks/use-session'
 import { useBodyPhotos } from '../hooks/use-body-photos'
-import type { BodyPhoto } from '../hooks/use-body-photos'
 import { today } from '../lib/body-metrics'
 import { cardClass, fieldLabelClass, inputClass, linkClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
-import Pressable, { PressableLink } from '../components/Pressable'
+import { PressableLink } from '../components/Pressable'
+import ConfirmDelete from '../components/ConfirmDelete'
 
 function formatDate(iso: string) {
   const [year, month, day] = iso.split('-')
@@ -60,14 +60,6 @@ function Photos({ userId }: { userId: string }) {
     }
   }
 
-  async function remove(photo: BodyPhoto) {
-    try {
-      await deletePhoto(photo)
-    } catch {
-      showToast('Foto konnte nicht gelöscht werden.', 'error')
-    }
-  }
-
   return (
     <div>
       <h1>Fortschrittsfotos</h1>
@@ -108,12 +100,13 @@ function Photos({ userId }: { userId: string }) {
                   loading="lazy"
                 />
               )}
-              <Pressable variant="danger" className="self-start" type="button" onClick={() => remove(photo)}>
-                <span className="inline-flex items-center justify-center gap-2">
-                  <VitaIcon name="delete" tone="mono" size={20} />
-                  Löschen
-                </span>
-              </Pressable>
+              <ConfirmDelete
+                label="Löschen"
+                className="self-start"
+                titel="Foto löschen?"
+                text={`Das Foto vom ${formatDate(photo.datum)} wird endgültig gelöscht.`}
+                onConfirm={() => deletePhoto(photo)}
+              />
             </div>
           </li>
         ))}

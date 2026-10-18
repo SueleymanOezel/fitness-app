@@ -464,3 +464,15 @@ describe('useWorkoutPlan', () => {
     expect(exerciseBuilder.update).toHaveBeenNthCalledWith(3, { reihenfolge: 1 })
   })
 })
+
+describe('useWorkoutPlans load failure', () => {
+  it('reports an error instead of passing as "no plans"', async () => {
+    mockFrom.mockReturnValue(createQueryBuilder({ data: null, error: { message: 'boom' } }))
+
+    const { useWorkoutPlans } = await import('./use-workout-plans')
+    const { result } = renderHook(() => useWorkoutPlans('u1'))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.error).toBe(true)
+  })
+})

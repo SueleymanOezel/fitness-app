@@ -9,7 +9,7 @@ import {
   type BodyMetricRow,
   type BodyMetricValues,
 } from '../lib/body-metrics'
-import { ProfileWeightSyncError } from '../hooks/use-body-metrics'
+import { DatumBelegtError, ProfileWeightSyncError } from '../hooks/use-body-metrics'
 import { cardClass, fieldLabelClass, inputClass } from '../lib/ui-classes'
 import { VitaIcon } from './icons/VitaIcon'
 import Pressable from './Pressable'
@@ -60,6 +60,10 @@ export default function BodyEntryForm({
       // owns the hook, not to this form.
       if (err instanceof ProfileWeightSyncError) {
         onClose()
+        return
+      }
+      if (err instanceof DatumBelegtError) {
+        setError('Für dieses Datum gibt es schon einen Eintrag.')
         return
       }
       // Nothing is cleared: the typed values are all the user has.

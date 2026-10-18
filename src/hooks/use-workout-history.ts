@@ -21,11 +21,12 @@ type RawRow = {
 export function useWorkoutHistory(userId: string) {
   const [sessions, setSessions] = useState<SessionSummary[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const requestId = useRef(0)
 
   const reload = useCallback(async () => {
     const current = ++requestId.current
-    const { data } = await supabase
+    const { data, error: loadError } = await supabase
       .from('workout_sessions')
       .select('id, gestartet_am, beendet_am, gesamt_kalorien, workout_plan_days(name, workout_plans(name))')
       .eq('user_id', userId)
@@ -33,6 +34,8 @@ export function useWorkoutHistory(userId: string) {
 
     if (current !== requestId.current) return
 
+    // A failed read resolves with data: null; without this it renders as an empty history.
+    setError(Boolean(loadError))
     setSessions(
       ((data ?? []) as unknown as RawRow[]).map((row) => ({
         id: row.id,
@@ -55,5 +58,5 @@ export function useWorkoutHistory(userId: string) {
     }
   }, [reload])
 
-  return { sessions, loading }
+  return { sessions, loading, error, reload }
 }

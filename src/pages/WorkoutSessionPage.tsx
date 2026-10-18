@@ -32,6 +32,7 @@ import { parseSetInput } from '../lib/set-values'
 import type { NeuerRekord } from '../lib/analysis/training-charts'
 import Pressable, { PressableLink } from '../components/Pressable'
 import CompletionCelebration from '../components/CompletionCelebration'
+import ConfirmDelete from '../components/ConfirmDelete'
 
 export default function WorkoutSessionPage() {
   const { session } = useSession()
@@ -59,6 +60,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     loading,
     logSet,
     updateSet,
+    deleteSet,
     completeSession,
     ermittleNeueRekorde,
     addExercisesToSession,
@@ -202,14 +204,6 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     }
   }
 
-  async function removeExercise(sessionExerciseId: string) {
-    try {
-      await removeExerciseFromSession(sessionExerciseId)
-    } catch {
-      showToast('Übung konnte nicht entfernt werden.', 'error')
-    }
-  }
-
   return (
     <div>
       <h1>Training</h1>
@@ -228,17 +222,15 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                   {entry.name}
                 </Pressable>
                 {!sets.some((set) => set.exercise_id === entry.exercise_id) && (
-                  <Pressable
-                    variant="danger"
-                    type="button"
+                  <ConfirmDelete
+                    label="Entfernen"
                     className="px-3! py-2! text-sm"
-                    onClick={() => removeExercise(entry.id)}
-                  >
-                    <span className="inline-flex items-center justify-center gap-2">
-                      <VitaIcon name="delete" tone="mono" size={16} />
-                      Entfernen
-                    </span>
-                  </Pressable>
+                    icon={<VitaIcon name="delete" tone="mono" size={16} />}
+                    titel="Übung entfernen?"
+                    text={`${entry.name} wird nur aus diesem Training entfernt, nicht aus dem Plan.`}
+                    bestaetigen="Ja, entfernen"
+                    onConfirm={() => removeExerciseFromSession(entry.id)}
+                  />
                 )}
               </div>
               {openExerciseId === entry.exercise_id && (
@@ -253,9 +245,14 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                   completedCount={workingSetCount(entry.exercise_id)}
                   onLog={async (values) => {
                     // satz_nummer stays a running order over every set of the
-                    // exercise; only the displayed counting skips warm-ups.
+                    // exercise; only the displayed counting skips warm-ups. Max + 1,
+                    // not count + 1: after a deleted middle set the count would
+                    // repeat a number that is still in use.
                     const satzNummer =
-                      sets.filter((set) => set.exercise_id === entry.exercise_id).length + 1
+                      Math.max(
+                        0,
+                        ...sets.filter((set) => set.exercise_id === entry.exercise_id).map((set) => set.satz_nummer),
+                      ) + 1
                     try {
                       await logSet(entry.exercise_id, satzNummer, values)
                     } catch {
@@ -281,6 +278,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
         set={bearbeiteterSatz}
         onClose={() => setBearbeiteterSatz(null)}
         onSave={(setId, patch) => updateSet(setId, patch)}
+        onDelete={(setId) => deleteSet(setId)}
       />
       <Pressable variant="secondary" type="button" className="w-full" onClick={() => setPickerOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">

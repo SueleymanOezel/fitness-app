@@ -251,6 +251,12 @@ export function useWorkoutSession(sessionId: string) {
     await reload()
   }
 
+  async function deleteSet(setId: string) {
+    const { error } = await supabase.from('workout_session_sets').delete().eq('id', setId)
+    if (error) throw new Error('delete set failed')
+    await reload()
+  }
+
   /** Without a body weight the session still completes, only its calories stay unknown (null). */
   async function completeSession(
     gewichtKg: number | null,
@@ -351,6 +357,7 @@ export function useWorkoutSession(sessionId: string) {
     loading,
     logSet,
     updateSet,
+    deleteSet,
     completeSession,
     ermittleNeueRekorde,
     deleteSession,

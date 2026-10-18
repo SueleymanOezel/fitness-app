@@ -116,6 +116,7 @@ describe('NutritionEntriesPage', () => {
     const result = await renderPage()
 
     fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     await waitFor(() => expect(result.deleteEntry).toHaveBeenCalledWith('e1'))
   })

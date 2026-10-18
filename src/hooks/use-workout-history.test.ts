@@ -58,3 +58,16 @@ describe('useWorkoutHistory', () => {
     expect(result.current.sessions[0].plan_name).toBeNull()
   })
 })
+
+describe('useWorkoutHistory load failure', () => {
+  it('reports an error instead of passing as an empty history', async () => {
+    mockFrom.mockReturnValue(createQueryBuilder({ data: null, error: { message: 'boom' } }))
+
+    const { useWorkoutHistory } = await import('./use-workout-history')
+    const { result } = renderHook(() => useWorkoutHistory('u1'))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.error).toBe(true)
+    expect(result.current.sessions).toEqual([])
+  })
+})
