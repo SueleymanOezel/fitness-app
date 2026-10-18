@@ -105,7 +105,7 @@ function ConfirmForm({
       <Pressable variant={variante} type="button" className="w-full" disabled={busy} onClick={confirm}>
         {bestaetigen}
       </Pressable>
-      <Pressable variant="secondary" type="button" className="w-full" onClick={onClose}>
+      <Pressable variant="secondary" type="button" className="w-full" data-autofocus onClick={onClose}>
         Abbrechen
       </Pressable>
     </div>

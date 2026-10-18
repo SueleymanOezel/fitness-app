@@ -36,6 +36,26 @@ export default function BodyEntryForm({
   const [draft, setDraft] = useState<BodyMetricInput>(() => inputFrom(entry))
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  // Weight is the daily value; the rest stays folded unless this entry already has some.
+  const [weitereOffen] = useState(() => MEASUREMENT_FIELDS.some((field) => field !== 'gewicht' && draft[field] !== ''))
+
+  function feld(field: (typeof MEASUREMENT_FIELDS)[number]) {
+    return (
+      <label key={field} className={fieldLabelClass}>
+        {FIELD_LABELS[field]}
+        <input
+          className={inputClass}
+          type="number"
+          // Every one of these columns is numeric: without step="any" the
+          // browser rejects 82,5 and aborts the submit before we see it.
+          step="any"
+          value={draft[field]}
+          data-autofocus={field === 'gewicht' ? true : undefined}
+          onChange={(event) => setDraft({ ...draft, [field]: event.target.value })}
+        />
+      </label>
+    )
+  }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -88,20 +108,13 @@ export default function BodyEntryForm({
             onChange={(event) => setDatum(event.target.value)}
           />
         </label>
-        {MEASUREMENT_FIELDS.map((field) => (
-          <label key={field} className={fieldLabelClass}>
-            {FIELD_LABELS[field]}
-            <input
-              className={inputClass}
-              type="number"
-              // Every one of these columns is numeric: without step="any" the
-              // browser rejects 82,5 and aborts the submit before we see it.
-              step="any"
-              value={draft[field]}
-              onChange={(event) => setDraft({ ...draft, [field]: event.target.value })}
-            />
-          </label>
-        ))}
+        {feld('gewicht')}
+        <details open={weitereOffen}>
+          <summary className="min-h-11 cursor-pointer py-2.5 font-medium">Umfänge und Körperfett</summary>
+          <div className="flex flex-col gap-3 pt-2">
+            {MEASUREMENT_FIELDS.filter((field) => field !== 'gewicht').map(feld)}
+          </div>
+        </details>
       </div>
       {error !== '' && <p role="alert">{error}</p>}
       <Pressable variant="primary" type="submit" disabled={saving}>

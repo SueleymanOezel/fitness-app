@@ -206,7 +206,9 @@ function DeleteAccountSection() {
   }
 
   return (
-    <>
+    // Abgesetzt von „Abmelden“: beide Buttons standen direkt untereinander.
+    <section className="flex flex-col gap-3 border-t border-text-muted/15 pt-6">
+      <h2>Konto</h2>
       <Pressable variant="danger" className="self-start" type="button" onClick={() => setDialogOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="delete" tone="mono" size={20} />
@@ -218,7 +220,7 @@ function DeleteAccountSection() {
           <h2>Konto endgültig löschen?</h2>
           <p>
             Alle Trainings-, Ernährungs- und Körperdaten sowie Fortschrittsfotos werden
-            unwiderruflich gelöscht, dein Login verschwindet. Das lässt sich nicht rückgängig
+            unwiderruflich gelöscht, deine Anmeldung verschwindet. Das lässt sich nicht rückgängig
             machen.
           </p>
           <label className={fieldLabelClass}>
@@ -251,7 +253,7 @@ function DeleteAccountSection() {
           </Pressable>
         </div>
       </Dialog>
-    </>
+    </section>
   )
 }
 
@@ -443,7 +445,7 @@ function LoadedProfileForm({
       >
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="logout" tone="mono" size={20} />
-          Logout
+          Abmelden
         </span>
       </Pressable>
 

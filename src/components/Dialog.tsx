@@ -87,6 +87,9 @@ export default function Dialog({
 
     if (open && !dialog.open) {
       dialog.showModal()
+      // showModal() focuses the first focusable element — in a delete dialog that is the
+      // destructive button. Content marks the safe default with data-autofocus instead.
+      content?.querySelector<HTMLElement>('[data-autofocus]')?.focus()
       if (content && !prefersReducedMotion()) {
         animate((gsap) => {
           gsap.fromTo(

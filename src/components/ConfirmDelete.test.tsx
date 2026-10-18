@@ -11,6 +11,14 @@ function renderIt(onConfirm: () => Promise<void>) {
 }
 
 describe('ConfirmDelete', () => {
+  it('focuses "Abbrechen", not the destructive button, when the dialog opens', () => {
+    renderIt(vi.fn().mockResolvedValue(undefined))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+
+    expect(screen.getByRole('button', { name: 'Abbrechen' })).toHaveFocus()
+  })
+
   it('does not delete on the first tap, only asks', () => {
     const onConfirm = vi.fn().mockResolvedValue(undefined)
     renderIt(onConfirm)

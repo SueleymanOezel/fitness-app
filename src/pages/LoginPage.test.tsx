@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 const mockSignIn = vi.fn()
 const mockSignUp = vi.fn()
 const mockSignInWithOAuth = vi.fn()
+const mockResetPassword = vi.fn()
 
 vi.mock('../lib/supabase', () => ({
   supabase: {
@@ -12,6 +13,7 @@ vi.mock('../lib/supabase', () => ({
       signInWithPassword: (args: unknown) => mockSignIn(args),
       signUp: (args: unknown) => mockSignUp(args),
       signInWithOAuth: (args: unknown) => mockSignInWithOAuth(args),
+      resetPasswordForEmail: (email: string, options: unknown) => mockResetPassword(email, options),
     },
   },
 }))
@@ -30,6 +32,39 @@ describe('LoginPage', () => {
     mockSignIn.mockReset()
     mockSignUp.mockReset()
     mockSignInWithOAuth.mockReset()
+    mockResetPassword.mockReset()
+  })
+
+  it('asks for the e-mail before sending a password reset', async () => {
+    await renderLoginPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Passwort vergessen?' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent('E-Mail-Adresse')
+    expect(mockResetPassword).not.toHaveBeenCalled()
+  })
+
+  it('sends the reset link to the reset page and answers without revealing whether the account exists', async () => {
+    mockResetPassword.mockResolvedValue({ data: {}, error: null })
+    await renderLoginPage()
+
+    fireEvent.change(screen.getByLabelText('E-Mail'), { target: { value: ' a@b.com ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Passwort vergessen?' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Wenn es zu dieser E-Mail ein Konto gibt')
+    expect(mockResetPassword).toHaveBeenCalledWith('a@b.com', {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+  })
+
+  it('shows a German message when the reset request fails', async () => {
+    mockResetPassword.mockResolvedValue({ data: null, error: { code: 'over_email_send_rate_limit', status: 429 } })
+    await renderLoginPage()
+
+    fireEvent.change(screen.getByLabelText('E-Mail'), { target: { value: 'a@b.com' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Passwort vergessen?' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Zu viele Versuche')
   })
 
   it('shows a validation error and does not call Supabase when fields are empty', async () => {
@@ -69,7 +104,7 @@ describe('LoginPage', () => {
     mockSignUp.mockResolvedValue({ data: { session: { user: { id: 'u1' } } }, error: null })
     await renderLoginPage()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Noch keinen Account? Registrieren' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Noch kein Konto? Registrieren' }))
     fireEvent.change(screen.getByLabelText('E-Mail'), { target: { value: 'a@b.com' } })
     fireEvent.change(screen.getByLabelText('Passwort'), { target: { value: 'password123' } })
     fireEvent.click(screen.getByRole('button', { name: 'Registrieren' }))
@@ -83,7 +118,7 @@ describe('LoginPage', () => {
     mockSignUp.mockResolvedValue({ data: { session: null }, error: null })
     await renderLoginPage()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Noch keinen Account? Registrieren' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Noch kein Konto? Registrieren' }))
     fireEvent.change(screen.getByLabelText('E-Mail'), { target: { value: 'a@b.com' } })
     fireEvent.change(screen.getByLabelText('Passwort'), { target: { value: 'password123' } })
     fireEvent.click(screen.getByRole('button', { name: 'Registrieren' }))
@@ -111,7 +146,7 @@ describe('LoginPage', () => {
 
   it('shows the Google button in signup mode too, since sign-in and sign-up are the same OAuth action', async () => {
     await renderLoginPage()
-    fireEvent.click(screen.getByRole('button', { name: 'Noch keinen Account? Registrieren' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Noch kein Konto? Registrieren' }))
 
     expect(screen.getByRole('button', { name: 'Mit Google anmelden' })).toBeInTheDocument()
   })

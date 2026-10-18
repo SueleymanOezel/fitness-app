@@ -61,7 +61,7 @@ describe('App routing', () => {
     const { default: App } = await import('./App')
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: 'Login' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Einloggen' })).toBeInTheDocument()
   })
 
   it('redirects to /login when visiting / without a session', async () => {
@@ -71,7 +71,7 @@ describe('App routing', () => {
     const { default: App } = await import('./App')
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: 'Login' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Einloggen' })).toBeInTheDocument()
   })
 
   it('shows the home dashboard with a link to the profile at / with an active session', async () => {
@@ -84,7 +84,7 @@ describe('App routing', () => {
     expect(screen.getByRole('heading', { name: 'Home' })).toBeInTheDocument()
     // Logout moved onto the profile page, so the header is not where it lives now.
     expect(screen.getByRole('link', { name: 'Profil' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Logout' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Abmelden' })).not.toBeInTheDocument()
   })
 
   it('shows the entries page at /nutrition/entries with an active session', async () => {
