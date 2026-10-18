@@ -33,6 +33,37 @@ describe('TrainingPlansPage', () => {
     expect(screen.getByText(/aktiv/i)).toBeInTheDocument()
   })
 
+  it('lists all plans in one divided card', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseWorkoutPlans.mockReturnValue(
+      plansResult({
+        plans: [
+          { id: 'p1', name: 'Ganzkörper', aktiv: true },
+          { id: 'p2', name: 'Oberkörper', aktiv: false },
+        ],
+      }),
+    )
+
+    const { default: TrainingPlansPage } = await import('./TrainingPlansPage')
+    renderWithProviders(<TrainingPlansPage />)
+
+    const liste = screen.getByRole('link', { name: /Ganzkörper/ }).closest('ul')
+    expect(liste).toHaveClass('divide-y')
+    expect(liste?.closest('div')).toHaveClass('bg-surface', 'rounded-3xl')
+    expect(screen.getByRole('link', { name: /Oberkörper/ }).closest('li')).not.toHaveClass('bg-surface')
+  })
+
+  it('offers an empty state when there is no plan yet', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseWorkoutPlans.mockReturnValue(plansResult({ plans: [] }))
+
+    const { default: TrainingPlansPage } = await import('./TrainingPlansPage')
+    renderWithProviders(<TrainingPlansPage />)
+
+    expect(screen.getByRole('heading', { name: 'Noch kein Plan.' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Neuer Plan/ })).toHaveAttribute('href', '/training/plans/new')
+  })
+
   it('links to the plan-creation wizard instead of an inline form', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseWorkoutPlans.mockReturnValue(plansResult())

@@ -60,7 +60,7 @@ describe('FoodEntryList', () => {
     expect(screen.queryByLabelText('Menge (g) für Testprodukt')).not.toBeInTheDocument()
   })
 
-  it('wraps each entry in the card-in-list markup', () => {
+  it('shows the entries as divided rows of one card, not one card per entry', () => {
     renderWithProviders(
       <FoodEntryList
         entries={entries}
@@ -71,11 +71,10 @@ describe('FoodEntryList', () => {
       />,
     )
 
-    // cardClass belongs on the nested div; the li stays a plain list item.
-    const li = screen.getByText('Testprodukt').closest('li')
-    expect(li).not.toHaveClass('bg-surface')
-    const card = screen.getByText('Testprodukt').closest('div')
-    expect(card).toHaveClass('bg-surface', 'rounded-3xl')
+    const liste = screen.getByText('Testprodukt').closest('ul')
+    expect(liste).toHaveClass('divide-y')
+    expect(liste?.closest('div')).toHaveClass('bg-surface', 'rounded-3xl')
+    expect(screen.getByText('Testprodukt').closest('li')).not.toHaveClass('bg-surface')
   })
 
   it('opens the edit form on request and closes it again', () => {

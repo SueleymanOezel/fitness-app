@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import FoodEntryEditForm from './FoodEntryEditForm'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, listClass } from '../lib/ui-classes'
 import Dialog from './Dialog'
 import { VitaIcon } from './icons/VitaIcon'
 import { useToast } from './ToastProvider'
@@ -22,18 +22,20 @@ export default function FoodEntryList({ entries, userId, sections, onUpdateEntry
   }
 
   return (
-    <ul role="list" className="flex flex-col gap-3">
-      {entries.map((entry) => (
-        <FoodEntryRow
-          key={entry.id}
-          entry={entry}
-          userId={userId}
-          sections={sections}
-          onUpdateEntry={onUpdateEntry}
-          onDelete={onDelete}
-        />
-      ))}
-    </ul>
+    <div className={cardClass}>
+      <ul role="list" className={listClass}>
+        {entries.map((entry) => (
+          <FoodEntryRow
+            key={entry.id}
+            entry={entry}
+            userId={userId}
+            sections={sections}
+            onUpdateEntry={onUpdateEntry}
+            onDelete={onDelete}
+          />
+        ))}
+      </ul>
+    </div>
   )
 }
 
@@ -51,7 +53,7 @@ function FoodEntryRow({
 
   return (
     <li>
-      <div className={`${cardClass} flex flex-col`}>
+      <div className="flex flex-col gap-2 py-3">
         <span className="font-semibold">{label}</span>
         {/* One template string per span: `{value} g` renders two text nodes and
             getByText(/150 g/) would not match across them. */}
