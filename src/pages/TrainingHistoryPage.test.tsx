@@ -49,6 +49,19 @@ describe('TrainingHistoryPage', () => {
     expect(link).toHaveTextContent('nicht beendet')
   })
 
+  it('puts all sessions into one divided card instead of one card per row', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseWorkoutHistory.mockReturnValue({ sessions: [finished, { ...finished, id: 's2' }], loading: false })
+
+    const { default: TrainingHistoryPage } = await import('./TrainingHistoryPage')
+    renderWithProviders(<TrainingHistoryPage />)
+
+    const liste = screen.getAllByRole('link', { name: /Ganzkörper.*Tag A/ })[0].closest('ul')
+    expect(liste).toHaveClass('divide-y')
+    expect(liste?.closest('div')).toHaveClass('bg-surface', 'rounded-3xl')
+    liste?.querySelectorAll('li').forEach((li) => expect(li).not.toHaveClass('bg-surface'))
+  })
+
   it('says so when there is no history yet', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseWorkoutHistory.mockReturnValue({ sessions: [], loading: false })

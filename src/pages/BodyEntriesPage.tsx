@@ -7,11 +7,13 @@ import {
   type BodyMetricRow,
 } from '../lib/body-metrics'
 import BodyEntryForm from '../components/BodyEntryForm'
-import { cardClass, linkClass } from '../lib/ui-classes'
+import { cardClass, linkClass, listClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { useToast } from '../components/ToastProvider'
 import Pressable, { PressableLink } from '../components/Pressable'
+import EmptyState from '../components/EmptyState'
+import PageSkeleton from '../components/PageSkeleton'
 
 function formatDate(iso: string) {
   const [year, month, day] = iso.split('-')
@@ -29,14 +31,7 @@ export default function BodyEntriesPage() {
   const { session } = useSession()
   const userId = session?.user.id
 
-  if (!userId) {
-    return (
-      <div>
-        <h1>Verlauf</h1>
-        <p>Lädt…</p>
-      </div>
-    )
-  }
+  if (!userId) return <PageSkeleton titel="Verlauf" variante="liste" />
 
   return <Entries userId={userId} />
 }
@@ -46,14 +41,7 @@ function Entries({ userId }: { userId: string }) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const showToast = useToast()
 
-  if (loading) {
-    return (
-      <div>
-        <h1>Verlauf</h1>
-        <p>Lädt…</p>
-      </div>
-    )
-  }
+  if (loading) return <PageSkeleton titel="Verlauf" variante="liste" />
 
   async function remove(id: string) {
     try {
@@ -79,36 +67,44 @@ function Entries({ userId }: { userId: string }) {
     <div>
       <h1>Verlauf</h1>
       {error && <p role="alert">Werte konnten nicht geladen werden.</p>}
-      {rows.length === 0 && <p>Noch keine Einträge.</p>}
+      {rows.length === 0 && !error && (
+        <EmptyState
+          titel="Noch keine Einträge."
+          text="Trag deine ersten Werte ein, dann siehst du hier den Verlauf."
+          action={
+            <PressableLink variant="primary" to="/body">
+              Zum Körperbereich
+            </PressableLink>
+          }
+        />
+      )}
 
-      <ul role="list" className="flex flex-col gap-3">
-        {rows.map((entry) => (
-          <li key={entry.id}>
-            <div className={`${cardClass} flex flex-col`}>
-              <span className="font-semibold">{formatDate(entry.datum)}</span>
-              <span className="text-sm text-text-muted">{summarize(entry)}</span>
-              <div className="flex flex-wrap gap-2">
-                <Pressable
-                  variant="secondary"
-                  type="button"
-                  onClick={() => setEditingId(entry.id)}
-                >
-                  <span className="inline-flex items-center justify-center gap-2">
-                    <VitaIcon name="edit" tone="mono" size={20} />
-                    Bearbeiten
-                  </span>
-                </Pressable>
-                <Pressable variant="danger" type="button" onClick={() => remove(entry.id)}>
-                  <span className="inline-flex items-center justify-center gap-2">
-                    <VitaIcon name="delete" tone="mono" size={20} />
-                    Löschen
-                  </span>
-                </Pressable>
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {rows.length > 0 && (
+        <div className={cardClass}>
+          <ul role="list" className={listClass}>
+            {rows.map((entry) => (
+              <li key={entry.id} className="flex flex-col gap-2 py-3">
+                <span className="font-semibold">{formatDate(entry.datum)}</span>
+                <span className="text-sm text-text-muted">{summarize(entry)}</span>
+                <div className="flex flex-wrap gap-2">
+                  <Pressable variant="secondary" type="button" onClick={() => setEditingId(entry.id)}>
+                    <span className="inline-flex items-center justify-center gap-2">
+                      <VitaIcon name="edit" tone="mono" size={20} />
+                      Bearbeiten
+                    </span>
+                  </Pressable>
+                  <Pressable variant="danger" type="button" onClick={() => remove(entry.id)}>
+                    <span className="inline-flex items-center justify-center gap-2">
+                      <VitaIcon name="delete" tone="mono" size={20} />
+                      Löschen
+                    </span>
+                  </Pressable>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
           rendering the form only while open forces a fresh prefill from the

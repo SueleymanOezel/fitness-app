@@ -44,3 +44,32 @@ export function streakText(streak: number): string {
   if (streak === 1) return 'Erster Trainingstag.'
   return `${streak} Tage in Folge`
 }
+
+/** Sortierte, eindeutige lokale Kalendertage mit mindestens einer beendeten Session. */
+export function trainingstage(sessions: { beendet_am: string | null }[]): string[] {
+  const tage = new Set<string>()
+  for (const session of sessions) {
+    if (session.beendet_am != null) tage.add(localDay(session.beendet_am))
+  }
+  return [...tage].sort()
+}
+
+export type WochenTag = { label: string; datum: string; trainiert: boolean; heute: boolean }
+
+const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] as const
+
+/**
+ * Montag bis Sonntag der Woche von `heute`. Datumsarithmetik über lokale
+ * Kalenderfelder (wie vorherigerTag), nicht über Millisekunden, damit ein
+ * Sommerzeitwechsel keinen Tag verschiebt.
+ */
+export function wochenStreifen(tage: string[], heute: string): WochenTag[] {
+  const [jahr, monat, tag] = heute.split('-').map(Number)
+  const seitMontag = (new Date(jahr, monat - 1, tag).getDay() + 6) % 7
+  const trainiert = new Set(tage)
+  return WOCHENTAGE.map((label, index) => {
+    const datum = new Date(jahr, monat - 1, tag - seitMontag + index)
+    const iso = `${datum.getFullYear()}-${pad(datum.getMonth() + 1)}-${pad(datum.getDate())}`
+    return { label, datum: iso, trainiert: trainiert.has(iso), heute: iso === heute }
+  })
+}

@@ -1,18 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { seitenweiseLaden } from '../lib/paged-query'
-import { aktuellerStreak } from '../lib/streak'
+import { aktuellerStreak, trainingstage } from '../lib/streak'
 import { localDay } from '../lib/local-time'
 
 /**
  * Aktueller Trainings-Streak, ungebunden an einen Zeitraum — ein Streak kann
  * aelter sein als jedes Dashboard-Fenster (90 Tage), siehe aktuellerStreak in
- * src/lib/streak.ts. Verwendet an zwei Stellen: der Home-Statuskarte und dem
- * Abschluss-Screen (WorkoutSessionPage.tsx) — beide rufen diesen Hook auf,
- * damit sie nie unterschiedliche Werte zeigen koennen.
+ * src/lib/streak.ts. Verwendet an drei Stellen: der Home-Statuskarte, dem
+ * Abschluss-Screen (WorkoutSessionPage.tsx) und dem Wochenstreifen
+ * (TrainingPage) — alle rufen diesen Hook auf, damit sie nie
+ * unterschiedliche Werte zeigen koennen.
  */
 export function useTrainingStreak(userId: string) {
   const [streak, setStreak] = useState(0)
+  const [tage, setTage] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const requestId = useRef(0)
 
@@ -29,6 +31,7 @@ export function useTrainingStreak(userId: string) {
     )
     if (current !== requestId.current) return
     setStreak(ergebnis.failed ? 0 : aktuellerStreak(ergebnis.rows, localDay(new Date().toISOString())))
+    setTage(ergebnis.failed ? [] : trainingstage(ergebnis.rows))
     setLoading(false)
   }, [userId])
 
@@ -40,5 +43,5 @@ export function useTrainingStreak(userId: string) {
     }
   }, [reload])
 
-  return { streak, loading }
+  return { streak, tage, loading }
 }

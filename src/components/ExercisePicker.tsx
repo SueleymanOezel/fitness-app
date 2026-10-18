@@ -83,7 +83,7 @@ export default function ExercisePicker({
       />
       {filtered.length === 0 && <p>Keine Übungen gefunden.</p>}
       {groups.map((group) => (
-        <div key={group.gruppe || 'gefiltert'} className="space-y-1">
+        <div key={group.gruppe || 'gefiltert'} className="flex flex-col gap-1">
           {group.gruppe !== '' && <h3>{group.gruppe}</h3>}
           <ul role="list" className={listClass}>
             {group.exercises.map((exercise, index) => {

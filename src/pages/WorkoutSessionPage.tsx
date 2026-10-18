@@ -415,7 +415,7 @@ function LoggedSets({ sets }: { sets: SessionSet[] }) {
   const aufwaermsaetze = sets.filter((set) => set.ist_aufwaermsatz)
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-2">
       {aufwaermsaetze.length > 0 && (
         <p className="text-sm text-text-muted">
           {aufwaermsaetze.length} {aufwaermsaetze.length === 1 ? 'Aufwärmsatz' : 'Aufwärmsätze'}

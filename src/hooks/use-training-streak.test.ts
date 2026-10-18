@@ -58,6 +58,7 @@ describe('useTrainingStreak', () => {
     const { result } = renderHook(() => useTrainingStreak('u1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.streak).toBe(2)
+    expect(result.current.tage).toHaveLength(2)
   })
 
   it('scopes the query to the given user and only finished sessions', async () => {
@@ -80,5 +81,6 @@ describe('useTrainingStreak', () => {
     const { result } = renderHook(() => useTrainingStreak('u1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.streak).toBe(0)
+    expect(result.current.tage).toEqual([])
   })
 })

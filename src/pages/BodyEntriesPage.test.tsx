@@ -63,17 +63,16 @@ describe('BodyEntriesPage', () => {
     expect(screen.getByText('17.08.2026')).toBeInTheDocument()
   })
 
-  it('wraps each entry in the card-in-list markup', () => {
+  it('shows all entries in one divided card instead of one card per entry', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseBodyMetrics.mockReturnValue(metricsResult())
 
     renderPage()
 
-    // The li stays a plain list item; cardClass belongs on the nested div only.
-    const li = screen.getByText('24.08.2026').closest('li')
-    expect(li).not.toHaveClass('bg-surface')
-    const card = screen.getByText('24.08.2026').closest('div')
-    expect(card).toHaveClass('bg-surface', 'rounded-3xl')
+    const liste = screen.getByText('24.08.2026').closest('ul')
+    expect(liste).toHaveClass('divide-y')
+    expect(liste?.closest('div')).toHaveClass('bg-surface', 'rounded-3xl')
+    expect(screen.getByText('24.08.2026').closest('li')).not.toHaveClass('bg-surface')
   })
 
   it('says so instead of showing an empty list when nothing was recorded', () => {
@@ -83,6 +82,16 @@ describe('BodyEntriesPage', () => {
     renderPage()
 
     expect(screen.getByText('Noch keine Einträge.')).toBeInTheDocument()
+  })
+
+  it('reports a load error without claiming there are no entries', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult({ error: true, rows: [] }))
+
+    renderPage()
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Werte konnten nicht geladen werden.')
+    expect(screen.queryByText('Noch keine Einträge.')).not.toBeInTheDocument()
   })
 
   it('opens the form prefilled when correcting an entry', () => {

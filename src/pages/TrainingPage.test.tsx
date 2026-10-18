@@ -21,9 +21,19 @@ vi.mock('react-router-dom', async () => {
   return { ...actual, useNavigate: () => mockNavigate }
 })
 
+const mockUseTrainingStreak = vi.fn()
+vi.mock('../hooks/use-training-streak', () => ({
+  useTrainingStreak: (userId: string) => mockUseTrainingStreak(userId),
+}))
+
 afterEach(() => {
   cleanup()
   vi.clearAllMocks() // mockNavigate is shared; a call from an earlier test would leak into the next
+  vi.useRealTimers()
+})
+
+beforeEach(() => {
+  mockUseTrainingStreak.mockReturnValue({ streak: 0, tage: [], loading: false })
 })
 
 const activeDay = {
@@ -51,7 +61,7 @@ describe('TrainingPage', () => {
 
     zeigeDashboard()
 
-    expect(screen.getByText('Ganzkörper')).toBeInTheDocument()
+    expect(screen.getByText('Heute · Ganzkörper')).toBeInTheDocument()
     expect(screen.getByText('Tag A')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Meine Pläne' })).toHaveAttribute('href', '/training/plans')
   })
@@ -163,6 +173,75 @@ describe('TrainingPage', () => {
     zeigeDashboard()
 
     expect(screen.queryByRole('link', { name: /Zeit für einen neuen/i })).not.toBeInTheDocument()
+  })
+
+  it('shows a skeleton with the heading while the plan loads', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseActiveTrainingDay.mockReturnValue({ plan: null, day: null, loading: true })
+
+    zeigeDashboard()
+
+    expect(screen.getByRole('heading', { name: 'Training' })).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Lädt…')
+  })
+
+  it('keeps the hero and announces loading while the streak loads', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseActiveTrainingDay.mockReturnValue(activeDay)
+    mockUseTrainingStreak.mockReturnValue({ streak: 0, tage: [], loading: true })
+
+    zeigeDashboard()
+
+    expect(screen.getByRole('status')).toHaveTextContent('Lädt…')
+    expect(screen.getByRole('button', { name: /Training starten/ })).toBeInTheDocument()
+  })
+
+  it('shows the week strip with todays training day marked', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 14, 12, 0)) // Mittwoch
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseActiveTrainingDay.mockReturnValue(activeDay)
+    mockUseTrainingStreak.mockReturnValue({ streak: 1, tage: ['2026-10-12', '2026-10-14'], loading: false })
+
+    zeigeDashboard()
+
+    const liste = screen.getByRole('list', { name: 'Trainingstage diese Woche' })
+    const eintraege = Array.from(liste.querySelectorAll('li'))
+    expect(eintraege.map((li) => li.getAttribute('data-status'))).toEqual([
+      'trainiert', 'offen', 'trainiert', 'offen', 'offen', 'offen', 'offen',
+    ])
+    expect(eintraege[2]).toHaveTextContent('heute')
+  })
+
+  it('groups the area links in one list card', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseActiveTrainingDay.mockReturnValue(activeDay)
+
+    zeigeDashboard()
+
+    const link = screen.getByRole('link', { name: 'Trainingshistorie' })
+    expect(link).toHaveAttribute('href', '/training/history')
+    expect(link.closest('ul')).toHaveClass('divide-y')
+    expect(screen.getByRole('link', { name: 'Übungen' })).toHaveAttribute('href', '/training/exercises')
+  })
+
+  it('offers a way out for a plan without days', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseActiveTrainingDay.mockReturnValue({ plan: activeDay.plan, day: null, loading: false })
+
+    zeigeDashboard()
+
+    expect(screen.getByRole('link', { name: 'Plan bearbeiten' })).toHaveAttribute('href', '/training/plans/p1')
+  })
+
+  it('renders cleanly for a brand-new account (no plan, no sessions)', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseActiveTrainingDay.mockReturnValue({ plan: null, day: null, loading: false })
+
+    const { container } = zeigeDashboard()
+
+    expect(container.textContent).not.toMatch(/undefined|NaN/)
+    expect(screen.getByRole('heading', { name: 'Kein aktiver Plan.' })).toBeInTheDocument()
   })
 })
 

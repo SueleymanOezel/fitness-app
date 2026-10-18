@@ -42,5 +42,7 @@ export function PressableLink({ variant = 'bare', className, ref, ...props }: Pr
   const inner = useRef<HTMLAnchorElement>(null)
   useImperativeHandle(ref, () => inner.current as HTMLAnchorElement)
   usePressFeedback(inner)
-  return <Link ref={inner} className={join(variant, className ?? '')} {...props} />
+  // An <a> is inline, so the buttons' w-full would be ignored; bare links stay text links.
+  const layout = variant === 'bare' ? '' : 'block text-center'
+  return <Link ref={inner} className={join(variant, [layout, className].filter(Boolean).join(' '))} {...props} />
 }

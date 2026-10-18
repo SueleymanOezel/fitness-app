@@ -2,6 +2,7 @@ import { entryKalorien, entryMakro, sumMakro, type KalorienEintrag, type MakroEi
 import { localDay } from '../local-time'
 import { visibleSections, type MealSectionNames } from '../meal-sections'
 import { wochenStart, wochenLabel } from './wochen'
+import { CHART_BLUE, CHART_GREEN, CHART_MINT } from './chart-colors'
 
 export type TagesPunkt = { tag: string; kalorien: number }
 
@@ -32,13 +33,20 @@ const KCAL_JE_GRAMM = { eiweiss: 4, fett: 9, kohlenhydrate: 4 } as const
 /** Exportiert, damit E2s Farbzuordnung dieselben Labels verwendet statt sie zu kopieren. */
 export const MAKRO_LABEL = { eiweiss: 'Eiweiß', fett: 'Fett', kohlenhydrate: 'Kohlenhydrate' } as const
 
+/** Farben nach Makro-Namen: Eiweiß bleibt Mint, unabhängig von der Reihenfolge in den Daten (E2 und Makro-Kacheln). */
+export const MAKRO_FARBEN: Record<string, string> = {
+  [MAKRO_LABEL.eiweiss]: CHART_MINT,
+  [MAKRO_LABEL.kohlenhydrate]: CHART_BLUE,
+  [MAKRO_LABEL.fett]: CHART_GREEN,
+}
+
 /**
  * E2: heutige Makro-Anteile an der Energie, nicht am Gramm-Gewicht.
  *
  * Fett traegt je Gramm mehr als doppelt so viel Energie wie Eiweiss oder
  * Kohlenhydrate (9 vs. 4 kcal/g) — ein Anteil nach Gramm wuerde einen fetten
  * Tag als ausgewogen ausweisen. Die Gramm-Zahl bleibt als Beschriftung stehen,
- * damit sie gegen DailySummary pruefbar ist.
+ * damit sie gegen die Kalorien-/Makro-Anzeige auf /nutrition pruefbar ist.
  */
 export function makroAnteileHeute(entries: MakroTagEintrag[], heute: string): MakroAnteil[] {
   const heutige = entries.filter((entry) => localDay(entry.zeitpunkt) === heute)

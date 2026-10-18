@@ -66,17 +66,59 @@ describe('BodyPage', () => {
     expect(screen.getByText(/24\.08\./)).toBeInTheDocument()
   })
 
-  it('wraps each measurement in the card-in-list markup', () => {
+  it('lists the remaining measurements in one divided card instead of seven cards', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseBodyMetrics.mockReturnValue(metricsResult())
 
     zeigeDashboard()
 
-    // The li stays a plain list item; cardClass belongs on the nested div only.
-    const li = screen.getByText('82,5 kg').closest('li')
-    expect(li).not.toHaveClass('bg-surface')
-    const card = li?.firstElementChild
-    expect(card).toHaveClass('bg-surface', 'rounded-3xl')
+    const liste = screen.getByTestId('wert-bauchumfang').closest('ul')
+    expect(liste).toHaveClass('divide-y')
+    expect(liste?.closest('div')).toHaveClass('bg-surface', 'rounded-3xl')
+    expect(screen.getByTestId('wert-bauchumfang')).toHaveTextContent('90 cm')
+  })
+
+  it('shows a skeleton while the values load', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult({ loading: true, rows: [] }))
+
+    zeigeDashboard()
+
+    expect(screen.getByRole('status')).toHaveTextContent('Lädt…')
+  })
+
+  it('renders cleanly for a brand-new account without any measurement', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult({ rows: [] }))
+
+    const { container } = zeigeDashboard()
+
+    expect(container.textContent).not.toMatch(/undefined|NaN/)
+    expect(screen.getByTestId('wert-gewicht')).toHaveTextContent('—')
+    expect(screen.getByText('Noch kein Gewicht eingetragen.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Heute eintragen' })).toBeInTheDocument()
+  })
+
+  it('reports a load error without claiming no weight was recorded', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult({ error: true, rows: [] }))
+
+    zeigeDashboard()
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Werte konnten nicht geladen werden.')
+    expect(screen.queryByText('Noch kein Gewicht eingetragen.')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Heute eintragen' })).toBeInTheDocument()
+  })
+
+  it('groups verlauf, fotos and analyse in one list card', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult())
+
+    zeigeDashboard()
+
+    expect(screen.getByRole('link', { name: 'Verlauf' })).toHaveAttribute('href', '/body/entries')
+    expect(screen.getByRole('link', { name: 'Fortschrittsfotos' })).toHaveAttribute('href', '/body/photos')
+    expect(screen.getByRole('link', { name: 'Analyse' }).closest('ul')).toHaveClass('divide-y')
   })
 
   it('shows the change against the previous entry that carried the value', () => {
@@ -128,7 +170,7 @@ describe('BodyPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Heute eintragen' }))
 
     expect(screen.getByLabelText('Datum')).toHaveValue('2026-08-24')
-    expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(82.5)
+    expect(screen.getByRole('spinbutton', { name: 'Gewicht (kg)' })).toHaveValue(82.5)
     expect(screen.getByLabelText('Bauchumfang (cm)')).toHaveValue(88)
   })
 
@@ -146,24 +188,23 @@ describe('BodyPage', () => {
 
     zeigeDashboard()
     fireEvent.click(screen.getByRole('button', { name: 'Heute eintragen' }))
-    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '77' } })
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Gewicht (kg)' }), { target: { value: '77' } })
     fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }))
 
-    expect(screen.queryByLabelText('Gewicht (kg)')).not.toBeInTheDocument()
+    expect(screen.queryByRole('spinbutton', { name: 'Gewicht (kg)' })).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Heute eintragen' }))
-    expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(82.5)
+    expect(screen.getByRole('spinbutton', { name: 'Gewicht (kg)' })).toHaveValue(82.5)
   })
 
-  it('keeps the primary action stuck above the bottom nav instead of sitting in normal page flow', () => {
+  it('puts the primary action in the weight hero', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseBodyMetrics.mockReturnValue(metricsResult())
 
     zeigeDashboard()
 
-    const button = screen.getByRole('button', { name: 'Heute eintragen' })
-    expect(button).toHaveClass('sticky')
-    expect(button.className).toContain('bottom-[var(--nav-clearance)]')
+    const hero = screen.getByRole('region', { name: 'Gewicht (kg)' })
+    expect(hero).toContainElement(screen.getByRole('button', { name: 'Heute eintragen' }))
   })
 
   it('renders the figure large with tabular digits and the label as a quieter, separate weight', () => {
@@ -193,7 +234,7 @@ describe('BodyPage', () => {
 
     zeigeDashboard()
     fireEvent.click(screen.getByRole('button', { name: 'Heute eintragen' }))
-    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '80' } })
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Gewicht (kg)' }), { target: { value: '80' } })
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
     const notice = await screen.findByRole('alert')

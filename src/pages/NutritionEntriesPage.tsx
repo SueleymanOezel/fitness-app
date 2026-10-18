@@ -10,19 +10,13 @@ import Dialog from '../components/Dialog'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable, { PressableLink } from '../components/Pressable'
 import { linkClass } from '../lib/ui-classes'
+import PageSkeleton from '../components/PageSkeleton'
 
 export default function NutritionEntriesPage() {
   const { session } = useSession()
   const userId = session?.user.id
 
-  if (!userId) {
-    return (
-      <div>
-        <h1>Einträge heute</h1>
-        <p>Lädt…</p>
-      </div>
-    )
-  }
+  if (!userId) return <PageSkeleton titel="Einträge heute" variante="liste" />
 
   return <EntriesBySection userId={userId} />
 }
@@ -31,14 +25,7 @@ function EntriesBySection({ userId }: { userId: string }) {
   const { profile, loading: profileLoading, error: profileError, reload } = useProfile(userId)
   const { entries, loading, addEntry, updateEntry, deleteEntry } = useFoodEntries(userId)
 
-  if (loading || profileLoading) {
-    return (
-      <div>
-        <h1>Einträge heute</h1>
-        <p>Lädt…</p>
-      </div>
-    )
-  }
+  if (loading || profileLoading) return <PageSkeleton titel="Einträge heute" variante="liste" />
 
   if (profileError || !profile) {
     return (
