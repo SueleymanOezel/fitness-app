@@ -7,9 +7,10 @@ import { localDay } from '../lib/local-time'
 /**
  * Aktueller Trainings-Streak, ungebunden an einen Zeitraum — ein Streak kann
  * aelter sein als jedes Dashboard-Fenster (90 Tage), siehe aktuellerStreak in
- * src/lib/streak.ts. Verwendet an zwei Stellen: der Home-Statuskarte und dem
- * Abschluss-Screen (WorkoutSessionPage.tsx) — beide rufen diesen Hook auf,
- * damit sie nie unterschiedliche Werte zeigen koennen. Verwendet zusätzlich vom Wochenstreifen (TrainingPage).
+ * src/lib/streak.ts. Verwendet an drei Stellen: der Home-Statuskarte, dem
+ * Abschluss-Screen (WorkoutSessionPage.tsx) und dem Wochenstreifen
+ * (TrainingPage) — alle rufen diesen Hook auf, damit sie nie
+ * unterschiedliche Werte zeigen koennen.
  */
 export function useTrainingStreak(userId: string) {
   const [streak, setStreak] = useState(0)

@@ -99,6 +99,17 @@ describe('BodyPage', () => {
     expect(screen.getByRole('button', { name: 'Heute eintragen' })).toBeInTheDocument()
   })
 
+  it('reports a load error without claiming no weight was recorded', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult({ error: true, rows: [] }))
+
+    zeigeDashboard()
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Werte konnten nicht geladen werden.')
+    expect(screen.queryByText('Noch kein Gewicht eingetragen.')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Heute eintragen' })).toBeInTheDocument()
+  })
+
   it('groups verlauf, fotos and analyse in one list card', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseBodyMetrics.mockReturnValue(metricsResult())

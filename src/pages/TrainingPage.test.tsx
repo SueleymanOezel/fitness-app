@@ -185,6 +185,17 @@ describe('TrainingPage', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Lädt…')
   })
 
+  it('keeps the hero and announces loading while the streak loads', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseActiveTrainingDay.mockReturnValue(activeDay)
+    mockUseTrainingStreak.mockReturnValue({ streak: 0, tage: [], loading: true })
+
+    zeigeDashboard()
+
+    expect(screen.getByRole('status')).toHaveTextContent('Lädt…')
+    expect(screen.getByRole('button', { name: /Training starten/ })).toBeInTheDocument()
+  })
+
   it('shows the week strip with todays training day marked', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 9, 14, 12, 0)) // Mittwoch

@@ -94,6 +94,50 @@ describe('NutritionPage', () => {
     expect(screen.getByRole('link', { name: /Einträge/ })).toBeInTheDocument()
   })
 
+  it('shows macro grams, their share of the energy and a bar with exactly that share', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue(profileResult({ profile }))
+    mockUseFoodEntries.mockReturnValue(
+      entriesResult({
+        entries: [
+          {
+            id: 'e1',
+            menge: 100,
+            zeitpunkt: new Date().toISOString(),
+            product_id: 'p1',
+            mahlzeit: 1,
+            products: {
+              id: 'p1',
+              name: 'Testprodukt',
+              barcode: null,
+              created_by: 'u1',
+              kalorien: 200,
+              eiweiss: 20,
+              fett: 10,
+              kohlenhydrate: 30,
+            },
+          },
+        ],
+      }),
+    )
+
+    zeigeDashboard()
+
+    // 80 / 120 / 90 kcal of 290 kcal -> 28 % / 41 % / 31 %.
+    const erwartet = [
+      ['Eiweiß', '20 g', '28'],
+      ['Kohlenhydrate', '30 g', '41'],
+      ['Fett', '10 g', '31'],
+    ]
+    for (const [label, gramm, prozent] of erwartet) {
+      const kachel = screen.getByText(label).closest('li') as HTMLElement
+      expect(kachel).toHaveTextContent(gramm)
+      expect(kachel).toHaveTextContent(`${prozent} % der kcal`)
+      // Pins the /100 conversion: the bar fills exactly the energy share.
+      expect((kachel.querySelector('[style*="width"]') as HTMLElement).style.width).toBe(`${prozent}%`)
+    }
+  })
+
   it('offers a retry instead of loading forever when the profile cannot be loaded', () => {
     const reload = vi.fn()
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })

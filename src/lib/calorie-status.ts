@@ -14,7 +14,7 @@ export type KalorienStatus = {
  */
 export function kalorienStatus(verbrauchtExakt: number, ziel: number | null): KalorienStatus {
   const gegessen = Math.round(verbrauchtExakt)
-  if (ziel == null || ziel <= 0) {
+  if (ziel == null || !(ziel > 0)) {
     return {
       gegessen,
       titel: `${gegessen} kcal gegessen`,
@@ -23,13 +23,14 @@ export function kalorienStatus(verbrauchtExakt: number, ziel: number | null): Ka
       ringLabel: `${gegessen} kcal gegessen, kein Ziel gesetzt`,
     }
   }
-  const uebrig = Math.round(ziel - verbrauchtExakt)
+  const zielGerundet = Math.round(ziel)
+  const uebrig = zielGerundet - gegessen
   const titel = uebrig >= 0 ? `${uebrig} kcal übrig` : `${-uebrig} kcal drüber`
   return {
     gegessen,
     titel,
-    untertitel: `Ziel ${ziel} kcal · ${gegessen} gegessen`,
+    untertitel: `Ziel ${zielGerundet} kcal · ${gegessen} gegessen`,
     anteil: Math.min(1, Math.max(0, verbrauchtExakt / ziel)),
-    ringLabel: `${titel}, Ziel ${ziel} kcal`,
+    ringLabel: `${titel}, Ziel ${zielGerundet} kcal`,
   }
 }

@@ -67,7 +67,7 @@ function Entries({ userId }: { userId: string }) {
     <div>
       <h1>Verlauf</h1>
       {error && <p role="alert">Werte konnten nicht geladen werden.</p>}
-      {rows.length === 0 && (
+      {rows.length === 0 && !error && (
         <EmptyState
           titel="Noch keine Einträge."
           text="Trag deine ersten Werte ein, dann siehst du hier den Verlauf."

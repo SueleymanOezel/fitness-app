@@ -60,6 +60,7 @@ function NutritionDashboard({ userId }: { userId: string }) {
     return {
       label,
       wert: `${anteil?.gramm ?? 0} g`,
+      hinweis: `${anteil?.anteil ?? 0} % der kcal`,
       balken: { anteil: (anteil?.anteil ?? 0) / 100, farbe: MAKRO_FARBEN[label] },
     }
   })

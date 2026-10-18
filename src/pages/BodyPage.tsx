@@ -72,7 +72,7 @@ function Dashboard({ userId }: { userId: string }) {
         titelTestId="wert-gewicht"
         untertitel={
           gewicht == null ? (
-            'Noch kein Gewicht eingetragen.'
+            error ? undefined : 'Noch kein Gewicht eingetragen.'
           ) : (
             <>
               <span className="block">{`Stand ${formatDate(gewicht.datum)}`}</span>

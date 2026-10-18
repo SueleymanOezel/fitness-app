@@ -84,6 +84,16 @@ describe('BodyEntriesPage', () => {
     expect(screen.getByText('Noch keine Einträge.')).toBeInTheDocument()
   })
 
+  it('reports a load error without claiming there are no entries', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseBodyMetrics.mockReturnValue(metricsResult({ error: true, rows: [] }))
+
+    renderPage()
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Werte konnten nicht geladen werden.')
+    expect(screen.queryByText('Noch keine Einträge.')).not.toBeInTheDocument()
+  })
+
   it('opens the form prefilled when correcting an entry', () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseBodyMetrics.mockReturnValue(metricsResult())

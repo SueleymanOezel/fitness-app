@@ -66,7 +66,10 @@ function Dashboard({ userId }: { userId: string }) {
         </p>
       )}
       {streakLoading ? (
-        <Skeleton className="h-14" />
+        <div role="status">
+          <span className="sr-only">Lädt…</span>
+          <Skeleton className="h-14" />
+        </div>
       ) : (
         <WeekStrip tage={wochenStreifen(tage, localDay(new Date().toISOString()))} />
       )}

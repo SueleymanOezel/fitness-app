@@ -9,7 +9,7 @@ Die vier Tab-Startseiten (Home, Training, Ernährung, Körper) fühlen sich nach
 ## Entscheidungen aus dem Brainstorming
 
 1. **Hero-Rolle:** heutiger Status plus genau eine Hauptaktion (nicht nur ein visueller Kopf, kein Mini-Graph im Hero).
-2. **Aufbau je Tab (Variante B):** Mini-Leiste oben (auf Training der Wochenstreifen, sonst Kennzahlen), darunter der Hero, darunter eine Listenkarte mit den Bereichs-Links.
+2. **Aufbau je Tab (Variante B):** Mini-Leiste oben (auf Training der Wochenstreifen, sonst Kennzahlen), darunter der Hero, darunter eine Listenkarte mit den Bereichs-Links. Die Position der Leiste unterscheidet sich je Tab: Training: Wochenstreifen oben vor dem Hero; Home: Kennzahlen oben; Ernährung: Makro-Kacheln unter dem Hero; Körper: kein Streifen (stattdessen Messwert-Liste unter dem Hero).
 3. **Ernährung, Hauptaktion:** „Eintrag hinzufügen“ öffnet einen Dialog auf dem Dashboard, in dem der Mahlzeiten-Abschnitt gewählt wird (nach Tageszeit vorbelegt). Kein Seitenwechsel.
 4. **Aufbau:** geteilte Bausteine plus neue Rezepte in `ui-classes.ts`, die Seiten setzen sie zusammen. Keine pro-Seite-Heroes, kein generisches `DashboardLayout` mit Slots.
 5. **Grenze:** Übungskatalog und Session-Screen bleiben unangetastet (Katalog wird in Block 4 virtualisiert, Session-Logik gehört zu Block 3).
@@ -33,6 +33,8 @@ Regeln aus Block 1 gelten weiter: Aussehen nur über Rezepte, Fläche Seite `bg`
 | `PageSkeleton` | Überschrift plus Hero- und Listenform aus `Skeleton`. Trägt `role="status"` und einen `sr-only`-Text „Lädt…“, damit Zugänglichkeit und die vielen vorhandenen Tests auf „Lädt…“ erhalten bleiben. |
 | `EmptyState` | Titel, ein Satz, eine Aktion (`PressableLink` oder `Pressable`). Ersetzt tote Sätze wie „Kein aktiver Plan.“. |
 
+`DailySummary` ist gelöscht, ersetzt durch Hero und Kalorien-Karte (`PageHero` mit `ProgressRing`).
+
 ## Seiten
 
 ### Training (`TrainingPage`)
@@ -44,13 +46,13 @@ Regeln aus Block 1 gelten weiter: Aussehen nur über Rezepte, Fläche Seite `bg`
 
 ### Ernährung (`NutritionPage`)
 - Hero: `ProgressRing` plus „{n} kcal übrig“ und „von {Ziel}“. Ohne Ziel: „{n} kcal gegessen“ und Link ins Profil. Ersetzt die Formulierung „kcal verbraucht“ in `DailySummary` für Gegessenes.
-- Hauptaktion „Eintrag hinzufügen“ öffnet `Dialog` mit Abschnitts-Chips und `AddEntryFlow`. Vorbelegung über reine Funktion `abschnittFuerUhrzeit(sections, now)` (nächster sichtbarer Abschnitt nach Tageszeit, Fallback erster sichtbarer). Nach dem Speichern lädt `useFoodEntries` neu, der Dialog schließt. Fehler bleiben im Dialog inline (Dialog-Regel aus Phase 6: kein Toast hinter offenem Dialog).
+- Hauptaktion „Eintrag hinzufügen“ öffnet `Dialog` mit Abschnitts-Chips und `AddEntryFlow`. Vorbelegung über reine Funktion `abschnittFuerUhrzeit(sections, now)`: nach Position (vor 10 Uhr 1., bis 15 Uhr 2., bis 21 Uhr 3., danach 4. benannter Abschnitt, begrenzt auf die vorhandene Anzahl). Nach dem Speichern lädt `useFoodEntries` neu, der Dialog schließt. Fehler bleiben im Dialog inline (Dialog-Regel aus Phase 6: kein Toast hinter offenem Dialog).
 - `StatStrip` mit Eiweiß, Kohlenhydrate, Fett (Zahl plus dünner Balken in den Farben aus `chart-colors.ts`).
 - Mahlzeiten-Abschnitte als `LinkListCard` (Name, kcal rechts, `aria-label` unverändert „Name — kcal“). Ist `visibleSections` leer, entfällt die Karte komplett.
 - Links „Ziel im Profil“, „Einträge ansehen“, „Analyse“ als `LinkListCard`.
 
 ### Körper (`BodyPage`)
-- Hero: aktuelles Gewicht groß, Änderung seit dem letzten Eintrag, „Heute eintragen“ (weiter `stickyActionClass` und derselbe Dialog mit Vorbelegung des heutigen Eintrags).
+- Hero: aktuelles Gewicht groß, Änderung seit dem letzten Eintrag, „Heute eintragen“ (ohne Sticky, der Hero steht oben; derselbe Dialog mit Vorbelegung des heutigen Eintrags). Das Formularfeld im Hero-Bereich behält das Label „Gewicht (kg)“, Tests greifen es daher über `getByRole('spinbutton')`.
 - Übrige Werte (fünf Umfänge, Körperfettanteil) als eine Listenkarte (Label, Wert, Änderung) statt sechs Einzelkarten im Raster. Fehlende Werte zeigen „—“ wie bisher.
 - Verlauf, Fotos, Analyse als `LinkListCard`.
 
