@@ -19,6 +19,17 @@ const zeile = (id: string, datum: string, gewicht: number | null) => ({
 })
 
 describe('WeightTrendChart', () => {
+  it('states the latest weight and the change over the range in one sentence', () => {
+    render(
+      <WeightTrendChart
+        rows={[zeile('a', '2026-08-03', 84.5), zeile('b', '2026-08-10', 83.7), zeile('c', '2026-08-17', 82.4)]}
+      />,
+    )
+    expect(screen.getByText('82,4 kg · −2,1 kg seit 03.08.')).toBeInTheDocument()
+    // The same sentence is the chart's text alternative.
+    expect(screen.getByRole('img', { name: '82,4 kg · −2,1 kg seit 03.08.' })).toBeInTheDocument()
+  })
+
   it('draws a point per weighed day on both lines', () => {
     // Tick text cannot carry this assertion in jsdom (see the training
     // frequency chart's test). Two lines are drawn (gewicht, trend), so both

@@ -3,6 +3,21 @@ import { render, screen } from '@testing-library/react'
 import HomeSparklines from './HomeSparklines'
 
 describe('HomeSparklines', () => {
+  it('names each line and shows where it stands', () => {
+    const rows = [
+      { datum: '2026-08-17', gewicht: 83.0 },
+      { datum: '2026-08-18', gewicht: 83.0 },
+    ]
+    const entries = [
+      { zeitpunkt: '2026-08-17T08:00:00Z', menge: 100, products: { kalorien: 200 } },
+      { zeitpunkt: '2026-08-18T08:00:00Z', menge: 100, products: { kalorien: 210 } },
+    ]
+    render(<HomeSparklines rows={rows} entries={entries} />)
+    expect(screen.getByText('Gewicht (Trend)')).toBeInTheDocument()
+    expect(screen.getByText('83 kg')).toBeInTheDocument()
+    expect(screen.getByText('Ø 205 kcal')).toBeInTheDocument()
+  })
+
   it('draws both sparklines with at least two points each', () => {
     const rows = [
       { datum: '2026-08-17', gewicht: 83.0 },

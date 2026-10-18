@@ -13,6 +13,14 @@ afterEach(() => {
 })
 
 describe('ActivityGridChart', () => {
+  it('aligns the grid to weekdays and counts the training days', () => {
+    render(<ActivityGridChart sessions={[{ beendet_am: '2026-08-24T18:00:00Z' }]} zeitraum={30} />)
+    const raster = screen.getByTestId('aktivitaetsraster')
+    // 2026-07-26 is a Sunday: six blank cells (Mo–Sa) put it in the Sunday row.
+    expect(raster.querySelectorAll('li[aria-hidden="true"]')).toHaveLength(6)
+    expect(screen.getByText('1 Trainingstag in 31 Tagen')).toBeInTheDocument()
+  })
+
   it('renders one cell per day in the window, marking training days', () => {
     const sessions = [{ beendet_am: '2026-08-24T18:00:00Z' }]
     render(<ActivityGridChart sessions={sessions} zeitraum={30} />)

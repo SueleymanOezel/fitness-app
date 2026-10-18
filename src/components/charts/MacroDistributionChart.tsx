@@ -16,7 +16,7 @@ import { makroAnteileHeute, MAKRO_FARBEN } from '../../lib/analysis/nutrition-ch
 import type { AnalysisFoodEntry } from '../../hooks/use-nutrition-analysis'
 import { MAKRO_VERTEILUNG_HEUTE_TITEL } from '../../lib/analysis/chart-titles'
 import { localDay } from '../../lib/local-time'
-import { CHART_MINT } from '../../lib/analysis/chart-colors'
+import { CHART_MINT, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = MAKRO_VERTEILUNG_HEUTE_TITEL
@@ -39,9 +39,9 @@ export default function MacroDistributionChart({
     <ChartFrame titel={TITEL} leer={anteile.length < 1} picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={anteile}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="makro" />
-          <YAxis unit="%" />
+          <CartesianGrid {...gitterProps} />
+          <XAxis {...achseProps} dataKey="makro" />
+          <YAxis {...yAchseProps} unit="%" />
           <Tooltip formatter={(wert?: ValueType) => [`${wert}%`, 'Anteil']} />
           {/* isAnimationActive={false}: LabelList only renders once Recharts'
               entrance animation reports itself finished (showLabels: !isAnimating

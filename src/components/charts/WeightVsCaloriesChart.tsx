@@ -13,7 +13,7 @@ import { gewichtGegenKalorien } from '../../lib/analysis/body-charts'
 import type { TagesPunkt } from '../../lib/analysis/nutrition-charts'
 import type { BodyMetricRow } from '../../lib/body-metrics'
 import { GEWICHT_UEBER_KALORIEN_TITEL } from '../../lib/analysis/chart-titles'
-import { CHART_GRID, CHART_MINT } from '../../lib/analysis/chart-colors'
+import { CHART_GRID, CHART_MINT, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = GEWICHT_UEBER_KALORIEN_TITEL
@@ -41,15 +41,15 @@ export default function WeightVsCaloriesChart({
     <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <ScatterChart>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
+          <CartesianGrid {...gitterProps} />
+          <XAxis {...achseProps}
             type="number"
             dataKey="kalorien"
             name="kcal je Tag"
             unit=" kcal"
-            domain={['dataMin - 100', 'dataMax + 100']}
+            domain={['auto', 'auto']}
           />
-          <YAxis type="number" dataKey="aenderung" name="kg je Woche" unit=" kg" />
+          <YAxis {...yAchseProps} type="number" dataKey="aenderung" name="kg je Woche" unit=" kg" />
           {/* extendDomain: sonst verwirft Recharts die Linie, sobald alle Wochen
               auf derselben Seite der Null liegen. */}
           <ReferenceLine y={0} stroke={CHART_GRID} ifOverflow="extendDomain" />

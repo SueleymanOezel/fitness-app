@@ -4,7 +4,7 @@ import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 import type { AnalysisSet } from '../../hooks/use-training-analysis'
 import { volumenJeMuskelgruppe } from '../../lib/analysis/training-charts'
 import { VOLUMEN_JE_MUSKELGRUPPE_TITEL } from '../../lib/analysis/chart-titles'
-import { CHART_PALETTE } from '../../lib/analysis/chart-colors'
+import { CHART_PALETTE, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
 import { muskelgruppeLabel } from '../../lib/muscle-group-labels'
 import ChartFrame from './ChartFrame'
 import { tooltipZahl } from '../../lib/zahl'
@@ -26,9 +26,9 @@ export default function MuscleVolumeChart({
     <ChartFrame titel={TITEL} leer={punkte.length < 1} picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={punkte}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="muskelgruppe" tickFormatter={muskelgruppeLabel} />
-          <YAxis />
+          <CartesianGrid {...gitterProps} />
+          <XAxis {...achseProps} dataKey="muskelgruppe" tickFormatter={muskelgruppeLabel} />
+          <YAxis {...yAchseProps} />
           <Tooltip
             formatter={(wert?: ValueType) => [`${tooltipZahl(wert)} kg`, 'Volumen']}
             labelFormatter={(muskelgruppe) => (typeof muskelgruppe === 'string' ? muskelgruppeLabel(muskelgruppe) : muskelgruppe)}
