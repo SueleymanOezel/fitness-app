@@ -10,6 +10,8 @@ export type SessionInfo = {
   gestartet_am: string
   beendet_am: string | null
   gesamt_kalorien: number | null
+  /** Name of the plan day; null for a deleted day or a session without one. */
+  tag_name: string | null
 }
 
 export type SessionExercise = {
@@ -62,7 +64,7 @@ type RawSessionSet = Omit<SessionSet, 'exercise'> & { exercises: SessionSet['exe
  * between as trained time. Past the window a fresh session is started and the
  * old one stays visible in the history as "nicht beendet".
  */
-const RESUME_WINDOW_HOURS = 6
+export const RESUME_WINDOW_HOURS = 6
 
 export async function startWorkoutSession(userId: string, dayId: string): Promise<string> {
   const resumableFrom = new Date(Date.now() - RESUME_WINDOW_HOURS * 60 * 60 * 1000).toISOString()
@@ -134,7 +136,11 @@ export function useWorkoutSession(sessionId: string) {
     // (and none may write after unmount).
     const current = ++requestId.current
     // maybeSingle: a deleted session is an empty result to report, not an exception.
-    const { data: sessionData } = await supabase.from('workout_sessions').select('*').eq('id', sessionId).maybeSingle()
+    const { data: sessionData } = await supabase
+      .from('workout_sessions')
+      .select('*, workout_plan_days(name)')
+      .eq('id', sessionId)
+      .maybeSingle()
     if (!sessionData) {
       // No session to hang exercises/sets off of — skip both queries rather
       // than surface orphaned rows a stale sessionId might otherwise match.
@@ -162,7 +168,10 @@ export function useWorkoutSession(sessionId: string) {
 
     if (current !== requestId.current) return
 
-    setSession(sessionData as SessionInfo | null)
+    const { workout_plan_days: tag, ...sessionRow } = sessionData as Omit<SessionInfo, 'tag_name'> & {
+      workout_plan_days?: { name: string } | null
+    }
+    setSession({ ...sessionRow, tag_name: tag?.name ?? null })
     setExercises(
       ((exerciseRows ?? []) as unknown as RawSessionExercise[]).map((row) => ({
         id: row.id,
@@ -364,4 +373,79 @@ export function useWorkoutSession(sessionId: string) {
     addExercisesToSession,
     removeExerciseFromSession,
   }
+}
+
+export type LetzteWerte = Map<string, { gewicht: number | null; wiederholungen: number | null }>
+
+/**
+ * The last working set of each exercise from any OTHER session, newest first —
+ * the starting point for the first set of today (prefilled, not saved). A
+ * failed read just leaves the fields empty, like before.
+ */
+export function useLetzteWerte(sessionId: string, exerciseIds: string[]) {
+  const [werte, setWerte] = useState<LetzteWerte>(() => new Map())
+  const schluessel = [...exerciseIds].sort().join(',')
+
+  useEffect(() => {
+    const ids = schluessel === '' ? [] : schluessel.split(',')
+    if (ids.length === 0) return
+    let aktuell = true
+    supabase
+      .from('workout_session_sets')
+      .select('exercise_id, gewicht, wiederholungen, abgeschlossen_am')
+      .in('exercise_id', ids)
+      .eq('ist_aufwaermsatz', false)
+      .neq('workout_session_id', sessionId)
+      .order('abgeschlossen_am', { ascending: false })
+      .limit(200)
+      .then(({ data }) => {
+        if (!aktuell) return
+        const naechste: LetzteWerte = new Map()
+        for (const row of (data ?? []) as { exercise_id: string; gewicht: number | null; wiederholungen: number | null }[]) {
+          if (!naechste.has(row.exercise_id)) {
+            naechste.set(row.exercise_id, { gewicht: row.gewicht, wiederholungen: row.wiederholungen })
+          }
+        }
+        setWerte(naechste)
+      })
+    return () => {
+      aktuell = false
+    }
+  }, [sessionId, schluessel])
+
+  return werte
+}
+
+export type OffeneSession = { id: string; gestartet_am: string; tag_name: string | null }
+
+/**
+ * An unfinished session the user can still resume (same window as
+ * startWorkoutSession), so the dashboards can offer "Fortsetzen" instead of
+ * suggesting the next day while a workout is still running.
+ */
+export function useOffeneSession(userId: string) {
+  const [offen, setOffen] = useState<OffeneSession | null>(null)
+
+  useEffect(() => {
+    let aktuell = true
+    const ab = new Date(Date.now() - RESUME_WINDOW_HOURS * 60 * 60 * 1000).toISOString()
+    supabase
+      .from('workout_sessions')
+      .select('id, gestartet_am, workout_plan_days(name)')
+      .eq('user_id', userId)
+      .is('beendet_am', null)
+      .gte('gestartet_am', ab)
+      .order('gestartet_am', { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (!aktuell) return
+        const row = ((data ?? []) as unknown as { id: string; gestartet_am: string; workout_plan_days: { name: string } | null }[])[0]
+        setOffen(row ? { id: row.id, gestartet_am: row.gestartet_am, tag_name: row.workout_plan_days?.name ?? null } : null)
+      })
+    return () => {
+      aktuell = false
+    }
+  }, [userId])
+
+  return offen
 }
