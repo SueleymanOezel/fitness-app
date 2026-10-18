@@ -12,25 +12,14 @@ import {
 } from 'recharts'
 import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 import type { RenderableText } from 'recharts/types/component/Text'
-import { makroAnteileHeute, MAKRO_LABEL } from '../../lib/analysis/nutrition-charts'
+import { makroAnteileHeute, MAKRO_FARBEN } from '../../lib/analysis/nutrition-charts'
 import type { AnalysisFoodEntry } from '../../hooks/use-nutrition-analysis'
 import { MAKRO_VERTEILUNG_HEUTE_TITEL } from '../../lib/analysis/chart-titles'
 import { localDay } from '../../lib/local-time'
-import { CHART_BLUE, CHART_GREEN, CHART_MINT } from '../../lib/analysis/chart-colors'
+import { CHART_MINT } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = MAKRO_VERTEILUNG_HEUTE_TITEL
-
-// Nach Namen, nicht nach Reihenfolge: makroAnteileHeute liefert die drei
-// Makros in fester Reihenfolge, aber die Zuordnung soll auch dann stimmen,
-// falls sich das je aendert. Ueber MAKRO_LABEL statt eigener Literale
-// verknuepft, damit eine Umbenennung dort einen Typfehler hier auslöst statt
-// still auf einen Fallback zu laufen.
-const MAKRO_FARBEN: Record<string, string> = {
-  [MAKRO_LABEL.eiweiss]: CHART_MINT,
-  [MAKRO_LABEL.kohlenhydrate]: CHART_BLUE,
-  [MAKRO_LABEL.fett]: CHART_GREEN,
-}
 
 export default function MacroDistributionChart({
   entries,

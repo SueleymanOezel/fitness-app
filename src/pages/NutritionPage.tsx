@@ -1,10 +1,19 @@
+import { useState } from 'react'
 import { useSession } from '../hooks/use-session'
 import { useProfile, type Profile } from '../hooks/use-profile'
 import { useFoodEntries } from '../hooks/use-food-entries'
 import { effectiveCalorieGoal } from '../lib/nutrition-goal'
-import { visibleSections } from '../lib/meal-sections'
+import { mealSections, visibleSections } from '../lib/meal-sections'
 import { sumKalorien } from '../lib/entry-calories'
-import DailySummary from '../components/DailySummary'
+import { kalorienStatus } from '../lib/calorie-status'
+import { MAKRO_FARBEN, MAKRO_LABEL, makroAnteileHeute } from '../lib/analysis/nutrition-charts'
+import { localDay } from '../lib/local-time'
+import PageHero from '../components/PageHero'
+import ProgressRing from '../components/ProgressRing'
+import StatStrip from '../components/StatStrip'
+import LinkListCard from '../components/LinkListCard'
+import QuickAddDialog from '../components/QuickAddDialog'
+import PageSkeleton, { ChartSkeleton } from '../components/PageSkeleton'
 import { useChartSelection } from '../components/charts/ChartPicker'
 import NutritionChartList from '../components/charts/NutritionChartList'
 import { chartsFor } from '../lib/analysis/registry'
@@ -12,37 +21,23 @@ import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable, { PressableLink } from '../components/Pressable'
-import { cardClass, linkClass, listClass, listRowClass } from '../lib/ui-classes'
 
 export default function NutritionPage() {
   const { session } = useSession()
   const userId = session?.user.id
 
-  if (!userId) {
-    return (
-      <div>
-        <h1>Ernährung</h1>
-        <p>Lädt…</p>
-      </div>
-    )
-  }
+  if (!userId) return <PageSkeleton titel="Ernährung" />
 
   return <NutritionDashboard userId={userId} />
 }
 
 function NutritionDashboard({ userId }: { userId: string }) {
   const { profile, loading: profileLoading, error: profileError, reload } = useProfile(userId)
-  const { entries, loading: entriesLoading } = useFoodEntries(userId)
+  const { entries, loading: entriesLoading, addEntry } = useFoodEntries(userId)
   const auswahl = useChartSelection(userId)
+  const [addOpen, setAddOpen] = useState(false)
 
-  if (profileLoading || entriesLoading) {
-    return (
-      <div>
-        <h1>Ernährung</h1>
-        <p>Lädt…</p>
-      </div>
-    )
-  }
+  if (profileLoading || entriesLoading) return <PageSkeleton titel="Ernährung" />
 
   if (profileError || !profile) {
     return (
@@ -58,51 +53,65 @@ function NutritionDashboard({ userId }: { userId: string }) {
   }
 
   const goal = effectiveCalorieGoal(profile)
+  const status = kalorienStatus(sumKalorien(entries), goal)
+  const anteile = makroAnteileHeute(entries, localDay(new Date().toISOString()))
+  const makroKacheln = [MAKRO_LABEL.eiweiss, MAKRO_LABEL.kohlenhydrate, MAKRO_LABEL.fett].map((label) => {
+    const anteil = anteile.find((eintrag) => eintrag.makro === label)
+    return {
+      label,
+      wert: `${anteil?.gramm ?? 0} g`,
+      balken: { anteil: (anteil?.anteil ?? 0) / 100, farbe: MAKRO_FARBEN[label] },
+    }
+  })
+  const sections = visibleSections(profile, entries)
 
   return (
     <div>
       <h1>Ernährung</h1>
-      <DailySummary entries={entries} goal={goal} />
+      <PageHero
+        label="Heute"
+        titel={status.titel}
+        untertitel={status.untertitel ?? undefined}
+        aside={<ProgressRing anteil={status.anteil} label={status.ringLabel} />}
+        action={
+          <Pressable variant="primary" type="button" onClick={() => setAddOpen(true)}>
+            <span className="inline-flex items-center justify-center gap-2">
+              <VitaIcon name="add" tone="mono" size={20} />
+              Eintrag hinzufügen
+            </span>
+          </Pressable>
+        }
+      />
+      <QuickAddDialog open={addOpen} onClose={() => setAddOpen(false)} sections={mealSections(profile)} addEntry={addEntry} />
       {goal == null && (
         <p>
           Für ein Tagesziel <PressableLink to="/profile">Profil vervollständigen</PressableLink>.
         </p>
       )}
-      <div className={cardClass}>
-        <ul role="list" className={listClass}>
-          {visibleSections(profile, entries).map((section) => {
-            const sectionEntries = entries.filter((entry) => entry.mahlzeit === section.slot)
-            const kcal = `${Math.round(sumKalorien(sectionEntries))} kcal`
-            return (
-              <li key={section.slot ?? 'unassigned'} className={listRowClass}>
-                {/* aria-label hält den Namen "<Abschnitt> — <kcal>" als eine Einheit, obwohl die kcal optisch rechts stehen. */}
-                <PressableLink
-                  to="/nutrition/entries"
-                  className={`${linkClass} flex-1`}
-                  aria-label={`${section.name} — ${kcal}`}
-                >
-                  <span>{section.name}</span>
-                  <span className="ml-auto tabular-nums">{kcal}</span>
-                </PressableLink>
-              </li>
-            )
+      <StatStrip tiles={makroKacheln} />
+      {sections.length > 0 && (
+        <LinkListCard
+          items={sections.map((section) => {
+            const kcal = `${Math.round(
+              sumKalorien(entries.filter((entry) => entry.mahlzeit === section.slot)),
+            )} kcal`
+            return {
+              to: '/nutrition/entries',
+              label: section.name,
+              wert: kcal,
+              // aria-label hält den Namen "<Abschnitt> — <kcal>" als eine Einheit, obwohl die kcal optisch rechts stehen.
+              ariaLabel: `${section.name} — ${kcal}`,
+            }
           })}
-        </ul>
-      </div>
-      <div className="flex flex-col">
-        <PressableLink to="/profile" className={linkClass}>
-          <VitaIcon name="goal" tone="brand" size={20} />
-          Ziel im Profil anpassen
-        </PressableLink>
-        <PressableLink to="/nutrition/entries" className={linkClass}>
-          <VitaIcon name="entries" tone="brand" size={20} />
-          Einträge ansehen
-        </PressableLink>
-        <PressableLink to="/nutrition/analyse" className={linkClass}>
-          <VitaIcon name="analysis" tone="brand" size={20} />
-          Analyse
-        </PressableLink>
-      </div>
+        />
+      )}
+      <LinkListCard
+        items={[
+          { to: '/profile', label: 'Ziel im Profil anpassen', icon: 'goal' },
+          { to: '/nutrition/entries', label: 'Einträge ansehen', icon: 'entries' },
+          { to: '/nutrition/analyse', label: 'Analyse', icon: 'analysis' },
+        ]}
+      />
       <DashboardNutritionCharts userId={userId} auswahl={auswahl.auswahl} ziel={goal} profile={profile} />
     </div>
   )
@@ -142,7 +151,7 @@ function DashboardNutritionChartsData({
   profile: Profile
 }) {
   const { entries, sessions, loading, error } = useNutritionAnalysis(userId, DASHBOARD_ZEITRAUM)
-  if (loading) return <p>Lädt…</p>
+  if (loading) return <ChartSkeleton />
   if (error) return <p role="alert">Graph konnte nicht geladen werden.</p>
   return (
     <NutritionChartList

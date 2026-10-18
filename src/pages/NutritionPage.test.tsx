@@ -1,7 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import NutritionPage from './NutritionPage'
+
+vi.mock('../components/AddEntryFlow', () => ({
+  default: ({ onAdd }: { onAdd: (id: string, menge: number) => Promise<void> }) => (
+    <button type="button" onClick={() => onAdd('p1', 150)}>
+      Stub hinzufügen
+    </button>
+  ),
+}))
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -81,7 +89,7 @@ describe('NutritionPage', () => {
     zeigeDashboard()
 
     expect(screen.getByRole('heading', { name: 'Ernährung' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Heute' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Heute' })).toBeInTheDocument()
 
     expect(screen.getByRole('link', { name: /Einträge/ })).toBeInTheDocument()
   })
@@ -255,6 +263,68 @@ describe('NutritionPage', () => {
 
     // Capturing needs a section, and the sections live on the entries page.
     expect(screen.queryByRole('button', { name: 'Barcode scannen' })).not.toBeInTheDocument()
+  })
+
+  it('shows the remaining calories and the goal in the hero', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue(profileResult({ profile }))
+    mockUseFoodEntries.mockReturnValue(entriesResult())
+
+    zeigeDashboard()
+
+    expect(screen.getByText('2000 kcal übrig')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: '2000 kcal übrig, Ziel 2000 kcal' })).toBeInTheDocument()
+  })
+
+  it('does not say "verbraucht" for food that was eaten', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue(profileResult({ profile }))
+    mockUseFoodEntries.mockReturnValue(entriesResult())
+
+    zeigeDashboard()
+
+    expect(screen.queryByText(/verbraucht/)).not.toBeInTheDocument()
+  })
+
+  it('shows the three macros with grams', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue(profileResult({ profile }))
+    mockUseFoodEntries.mockReturnValue(entriesResult())
+
+    zeigeDashboard()
+
+    expect(screen.getByText('Eiweiß')).toBeInTheDocument()
+    expect(screen.getByText('Kohlenhydrate')).toBeInTheDocument()
+    expect(screen.getByText('Fett')).toBeInTheDocument()
+    expect(screen.getAllByText('0 g')).toHaveLength(3)
+  })
+
+  it('opens the quick-add dialog from the hero and saves into the chosen section', async () => {
+    const addEntry = vi.fn().mockResolvedValue(undefined)
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue(profileResult({ profile }))
+    mockUseFoodEntries.mockReturnValue(entriesResult({ addEntry }))
+
+    zeigeDashboard()
+    expect(screen.queryByRole('group', { name: 'Mahlzeit' })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Eintrag hinzufügen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Abendessen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Stub hinzufügen' }))
+
+    await waitFor(() => expect(addEntry).toHaveBeenCalledWith('p1', 150, 3))
+  })
+
+  it('renders cleanly for a brand-new account without entries', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    mockUseProfile.mockReturnValue(profileResult({ profile: { ...profile, taegliches_kalorienziel: null, aktuelles_gewicht: null, alter: null, groesse: null, geschlecht: null, aktivitaetslevel: null } }))
+    mockUseFoodEntries.mockReturnValue(entriesResult())
+
+    const { container } = zeigeDashboard()
+
+    expect(container.textContent).not.toMatch(/undefined|NaN/)
+    expect(screen.getByText('0 kcal gegessen')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Profil vervollständigen' })).toHaveAttribute('href', '/profile')
   })
 })
 

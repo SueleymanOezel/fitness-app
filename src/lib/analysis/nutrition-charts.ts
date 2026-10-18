@@ -2,6 +2,7 @@ import { entryKalorien, entryMakro, sumMakro, type KalorienEintrag, type MakroEi
 import { localDay } from '../local-time'
 import { visibleSections, type MealSectionNames } from '../meal-sections'
 import { wochenStart, wochenLabel } from './wochen'
+import { CHART_BLUE, CHART_GREEN, CHART_MINT } from './chart-colors'
 
 export type TagesPunkt = { tag: string; kalorien: number }
 
@@ -31,6 +32,13 @@ export type MakroAnteil = { makro: string; anteil: number; gramm: number }
 const KCAL_JE_GRAMM = { eiweiss: 4, fett: 9, kohlenhydrate: 4 } as const
 /** Exportiert, damit E2s Farbzuordnung dieselben Labels verwendet statt sie zu kopieren. */
 export const MAKRO_LABEL = { eiweiss: 'Eiweiß', fett: 'Fett', kohlenhydrate: 'Kohlenhydrate' } as const
+
+/** Farben nach Makro-Namen: Eiweiß bleibt Mint, unabhängig von der Reihenfolge in den Daten (E2 und Makro-Kacheln). */
+export const MAKRO_FARBEN: Record<string, string> = {
+  [MAKRO_LABEL.eiweiss]: CHART_MINT,
+  [MAKRO_LABEL.kohlenhydrate]: CHART_BLUE,
+  [MAKRO_LABEL.fett]: CHART_GREEN,
+}
 
 /**
  * E2: heutige Makro-Anteile an der Energie, nicht am Gramm-Gewicht.
