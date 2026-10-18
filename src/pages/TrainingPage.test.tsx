@@ -337,4 +337,17 @@ describe('TrainingPage – ausgewaehlte Graphen', () => {
       '/training/analyse',
     )
   })
+
+  it('shows an error with a retry instead of "no active plan" when loading failed', () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const reload = vi.fn()
+    mockUseActiveTrainingDay.mockReturnValue({ plan: null, day: null, loading: false, error: true, reload })
+
+    zeigeDashboard()
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Training konnte nicht geladen werden.')
+    expect(screen.queryByText('Kein aktiver Plan.')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
+    expect(reload).toHaveBeenCalled()
+  })
 })

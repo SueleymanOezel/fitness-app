@@ -19,6 +19,7 @@ import PageHero from '../components/PageHero'
 import WeekStrip from '../components/WeekStrip'
 import LinkListCard from '../components/LinkListCard'
 import EmptyState from '../components/EmptyState'
+import LoadError from '../components/LoadError'
 import PageSkeleton, { ChartSkeleton } from '../components/PageSkeleton'
 import Skeleton from '../components/Skeleton'
 
@@ -32,7 +33,7 @@ export default function TrainingPage() {
 }
 
 function Dashboard({ userId }: { userId: string }) {
-  const { plan, day, loading } = useActiveTrainingDay(userId)
+  const { plan, day, loading, error, reload } = useActiveTrainingDay(userId)
   const { tage, loading: streakLoading } = useTrainingStreak(userId)
   const navigate = useNavigate()
   const [starting, setStarting] = useState(false)
@@ -40,6 +41,7 @@ function Dashboard({ userId }: { userId: string }) {
   const auswahl = useChartSelection(userId)
 
   if (loading) return <PageSkeleton titel="Training" />
+  if (error) return <LoadError titel="Training" text="Training konnte nicht geladen werden." onRetry={reload} />
 
   // Disabled while starting: a second click would create a second session
   // and leave the first one open forever.

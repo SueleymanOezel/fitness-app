@@ -199,3 +199,45 @@ describe('useBodyMetrics', () => {
     expect(listSelects).toBe(2)
   })
 })
+
+describe('useBodyMetrics saveEntry with an id', () => {
+  it('updates that row, even when the date changed, instead of upserting a second one', async () => {
+    const metrics = createQueryBuilder({ data: rows })
+    mockTables({ body_metrics: metrics })
+
+    const { useBodyMetrics } = await import('./use-body-metrics')
+    const { result } = renderHook(() => useBodyMetrics('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await result.current.saveEntry('2026-08-20', values, 'c')
+
+    expect(metrics.update).toHaveBeenCalledWith({ datum: '2026-08-20', ...values })
+    expect(metrics.eq).toHaveBeenCalledWith('id', 'c')
+    expect(metrics.upsert).not.toHaveBeenCalled()
+  })
+
+  it('refuses a date that belongs to another entry instead of overwriting it', async () => {
+    const metrics = createQueryBuilder({ data: rows })
+    mockTables({ body_metrics: metrics })
+
+    const { useBodyMetrics, DatumBelegtError } = await import('./use-body-metrics')
+    const { result } = renderHook(() => useBodyMetrics('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await expect(result.current.saveEntry('2026-08-17', values, 'c')).rejects.toBeInstanceOf(DatumBelegtError)
+    expect(metrics.update).not.toHaveBeenCalled()
+  })
+
+  it('keeps its own date without a conflict', async () => {
+    const metrics = createQueryBuilder({ data: rows })
+    mockTables({ body_metrics: metrics })
+
+    const { useBodyMetrics } = await import('./use-body-metrics')
+    const { result } = renderHook(() => useBodyMetrics('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await result.current.saveEntry('2026-08-24', values, 'c')
+
+    expect(metrics.update).toHaveBeenCalled()
+  })
+})

@@ -329,6 +329,7 @@ describe('TrainingHistoryDetailPage', () => {
     await screen.findByText('Bankdrücken')
 
     fireEvent.click(screen.getByRole('button', { name: 'Session löschen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     await waitFor(() => expect(result.deleteSession).toHaveBeenCalled())
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/training/history'))
@@ -342,6 +343,7 @@ describe('TrainingHistoryDetailPage', () => {
     await screen.findByText('Bankdrücken')
 
     fireEvent.click(screen.getByRole('button', { name: 'Session löschen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
     expect(mockNavigate).not.toHaveBeenCalled()

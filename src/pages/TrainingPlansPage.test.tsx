@@ -89,6 +89,7 @@ describe('TrainingPlansPage', () => {
     await waitFor(() => expect(result.activatePlan).toHaveBeenCalledWith('p1'))
 
     fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
     await waitFor(() => expect(result.deletePlan).toHaveBeenCalledWith('p1'))
   })
 
@@ -106,5 +107,32 @@ describe('TrainingPlansPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Aktivieren' }))
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
+  })
+
+  it('shows an error with a retry instead of "no plan" when loading failed', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const reload = vi.fn()
+    mockUseWorkoutPlans.mockReturnValue(plansResult({ plans: [], error: true, reload }))
+
+    const { default: TrainingPlansPage } = await import('./TrainingPlansPage')
+    renderWithProviders(<TrainingPlansPage />)
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Pläne konnten nicht geladen werden.')
+    expect(screen.queryByText('Noch kein Plan.')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
+    expect(reload).toHaveBeenCalled()
+  })
+
+  it('asks before deleting a plan', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const result = plansResult()
+    mockUseWorkoutPlans.mockReturnValue(result)
+
+    const { default: TrainingPlansPage } = await import('./TrainingPlansPage')
+    renderWithProviders(<TrainingPlansPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+
+    expect(result.deletePlan).not.toHaveBeenCalled()
+    expect(screen.getByRole('heading', { name: 'Plan löschen?' })).toBeInTheDocument()
   })
 })

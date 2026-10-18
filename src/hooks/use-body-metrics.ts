@@ -12,6 +12,14 @@ export class ProfileWeightSyncError extends Error {
   }
 }
 
+/** Editing an entry onto a date that already has another entry. */
+export class DatumBelegtError extends Error {
+  constructor() {
+    super('date already has an entry')
+    this.name = 'DatumBelegtError'
+  }
+}
+
 export function useBodyMetrics(userId: string) {
   const [rows, setRows] = useState<BodyMetricRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -72,11 +80,27 @@ export function useBodyMetrics(userId: string) {
 
   // supabase-js resolves rather than throws on a rejected write, so an unchecked
   // error would let the UI report success while nothing was stored.
-  async function saveEntry(datum: string, values: BodyMetricValues) {
-    const { error: saveError } = await supabase
-      .from('body_metrics')
-      .upsert({ user_id: userId, datum, ...values }, { onConflict: 'user_id,datum' })
-    if (saveError) throw new Error('body metric save failed')
+  //
+  // With an id the row itself is updated: an upsert on the (possibly changed)
+  // date would insert a second row and leave the edited one behind. A date that
+  // belongs to another row is refused rather than merged, a merge would
+  // silently overwrite that row's values.
+  async function saveEntry(datum: string, values: BodyMetricValues, id?: string) {
+    if (id !== undefined) {
+      if (rows.some((row) => row.id !== id && row.datum === datum)) throw new DatumBelegtError()
+      const { error: updateError } = await supabase
+        .from('body_metrics')
+        .update({ datum, ...values })
+        .eq('id', id)
+      // 23505 = unique_violation: another tab/device took the date meanwhile.
+      if (updateError?.code === '23505') throw new DatumBelegtError()
+      if (updateError) throw new Error('body metric save failed')
+    } else {
+      const { error: saveError } = await supabase
+        .from('body_metrics')
+        .upsert({ user_id: userId, datum, ...values }, { onConflict: 'user_id,datum' })
+      if (saveError) throw new Error('body metric save failed')
+    }
     // The entry is stored at this point: reload before the profile mirror runs
     // so a later ProfileWeightSyncError doesn't leave the list stale too.
     await reload()

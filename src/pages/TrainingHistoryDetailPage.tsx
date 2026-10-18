@@ -7,7 +7,8 @@ import { WIEDERHOLUNGEN_FEHLER } from '../lib/set-values'
 import { cardClass, checkLabelClass, fieldLabelClass, inputClass, linkClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
-import Pressable, { PressableLink } from '../components/Pressable'
+import { PressableLink } from '../components/Pressable'
+import ConfirmDelete from '../components/ConfirmDelete'
 
 export default function TrainingHistoryDetailPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -109,25 +110,16 @@ function Detail({ sessionId }: { sessionId: string }) {
           </li>
         ))}
       </ul>
-      <Pressable
-        variant="danger"
+      <ConfirmDelete
+        label="Session löschen"
         className="self-start"
-        type="button"
-        onClick={async () => {
-          try {
-            await deleteSession()
-          } catch {
-            showToast('Löschen fehlgeschlagen.', 'error')
-            return
-          }
+        titel="Training löschen?"
+        text="Alle Sätze dieser Trainingseinheit werden gelöscht. Das wirkt sich auch auf deine Analyse aus."
+        onConfirm={async () => {
+          await deleteSession()
           navigate('/training/history')
         }}
-      >
-        <span className="inline-flex items-center justify-center gap-2">
-          <VitaIcon name="delete" tone="mono" size={20} />
-          Session löschen
-        </span>
-      </Pressable>
+      />
       <PressableLink to="/training/history" className={linkClass}>
         <VitaIcon name="back" tone="brand" size={20} />
         Zurück zur Historie

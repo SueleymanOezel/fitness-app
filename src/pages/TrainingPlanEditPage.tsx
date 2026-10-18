@@ -12,6 +12,7 @@ import { zonenFuerTag } from '../lib/muscle-zones'
 import TagMuskelSilhouette from '../components/TagMuskelSilhouette'
 import ExercisePicker, { type PickableExercise } from '../components/ExercisePicker'
 import Pressable, { PressableLink } from '../components/Pressable'
+import ConfirmDelete from '../components/ConfirmDelete'
 
 export default function TrainingPlanEditPage() {
   const { session } = useSession()
@@ -94,7 +95,7 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
             run(() => addExercisesToDay(day.id, exerciseIds), 'Übung hinzufügen fehlgeschlagen.')
           }
           onUpdateExercise={(id, patch) => run(() => updateDayExercise(id, patch), 'Speichern fehlgeschlagen.')}
-          onRemoveExercise={(id) => run(() => removeDayExercise(id), 'Entfernen fehlgeschlagen.')}
+          onRemoveExercise={(id) => removeDayExercise(id)}
           onMoveExercise={(exerciseRowId, direction) =>
             run(() => moveDayExercise(day.id, exerciseRowId, direction), 'Verschieben fehlgeschlagen.')
           }
@@ -152,7 +153,7 @@ function DayBlock({
   onMoveDay: (direction: 'up' | 'down') => void
   onAddExercises: (exerciseIds: string[]) => Promise<void>
   onUpdateExercise: (id: string, patch: DayExercisePatch) => void
-  onRemoveExercise: (id: string) => void
+  onRemoveExercise: (id: string) => Promise<void>
   onMoveExercise: (exerciseRowId: string, direction: 'up' | 'down') => void
 }) {
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -225,12 +226,13 @@ function DayBlock({
                     Nach unten
                   </Pressable>
                 )}
-                <Pressable variant="danger" type="button" onClick={() => onRemoveExercise(row.id)}>
-                  <span className="inline-flex items-center justify-center gap-2">
-                    <VitaIcon name="delete" tone="mono" size={20} />
-                    Entfernen
-                  </span>
-                </Pressable>
+                <ConfirmDelete
+                  label="Entfernen"
+                  titel="Übung aus dem Tag entfernen?"
+                  text="Nur der Plan ändert sich. Bereits aufgezeichnete Trainings bleiben unverändert."
+                  bestaetigen="Ja, entfernen"
+                  onConfirm={() => onRemoveExercise(row.id)}
+                />
               </div>
             </div>
           </li>

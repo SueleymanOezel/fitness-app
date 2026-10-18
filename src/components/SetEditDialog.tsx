@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import Dialog from './Dialog'
 import Pressable from './Pressable'
 import RirChips from './RirChips'
+import ConfirmDelete from './ConfirmDelete'
 import type { SessionSet } from '../hooks/use-workout-session'
 import { parseSetInput } from '../lib/set-values'
 import { cardClass, checkLabelClass, fieldLabelClass, inputClass } from '../lib/ui-classes'
@@ -18,6 +19,7 @@ type Props = {
   set: SessionSet | null
   onClose: () => void
   onSave: (setId: string, patch: SetPatch) => Promise<void>
+  onDelete: (setId: string) => Promise<void>
 }
 
 /**
@@ -26,15 +28,25 @@ type Props = {
  * solange ein Satz gewählt ist, damit die Vorbelegung bei jedem Öffnen frisch ist.
  * Fehler stehen im Dialog: ein Toast läge hinter dem Top-Layer des offenen <dialog>.
  */
-export default function SetEditDialog({ set, onClose, onSave }: Props) {
+export default function SetEditDialog({ set, onClose, onSave, onDelete }: Props) {
   return (
     <Dialog open={set !== null} onClose={onClose}>
-      {set && <SetEditForm key={set.id} set={set} onClose={onClose} onSave={onSave} />}
+      {set && <SetEditForm key={set.id} set={set} onClose={onClose} onSave={onSave} onDelete={onDelete} />}
     </Dialog>
   )
 }
 
-function SetEditForm({ set, onClose, onSave }: { set: SessionSet; onClose: () => void; onSave: Props['onSave'] }) {
+function SetEditForm({
+  set,
+  onClose,
+  onSave,
+  onDelete,
+}: {
+  set: SessionSet
+  onClose: () => void
+  onSave: Props['onSave']
+  onDelete: Props['onDelete']
+}) {
   const [gewicht, setGewicht] = useState(set.gewicht == null ? '' : String(set.gewicht))
   const [wiederholungen, setWiederholungen] = useState(set.wiederholungen == null ? '' : String(set.wiederholungen))
   const [rir, setRir] = useState<number | null>(set.rir)
@@ -109,6 +121,15 @@ function SetEditForm({ set, onClose, onSave }: { set: SessionSet; onClose: () =>
       <Pressable variant="secondary" type="button" onClick={onClose}>
         Abbrechen
       </Pressable>
+      <ConfirmDelete
+        label="Satz löschen"
+        titel="Satz löschen?"
+        text="Dieser Satz wird aus dem Training entfernt."
+        onConfirm={async () => {
+          await onDelete(set.id)
+          onClose()
+        }}
+      />
     </form>
   )
 }

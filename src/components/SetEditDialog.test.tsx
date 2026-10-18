@@ -25,12 +25,12 @@ function formular() {
 
 describe('SetEditDialog', () => {
   it('renders nothing while no set is being edited', () => {
-    render(<SetEditDialog set={null} onClose={vi.fn()} onSave={vi.fn()} />)
+    render(<SetEditDialog set={null} onClose={vi.fn()} onSave={vi.fn()} onDelete={vi.fn()} />)
     expect(screen.queryByRole('heading', { name: 'Satz bearbeiten' })).not.toBeInTheDocument()
   })
 
   it('prefills the stored values', () => {
-    render(<SetEditDialog set={satz} onClose={vi.fn()} onSave={vi.fn()} />)
+    render(<SetEditDialog set={satz} onClose={vi.fn()} onSave={vi.fn()} onDelete={vi.fn()} />)
     expect(formular().getByLabelText('Gewicht (kg)')).toHaveValue('60')
     expect(formular().getByLabelText('Wiederholungen')).toHaveValue('10')
     expect(formular().getByRole('button', { name: '2' })).toHaveAttribute('aria-pressed', 'true')
@@ -38,14 +38,14 @@ describe('SetEditDialog', () => {
   })
 
   it('prefills an empty weight as empty, not as "null"', () => {
-    render(<SetEditDialog set={{ ...satz, gewicht: null }} onClose={vi.fn()} onSave={vi.fn()} />)
+    render(<SetEditDialog set={{ ...satz, gewicht: null }} onClose={vi.fn()} onSave={vi.fn()} onDelete={vi.fn()} />)
     expect(formular().getByLabelText('Gewicht (kg)')).toHaveValue('')
   })
 
   it('saves the changed values and closes', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined)
     const onClose = vi.fn()
-    render(<SetEditDialog set={satz} onClose={onClose} onSave={onSave} />)
+    render(<SetEditDialog set={satz} onClose={onClose} onSave={onSave} onDelete={vi.fn()} />)
 
     fireEvent.change(formular().getByLabelText('Wiederholungen'), { target: { value: '12' } })
     fireEvent.change(formular().getByLabelText('Gewicht (kg)'), { target: { value: '62,5' } })
@@ -66,7 +66,7 @@ describe('SetEditDialog', () => {
 
   it('refuses empty repetitions with the message inside the dialog and does not save', async () => {
     const onSave = vi.fn()
-    render(<SetEditDialog set={satz} onClose={vi.fn()} onSave={onSave} />)
+    render(<SetEditDialog set={satz} onClose={vi.fn()} onSave={onSave} onDelete={vi.fn()} />)
 
     fireEvent.change(formular().getByLabelText('Wiederholungen'), { target: { value: '' } })
     fireEvent.click(formular().getByRole('button', { name: 'Speichern' }))
@@ -78,7 +78,7 @@ describe('SetEditDialog', () => {
   it('stays open with an inline message when saving fails and keeps the typed values', async () => {
     const onSave = vi.fn().mockRejectedValue(new Error('boom'))
     const onClose = vi.fn()
-    render(<SetEditDialog set={satz} onClose={onClose} onSave={onSave} />)
+    render(<SetEditDialog set={satz} onClose={onClose} onSave={onSave} onDelete={vi.fn()} />)
 
     fireEvent.change(formular().getByLabelText('Wiederholungen'), { target: { value: '11' } })
     fireEvent.click(formular().getByRole('button', { name: 'Speichern' }))
@@ -91,7 +91,7 @@ describe('SetEditDialog', () => {
   it('closes via Abbrechen without saving', () => {
     const onSave = vi.fn()
     const onClose = vi.fn()
-    render(<SetEditDialog set={satz} onClose={onClose} onSave={onSave} />)
+    render(<SetEditDialog set={satz} onClose={onClose} onSave={onSave} onDelete={vi.fn()} />)
     fireEvent.click(formular().getByRole('button', { name: 'Abbrechen' }))
     expect(onClose).toHaveBeenCalled()
     expect(onSave).not.toHaveBeenCalled()
@@ -100,7 +100,7 @@ describe('SetEditDialog', () => {
   it('does not save twice on a double tap', async () => {
     let resolve: () => void = () => {}
     const onSave = vi.fn().mockReturnValue(new Promise<void>((done) => { resolve = done }))
-    render(<SetEditDialog set={satz} onClose={vi.fn()} onSave={onSave} />)
+    render(<SetEditDialog set={satz} onClose={vi.fn()} onSave={onSave} onDelete={vi.fn()} />)
 
     const speichern = formular().getByRole('button', { name: 'Speichern' })
     fireEvent.click(speichern)
@@ -108,5 +108,30 @@ describe('SetEditDialog', () => {
     resolve()
 
     await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1))
+  })
+
+  it('deletes the set only after the confirmation, then closes', async () => {
+    const onDelete = vi.fn().mockResolvedValue(undefined)
+    const onClose = vi.fn()
+    render(<SetEditDialog set={satz} onClose={onClose} onSave={vi.fn()} onDelete={onDelete} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Satz löschen' }))
+    expect(onDelete).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
+    await waitFor(() => expect(onDelete).toHaveBeenCalledWith('set1'))
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+  })
+
+  it('keeps the dialog open and shows the failure when deleting fails', async () => {
+    const onDelete = vi.fn().mockRejectedValue(new Error('boom'))
+    const onClose = vi.fn()
+    render(<SetEditDialog set={satz} onClose={onClose} onSave={vi.fn()} onDelete={onDelete} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Satz löschen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Das hat nicht geklappt')
+    expect(onClose).not.toHaveBeenCalled()
   })
 })

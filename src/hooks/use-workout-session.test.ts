@@ -551,3 +551,31 @@ describe('useWorkoutSession', () => {
     })
   })
 })
+
+describe('useWorkoutSession deleteSet', () => {
+  it('deletes exactly the given set and leaves the exercise rows alone', async () => {
+    const setsBuilder = createQueryBuilder({ data: [setRow] })
+    const sessionExercisesBuilder = createQueryBuilder({ data: [sessionExerciseRow], error: null })
+    mockTables({ workout_session_sets: setsBuilder, workout_session_exercises: sessionExercisesBuilder })
+
+    const { useWorkoutSession } = await import('./use-workout-session')
+    const { result } = renderHook(() => useWorkoutSession('s1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await result.current.deleteSet(setRow.id)
+
+    expect(setsBuilder.delete).toHaveBeenCalled()
+    expect(setsBuilder.eq).toHaveBeenCalledWith('id', setRow.id)
+    expect(sessionExercisesBuilder.delete).not.toHaveBeenCalled()
+  })
+
+  it('rejects instead of reporting success when deleting a set fails', async () => {
+    mockTables({ workout_session_sets: createQueryBuilder({ data: [setRow], error: { message: 'boom' } }) })
+
+    const { useWorkoutSession } = await import('./use-workout-session')
+    const { result } = renderHook(() => useWorkoutSession('s1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await expect(result.current.deleteSet(setRow.id)).rejects.toThrow()
+  })
+})

@@ -39,7 +39,7 @@ export default function HomePage() {
 function Dashboard({ userId }: { userId: string }) {
   const { profile, loading: profileLoading } = useProfile(userId)
   const { entries, loading: entriesLoading } = useFoodEntries(userId)
-  const { plan, day, loading: trainingLoading } = useActiveTrainingDay(userId)
+  const { plan, day, loading: trainingLoading, error: trainingError } = useActiveTrainingDay(userId)
   const { rows, loading: rowsLoading, error: rowsError } = useBodyMetrics(userId)
   const { streak, loading: streakLoading } = useTrainingStreak(userId)
   const auswahl = useChartSelection(userId)
@@ -78,7 +78,8 @@ function Dashboard({ userId }: { userId: string }) {
       <h1>Home</h1>
       {rowsError && <p role="alert">Gewichtsdaten konnten nicht geladen werden.</p>}
       <StatStrip tiles={kacheln} />
-      {plan == null && (
+      {trainingError && <p role="alert">Training konnte nicht geladen werden.</p>}
+      {!trainingError && plan == null && (
         <EmptyState
           titel="Kein aktiver Plan."
           text="Lege einen Plan an, dann siehst du hier, was heute ansteht."
@@ -89,7 +90,7 @@ function Dashboard({ userId }: { userId: string }) {
           }
         />
       )}
-      {plan != null && day == null && (
+      {!trainingError && plan != null && day == null && (
         <EmptyState
           titel={`Plan „${plan.name}“ hat noch keine Tage.`}
           action={

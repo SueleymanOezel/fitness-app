@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, screen } from '@testing-library/react'
+import { cleanup, fireEvent, screen } from '@testing-library/react'
 import { renderWithProviders } from '../test-render'
 
 const mockUseSession = vi.fn()
@@ -70,5 +70,19 @@ describe('TrainingHistoryPage', () => {
     renderWithProviders(<TrainingHistoryPage />)
 
     expect(screen.getByText('Noch keine Trainings aufgezeichnet.')).toBeInTheDocument()
+  })
+
+  it('shows an error with a retry instead of an empty history when loading failed', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const reload = vi.fn()
+    mockUseWorkoutHistory.mockReturnValue({ sessions: [], loading: false, error: true, reload })
+
+    const { default: TrainingHistoryPage } = await import('./TrainingHistoryPage')
+    renderWithProviders(<TrainingHistoryPage />)
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Trainings konnten nicht geladen werden.')
+    expect(screen.queryByText('Noch keine Trainings aufgezeichnet.')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
+    expect(reload).toHaveBeenCalled()
   })
 })

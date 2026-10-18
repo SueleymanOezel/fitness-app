@@ -13,6 +13,7 @@ import { VitaIcon } from '../components/icons/VitaIcon'
 import { useToast } from '../components/ToastProvider'
 import Pressable, { PressableLink } from '../components/Pressable'
 import EmptyState from '../components/EmptyState'
+import ConfirmDelete from '../components/ConfirmDelete'
 import PageSkeleton from '../components/PageSkeleton'
 
 function formatDate(iso: string) {
@@ -57,7 +58,7 @@ function Entries({ userId }: { userId: string }) {
         )
         return
       }
-      showToast('Eintrag konnte nicht gelöscht werden.', 'error')
+      throw err // ConfirmDelete shows the failure inside its dialog
     }
   }
 
@@ -93,12 +94,12 @@ function Entries({ userId }: { userId: string }) {
                       Bearbeiten
                     </span>
                   </Pressable>
-                  <Pressable variant="danger" type="button" onClick={() => remove(entry.id)}>
-                    <span className="inline-flex items-center justify-center gap-2">
-                      <VitaIcon name="delete" tone="mono" size={20} />
-                      Löschen
-                    </span>
-                  </Pressable>
+                  <ConfirmDelete
+                    label="Löschen"
+                    titel="Eintrag löschen?"
+                    text={`Die Werte vom ${formatDate(entry.datum)} werden gelöscht.`}
+                    onConfirm={() => remove(entry.id)}
+                  />
                 </div>
               </li>
             ))}
@@ -118,7 +119,7 @@ function Entries({ userId }: { userId: string }) {
             entry={editingEntry}
             onSave={async (datum, values) => {
               try {
-                await saveEntry(datum, values)
+                await saveEntry(datum, values, editingEntry.id)
               } catch (err) {
                 // Same reasoning as remove(): the write already succeeded,
                 // only the profile mirror is stale. Resolve normally so the

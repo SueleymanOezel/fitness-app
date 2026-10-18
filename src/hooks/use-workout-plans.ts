@@ -13,18 +13,20 @@ export type WorkoutPlan = {
 export function useWorkoutPlans(userId: string) {
   const [plans, setPlans] = useState<WorkoutPlan[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const requestId = useRef(0)
 
   const reload = useCallback(async () => {
     // Two quick writes can have their reloads answered out of order; only the
     // newest request may write state (and none may write after unmount).
     const current = ++requestId.current
-    const { data } = await supabase
+    const { data, error: loadError } = await supabase
       .from('workout_plans')
       .select('*')
       .eq('user_id', userId)
       .order('name', { ascending: true })
     if (current !== requestId.current) return
+    setError(Boolean(loadError))
     setPlans((data ?? []) as WorkoutPlan[])
     setLoading(false)
   }, [userId])
@@ -88,7 +90,7 @@ export function useWorkoutPlans(userId: string) {
     await reload()
   }
 
-  return { plans, loading, createPlan, deletePlan, activatePlan }
+  return { plans, loading, error, reload, createPlan, deletePlan, activatePlan }
 }
 
 export type WorkoutPlanDayExercise = {
