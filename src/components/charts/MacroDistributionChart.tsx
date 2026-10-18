@@ -55,7 +55,7 @@ export default function MacroDistributionChart({
             ))}
             {/* Der Gramm-Wert, nicht der Energie-Anteil: die Balkenhoehe ist
                 Energie, die Beschriftung bleibt in der vertrauten Einheit aus
-                DailySummary. */}
+                dem Tages-Hero der Ernährungsseite. */}
             <LabelList dataKey="gramm" formatter={(value: RenderableText) => `${value} g`} />
           </Bar>
         </BarChart>

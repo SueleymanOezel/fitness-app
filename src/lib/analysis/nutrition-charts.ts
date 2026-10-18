@@ -46,7 +46,7 @@ export const MAKRO_FARBEN: Record<string, string> = {
  * Fett traegt je Gramm mehr als doppelt so viel Energie wie Eiweiss oder
  * Kohlenhydrate (9 vs. 4 kcal/g) — ein Anteil nach Gramm wuerde einen fetten
  * Tag als ausgewogen ausweisen. Die Gramm-Zahl bleibt als Beschriftung stehen,
- * damit sie gegen DailySummary pruefbar ist.
+ * damit sie gegen die Kalorien-/Makro-Anzeige auf /nutrition pruefbar ist.
  */
 export function makroAnteileHeute(entries: MakroTagEintrag[], heute: string): MakroAnteil[] {
   const heutige = entries.filter((entry) => localDay(entry.zeitpunkt) === heute)

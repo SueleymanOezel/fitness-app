@@ -2,7 +2,8 @@ import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
 import { useFoodEntries } from '../hooks/use-food-entries'
 import { effectiveCalorieGoal } from '../lib/nutrition-goal'
-import DailySummary from '../components/DailySummary'
+import { sumKalorien } from '../lib/entry-calories'
+import { kalorienStatus } from '../lib/calorie-status'
 import { useActiveTrainingDay } from '../hooks/use-active-training-day'
 import { useBodyMetrics } from '../hooks/use-body-metrics'
 import { changeSince, latestValue } from '../lib/body-change'
@@ -11,11 +12,15 @@ import HomeChartList from '../components/charts/HomeChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { useHomeAnalysis } from '../hooks/use-home-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
-import { cardClass, linkClass } from '../lib/ui-classes'
-import { VitaIcon } from '../components/icons/VitaIcon'
 import { useTrainingStreak } from '../hooks/use-training-streak'
 import { streakText } from '../lib/streak'
 import { PressableLink } from '../components/Pressable'
+import PageHero from '../components/PageHero'
+import ProgressRing from '../components/ProgressRing'
+import StatStrip, { type StatTile } from '../components/StatStrip'
+import LinkListCard from '../components/LinkListCard'
+import EmptyState from '../components/EmptyState'
+import PageSkeleton, { ChartSkeleton } from '../components/PageSkeleton'
 
 /** German notation: comma as the decimal mark, at most one place. */
 function formatValue(value: number) {
@@ -26,14 +31,7 @@ export default function HomePage() {
   const { session } = useSession()
   const userId = session?.user.id
 
-  if (!userId) {
-    return (
-      <div>
-        <h1>Home</h1>
-        <p>Lädt…</p>
-      </div>
-    )
-  }
+  if (!userId) return <PageSkeleton titel="Home" />
 
   return <Dashboard userId={userId} />
 }
@@ -47,82 +45,87 @@ function Dashboard({ userId }: { userId: string }) {
   const auswahl = useChartSelection(userId)
 
   if (profileLoading || entriesLoading || trainingLoading || rowsLoading || streakLoading) {
-    return (
-      <div>
-        <h1>Home</h1>
-        <p>Lädt…</p>
-      </div>
-    )
+    return <PageSkeleton titel="Home" />
   }
 
-  // goal bleibt null, wenn das Profil nicht geladen werden konnte — DailySummary
-  // zeigt die Kalorien dann trotzdem an, nur ohne Restwert gegen ein Ziel. Ein
-  // Bereich, der nicht laedt, soll die anderen zwei nicht mit sperren.
+  // goal bleibt null, wenn das Profil nicht geladen werden konnte — die Kalorien-Karte
+  // zeigt das Gegessene dann trotzdem, nur ohne Restwert gegen ein Ziel. Ein
+  // Bereich, der nicht laedt, soll die anderen nicht mit sperren.
   const goal = profile ? effectiveCalorieGoal(profile) : null
+  const status = kalorienStatus(sumKalorien(entries), goal)
   const gewichtAktuell = latestValue(rows, 'gewicht')
   const gewichtsAenderung = changeSince(rows, 'gewicht')
+
+  const kacheln: StatTile[] = [
+    { label: 'Streak', wert: streak === 0 ? '—' : String(streak), hinweis: streakText(streak) },
+    {
+      label: 'Gewicht',
+      wert: gewichtAktuell == null ? '—' : `${formatValue(gewichtAktuell.value)} kg`,
+      // latestValue may find a weight without a prior entry to compare against —
+      // changeSince is then null, and the tile must still show the current
+      // value (a first-time weigh-in) instead of collapsing to "Keine Messwerte.".
+      hinweis:
+        gewichtAktuell == null
+          ? 'Keine Messwerte.'
+          : gewichtsAenderung == null
+            ? undefined
+            : `${gewichtsAenderung.delta < 0 ? '−' : '+'}${formatValue(Math.abs(gewichtsAenderung.delta))} kg seit dem letzten Eintrag`,
+    },
+  ]
 
   return (
     <div>
       <h1>Home</h1>
-      <DailySummary entries={entries} goal={goal} />
-      <PressableLink to="/nutrition" className={linkClass}>
-        <VitaIcon name="nutrition" tone="brand" size={20} />
-        Zum Ernährungsbereich
-      </PressableLink>
-      <div className={cardClass}>
-        <h2 className="flex items-center gap-2">
-          <VitaIcon name="training" tone="brand" size={28} />
-          Training
-        </h2>
-        {plan == null && <p>Kein aktiver Plan.</p>}
-        {plan != null && day == null && <p>{`Plan „${plan.name}“ hat noch keine Tage.`}</p>}
-        {plan != null && day != null && <p>{`${plan.name} — ${day.name}`}</p>}
-        <PressableLink to="/training" className={linkClass}>
-          <VitaIcon name="training" tone="brand" size={20} />
-          Zum Trainingsbereich
-        </PressableLink>
-      </div>
-      <div className={cardClass}>
-        <h2 className="flex items-center gap-2">
-          <VitaIcon name="body" tone="brand" size={28} />
-          Gewicht
-        </h2>
-        {rowsError && <p role="alert">Gewichtsdaten konnten nicht geladen werden.</p>}
-        <p>
-          {gewichtAktuell == null
-            ? 'Keine Messwerte.'
-            : // latestValue may find a weight without a prior entry to compare
-              // against — changeSince is then null, and the card must still show
-              // the current value instead of collapsing to "Keine Messwerte.",
-              // which is what a first-time weigh-in would otherwise wrongly say.
-              `${formatValue(gewichtAktuell.value)} kg${
-                gewichtsAenderung == null
-                  ? ''
-                  : ` (${gewichtsAenderung.delta < 0 ? '−' : '+'}${formatValue(Math.abs(gewichtsAenderung.delta))} kg seit dem letzten Eintrag)`
-              }`}
-        </p>
-        <PressableLink to="/body" className={linkClass}>
-          <VitaIcon name="body" tone="brand" size={20} />
-          Zum Körperbereich
-        </PressableLink>
-      </div>
-      <div className={cardClass}>
-        <h2 className="flex items-center gap-2">
-          <VitaIcon name="training" tone="brand" size={28} />
-          Streak
-        </h2>
-        <p>{streakText(streak)}</p>
-        <PressableLink to="/training" className={linkClass}>
-          <VitaIcon name="training" tone="brand" size={20} />
-          Zum Trainingsbereich
-        </PressableLink>
-      </div>
+      {rowsError && <p role="alert">Gewichtsdaten konnten nicht geladen werden.</p>}
+      <StatStrip tiles={kacheln} />
+      {plan == null && (
+        <EmptyState
+          titel="Kein aktiver Plan."
+          text="Lege einen Plan an, dann siehst du hier, was heute ansteht."
+          action={
+            <PressableLink variant="primary" to="/training/plans">
+              Trainingsplan anlegen
+            </PressableLink>
+          }
+        />
+      )}
+      {plan != null && day == null && (
+        <EmptyState
+          titel={`Plan „${plan.name}“ hat noch keine Tage.`}
+          action={
+            <PressableLink variant="primary" to={`/training/plans/${plan.id}`}>
+              Plan bearbeiten
+            </PressableLink>
+          }
+        />
+      )}
+      {plan != null && day != null && (
+        <PageHero
+          label="Heute · Training"
+          titel={day.name}
+          untertitel={plan.name}
+          action={
+            <PressableLink variant="primary" to="/training">
+              Zum Training
+            </PressableLink>
+          }
+        />
+      )}
+      <PageHero
+        label="Kalorien"
+        titel={status.titel}
+        untertitel={status.untertitel ?? undefined}
+        aside={<ProgressRing anteil={status.anteil} label={status.ringLabel} />}
+      />
+      <LinkListCard
+        items={[
+          { to: '/nutrition', label: 'Ernährung', icon: 'nutrition' },
+          { to: '/training', label: 'Training', icon: 'training' },
+          { to: '/body', label: 'Körper', icon: 'body' },
+          { to: '/home/analyse', label: 'Analyse', icon: 'analysis' },
+        ]}
+      />
       <DashboardHomeCharts userId={userId} auswahl={auswahl.auswahl} />
-      <PressableLink to="/home/analyse" className={linkClass}>
-        <VitaIcon name="analysis" tone="brand" size={20} />
-        Analyse
-      </PressableLink>
     </div>
   )
 }
@@ -141,7 +144,7 @@ function DashboardHomeCharts({ userId, auswahl }: { userId: string; auswahl: str
 
 function DashboardHomeChartsData({ userId, ids }: { userId: string; ids: string[] }) {
   const { sessions, entries, rows, loading, error } = useHomeAnalysis(userId, DASHBOARD_ZEITRAUM)
-  if (loading) return <p>Lädt…</p>
+  if (loading) return <ChartSkeleton />
   if (error) return <p role="alert">Graph konnte nicht geladen werden.</p>
   return <HomeChartList ids={ids} sessions={sessions} entries={entries} rows={rows} zeitraum={DASHBOARD_ZEITRAUM} />
 }

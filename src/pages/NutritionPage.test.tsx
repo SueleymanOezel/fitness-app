@@ -400,7 +400,7 @@ describe('NutritionPage – ausgewaehlte Graphen', () => {
   it('draws the goal line from the calculated goal when none was typed', async () => {
     // taegliches_kalorienziel is null for everyone who never typed a goal —
     // the normal state. The dashboard already computes effectiveCalorieGoal
-    // for DailySummary; the chart must get that same number, not the raw
+    // for the day hero; the chart must get that same number, not the raw
     // column, or its reference line silently disappears.
     mockUseProfile.mockReturnValue(
       profileResult({ profile: { ...profile, taegliches_kalorienziel: null } }),
@@ -414,7 +414,7 @@ describe('NutritionPage – ausgewaehlte Graphen', () => {
       { name: 'Kalorien pro Tag' },
       { timeout: 5000 },
     )
-    // Scoped to the chart's own section: DailySummary above it names the same
+    // Scoped to the chart's own section: the day hero above it names the same
     // goal, so an unscoped query would pass even with no reference line drawn.
     const abschnitt = ueberschrift.closest('section')!
     // 10*80 + 6.25*180 - 5*30 + 5 = 1780 kcal BMR, x 1.55 (moderat) = 2759 —

@@ -56,10 +56,11 @@ function stubDefaults() {
 }
 
 describe('HomePage', () => {
-  it('shows todays calories via DailySummary', () => {
+  it('shows todays calories in the calorie card', () => {
     stubDefaults()
     renderWithProviders(<HomePage />)
-    expect(screen.getByText('Heute')).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Kalorien' })).toBeInTheDocument()
+    expect(screen.getByText('2000 kcal übrig')).toBeInTheDocument()
   })
 
   it('shows the active training day when there is one', () => {
@@ -70,7 +71,9 @@ describe('HomePage', () => {
       loading: false,
     })
     renderWithProviders(<HomePage />)
-    expect(screen.getByText('Push/Pull/Legs — Push')).toBeInTheDocument()
+    expect(screen.getByText('Push')).toBeInTheDocument()
+    expect(screen.getByText('Push/Pull/Legs')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Zum Training' })).toHaveAttribute('href', '/training')
   })
 
   it('shows "Kein aktiver Plan" without an active plan', () => {
@@ -178,5 +181,28 @@ describe('HomePage', () => {
       await screen.findByRole('heading', { name: 'Aktivitätsraster' }, { timeout: 5000 }),
     ).toBeInTheDocument()
     expect(mockUseHomeAnalysis).toHaveBeenCalledWith('u1', 90)
+  })
+
+  it('shows a skeleton while anything loads', () => {
+    stubDefaults()
+    mockUseTrainingStreak.mockReturnValue({ streak: 0, loading: true })
+    renderWithProviders(<HomePage />)
+    expect(screen.getByRole('status')).toHaveTextContent('Lädt…')
+  })
+
+  it('groups the area links in one list card', () => {
+    stubDefaults()
+    renderWithProviders(<HomePage />)
+    expect(screen.getByRole('link', { name: 'Körper' })).toHaveAttribute('href', '/body')
+    expect(screen.getByRole('link', { name: 'Ernährung' })).toHaveAttribute('href', '/nutrition')
+    expect(screen.getByRole('link', { name: 'Analyse' })).toHaveAttribute('href', '/home/analyse')
+    expect(screen.getByRole('link', { name: 'Analyse' }).closest('ul')).toHaveClass('divide-y')
+  })
+
+  it('renders cleanly for a brand-new account', () => {
+    stubDefaults()
+    const { container } = renderWithProviders(<HomePage />)
+    expect(container.textContent).not.toMatch(/undefined|NaN/)
+    expect(screen.getByRole('link', { name: 'Trainingsplan anlegen' })).toHaveAttribute('href', '/training/plans')
   })
 })
