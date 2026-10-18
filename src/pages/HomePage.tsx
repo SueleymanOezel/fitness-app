@@ -13,7 +13,6 @@ import { chartsFor } from '../lib/analysis/registry'
 import { useHomeAnalysis } from '../hooks/use-home-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 import { useTrainingStreak } from '../hooks/use-training-streak'
-import { streakText } from '../lib/streak'
 import { PressableLink } from '../components/Pressable'
 import PageHero from '../components/PageHero'
 import OpenSessionHero from '../components/OpenSessionHero'
@@ -61,7 +60,11 @@ function Dashboard({ userId }: { userId: string }) {
   const gewichtsAenderung = changeSince(rows, 'gewicht')
 
   const kacheln: StatTile[] = [
-    { label: 'Wochen im Plan', wert: streak.wochen === 0 ? '—' : String(streak.wochen), hinweis: streakText(streak) },
+    {
+      label: 'Wochen im Plan',
+      wert: streak.wochen === 0 ? '—' : String(streak.wochen),
+      hinweis: `Diese Woche ${streak.dieseWoche} von ${streak.ziel}`,
+    },
     {
       label: 'Gewicht',
       wert: gewichtAktuell == null ? '—' : `${formatValue(gewichtAktuell.value)} kg`,

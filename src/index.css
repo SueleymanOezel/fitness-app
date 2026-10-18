@@ -96,7 +96,8 @@ body {
 }
 
 #root {
-  width: 1126px;
+  /* A phone app on a desktop screen: one readable column, not 1100px-wide cards and nav. */
+  width: 42rem;
   max-width: 100%;
   margin: 0 auto;
   min-height: 100svh;

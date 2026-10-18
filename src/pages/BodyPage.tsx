@@ -4,6 +4,7 @@ import { ProfileWeightSyncError, useBodyMetrics } from '../hooks/use-body-metric
 import { changeSince, latestValue } from '../lib/body-change'
 import {
   FIELD_LABELS,
+  feldTeile,
   MEASUREMENT_FIELDS,
   today,
   type MeasurementField,
@@ -138,7 +139,7 @@ function Dashboard({ userId }: { userId: string }) {
             return (
               <li key={field} className="flex items-center justify-between gap-3 py-3">
                 <div className="min-w-0">
-                  <p>{FIELD_LABELS[field]}</p>
+                  <p>{feldTeile(field).name}</p>
                   {change != null && (
                     <p className="text-sm text-text-muted">
                       {`${change.delta < 0 ? '−' : '+'}${formatValue(Math.abs(change.delta))} ${unitOf(field)} seit ${formatDate(change.datum)}`}

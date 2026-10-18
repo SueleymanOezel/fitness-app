@@ -13,7 +13,7 @@ describe('wochenStart', () => {
 
 describe('wochenLabel', () => {
   it('names the ISO week of a Monday', () => {
-    expect(wochenLabel('2026-08-17')).toBe('2026-KW34')
-    expect(wochenLabel('2026-08-24')).toBe('2026-KW35')
+    expect(wochenLabel('2026-08-17')).toBe('KW 34/26')
+    expect(wochenLabel('2026-08-24')).toBe('KW 35/26')
   })
 })

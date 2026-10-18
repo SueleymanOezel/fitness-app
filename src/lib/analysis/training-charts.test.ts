@@ -31,8 +31,8 @@ describe('sessionsJeWoche', () => {
       einheit(2026, 8, 24), // Mo, KW35
     ])
     expect(punkte).toEqual([
-      { woche: '2026-KW34', anzahl: 2 },
-      { woche: '2026-KW35', anzahl: 1 },
+      { woche: 'KW 34/26', anzahl: 2 },
+      { woche: 'KW 35/26', anzahl: 1 },
     ])
   })
 
@@ -40,7 +40,7 @@ describe('sessionsJeWoche', () => {
     // Sunday is day 0 in JavaScript. A naive week calculation moves it into the
     // following week and splits every weekend across two bars.
     expect(sessionsJeWoche([einheit(2026, 8, 23)])).toEqual([
-      { woche: '2026-KW34', anzahl: 1 },
+      { woche: 'KW 34/26', anzahl: 1 },
     ])
   })
 
@@ -65,7 +65,7 @@ describe('sessionsJeWoche', () => {
       einheit(2026, 8, 24),
       { gestartet_am: am(2026, 8, 25), beendet_am: null },
     ])
-    expect(punkte).toEqual([{ woche: '2026-KW35', anzahl: 1 }])
+    expect(punkte).toEqual([{ woche: 'KW 35/26', anzahl: 1 }])
   })
 
   it('returns nothing for no sessions', () => {

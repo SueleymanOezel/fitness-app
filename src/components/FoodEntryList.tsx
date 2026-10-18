@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import FoodEntryEditForm from './FoodEntryEditForm'
-import { cardClass, listClass } from '../lib/ui-classes'
+import { cardClass, interactiveClass, listClass } from '../lib/ui-classes'
 import Dialog from './Dialog'
-import { VitaIcon } from './icons/VitaIcon'
 import ConfirmDelete from './ConfirmDelete'
 import type { MealSection } from '../lib/meal-sections'
 import type { EntryPatch, FoodEntry } from '../hooks/use-food-entries'
@@ -52,29 +51,27 @@ function FoodEntryRow({
 
   return (
     <li>
-      <div className="flex flex-col gap-2 py-3">
-        <span className="font-semibold">{label}</span>
-        {/* One template string per span: `{value} g` renders two text nodes and
-            getByText(/150 g/) would not match across them. */}
-        <div className="flex gap-3 text-sm text-text-muted">
-          <span>{`${entry.menge} g`}</span>
-          {kalorien != null && <span>{`${kalorien} kcal`}</span>}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Pressable variant="secondary" type="button" onClick={() => setEditing(true)}>
-            <span className="inline-flex items-center justify-center gap-2">
-              <VitaIcon name="edit" tone="mono" size={20} />
-              Bearbeiten
-            </span>
-          </Pressable>
-          <ConfirmDelete
-            label="Löschen"
-            titel="Eintrag löschen?"
-            text={`${label} wird aus deinem Tagebuch entfernt.`}
-            onConfirm={() => onDelete(entry.id)}
-          />
-        </div>
-      </div>
+      {/* The row is the edit control, like a set in the training history; delete sits in the dialog. */}
+      <Pressable
+        variant="bare"
+        type="button"
+        className={`flex w-full items-center gap-3 rounded-lg py-3 text-left ${interactiveClass}`}
+        onClick={() => setEditing(true)}
+      >
+        <span className="flex flex-1 flex-col gap-1">
+          <span className="font-semibold">{label}</span>
+          {/* One template string per span: `{value} g` renders two text nodes and
+              getByText(/150 g/) would not match across them. */}
+          <span className="flex gap-3 text-sm text-text-muted">
+            <span>{`${entry.menge} g`}</span>
+            {kalorien != null && <span>{`${kalorien} kcal`}</span>}
+          </span>
+        </span>
+        <span className="sr-only">bearbeiten</span>
+        <span aria-hidden="true" className="text-text-muted">
+          ›
+        </span>
+      </Pressable>
       {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
           rendering the edit form only while open resets its draft state each
           time it opens, instead of showing the last attempt's leftover values. */}
@@ -86,6 +83,18 @@ function FoodEntryRow({
             sections={sections}
             onSave={onUpdateEntry}
             onClose={() => setEditing(false)}
+          />
+        )}
+        {editing && (
+          <ConfirmDelete
+            label="Eintrag löschen"
+            className="w-full"
+            titel="Eintrag löschen?"
+            text={`${label} wird aus deinem Tagebuch entfernt.`}
+            onConfirm={async () => {
+              await onDelete(entry.id)
+              setEditing(false)
+            }}
           />
         )}
       </Dialog>

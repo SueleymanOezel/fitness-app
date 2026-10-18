@@ -190,8 +190,8 @@ describe('wochenschnitt', () => {
       kalorienEintrag(2026, 8, 24, 1800), // Mo, KW35
     ])
     expect(punkte).toEqual([
-      { woche: '2026-KW34', schnitt: 1500 },
-      { woche: '2026-KW35', schnitt: 1800 },
+      { woche: 'KW 34/26', schnitt: 1500 },
+      { woche: 'KW 35/26', schnitt: 1800 },
     ])
   })
 

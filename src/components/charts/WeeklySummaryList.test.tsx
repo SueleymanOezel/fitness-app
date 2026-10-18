@@ -12,7 +12,7 @@ describe('WeeklySummaryList', () => {
     ]
     render(<WeeklySummaryList sessions={sessions} entries={entries} rows={rows} />)
     const zeile = screen.getByRole('listitem')
-    expect(zeile).toHaveTextContent('2026-KW34')
+    expect(zeile).toHaveTextContent('KW 34/26')
     expect(zeile).toHaveTextContent('1 Trainingseinheit')
     expect(zeile).toHaveTextContent('200 kcal')
     expect(zeile).toHaveTextContent('−0,5 kg')

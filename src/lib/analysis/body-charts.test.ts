@@ -197,8 +197,8 @@ describe('gewichtGegenKalorien', () => {
         ],
       ),
     ).toEqual([
-      { woche: '2026-KW33', kalorien: 2500, aenderung: -1 },
-      { woche: '2026-KW34', kalorien: 1800, aenderung: -0.5 },
+      { woche: 'KW 33/26', kalorien: 2500, aenderung: -1 },
+      { woche: 'KW 34/26', kalorien: 1800, aenderung: -0.5 },
     ])
   })
 
@@ -216,7 +216,7 @@ describe('gewichtGegenKalorien', () => {
           { tag: '2026-08-11', kalorien: 2000 },
         ],
       ),
-    ).toEqual([{ woche: '2026-KW33', kalorien: 2000, aenderung: -1 }])
+    ).toEqual([{ woche: 'KW 33/26', kalorien: 2000, aenderung: -1 }])
   })
 
   it('spreads a skipped week over its real distance', () => {
@@ -229,7 +229,7 @@ describe('gewichtGegenKalorien', () => {
         ],
         [{ tag: '2026-08-18', kalorien: 1800 }],
       ),
-    ).toEqual([{ woche: '2026-KW34', kalorien: 1800, aenderung: -1 }])
+    ).toEqual([{ woche: 'KW 34/26', kalorien: 1800, aenderung: -1 }])
   })
 
   it('drops a week without logged food', () => {
