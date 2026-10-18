@@ -76,7 +76,39 @@ describe('TrainingPlanEditPage', () => {
 
     expect(await screen.findByText('Tag A')).toBeInTheDocument()
     expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
+    expect(screen.getByText('3 × 10 · 90 s')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Sätze')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Bankdrücken/ }))
+
+    expect(screen.getByRole('button', { name: /Bankdrücken/ })).toHaveAttribute('aria-expanded', 'true')
     expect(screen.getByLabelText('Sätze')).toHaveValue(3)
+    expect(screen.getByRole('button', { name: 'Entfernen' })).toBeInTheDocument()
+  })
+
+  it('summarises missing targets instead of showing empty values', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const base = planResult()
+    const row = base.days[0].exercises[0]
+    mockUseWorkoutPlan.mockReturnValue(
+      planResult({
+        days: [
+          {
+            ...base.days[0],
+            exercises: [
+              { ...row, ziel_wiederholungen: null, pausenzeit_sekunden: null },
+              { ...row, id: 'de2', ziel_saetze: null, ziel_wiederholungen: null, pausenzeit_sekunden: null },
+            ],
+          },
+        ],
+      }),
+    )
+    mockUseExercises.mockReturnValue({ exercises: [exercise], loading: false, createExercise: vi.fn() })
+
+    renderPage()
+
+    expect(await screen.findByText('3 × –')).toBeInTheDocument()
+    expect(screen.getByText('Keine Ziele')).toBeInTheDocument()
   })
 
   it('shows the muscle silhouette with the day exercise’s primary muscle group highlighted', async () => {
@@ -213,8 +245,9 @@ describe('TrainingPlanEditPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Übung hinzufügen' }))
 
-    // ex1 ("Bankdrücken") is already in Tag A's exercise list.
-    expect(screen.queryByRole('button', { name: /Bankdrücken/ })).not.toBeInTheDocument()
+    // ex1 ("Bankdrücken") is already in Tag A's exercise list: the only match is
+    // that row's own toggle, not a picker entry.
+    expect(screen.getAllByRole('button', { name: /Bankdrücken/ })).toHaveLength(1)
   })
 
   it('shows a message instead of an empty list when every exercise is already in the day', async () => {
@@ -441,6 +474,7 @@ describe('TrainingPlanEditPage', () => {
     renderPage()
     await screen.findByText('Tag A')
 
+    fireEvent.click(screen.getByRole('button', { name: /Bankdrücken/ }))
     const field = screen.getByLabelText('Sätze')
     fireEvent.change(field, { target: { value: '1' } })
     fireEvent.change(field, { target: { value: '12' } })
@@ -462,6 +496,7 @@ describe('TrainingPlanEditPage', () => {
     renderPage()
     await screen.findByText('Tag A')
 
+    fireEvent.click(screen.getByRole('button', { name: /Bankdrücken/ }))
     const field = screen.getByLabelText('Sätze')
     fireEvent.change(field, { target: { value: '2.6' } })
     fireEvent.blur(field)
@@ -478,6 +513,7 @@ describe('TrainingPlanEditPage', () => {
     renderPage()
     await screen.findByText('Tag A')
 
+    fireEvent.click(screen.getByRole('button', { name: /Bankdrücken/ }))
     const field = screen.getByLabelText('Sätze')
     fireEvent.change(field, { target: { value: '' } })
     fireEvent.blur(field)
@@ -494,6 +530,7 @@ describe('TrainingPlanEditPage', () => {
     renderPage()
     await screen.findByText('Tag A')
 
+    fireEvent.click(screen.getByRole('button', { name: /Bankdrücken/ }))
     fireEvent.blur(screen.getByLabelText('Sätze'))
 
     expect(result.updateDayExercise).not.toHaveBeenCalled()

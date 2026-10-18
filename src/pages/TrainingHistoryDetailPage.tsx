@@ -1,16 +1,15 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useWorkoutSession } from '../hooks/use-workout-session'
+import { useWorkoutSession, type SessionInfo, type SessionSet } from '../hooks/use-workout-session'
 import { exerciseName } from '../lib/exercise-name'
-import { parseDecimal } from '../lib/parse-decimal'
-import { WIEDERHOLUNGEN_FEHLER } from '../lib/set-values'
-import { cardClass, checkLabelClass, fieldLabelClass, inputClass, linkClass } from '../lib/ui-classes'
-import { useToast } from '../components/ToastProvider'
+import { dauerText } from '../lib/dauer'
+import { cardClass, labelClass, linkClass } from '../lib/ui-classes'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { PressableLink } from '../components/Pressable'
 import ConfirmDelete from '../components/ConfirmDelete'
+import LoggedSets from '../components/LoggedSets'
+import SetEditDialog from '../components/SetEditDialog'
 import PageSkeleton from '../components/PageSkeleton'
-import { zahlDe } from '../lib/zahl'
 
 export default function TrainingHistoryDetailPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -23,8 +22,8 @@ export default function TrainingHistoryDetailPage() {
 }
 
 function Detail({ sessionId }: { sessionId: string }) {
-  const { session, sets, loading, updateSet, deleteSession } = useWorkoutSession(sessionId)
-  const showToast = useToast()
+  const { session, sets, loading, updateSet, deleteSet, deleteSession } = useWorkoutSession(sessionId)
+  const [bearbeiteterSatz, setBearbeiteterSatz] = useState<SessionSet | null>(null)
   const navigate = useNavigate()
 
   if (loading) {
@@ -44,64 +43,36 @@ function Detail({ sessionId }: { sessionId: string }) {
     )
   }
 
-  async function run(action: () => Promise<void>, message: string) {
-    try {
-      await action()
-    } catch {
-      showToast(message, 'error')
-    }
-  }
+  // One card per exercise, in the order the first set was logged (sets arrive by abgeschlossen_am).
+  const uebungen = new Map<string, SessionSet[]>()
+  for (const set of sets) uebungen.set(set.exercise_id, [...(uebungen.get(set.exercise_id) ?? []), set])
 
   return (
     <div>
-      <h1>Trainingseinheit</h1>
-      {/* An unfinished session has no calorie result; "0 kcal" would read as a measurement. */}
-      <p>{session.gesamt_kalorien == null ? 'nicht beendet' : `${Math.round(session.gesamt_kalorien)} kcal`}</p>
-      <ul role="list" className="flex flex-col gap-3">
-        {sets.map((set) => (
-          <li key={set.id}>
-            <div className={`${cardClass} w-full`}>
-              <p className="font-semibold">{exerciseName(set.exercise) || 'Unbekannte Übung'}</p>
-              <SetField
-                label="Gewicht (kg)"
-                stored={set.gewicht}
-                onCommit={(value) => run(() => updateSet(set.id, { gewicht: value }), 'Speichern fehlgeschlagen.')}
-              />
-              <SetField
-                label="Wiederholungen"
-                stored={set.wiederholungen}
-                integer
-                pflichtMeldung={WIEDERHOLUNGEN_FEHLER}
-                onCommit={(value) =>
-                  run(() => updateSet(set.id, { wiederholungen: value }), 'Speichern fehlgeschlagen.')
-                }
-              />
-              <SetField
-                label="RIR"
-                stored={set.rir}
-                max={5}
-                integer
-                onCommit={(value) => run(() => updateSet(set.id, { rir: value }), 'Speichern fehlgeschlagen.')}
-              />
-              <label className={checkLabelClass}>
-                <input
-                  type="checkbox"
-                  checked={set.ist_aufwaermsatz}
-                  // Written straight through: there is nothing to type, so the
-                  // blur-commit dance the number fields need buys nothing here.
-                  onChange={(event) =>
-                    run(
-                      () => updateSet(set.id, { ist_aufwaermsatz: event.target.checked }),
-                      'Speichern fehlgeschlagen.',
-                    )
-                  }
-                />
-                Aufwärmsatz
-              </label>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <div className="flex flex-col gap-1">
+        <h1>{session.tag_name ?? 'Trainingseinheit'}</h1>
+        <p className={labelClass}>
+          {new Date(session.gestartet_am).toLocaleDateString('de-DE', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          })}
+        </p>
+        <p className={labelClass}>{eckdaten(session)}</p>
+      </div>
+      {[...uebungen.values()].map((uebungsSaetze) => (
+        <section key={uebungsSaetze[0].exercise_id} className={cardClass}>
+          <h2>{exerciseName(uebungsSaetze[0].exercise) || 'Unbekannte Übung'}</h2>
+          <LoggedSets sets={uebungsSaetze} onEdit={setBearbeiteterSatz} />
+        </section>
+      ))}
+      <SetEditDialog
+        set={bearbeiteterSatz}
+        onClose={() => setBearbeiteterSatz(null)}
+        onSave={(setId, patch) => updateSet(setId, patch)}
+        onDelete={(setId) => deleteSet(setId)}
+      />
       <ConfirmDelete
         label="Session löschen"
         className="self-start"
@@ -120,68 +91,12 @@ function Detail({ sessionId }: { sessionId: string }) {
   )
 }
 
-/**
- * Typed into local state and written on blur — a write per keystroke would
- * store every intermediate value and reload the list under the cursor.
- * An emptied field clears the value; Number('') is 0, not "unset".
- */
-function SetField({
-  label,
-  stored,
-  max,
-  integer,
-  pflichtMeldung,
-  onCommit,
-}: {
-  label: string
-  stored: number | null
-  /** Rejected client-side too, so an out-of-range RIR never becomes a failed write. */
-  max?: number
-  /** rir and wiederholungen are integer columns: Postgres would round 2.6 to 3
-   *  and store a value nobody typed. Gewicht is numeric and stays fractional. */
-  integer?: boolean
-  /** Gesetzt = Pflichtfeld (mindestens 1): leer oder 0 wird abgelehnt und diese Meldung gezeigt. */
-  pflichtMeldung?: string
-  onCommit: (value: number | null) => void
-}) {
-  const [draft, setDraft] = useState(stored == null ? '' : zahlDe(stored))
-  const [meldung, setMeldung] = useState<string | null>(null)
-
-  function commit() {
-    const value = parseDecimal(draft, { integer })
-    // Unverändert zuerst: ein alter Satz ohne Wiederholungen (null) darf beim bloßen
-    // Antippen und Verlassen weder schreiben noch eine Meldung auslösen.
-    if (value === stored) return
-    // undefined = unlesbar (z. B. "1e1") oder Bruch in einem Ganzzahlfeld.
-    const ungueltig = value === undefined || (value !== null && (value < 0 || (max != null && value > max)))
-    const fehlt = pflichtMeldung !== undefined && (value === null || (value !== undefined && value < 1))
-    if (ungueltig || fehlt) {
-      setDraft(stored == null ? '' : zahlDe(stored))
-      setMeldung(pflichtMeldung ?? null)
-      return
-    }
-    setMeldung(null)
-    onCommit(value)
-  }
-
-  return (
-    <label className={fieldLabelClass}>
-      {label}
-      <input
-        className={inputClass}
-        value={draft}
-        aria-invalid={meldung !== null}
-        onChange={(event) => {
-          setDraft(event.target.value)
-          setMeldung(null)
-        }}
-        onBlur={commit}
-      />
-      {meldung && (
-        <span role="alert" className="text-sm font-normal text-danger">
-          {meldung}
-        </span>
-      )}
-    </label>
-  )
+/** "58 min · 400 kcal"; an unfinished session has neither, and "0 kcal" would read as a measurement. */
+function eckdaten(session: SessionInfo) {
+  if (session.beendet_am == null) return 'nicht beendet'
+  const minuten = (new Date(session.beendet_am).getTime() - new Date(session.gestartet_am).getTime()) / 60000
+  const teile = [dauerText(minuten)]
+  // Finished without a body weight in the profile: no calorie result was stored.
+  if (session.gesamt_kalorien != null) teile.push(`${Math.round(session.gesamt_kalorien)} kcal`)
+  return teile.join(' · ')
 }
