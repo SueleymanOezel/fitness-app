@@ -3,6 +3,7 @@ import type { AnalysisFoodEntry, AnalysisSessionKalorien } from '../../hooks/use
 import type { MealSectionNames } from '../../lib/meal-sections'
 import ChartPicker, { type useChartSelection } from './ChartPicker'
 import { E1, E2, E3, E4, E5, E6 } from '../../lib/analysis/registry'
+import { ChartSkeleton } from '../PageSkeleton'
 
 // Lazy an dieser einen Stelle: die Liste ist der einzige Ort, an dem ein
 // Ernaehrungsgraph noch eingebunden wird — Dashboard wie Analyse-Seite gehen
@@ -67,9 +68,9 @@ export default function NutritionChartList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {ids.map((id, index) => (
-        <Suspense key={id} fallback={<p>Lädt…</p>}>
+        <Suspense key={id} fallback={<ChartSkeleton />}>
           {graph(id, index === 0 ? leerCta : undefined)}
         </Suspense>
       ))}

@@ -27,4 +27,10 @@ describe('HomeChartList', () => {
     render(<HomeChartList ids={[H3]} sessions={[]} entries={[]} rows={[]} zeitraum={90} />)
     expect(await screen.findByText('Trends')).toBeInTheDocument()
   })
+
+  it('stacks the charts with a 24px rhythm', async () => {
+    const { container } = render(<HomeChartList ids={[H1]} sessions={[]} entries={[]} rows={[]} zeitraum={90} />)
+    expect(container.firstElementChild).toHaveClass('space-y-6')
+    expect(await screen.findByText('Aktivitätsraster', undefined, { timeout: 5000 })).toBeInTheDocument()
+  })
 })

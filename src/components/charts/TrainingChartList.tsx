@@ -2,6 +2,7 @@ import { lazy, Suspense, type ReactNode } from 'react'
 import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-analysis'
 import ChartPicker, { type useChartSelection } from './ChartPicker'
 import { T1, T2, T3, T4, T5, T6, T7, T8, T9 } from '../../lib/analysis/registry'
+import { ChartSkeleton } from '../PageSkeleton'
 
 // Lazy an dieser einen Stelle: die Liste ist der einzige Ort, an dem ein
 // Trainingsgraph noch eingebunden wird — Dashboard wie Analyse-Seite gehen
@@ -96,9 +97,9 @@ export default function TrainingChartList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {ids.map((id, index) => (
-        <Suspense key={id} fallback={<p>Lädt…</p>}>
+        <Suspense key={id} fallback={<ChartSkeleton />}>
           {graph(id, index === 0 ? leerCta : undefined)}
         </Suspense>
       ))}

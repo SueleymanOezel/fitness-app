@@ -4,6 +4,7 @@ import type { TagesPunkt } from '../../lib/analysis/nutrition-charts'
 import type { BodyMetricRow } from '../../lib/body-metrics'
 import ChartPicker, { type useChartSelection } from './ChartPicker'
 import { K1, K2, K3, K4, K5 } from '../../lib/analysis/registry'
+import { ChartSkeleton } from '../PageSkeleton'
 
 // Lazy an dieser einen Stelle: die Liste ist der einzige Ort, an dem ein
 // Koerpergraph noch eingebunden wird — Dashboard wie Analyse-Seite gehen
@@ -56,9 +57,9 @@ export default function BodyChartList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {ids.map((id, index) => (
-        <Suspense key={id} fallback={<p>Lädt…</p>}>
+        <Suspense key={id} fallback={<ChartSkeleton />}>
           {graph(id, index === 0 ? leerCta : undefined)}
         </Suspense>
       ))}

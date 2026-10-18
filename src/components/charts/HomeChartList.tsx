@@ -5,6 +5,7 @@ import type { BodyMetricRow } from '../../lib/body-metrics'
 import ChartPicker, { type useChartSelection } from './ChartPicker'
 import { H1, H2, H3 } from '../../lib/analysis/registry'
 import type { Zeitraum } from '../../lib/analysis/zeitraum'
+import { ChartSkeleton } from '../PageSkeleton'
 
 // Lazy an dieser einen Stelle: die Liste ist der einzige Ort, an dem ein
 // Home-Graph noch eingebunden wird — Dashboard wie Analyse-Seite gehen
@@ -39,9 +40,9 @@ export default function HomeChartList({ ids, sessions, entries, rows, zeitraum, 
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {ids.map((id) => (
-        <Suspense key={id} fallback={<p>Lädt…</p>}>
+        <Suspense key={id} fallback={<ChartSkeleton />}>
           {graph(id)}
         </Suspense>
       ))}
