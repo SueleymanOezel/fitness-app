@@ -205,7 +205,7 @@ describe('WorkoutSessionPage', () => {
     expect(screen.getByText(/Pause/)).toBeInTheDocument()
   })
 
-  it('lists already logged working sets, numbered separately from warm-ups', () => {
+  it('lists all logged sets, numbering only the working sets', () => {
     signedIn()
     mockUseWorkoutSession.mockReturnValue(
       sessionResult({
@@ -221,18 +221,21 @@ describe('WorkoutSessionPage', () => {
 
     fireEvent.click(screen.getByText('Bankdrücken'))
 
-    expect(screen.getByText('1 Aufwärmsatz')).toBeInTheDocument()
+    expect(screen.queryByText('1 Aufwärmsatz')).not.toBeInTheDocument()
     const tabelle = screen.getByRole('table', { name: 'Erfasste Sätze' })
     expect(within(tabelle).getByRole('columnheader', { name: 'RIR' })).toBeInTheDocument()
-    // Header row + 2 working sets: the warm-up must not also appear as its own numbered row.
+    // Header + working set 1 + warm-up + working set 2, in the order they were logged.
     const zeilen = within(tabelle).getAllByRole('row')
-    expect(zeilen).toHaveLength(3)
-    expect(zeilen[1]).toHaveTextContent('1')
+    expect(zeilen).toHaveLength(4)
+    expect(within(zeilen[1]).getByRole('button', { name: 'Satz 1 bearbeiten' })).toBeInTheDocument()
     expect(zeilen[1]).toHaveTextContent('60')
     expect(zeilen[1]).toHaveTextContent('10')
     expect(zeilen[1]).toHaveTextContent('—') // rir der Fixture ist null
-    expect(zeilen[2]).toHaveTextContent('2')
-    expect(zeilen[2]).toHaveTextContent('65')
+    expect(within(zeilen[2]).getByRole('button', { name: 'Aufwärmsatz bearbeiten' })).toBeInTheDocument()
+    expect(zeilen[2]).toHaveTextContent('Aufw.')
+    expect(zeilen[2]).toHaveTextContent('20')
+    expect(within(zeilen[3]).getByRole('button', { name: 'Satz 2 bearbeiten' })).toBeInTheDocument()
+    expect(zeilen[3]).toHaveTextContent('65')
     expect(zeilen[1]).not.toHaveClass('row-in') // beim Aufklappen vorhandener Sätze keine Einblendung
   })
 
@@ -283,7 +286,7 @@ describe('WorkoutSessionPage', () => {
     expect(screen.queryByRole('table', { name: 'Erfasste Sätze' })).not.toBeInTheDocument()
   })
 
-  it('pluralizes the warm-up count for more than one', () => {
+  it('shows warm-ups as their own rows instead of a count', () => {
     signedIn()
     mockUseWorkoutSession.mockReturnValue(
       sessionResult({
@@ -298,9 +301,11 @@ describe('WorkoutSessionPage', () => {
 
     fireEvent.click(screen.getByText('Bankdrücken'))
 
-    expect(screen.getByText('2 Aufwärmsätze')).toBeInTheDocument()
-    // Warm-ups-only: no numbered-sets list should render at all.
-    expect(screen.queryByRole('table', { name: 'Erfasste Sätze' })).not.toBeInTheDocument()
+    expect(screen.queryByText(/^\d+ Aufwärmsätze?$/)).not.toBeInTheDocument()
+    const zeilen = within(screen.getByRole('table', { name: 'Erfasste Sätze' })).getAllByRole('row')
+    expect(zeilen).toHaveLength(3) // header + 2 warm-ups
+    expect(zeilen[1]).toHaveTextContent('Aufw.')
+    expect(zeilen[2]).toHaveTextContent('Aufw.')
   })
 
   it('opens the next exercise once the pause of the last set of the current one runs out', async () => {
@@ -850,5 +855,80 @@ describe('WorkoutSessionPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
 
     await waitFor(() => expect(screen.queryByText(WIEDERHOLUNGEN_FEHLER)).not.toBeInTheDocument())
+  })
+
+  it('keeps the working-set counting when a warm-up comes first', () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({
+        sets: [
+          loggedSet({ id: 'w1', satz_nummer: 1, ist_aufwaermsatz: true }),
+          loggedSet({ id: 's1', satz_nummer: 2 }),
+          loggedSet({ id: 's2', satz_nummer: 3 }),
+        ],
+      }),
+    )
+
+    renderPage()
+    fireEvent.click(screen.getByText('Bankdrücken'))
+
+    expect(screen.getByRole('button', { name: 'Satz 1 bearbeiten' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Satz 2 bearbeiten' })).toBeInTheDocument()
+    // Two working sets of two targets are done: the form announces that, warm-up not counted.
+    expect(screen.getByText('Alle Sätze erfasst')).toBeInTheDocument()
+  })
+
+  it('opens the edit dialog by tapping a row and saves the correction', async () => {
+    signedIn()
+    const result = sessionResult({ sets: [loggedSet({ id: 'set1', gewicht: 60, wiederholungen: 10 })] })
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+    fireEvent.click(screen.getByText('Bankdrücken'))
+    fireEvent.click(within(screen.getByRole('table', { name: 'Erfasste Sätze' })).getAllByRole('row')[1])
+
+    const dialog = within(screen.getByRole('heading', { name: 'Satz bearbeiten' }).closest('form') as HTMLElement)
+    fireEvent.change(dialog.getByLabelText('Wiederholungen'), { target: { value: '12' } })
+    fireEvent.click(dialog.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() =>
+      expect(result.updateSet).toHaveBeenCalledWith('set1', {
+        gewicht: 60,
+        wiederholungen: 12,
+        rir: null,
+        ist_aufwaermsatz: false,
+      }),
+    )
+    expect(result.updateSet).toHaveBeenCalledTimes(1)
+  })
+
+  it('opens the dialog exactly once when the row button is used (keyboard / screen reader)', () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult({ sets: [loggedSet({ id: 'set1' })] }))
+
+    renderPage()
+    fireEvent.click(screen.getByText('Bankdrücken'))
+    fireEvent.click(screen.getByRole('button', { name: 'Satz 1 bearbeiten' }))
+
+    expect(screen.getAllByRole('heading', { name: 'Satz bearbeiten' })).toHaveLength(1)
+  })
+
+  it('lets a warm-up be turned into a working set from the dialog', async () => {
+    signedIn()
+    const result = sessionResult({ sets: [loggedSet({ id: 'w1', satz_nummer: 1, ist_aufwaermsatz: true })] })
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+    fireEvent.click(screen.getByText('Bankdrücken'))
+    fireEvent.click(screen.getByRole('button', { name: 'Aufwärmsatz bearbeiten' }))
+
+    const dialog = within(screen.getByRole('heading', { name: 'Satz bearbeiten' }).closest('form') as HTMLElement)
+    expect(dialog.getByLabelText('Aufwärmsatz')).toBeChecked()
+    fireEvent.click(dialog.getByLabelText('Aufwärmsatz'))
+    fireEvent.click(dialog.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() =>
+      expect(result.updateSet).toHaveBeenCalledWith('w1', expect.objectContaining({ ist_aufwaermsatz: false })),
+    )
   })
 })

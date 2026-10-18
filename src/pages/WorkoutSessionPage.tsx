@@ -25,6 +25,7 @@ import { VitaIcon } from '../components/icons/VitaIcon'
 import { useExercises } from '../hooks/use-exercises'
 import Dialog from '../components/Dialog'
 import ExercisePicker from '../components/ExercisePicker'
+import SetEditDialog from '../components/SetEditDialog'
 import { useTrainingStreak } from '../hooks/use-training-streak'
 import { streakText } from '../lib/streak'
 import { parseSetInput } from '../lib/set-values'
@@ -57,6 +58,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     sets,
     loading,
     logSet,
+    updateSet,
     completeSession,
     ermittleNeueRekorde,
     addExercisesToSession,
@@ -66,6 +68,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
   const [openExerciseId, setOpenExerciseId] = useState<string | null>(null)
   const [pause, setPause] = useState<{ until: number; sekunden: number } | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [bearbeiteterSatz, setBearbeiteterSatz] = useState<SessionSet | null>(null)
   const [abschluss, setAbschluss] = useState<{
     neueRekorde: NeuerRekord[]
     dauerMinuten: number
@@ -239,7 +242,10 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                 )}
               </div>
               {openExerciseId === entry.exercise_id && (
-                <LoggedSets sets={sets.filter((set) => set.exercise_id === entry.exercise_id)} />
+                <LoggedSets
+                  sets={sets.filter((set) => set.exercise_id === entry.exercise_id)}
+                  onEdit={setBearbeiteterSatz}
+                />
               )}
               {openExerciseId === entry.exercise_id && (
                 <SetForm
@@ -271,6 +277,11 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
           </li>
         ))}
       </ul>
+      <SetEditDialog
+        set={bearbeiteterSatz}
+        onClose={() => setBearbeiteterSatz(null)}
+        onSave={(setId, patch) => updateSet(setId, patch)}
+      />
       <Pressable variant="secondary" type="button" className="w-full" onClick={() => setPickerOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="add" tone="mono" size={20} />
@@ -397,53 +408,68 @@ function targetReached(zielSaetze: number | null, done: number) {
 }
 
 /**
- * Read-only history of what's already logged for the open exercise, shown
- * above SetForm so the next set (the form itself) reads as the one still
- * outstanding. Numbered like the "Satz N von M" status line below it — by
- * position among working sets, not by satz_nummer, which also counts
- * warm-ups (see workingSetCount).
+ * History of what's already logged for the open exercise, shown above SetForm
+ * so the next set (the form itself) reads as the one still outstanding.
+ * Warm-ups appear as rows ("Aufw."); the visible number counts working sets
+ * only, like the "Satz N von M" status line below — satz_nummer also counts
+ * warm-ups (see workingSetCount). A row opens the correction dialog.
  */
-function LoggedSets({ sets }: { sets: SessionSet[] }) {
+function LoggedSets({ sets, onEdit }: { sets: SessionSet[]; onEdit: (set: SessionSet) => void }) {
   // Snapshot beim Aufklappen: nur danach erfasste Sätze blenden ein.
   const [bekannteIds] = useState(() => new Set(sets.map((set) => set.id)))
   if (sets.length === 0) return null
 
-  const arbeitssaetze = sets.filter((set) => !set.ist_aufwaermsatz).sort((a, b) => a.satz_nummer - b.satz_nummer)
-  const aufwaermsaetze = sets.filter((set) => set.ist_aufwaermsatz)
+  // Reihenfolge wie erfasst (satz_nummer zählt alle Sätze); die sichtbare Nummer
+  // zählt nur Arbeitssätze, Aufwärmsätze tragen "Aufw." (siehe workingSetCount).
+  const sortiert = [...sets].sort((a, b) => a.satz_nummer - b.satz_nummer)
+  const nummern = new Map<string, number>()
+  let arbeitssaetze = 0
+  for (const set of sortiert) {
+    if (!set.ist_aufwaermsatz) nummern.set(set.id, (arbeitssaetze += 1))
+  }
 
   return (
-    <div className="flex flex-col gap-2">
-      {aufwaermsaetze.length > 0 && (
-        <p className="text-sm text-text-muted">
-          {aufwaermsaetze.length} {aufwaermsaetze.length === 1 ? 'Aufwärmsatz' : 'Aufwärmsätze'}
-        </p>
-      )}
-      {arbeitssaetze.length > 0 && (
-        <table aria-label="Erfasste Sätze" className="w-full text-left tabular-nums">
-          <thead>
-            <tr className={labelClass}>
-              <th className="py-1 font-medium">Satz</th>
-              <th className="py-1 font-medium">kg</th>
-              <th className="py-1 font-medium">Wdh.</th>
-              <th className="py-1 font-medium">RIR</th>
+    <table aria-label="Erfasste Sätze" className="w-full text-left tabular-nums">
+      <thead>
+        <tr className={labelClass}>
+          <th className="py-1 font-medium">Satz</th>
+          <th className="py-1 font-medium">kg</th>
+          <th className="py-1 font-medium">Wdh.</th>
+          <th className="py-1 font-medium">RIR</th>
+        </tr>
+      </thead>
+      <tbody>
+        {sortiert.map((set) => {
+          const label = set.ist_aufwaermsatz ? 'Aufw.' : String(nummern.get(set.id))
+          return (
+            // Der Zeilenklick öffnet die Korrektur; der Button in der ersten Zelle ist der
+            // Zugang für Tastatur und Screenreader — sein Klick steigt zum <tr> auf und
+            // hat bewusst keinen eigenen Handler (sonst öffnete der Dialog doppelt).
+            <tr
+              key={set.id}
+              onClick={() => onEdit(set)}
+              className={`cursor-pointer border-t border-text-muted/20 ${set.ist_aufwaermsatz ? 'text-text-muted' : ''} ${
+                bekannteIds.has(set.id) ? '' : 'row-in'
+              }`}
+            >
+              <td className="py-1">
+                <Pressable
+                  variant="bare"
+                  type="button"
+                  className="min-h-11 min-w-11 text-left"
+                  aria-label={set.ist_aufwaermsatz ? 'Aufwärmsatz bearbeiten' : `Satz ${label} bearbeiten`}
+                >
+                  {label}
+                </Pressable>
+              </td>
+              <td className="py-1">{set.gewicht ?? '—'}</td>
+              <td className="py-1">{set.wiederholungen ?? '—'}</td>
+              <td className="py-1">{set.rir ?? '—'}</td>
             </tr>
-          </thead>
-          <tbody>
-            {arbeitssaetze.map((set, index) => (
-              <tr
-                key={set.id}
-                className={`border-t border-text-muted/20 ${bekannteIds.has(set.id) ? '' : 'row-in'}`}
-              >
-                <td className="py-1">{index + 1}</td>
-                <td className="py-1">{set.gewicht ?? '—'}</td>
-                <td className="py-1">{set.wiederholungen ?? '—'}</td>
-                <td className="py-1">{set.rir ?? '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
+          )
+        })}
+      </tbody>
+    </table>
   )
 }
 
