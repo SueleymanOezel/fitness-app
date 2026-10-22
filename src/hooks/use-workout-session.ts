@@ -375,7 +375,10 @@ export function useWorkoutSession(sessionId: string) {
   }
 }
 
-export type LetzteWerte = Map<string, { gewicht: number | null; wiederholungen: number | null }>
+export type LetzteWerte = Map<
+  string,
+  { gewicht: number | null; wiederholungen: number | null; rir: number | null }
+>
 
 /**
  * The last working set of each exercise from any OTHER session, newest first —
@@ -392,7 +395,7 @@ export function useLetzteWerte(sessionId: string, exerciseIds: string[]) {
     let aktuell = true
     supabase
       .from('workout_session_sets')
-      .select('exercise_id, gewicht, wiederholungen, abgeschlossen_am')
+      .select('exercise_id, gewicht, wiederholungen, rir, abgeschlossen_am')
       .in('exercise_id', ids)
       .eq('ist_aufwaermsatz', false)
       .neq('workout_session_id', sessionId)
@@ -401,9 +404,14 @@ export function useLetzteWerte(sessionId: string, exerciseIds: string[]) {
       .then(({ data }) => {
         if (!aktuell) return
         const naechste: LetzteWerte = new Map()
-        for (const row of (data ?? []) as { exercise_id: string; gewicht: number | null; wiederholungen: number | null }[]) {
+        for (const row of (data ?? []) as {
+          exercise_id: string
+          gewicht: number | null
+          wiederholungen: number | null
+          rir: number | null
+        }[]) {
           if (!naechste.has(row.exercise_id)) {
-            naechste.set(row.exercise_id, { gewicht: row.gewicht, wiederholungen: row.wiederholungen })
+            naechste.set(row.exercise_id, { gewicht: row.gewicht, wiederholungen: row.wiederholungen, rir: row.rir })
           }
         }
         setWerte(naechste)

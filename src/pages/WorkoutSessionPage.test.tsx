@@ -375,9 +375,7 @@ describe('WorkoutSessionPage', () => {
     await waitFor(() => expect(screen.queryByRole('timer')).not.toBeInTheDocument())
     expect(screen.getByRole('status')).toHaveTextContent('Satz 1 von 2 · Kniebeuge')
     expect(screen.getByRole('button', { name: 'Satz abschließen' })).toBeInTheDocument()
-    expect(screen.getByText('Kniebeuge').closest('li')).toContainElement(
-      screen.getByRole('button', { name: 'Satz abschließen' }),
-    )
+    expect(screen.getByLabelText('Wiederholungen')).toBeInTheDocument()
   })
 
   it('signals the end of a pause that ran out: accent bar with the next set, and a vibration where available', async () => {
@@ -1145,15 +1143,42 @@ describe('WorkoutSessionPage', () => {
 
     it('starts the first set from the last workout and says so', () => {
       signedIn()
-      mockUseLetzteWerte.mockReturnValue(new Map([['ex1', { gewicht: 70, wiederholungen: 8 }]]))
+      mockUseLetzteWerte.mockReturnValue(new Map([['ex1', { gewicht: 70, wiederholungen: 8, rir: 1 }]]))
       mockUseWorkoutSession.mockReturnValue(sessionResult())
 
       renderPage()
 
-      expect(screen.getByText('Letztes Training: 70 kg × 8')).toBeInTheDocument()
+      expect(screen.getByText('Letztes Mal: 70 kg × 8 · RIR 1')).toBeInTheDocument()
       expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue('70')
       expect(screen.getByLabelText('Wiederholungen')).toHaveValue('8')
       mockUseLetzteWerte.mockReturnValue(new Map())
+    })
+
+    it('keeps showing the last workout from the second set on', () => {
+      signedIn()
+      mockUseLetzteWerte.mockReturnValue(new Map([['ex1', { gewicht: 70, wiederholungen: 8, rir: null }]]))
+      mockUseWorkoutSession.mockReturnValue(sessionResult({ sets: [loggedSet({ gewicht: 60, wiederholungen: 10 })] }))
+
+      renderPage()
+
+      expect(screen.getByText('Letztes Mal: 70 kg × 8')).toBeInTheDocument()
+      // The fields still start from today's last set, not from the earlier workout.
+      expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue('60')
+      mockUseLetzteWerte.mockReturnValue(new Map())
+    })
+
+    it('puts the pause and "Satz abschließen" into one bottom bar', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      signedIn()
+      mockUseWorkoutSession.mockReturnValue(sessionResult({ sets: [loggedSet()] }))
+
+      renderPage()
+      fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+      const timer = await screen.findByRole('timer')
+
+      const leiste = timer.closest('.fixed')
+      expect(leiste).not.toBeNull()
+      expect(leiste).toContainElement(screen.getByRole('button', { name: 'Satz abschließen' }))
     })
 
     it('changes weight and reps in steps with - and +', () => {
