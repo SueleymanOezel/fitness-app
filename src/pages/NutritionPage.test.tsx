@@ -3,6 +3,8 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { MemoryRouter } from 'react-router-dom'
 import NutritionPage from './NutritionPage'
 
+vi.mock('../hooks/use-training-kcal-heute', () => ({ useTrainingKcalHeute: () => 0 }))
+
 vi.mock('../components/AddEntryFlow', () => ({
   default: ({ onAdd }: { onAdd: (id: string, menge: number) => Promise<void> }) => (
     <button type="button" onClick={() => onAdd('p1', 150)}>

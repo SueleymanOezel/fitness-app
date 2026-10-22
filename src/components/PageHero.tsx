@@ -9,6 +9,8 @@ type Props = {
   aside?: ReactNode
   /** Genau eine Hauptaktion: Pressable variant="primary" oder PressableLink variant="primary". */
   action?: ReactNode
+  /** Eingeklappte Zusatzinfo unter dem Kopf, z. B. <details>. */
+  details?: ReactNode
   titelClass?: string
   titelTestId?: string
 }
@@ -19,6 +21,7 @@ export default function PageHero({
   untertitel,
   aside,
   action,
+  details,
   titelClass = heroTitleClass,
   titelTestId,
 }: Props) {
@@ -34,6 +37,7 @@ export default function PageHero({
           {untertitel && <div className="text-sm text-text-muted">{untertitel}</div>}
         </div>
       </div>
+      {details}
       {action}
     </section>
   )

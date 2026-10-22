@@ -9,6 +9,8 @@ import { kalorienStatus } from '../lib/calorie-status'
 import { MAKRO_FARBEN, MAKRO_LABEL, makroAnteileHeute } from '../lib/analysis/nutrition-charts'
 import { localDay } from '../lib/local-time'
 import PageHero from '../components/PageHero'
+import KalorienAufschluesselung from '../components/KalorienAufschluesselung'
+import { useTrainingKcalHeute } from '../hooks/use-training-kcal-heute'
 import ProgressRing from '../components/ProgressRing'
 import StatStrip from '../components/StatStrip'
 import LinkListCard from '../components/LinkListCard'
@@ -37,6 +39,7 @@ function NutritionDashboard({ userId }: { userId: string }) {
   const { entries, loading: entriesLoading, addEntry } = useFoodEntries(userId)
   const auswahl = useChartSelectionFor(profileResult)
   const [addOpen, setAddOpen] = useState(false)
+  const trainingKcal = useTrainingKcalHeute(userId)
 
   if (profileLoading || entriesLoading) return <PageSkeleton titel="Ernährung" />
 
@@ -75,6 +78,7 @@ function NutritionDashboard({ userId }: { userId: string }) {
         titel={status.titel}
         untertitel={status.untertitel ?? undefined}
         aside={<ProgressRing anteil={status.anteil} label={status.ringLabel} />}
+        details={<KalorienAufschluesselung profile={profile} trainingKcal={trainingKcal} />}
         action={
           <Pressable variant="primary" type="button" onClick={() => setAddOpen(true)}>
             <span className="inline-flex items-center justify-center gap-2">

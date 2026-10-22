@@ -30,6 +30,8 @@ vi.mock('../hooks/use-nutrition-analysis', () => ({
   useNutritionAnalysis: (userId: string, zeitraum: unknown) => mockUseNutritionAnalysis(userId, zeitraum),
 }))
 
+vi.mock('../hooks/use-training-kcal-heute', () => ({ useTrainingKcalHeute: () => 0 }))
+
 const mockUseHomeAnalysis = vi.fn()
 vi.mock('../hooks/use-home-analysis', () => ({
   useHomeAnalysis: (userId: string, zeitraum: unknown) => mockUseHomeAnalysis(userId, zeitraum),
