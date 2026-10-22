@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlans } from '../hooks/use-workout-plans'
-import { fieldLabelClass, inputClass, labelClass, linkClass } from '../lib/ui-classes'
+import { fieldLabelClass, inputClass, labelClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Chip from '../components/Chip'
-import Pressable, { PressableLink } from '../components/Pressable'
+import Pressable from '../components/Pressable'
 import PageSkeleton from '../components/PageSkeleton'
 
 const HAEUFIGKEITEN = [1, 2, 3, 4, 5, 6, 7]
@@ -135,10 +135,6 @@ function Wizard({ userId }: { userId: string }) {
           </Pressable>
         </section>
       )}
-      <PressableLink to="/training/plans" className={linkClass}>
-        <VitaIcon name="back" tone="brand" size={20} />
-        Zurück zu meinen Plänen
-      </PressableLink>
     </div>
   )
 }

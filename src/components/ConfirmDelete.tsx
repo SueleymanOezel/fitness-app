@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import Dialog from './Dialog'
 import Pressable, { type PressableVariant } from './Pressable'
 import { VitaIcon } from './icons/VitaIcon'
-import { cardClass } from '../lib/ui-classes'
+import { cardClass, interactiveClass } from '../lib/ui-classes'
 
 type Props = {
   /** Beschriftung des Auslöse-Buttons, z. B. „Löschen“ oder „Entfernen“. */
@@ -17,6 +17,8 @@ type Props = {
   icon?: ReactNode
   /** Not every confirmation destroys something (finishing a workout): trigger and confirm button default to danger. */
   variante?: PressableVariant
+  /** Quiet trigger (text button in the danger color, no fill) for a destructive action that should not shout from a list row; the dialog's confirm button stays red. */
+  ruhig?: boolean
 }
 
 /**
@@ -35,12 +37,18 @@ export default function ConfirmDelete({
   className,
   icon,
   variante = 'danger',
+  ruhig = false,
 }: Props) {
   const [open, setOpen] = useState(false)
 
   return (
     <>
-      <Pressable variant={variante} className={className} type="button" onClick={() => setOpen(true)}>
+      <Pressable
+        variant={ruhig ? 'bare' : variante}
+        className={ruhig ? `inline-flex min-h-11 items-center rounded-full px-3 text-sm font-medium text-danger-text ${interactiveClass}` : className}
+        type="button"
+        onClick={() => setOpen(true)}
+      >
         <span className="inline-flex items-center justify-center gap-2">
           {icon ?? <VitaIcon name="delete" tone="mono" size={20} />}
           {label}

@@ -1,7 +1,6 @@
 import { useSession } from '../hooks/use-session'
 import { useWorkoutHistory } from '../hooks/use-workout-history'
 import { cardClass, linkClass, listClass, listRowClass } from '../lib/ui-classes'
-import { VitaIcon } from '../components/icons/VitaIcon'
 import { PressableLink } from '../components/Pressable'
 import EmptyState from '../components/EmptyState'
 import LoadError from '../components/LoadError'
@@ -58,10 +57,6 @@ function HistoryList({ userId }: { userId: string }) {
           </ul>
         </div>
       )}
-      <PressableLink to="/training" className={linkClass}>
-        <VitaIcon name="back" tone="brand" size={20} />
-        Zurück zum Training
-      </PressableLink>
     </div>
   )
 }

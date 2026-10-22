@@ -8,9 +8,6 @@ import NutritionChartList from '../components/charts/NutritionChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
 import { effectiveCalorieGoal } from '../lib/nutrition-goal'
-import { VitaIcon } from '../components/icons/VitaIcon'
-import { linkClass } from '../lib/ui-classes'
-import { PressableLink } from '../components/Pressable'
 import PageSkeleton, { ChartSkeleton } from '../components/PageSkeleton'
 
 export default function NutritionAnalysisPage() {
@@ -55,10 +52,6 @@ function Analyse({ userId }: { userId: string }) {
           leerCta={{ label: 'Eintragen', to: '/nutrition' }}
         />
       )}
-      <PressableLink to="/nutrition" className={linkClass}>
-        <VitaIcon name="back" tone="brand" size={20} />
-        Zurück zum Ernährungsbereich
-      </PressableLink>
     </div>
   )
 }

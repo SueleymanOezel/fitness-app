@@ -150,12 +150,6 @@ describe('NutritionEntriesPage', () => {
     expect(reload).toHaveBeenCalled()
   })
 
-  it('links back to the nutrition dashboard', async () => {
-    await renderPage()
-
-    expect(screen.getByRole('link', { name: /Ernährung/ })).toHaveAttribute('href', '/nutrition')
-  })
-
   it('groups the entries by section and sums each one', async () => {
     await renderPage(
       entriesResult({

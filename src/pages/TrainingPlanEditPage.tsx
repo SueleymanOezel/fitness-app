@@ -88,6 +88,7 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
           key={day.id}
           day={day}
           exercises={exercises}
+          primaer={index === 0}
           canMoveUp={index > 0}
           canMoveDown={index < days.length - 1}
           onMoveDay={(direction) => run(() => moveDay(day.id, direction), 'Verschieben fehlgeschlagen.')}
@@ -119,7 +120,7 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
           Neuer Tag
           <input className={inputClass} value={newDayName} onChange={(event) => setNewDayName(event.target.value)} />
         </label>
-        <Pressable variant="primary" type="submit">
+        <Pressable variant="secondary" type="submit">
           <span className="inline-flex items-center justify-center gap-2">
             <VitaIcon name="add" tone="mono" size={20} />
             Tag hinzufügen
@@ -127,10 +128,6 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
         </Pressable>
       </form>
       {dayNameError !== '' && <p role="alert">{dayNameError}</p>}
-      <PressableLink to="/training/plans" className={linkClass}>
-        <VitaIcon name="back" tone="brand" size={20} />
-        Zurück zu meinen Plänen
-      </PressableLink>
     </div>
   )
 }
@@ -138,6 +135,7 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
 function DayBlock({
   day,
   exercises,
+  primaer,
   canMoveUp,
   canMoveDown,
   onMoveDay,
@@ -148,6 +146,8 @@ function DayBlock({
 }: {
   day: WorkoutPlanDay
   exercises: PickableExercise[]
+  /** The one primary action of the screen sits on the first day; the others stay quiet. */
+  primaer: boolean
   canMoveUp: boolean
   canMoveDown: boolean
   onMoveDay: (direction: 'up' | 'down') => void
@@ -175,13 +175,13 @@ function DayBlock({
       {(canMoveUp || canMoveDown) && (
         <div className="flex flex-wrap gap-2">
           {canMoveUp && (
-            <Pressable variant="secondary" className="min-w-11 px-3" type="button" onClick={() => onMoveDay('up')}>
-              Tag nach oben
+            <Pressable variant="secondary" className="min-w-11 px-3" type="button" aria-label="Tag nach oben" onClick={() => onMoveDay('up')}>
+              ↑︎
             </Pressable>
           )}
           {canMoveDown && (
-            <Pressable variant="secondary" className="min-w-11 px-3" type="button" onClick={() => onMoveDay('down')}>
-              Tag nach unten
+            <Pressable variant="secondary" className="min-w-11 px-3" type="button" aria-label="Tag nach unten" onClick={() => onMoveDay('down')}>
+              ↓︎
             </Pressable>
           )}
         </div>
@@ -224,9 +224,10 @@ function DayBlock({
                         variant="secondary"
                         className="min-w-11 px-3"
                         type="button"
+                        aria-label="Nach oben"
                         onClick={() => onMoveExercise(row.id, 'up')}
                       >
-                        Nach oben
+                        ↑︎
                       </Pressable>
                     )}
                     {index < day.exercises.length - 1 && (
@@ -234,9 +235,10 @@ function DayBlock({
                         variant="secondary"
                         className="min-w-11 px-3"
                         type="button"
+                        aria-label="Nach unten"
                         onClick={() => onMoveExercise(row.id, 'down')}
                       >
-                        Nach unten
+                        ↓︎
                       </Pressable>
                     )}
                     <ConfirmDelete
@@ -253,7 +255,7 @@ function DayBlock({
           </li>
         ))}
       </ul>
-      <Pressable variant="primary" type="button" onClick={() => setPickerOpen(true)}>
+      <Pressable variant={primaer ? 'primary' : 'secondary'} type="button" onClick={() => setPickerOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="add" tone="mono" size={20} />
           Übung hinzufügen

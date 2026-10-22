@@ -134,10 +134,6 @@ function ExercisesList({ userId }: { userId: string }) {
       <Dialog open={selectedExercise !== null} onClose={() => setSelectedExercise(null)}>
         {selectedExercise && <ExerciseDetailDialog exercise={selectedExercise} />}
       </Dialog>
-      <PressableLink to="/training" className={linkClass}>
-        <VitaIcon name="back" tone="brand" size={20} />
-        Zurück zum Training
-      </PressableLink>
     </div>
   )
 }

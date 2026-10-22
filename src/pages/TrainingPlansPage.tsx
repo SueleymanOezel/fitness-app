@@ -69,6 +69,7 @@ function PlansList({ userId }: { userId: string }) {
                   )}
                   <ConfirmDelete
                     label="Löschen"
+                    ruhig
                     titel="Plan löschen?"
                     text={`„${plan.name}“ mit allen Tagen und Übungen wird gelöscht. Deine bisherigen Trainings bleiben erhalten.`}
                     onConfirm={() => deletePlan(plan.id)}
@@ -84,10 +85,6 @@ function PlansList({ userId }: { userId: string }) {
           <VitaIcon name="add" tone="mono" size={20} />
           Neuer Plan
         </span>
-      </PressableLink>
-      <PressableLink to="/training" className={linkClass}>
-        <VitaIcon name="back" tone="brand" size={20} />
-        Zurück zum Training
       </PressableLink>
     </div>
   )
