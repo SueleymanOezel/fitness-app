@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
 import {
   useLetzteWerte,
   useWorkoutSession,
+  type LetzteWerte,
   type SessionExercise,
   type SessionSet,
   type SetValues,
@@ -231,11 +232,11 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     const heute = sets
       .filter((set) => set.exercise_id === entry.exercise_id && !set.ist_aufwaermsatz)
       .sort((a, b) => b.satz_nummer - a.satz_nummer)[0]
-    if (heute) return { gewicht: heute.gewicht, wiederholungen: heute.wiederholungen, ausLetztemTraining: false }
+    if (heute) return { gewicht: heute.gewicht, wiederholungen: heute.wiederholungen }
     const frueher = letzteWerte.get(entry.exercise_id)
-    if (frueher) return { ...frueher, ausLetztemTraining: true }
+    if (frueher) return frueher
     if (entry.ziel_wiederholungen != null) {
-      return { gewicht: null, wiederholungen: entry.ziel_wiederholungen, ausLetztemTraining: false }
+      return { gewicht: null, wiederholungen: entry.ziel_wiederholungen }
     }
     return null
   }
@@ -248,28 +249,33 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     }
   }
 
-  const leisteUnten = pause !== null || pauseEnde !== null
-
   return (
-    // While the bottom bar is up, "Satz abschließen" floats above it and the page can scroll past it.
-    <div
-      className={leisteUnten ? 'pb-24' : undefined}
-      style={leisteUnten ? ({ '--nav-clearance': LEISTE_ABSTAND } as CSSProperties) : undefined}
-    >
+    // The one bottom bar (pause + "Satz abschließen") floats over the page: room to scroll past it.
+    <div className={pause !== null || pauseEnde !== null ? 'pb-36' : 'pb-20'}>
       <div className="flex flex-col gap-1">
         <h1>{session.tag_name ?? 'Training'}</h1>
         <Laufzeit seit={session.gestartet_am} saetze={arbeitssaetzeGesamt} />
       </div>
-      {pause !== null && (
-        <PauseTimer
-          until={pause.until}
-          sekunden={pause.sekunden}
-          onDone={() => pauseOver(true)}
-          onSkip={() => pauseOver(false)}
-          onLaenger={() => setPause({ until: pause.until + 30_000, sekunden: pause.sekunden })}
-        />
-      )}
-      {pauseEnde !== null && <PauseEnde text={pauseEnde} onClose={() => setPauseEnde(null)} />}
+      <div className={leisteClass}>
+        {pause !== null && (
+          <PauseTimer
+            until={pause.until}
+            sekunden={pause.sekunden}
+            onDone={() => pauseOver(true)}
+            onSkip={() => pauseOver(false)}
+            onLaenger={() => setPause({ until: pause.until + 30_000, sekunden: pause.sekunden })}
+          />
+        )}
+        {pauseEnde !== null && <PauseEnde text={pauseEnde} onClose={() => setPauseEnde(null)} />}
+        {aktuelleId !== null && (
+          <Pressable variant="primary" type="submit" form={SATZ_FORM_ID}>
+            <span className="inline-flex items-center justify-center gap-2">
+              <VitaIcon name="start" tone="mono" size={20} />
+              Satz abschließen
+            </span>
+          </Pressable>
+        )}
+      </div>
       <ul role="list" className="flex flex-col gap-3">
         {exercises.map((entry) => (
           <li key={entry.exercise_id}>
@@ -307,6 +313,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                   key={`${entry.exercise_id}-${letzteWerte.has(entry.exercise_id)}`}
                   exercise={entry}
                   vorschlag={vorschlagFuer(entry)}
+                  letzte={letzteWerte.get(entry.exercise_id)}
                   completedCount={workingSetCount(entry.exercise_id)}
                   onLog={async (values) => {
                     // satz_nummer stays a running order over every set of the
@@ -417,7 +424,7 @@ function Laufzeit({ seit, saetze }: { seit: string; saetze: number }) {
   )
 }
 
-type Vorschlag = { gewicht: number | null; wiederholungen: number | null; ausLetztemTraining: boolean }
+type Vorschlag = { gewicht: number | null; wiederholungen: number | null }
 
 /** Deutsch geschrieben, ohne überflüssige Nachkommastellen (72,5 statt 72.5). */
 function alsText(wert: number | null) {
@@ -559,11 +566,14 @@ function targetReached(zielSaetze: number | null, done: number) {
 function SetForm({
   exercise,
   vorschlag,
+  letzte,
   completedCount,
   onLog,
 }: {
   exercise: SessionExercise
   vorschlag: Vorschlag | null
+  /** Last working set of an earlier workout: shown under the set counter every time, not just before the first set. */
+  letzte: LetzteWerte extends Map<string, infer V> ? V | undefined : never
   completedCount: number
   onLog: (values: SetValues) => Promise<boolean>
 }) {
@@ -575,6 +585,7 @@ function SetForm({
 
   return (
     <form
+      id={SATZ_FORM_ID}
       className="flex flex-col gap-3"
       onSubmit={async (event) => {
         event.preventDefault()
@@ -607,9 +618,9 @@ function SetForm({
               ? 'Alle Sätze erfasst'
               : `Satz ${completedCount + 1}${exercise.ziel_saetze == null ? '' : ` von ${exercise.ziel_saetze}`}`}
         </p>
-        {vorschlag?.ausLetztemTraining && (
+        {letzte && (
           <p className={labelClass}>
-            {`Letztes Training: ${vorschlag.gewicht == null ? '—' : `${alsText(vorschlag.gewicht)} kg`} × ${alsText(vorschlag.wiederholungen) || '—'}`}
+            {`Letztes Mal: ${satzText(letzte)}${letzte.rir == null ? '' : ` · RIR ${letzte.rir}`}`}
           </p>
         )}
         <ZahlFeld
@@ -652,14 +663,6 @@ function SetForm({
         </label>
         <RirChips value={rir} onChange={setRir} />
       </div>
-      {/* Sticky above the nav: the one action between sets stays under the thumb
-          while the form is on screen, without scrolling past the RIR row. */}
-      <Pressable variant="primary" type="submit" className={stickyActionClass}>
-        <span className="inline-flex items-center justify-center gap-2">
-          <VitaIcon name="start" tone="mono" size={20} />
-          Satz abschließen
-        </span>
-      </Pressable>
     </form>
   )
 }
@@ -669,11 +672,12 @@ export function formatPause(sekunden: number) {
   return `${Math.floor(sekunden / 60)}:${String(sekunden % 60).padStart(2, '0')}`
 }
 
-/** Bottom edge of the screen, above the safe area: the thumb zone, where the next tap happens anyway. */
+/** One bar on the bottom edge, above the safe area: the thumb zone, where the next tap happens anyway. */
 const leisteClass =
-  'fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 mx-auto max-w-[40rem] overflow-hidden rounded-3xl shadow-lg shadow-black/40'
-/** --nav-clearance while the bar is up: the bar's height plus a gap, so sticky actions sit above it. */
-const LEISTE_ABSTAND = 'calc(1rem + env(safe-area-inset-bottom) + 5.25rem)'
+  'fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 mx-auto flex max-w-[40rem] flex-col gap-2'
+const leisteKarteClass = 'overflow-hidden rounded-3xl shadow-lg shadow-black/40'
+/** The form the bar's submit button belongs to (the button lives outside it, in the bar). */
+const SATZ_FORM_ID = 'satz-form'
 
 function PauseTimer({
   until,
@@ -718,7 +722,7 @@ function PauseTimer({
   const anteil = remainingSeconds / Math.max(sekunden, remainingSeconds, 1)
 
   return (
-    <div className={`${leisteClass} bg-surface ring-1 ring-inset ring-text-muted/25`}>
+    <div className={`${leisteKarteClass} bg-surface ring-1 ring-inset ring-text-muted/25`}>
       <div className="flex items-center gap-2 p-2">
         <div role="timer" className="flex flex-1 items-baseline gap-2 pl-3">
           <span className={labelClass}>Pause</span>
@@ -753,7 +757,7 @@ function PauseEnde({ text, onClose }: { text: string; onClose: () => void }) {
   }, [text])
 
   return (
-    <div role="status" className={`${leisteClass} pause-ende bg-accent text-on-bright`}>
+    <div role="status" className={`${leisteKarteClass} pause-ende bg-accent text-on-bright`}>
       <Pressable
         variant="bare"
         type="button"
