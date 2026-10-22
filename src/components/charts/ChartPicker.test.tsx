@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
-import ChartPicker, { useChartSelection, useChartSelectionFor } from './ChartPicker'
+import ChartPicker, { AnpassenSchalter, useChartSelection, useChartSelectionFor } from './ChartPicker'
 
 const updateProfile = vi.fn()
 const profil = { analyse_auswahl: ['T1'] }
@@ -68,12 +68,28 @@ describe('useChartSelection', () => {
 describe('ChartPicker', () => {
   it('renders a checked box for a pinned chart', () => {
     const { result } = renderHook(() => useChartSelection('u1'))
+    act(() => result.current.setAnpassen(true))
     render(<ChartPicker id="T1" auswahl={result.current} />)
     expect(screen.getByRole('checkbox', { name: 'Auf dem Dashboard zeigen' })).toBeChecked()
   })
 
+  it('hides the box until the dashboard is being customized', () => {
+    const { result } = renderHook(() => useChartSelection('u1'))
+    const { container } = render(<ChartPicker id="T1" auswahl={result.current} />)
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  it('switches customizing on and off', () => {
+    const { result } = renderHook(() => useChartSelection('u1'))
+    const { rerender } = render(<AnpassenSchalter auswahl={result.current} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Dashboard anpassen' }))
+    rerender(<AnpassenSchalter auswahl={result.current} />)
+    expect(screen.getByRole('button', { name: 'Fertig' })).toBeInTheDocument()
+  })
+
   it('toggles on click', async () => {
     const { result } = renderHook(() => useChartSelection('u1'))
+    act(() => result.current.setAnpassen(true))
     render(<ChartPicker id="K1" auswahl={result.current} />)
     fireEvent.click(screen.getByRole('checkbox', { name: 'Auf dem Dashboard zeigen' }))
     await waitFor(() => expect(updateProfile).toHaveBeenCalledWith({ analyse_auswahl: ['T1', 'K1'] }))
