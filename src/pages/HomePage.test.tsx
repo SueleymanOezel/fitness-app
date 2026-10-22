@@ -25,6 +25,11 @@ vi.mock('../hooks/use-training-streak', () => ({
   useTrainingStreak: (userId: string) => mockUseTrainingStreak(userId),
 }))
 
+const mockUseNutritionAnalysis = vi.fn()
+vi.mock('../hooks/use-nutrition-analysis', () => ({
+  useNutritionAnalysis: (userId: string, zeitraum: unknown) => mockUseNutritionAnalysis(userId, zeitraum),
+}))
+
 const mockUseHomeAnalysis = vi.fn()
 vi.mock('../hooks/use-home-analysis', () => ({
   useHomeAnalysis: (userId: string, zeitraum: unknown) => mockUseHomeAnalysis(userId, zeitraum),
@@ -53,6 +58,7 @@ function stubDefaults() {
   // regression accidentally calling it and crashing on a destructure of
   // undefined instead of failing the "not called" assertion cleanly.
   mockUseHomeAnalysis.mockReturnValue({ sessions: [], entries: [], rows: [], loading: false, error: false })
+  mockUseNutritionAnalysis.mockReturnValue({ entries: [], sessions: [], loading: false, error: false })
 }
 
 describe('HomePage', () => {
@@ -191,13 +197,15 @@ describe('HomePage', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Lädt…')
   })
 
-  it('groups the area links in one list card', () => {
+  it('sums up the week in one card that links to the analysis', () => {
     stubDefaults()
+    mockUseTrainingStreak.mockReturnValue({ streak: { wochen: 2, dieseWoche: 1, ziel: 3 }, loading: false })
     renderWithProviders(<HomePage />)
-    expect(screen.getByRole('link', { name: 'Körper' })).toHaveAttribute('href', '/body')
-    expect(screen.getByRole('link', { name: 'Ernährung' })).toHaveAttribute('href', '/nutrition')
-    expect(screen.getByRole('link', { name: 'Analyse' })).toHaveAttribute('href', '/home/analyse')
-    expect(screen.getByRole('link', { name: 'Analyse' }).closest('ul')).toHaveClass('divide-y')
+    expect(screen.getByText('Diese Woche')).toBeInTheDocument()
+    expect(screen.getByText('1 Training')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Zur Analyse/ })).toHaveAttribute('href', '/home/analyse')
+    // The tab bar already links the areas; no second list of them on the page.
+    expect(screen.queryByRole('link', { name: 'Ernährung' })).not.toBeInTheDocument()
   })
 
   it('renders cleanly for a brand-new account', () => {
