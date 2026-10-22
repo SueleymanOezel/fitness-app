@@ -15,11 +15,15 @@ import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 import { useTrainingStreak } from '../hooks/use-training-streak'
 import { PressableLink } from '../components/Pressable'
 import PageHero from '../components/PageHero'
+import { VitaIcon } from '../components/icons/VitaIcon'
 import OpenSessionHero from '../components/OpenSessionHero'
 import { useOffeneSession } from '../hooks/use-workout-session'
 import ProgressRing from '../components/ProgressRing'
 import StatStrip, { type StatTile } from '../components/StatStrip'
-import LinkListCard from '../components/LinkListCard'
+import { cardClass, labelClass, linkClass } from '../lib/ui-classes'
+import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
+import { gewichtDieseWoche, kalorienSchnittDieseWoche, wochenAussage } from '../lib/week-summary'
+import type { BodyMetricRow } from '../lib/body-metrics'
 import EmptyState from '../components/EmptyState'
 import PageSkeleton, { ChartSkeleton } from '../components/PageSkeleton'
 
@@ -126,15 +130,35 @@ function Dashboard({ userId }: { userId: string }) {
         untertitel={status.untertitel ?? undefined}
         aside={<ProgressRing anteil={status.anteil} label={status.ringLabel} />}
       />
-      <LinkListCard
-        items={[
-          { to: '/nutrition', label: 'Ernährung', icon: 'nutrition' },
-          { to: '/training', label: 'Training', icon: 'training' },
-          { to: '/body', label: 'Körper', icon: 'body' },
-          { to: '/home/analyse', label: 'Analyse', icon: 'analysis' },
-        ]}
-      />
+      <WochenKarte userId={userId} trainings={streak.dieseWoche} rows={rows} />
       <DashboardHomeCharts userId={userId} auswahl={auswahl.auswahl} />
+    </div>
+  )
+}
+
+/**
+ * "Diese Woche" in einem Satz, verlinkt auf die Analyse. Trainings und Gewicht
+ * liegen schon vor; die Kalorien kommen per eigener Abfrage und erscheinen,
+ * sobald sie da sind — die Karte wartet nicht darauf.
+ */
+function WochenKarte({ userId, trainings, rows }: { userId: string; trainings: number; rows: BodyMetricRow[] }) {
+  const { entries } = useNutritionAnalysis(userId, 30)
+  const text = wochenAussage({
+    trainings,
+    gewicht: gewichtDieseWoche(rows),
+    kalorien: kalorienSchnittDieseWoche(entries),
+  })
+  return (
+    <div className={cardClass}>
+      <p className={labelClass}>Diese Woche</p>
+      <p className="text-lg font-semibold">{text}</p>
+      <PressableLink to="/home/analyse" className={linkClass}>
+        <VitaIcon name="analysis" tone="brand" size={20} />
+        <span>Zur Analyse</span>
+        <span aria-hidden="true" className="ml-auto text-text-muted">
+          ›
+        </span>
+      </PressableLink>
     </div>
   )
 }
