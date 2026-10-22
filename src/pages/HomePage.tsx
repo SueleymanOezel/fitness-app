@@ -16,6 +16,8 @@ import { useTrainingStreak } from '../hooks/use-training-streak'
 import { PressableLink } from '../components/Pressable'
 import PageHero from '../components/PageHero'
 import { VitaIcon } from '../components/icons/VitaIcon'
+import KalorienAufschluesselung from '../components/KalorienAufschluesselung'
+import { useTrainingKcalHeute } from '../hooks/use-training-kcal-heute'
 import OpenSessionHero from '../components/OpenSessionHero'
 import { useOffeneSession } from '../hooks/use-workout-session'
 import ProgressRing from '../components/ProgressRing'
@@ -50,6 +52,7 @@ function Dashboard({ userId }: { userId: string }) {
   const { streak, loading: streakLoading } = useTrainingStreak(userId)
   const offen = useOffeneSession(userId)
   const auswahl = useChartSelectionFor(profileResult)
+  const trainingKcal = useTrainingKcalHeute(userId)
 
   if (profileLoading || entriesLoading || trainingLoading || rowsLoading || streakLoading) {
     return <PageSkeleton titel="Home" />
@@ -129,6 +132,7 @@ function Dashboard({ userId }: { userId: string }) {
         titel={status.titel}
         untertitel={status.untertitel ?? undefined}
         aside={<ProgressRing anteil={status.anteil} label={status.ringLabel} />}
+        details={profile && <KalorienAufschluesselung profile={profile} trainingKcal={trainingKcal} />}
       />
       <WochenKarte userId={userId} trainings={streak.dieseWoche} rows={rows} />
       <DashboardHomeCharts userId={userId} auswahl={auswahl.auswahl} />

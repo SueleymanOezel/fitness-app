@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculateCalorieGoal, effectiveCalorieGoal } from './nutrition-goal'
+import { calculateCalorieGoal, effectiveCalorieGoal, kalorienAufschluesselung } from './nutrition-goal'
 
 const baseInput = {
   geschlecht: 'maennlich' as const,
@@ -67,5 +67,34 @@ describe('effectiveCalorieGoal', () => {
 
   it('falls back to the calculated value when taegliches_kalorienziel is null', () => {
     expect(effectiveCalorieGoal({ ...baseInput, taegliches_kalorienziel: null })).toBe(2759)
+  })
+})
+
+describe('kalorienAufschluesselung', () => {
+  const profil = {
+    geschlecht: 'maennlich' as const,
+    aktivitaetslevel: 'moderat' as const,
+    ziel: 'abnehmen' as const,
+    ziel_delta_kcal: 400,
+    aktuelles_gewicht: 82.4,
+    groesse: 181,
+    alter: 29,
+    taegliches_kalorienziel: null,
+  }
+
+  it('adds up: need plus delta is the goal', () => {
+    const teile = kalorienAufschluesselung(profil)!
+    expect(teile.delta).toBe(-400)
+    expect(teile.tagesbedarf + teile.delta).toBe(teile.ziel)
+    expect(teile.ziel).toBe(effectiveCalorieGoal(profil))
+  })
+
+  it('has no delta when maintaining', () => {
+    expect(kalorienAufschluesselung({ ...profil, ziel: 'halten' })!.delta).toBe(0)
+  })
+
+  it('is null for a manual goal or an incomplete profile', () => {
+    expect(kalorienAufschluesselung({ ...profil, taegliches_kalorienziel: 2200 })).toBeNull()
+    expect(kalorienAufschluesselung({ ...profil, groesse: null })).toBeNull()
   })
 })

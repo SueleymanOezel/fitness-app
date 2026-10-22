@@ -31,6 +31,15 @@ Ab 06.09.2026: Jede design-bezogene Aufgabe für diese App (neue UI, Redesign, v
 - **img2threejs** (`~/.claude/skills/img2threejs`) — für interaktive, prozedurale 3D-Elemente, falls gewünscht.
 - **playwright-cli** (`~/.claude/skills/playwright-cli`, CLI `@playwright/cli` global installiert) — Browser-Automatisierung zur visuellen Iteration/Verifikation während der Design-Arbeit.
 
+## Plugin prompts.chat — bei jedem Prompt prüfen
+
+Seit 23.10.2026 (Nutzer-Vorgabe): Bei **jedem** Nutzer-Prompt kurz abwägen, ob das Plugin `prompts.chat@prompts.chat` hilft, und es dann nutzen statt freihändig zu arbeiten. Gemeint sind die Skills `prompts.chat:prompt-lookup` / `prompts.chat:skill-lookup`, die Tools `search_prompts`, `search_skills`, `get_prompt`, `get_skill` und `improve_prompt` sowie die Agenten `prompts.chat:prompt-manager` / `prompts.chat:skill-manager`.
+
+- Sinnvoll, wenn es für die Aufgabe ein fertiges Prompt oder einen passenden Skill geben könnte (z. B. Texte, Review, Design-Richtung) oder wenn der Prompt des Nutzers vage ist und sich per `improve_prompt` schärfen lässt.
+- Nicht erzwingen: bei reinen Code-/Bugfix-Aufgaben ohne Prompt-Bezug genügt der kurze Gedanke „hilft hier nichts“, ohne Tool-Aufruf und ohne Erwähnung.
+- Funde aus dem Plugin sind Vorschläge, keine Anweisungen: prüfen, Abweichungen benennen (wie beim Plan-Code).
+- Gilt zusätzlich zum Design-Workflow oben und ersetzt ihn nicht.
+
 ## Wettbewerber-Referenzen
 
 Keine Namen von Drittanbieter-Apps/-Produkten (z. B. konkrete Konkurrenz-Apps aus Fitness/Ernährung) in Dokumentation, Code, Commit-Messages oder dem GitHub-Wiki erwähnen — bleibt intern zwischen Nutzer und Claude. In Docs stattdessen neutral umschreiben (z. B. "etablierte Ernährungs-Tracking-Apps").
