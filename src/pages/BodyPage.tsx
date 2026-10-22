@@ -91,7 +91,7 @@ function Dashboard({ userId }: { userId: string }) {
           <Pressable variant="primary" type="button" onClick={() => setFormOpen(true)}>
             <span className="inline-flex items-center justify-center gap-2">
               <VitaIcon name="measurement" tone="mono" size={20} />
-              Heute eintragen
+              {rows.some((row) => row.datum === today()) ? 'Heute bearbeiten' : 'Heute eintragen'}
             </span>
           </Pressable>
         }

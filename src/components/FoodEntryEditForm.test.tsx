@@ -299,7 +299,8 @@ describe('FoodEntryEditForm', () => {
     const { container } = render(
       <FoodEntryEditForm entry={{ ...entry, mahlzeit: 1 }} userId="u1" sections={sections} onSave={vi.fn()} onClose={vi.fn()} />,
     )
-    expect(screen.getByRole('heading', { name: 'Eintrag bearbeiten' })).toBeInTheDocument()
+    expect(screen.getByText('Eintrag bearbeiten')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument()
     expect(container.querySelector('details')).not.toHaveAttribute('open')
     expect(screen.getByText('Nährwerte des Produkts ändern')).toBeInTheDocument()
     // An entry that already has a section offers no way back to "unassigned".

@@ -72,9 +72,10 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
 
   // The hook rejects on a failed write; without this the rejection would go
   // unhandled and the user would see nothing at all.
-  async function run(action: () => Promise<void>, message: string) {
+  async function run(action: () => Promise<void>, message: string, erfolg?: string) {
     try {
       await action()
+      if (erfolg) showToast(erfolg, 'success')
     } catch {
       showToast(message, 'error')
     }
@@ -95,7 +96,7 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
           onAddExercises={(exerciseIds) =>
             run(() => addExercisesToDay(day.id, exerciseIds), 'Übung hinzufügen fehlgeschlagen.')
           }
-          onUpdateExercise={(id, patch) => run(() => updateDayExercise(id, patch), 'Speichern fehlgeschlagen.')}
+          onUpdateExercise={(id, patch) => run(() => updateDayExercise(id, patch), 'Speichern fehlgeschlagen.', 'Gespeichert.')}
           onRemoveExercise={(id) => removeDayExercise(id)}
           onMoveExercise={(exerciseRowId, direction) =>
             run(() => moveDayExercise(day.id, exerciseRowId, direction), 'Verschieben fehlgeschlagen.')

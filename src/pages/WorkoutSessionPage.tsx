@@ -201,8 +201,10 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
       // PR-Ermittlung ist reiner Bonus-Inhalt — ein Fehler hier zeigt den
       // Abschluss-Screen trotzdem, nur ohne Rekord-Sektion.
     }
-    const dauerMinuten = Math.round(
-      (new Date(ergebnis.beendetAm).getTime() - new Date(session.gestartet_am).getTime()) / 60000,
+    // Clock skew between device and server must not show a negative duration.
+    const dauerMinuten = Math.max(
+      0,
+      Math.round((new Date(ergebnis.beendetAm).getTime() - new Date(session.gestartet_am).getTime()) / 60000),
     )
     setAbschluss({
       neueRekorde,
