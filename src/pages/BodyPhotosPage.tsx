@@ -2,10 +2,8 @@ import { useState, type ChangeEvent } from 'react'
 import { useSession } from '../hooks/use-session'
 import { useBodyPhotos } from '../hooks/use-body-photos'
 import { today } from '../lib/body-metrics'
-import { cardClass, fieldLabelClass, inputClass, linkClass } from '../lib/ui-classes'
+import { cardClass, fieldLabelClass, inputClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
-import { VitaIcon } from '../components/icons/VitaIcon'
-import { PressableLink } from '../components/Pressable'
 import ConfirmDelete from '../components/ConfirmDelete'
 import PageSkeleton from '../components/PageSkeleton'
 
@@ -103,10 +101,6 @@ function Photos({ userId }: { userId: string }) {
         ))}
       </ul>
 
-      <PressableLink to="/body" className={linkClass}>
-        <VitaIcon name="back" tone="brand" size={20} />
-        Zurück zum Körperbereich
-      </PressableLink>
     </div>
   )
 }

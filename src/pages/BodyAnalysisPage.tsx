@@ -6,9 +6,6 @@ import { useChartSelection } from '../components/charts/ChartPicker'
 import BodyChartList from '../components/charts/BodyChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
-import { VitaIcon } from '../components/icons/VitaIcon'
-import { linkClass } from '../lib/ui-classes'
-import { PressableLink } from '../components/Pressable'
 import PageSkeleton, { ChartSkeleton } from '../components/PageSkeleton'
 
 export default function BodyAnalysisPage() {
@@ -47,10 +44,6 @@ function Analyse({ userId }: { userId: string }) {
           leerCta={{ label: 'Heute eintragen', to: '/body' }}
         />
       )}
-      <PressableLink to="/body" className={linkClass}>
-        <VitaIcon name="back" tone="brand" size={20} />
-        Zurück zum Körperbereich
-      </PressableLink>
     </div>
   )
 }

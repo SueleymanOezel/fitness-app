@@ -32,6 +32,18 @@ describe('AppLayout', () => {
     expect(screen.getByRole('link', { name: 'Zurück zum Training' })).toHaveAttribute('href', '/training')
   })
 
+  it('puts the way back at the top of every sub page, with the tab bar kept', () => {
+    render(
+      <MemoryRouter initialEntries={['/body/entries']}>
+        <AppLayout>
+          <p>content</p>
+        </AppLayout>
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('link', { name: 'Zurück zum Körperbereich' })).toHaveAttribute('href', '/body')
+    expect(screen.getByRole('navigation')).toBeInTheDocument()
+  })
+
   it('keeps the tab bar everywhere else', () => {
     render(
       <MemoryRouter initialEntries={['/training']}>

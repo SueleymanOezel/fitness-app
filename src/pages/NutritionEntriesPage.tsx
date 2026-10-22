@@ -8,8 +8,7 @@ import FoodEntryList from '../components/FoodEntryList'
 import AddEntryFlow from '../components/AddEntryFlow'
 import Dialog from '../components/Dialog'
 import { VitaIcon } from '../components/icons/VitaIcon'
-import Pressable, { PressableLink } from '../components/Pressable'
-import { linkClass } from '../lib/ui-classes'
+import Pressable from '../components/Pressable'
 import PageSkeleton from '../components/PageSkeleton'
 
 export default function NutritionEntriesPage() {
@@ -66,10 +65,6 @@ function EntriesBySection({ userId }: { userId: string }) {
           />
         )
       })}
-      <PressableLink to="/nutrition" className={linkClass}>
-        <VitaIcon name="back" tone="brand" size={20} />
-        Zurück zur Ernährung
-      </PressableLink>
     </div>
   )
 }

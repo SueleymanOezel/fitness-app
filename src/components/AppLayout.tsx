@@ -6,6 +6,7 @@ import { VitaIcon } from './icons/VitaIcon'
 import { PressableLink } from './Pressable'
 import { interactiveClass } from '../lib/ui-classes'
 import { useOnline } from '../hooks/use-online'
+import { parentRoute } from '../lib/parent-route'
 
 const iconLinkClass = `inline-flex min-h-11 min-w-11 items-center justify-center rounded-full ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
 
@@ -13,7 +14,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const online = useOnline()
   // The live workout is a focused mode: no tab bar to mistap between sets, the
   // pause timer owns the bottom edge, and the way out is the arrow at the top.
-  const fokus = useLocation().pathname.startsWith('/training/session/')
+  const pathname = useLocation().pathname
+  const fokus = pathname.startsWith('/training/session/')
+  // Every sub page has its way back at the top, where the thumb expects it.
+  const zurueck = parentRoute(pathname)
   return (
     <ToastProvider>
       <div
@@ -22,8 +26,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         }
       >
         <header>
-          {fokus ? (
-            <PressableLink to="/training" aria-label="Zurück zum Training" className={`mr-auto ${iconLinkClass}`}>
+          {zurueck ? (
+            <PressableLink to={zurueck.to} aria-label={zurueck.label} className={`mr-auto ${iconLinkClass}`}>
               <VitaIcon name="back" tone="brand" />
             </PressableLink>
           ) : (

@@ -3,9 +3,8 @@ import { useSession } from '../hooks/use-session'
 import { ProfileWeightSyncError, useBodyMetrics } from '../hooks/use-body-metrics'
 import { MEASUREMENT_FIELDS, feldTeile, type BodyMetricRow } from '../lib/body-metrics'
 import BodyEntryForm from '../components/BodyEntryForm'
-import { cardClass, interactiveClass, linkClass, listClass } from '../lib/ui-classes'
+import { cardClass, interactiveClass, listClass } from '../lib/ui-classes'
 import Dialog from '../components/Dialog'
-import { VitaIcon } from '../components/icons/VitaIcon'
 import { useToast } from '../components/ToastProvider'
 import Pressable, { PressableLink } from '../components/Pressable'
 import EmptyState from '../components/EmptyState'
@@ -155,10 +154,6 @@ function Entries({ userId }: { userId: string }) {
         )}
       </Dialog>
 
-      <PressableLink to="/body" className={linkClass}>
-        <VitaIcon name="back" tone="brand" size={20} />
-        Zurück zum Körperbereich
-      </PressableLink>
     </div>
   )
 }

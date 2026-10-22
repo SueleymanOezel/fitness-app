@@ -6,9 +6,6 @@ import { useChartSelection } from '../components/charts/ChartPicker'
 import TrainingChartList from '../components/charts/TrainingChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
-import { VitaIcon } from '../components/icons/VitaIcon'
-import { linkClass } from '../lib/ui-classes'
-import { PressableLink } from '../components/Pressable'
 import PageSkeleton, { ChartSkeleton } from '../components/PageSkeleton'
 
 export default function TrainingAnalysisPage() {
@@ -48,10 +45,6 @@ function Analyse({ userId }: { userId: string }) {
           leerCta={{ label: 'Training starten', to: '/training' }}
         />
       )}
-      <PressableLink to="/training" className={linkClass}>
-        <VitaIcon name="back" tone="brand" size={20} />
-        Zurück zum Trainingsbereich
-      </PressableLink>
     </div>
   )
 }

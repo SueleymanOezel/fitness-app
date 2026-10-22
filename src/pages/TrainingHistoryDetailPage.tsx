@@ -84,10 +84,6 @@ function Detail({ sessionId }: { sessionId: string }) {
           navigate('/training/history')
         }}
       />
-      <PressableLink to="/training/history" className={linkClass}>
-        <VitaIcon name="back" tone="brand" size={20} />
-        Zurück zur Historie
-      </PressableLink>
     </div>
   )
 }

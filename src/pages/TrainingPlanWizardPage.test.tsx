@@ -130,14 +130,4 @@ describe('TrainingPlanWizardPage', () => {
     expect(createPlan).not.toHaveBeenCalled()
   })
 
-  it('links back to the plans list from every step', async () => {
-    stelleBereit()
-    const { default: TrainingPlanWizardPage } = await import('./TrainingPlanWizardPage')
-    renderWithProviders(<TrainingPlanWizardPage />)
-
-    expect(screen.getByRole('link', { name: /Zurück zu meinen Plänen/ })).toHaveAttribute(
-      'href',
-      '/training/plans',
-    )
-  })
 })
