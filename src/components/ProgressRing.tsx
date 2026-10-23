@@ -21,7 +21,8 @@ export default function ProgressRing({ anteil, label, size = 72 }: { anteil: num
           fill="none"
           strokeWidth="8"
           strokeLinecap="round"
-          className="ring-fill stroke-chart-mint"
+          // Only ever shows calories: nutrition orange.
+          className="ring-fill stroke-chart-orange"
           strokeDasharray={LAENGE}
           strokeDashoffset={LAENGE * (1 - gefuellt)}
           style={{ '--ring-length': LAENGE } as CSSProperties}

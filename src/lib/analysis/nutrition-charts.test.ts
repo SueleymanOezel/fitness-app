@@ -8,6 +8,8 @@ import {
   kalorienbilanz,
 } from './nutrition-charts'
 import type { MealSectionNames } from '../meal-sections'
+import { MAKRO_FARBEN, MAKRO_LABEL } from './nutrition-charts'
+import { ORANGE_TOENE } from './chart-colors'
 
 const um = (tag: number, stunde: number) => new Date(2026, 7, tag, stunde, 0).toISOString()
 
@@ -229,5 +231,14 @@ describe('kalorienbilanz', () => {
       [{ gestartet_am: um(24, 18), gesamt_kalorien: null }],
     )
     expect(punkte).toEqual([{ tag: '2026-08-24', bilanz: 2000 }])
+  })
+})
+
+// Nutrition owns the orange family; the macros differ by lightness within it, and their labels stay.
+describe('MAKRO_FARBEN', () => {
+  it('gives every macro its own tone from the orange family', () => {
+    const farben = Object.values(MAKRO_LABEL).map((label) => MAKRO_FARBEN[label])
+    expect(new Set(farben).size).toBe(3)
+    for (const farbe of farben) expect(Object.values(ORANGE_TOENE)).toContain(farbe)
   })
 })

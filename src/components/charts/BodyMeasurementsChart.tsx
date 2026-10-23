@@ -1,26 +1,16 @@
 import type { ReactNode } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { UMFANG_FIELDS, umfaengeVerlauf, type UmfangFeld } from '../../lib/analysis/body-charts'
+import { UMFANG_FIELDS, umfaengeVerlauf } from '../../lib/analysis/body-charts'
 import { feldTeile, type BodyMetricRow } from '../../lib/body-metrics'
 import { tooltipZahl, zahlDe } from '../../lib/zahl'
 import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 import { UMFAENGE_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
-import { CHART_BLUE, CHART_GREEN, CHART_MINT, CHART_ORANGE, CHART_VIOLET, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
+import { BEREICH_FARBE, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = UMFAENGE_TITEL
 
-/** Feste Farbe je Umfang: eine wechselnde Zuordnung waere zwischen zwei
- *  Zeitraeumen nicht wiedererkennbar. Reihenfolge exakt wie im Design-Spec
- *  (Bauch/Bein/Arm/Ruecken/Brust -> Mint/Blau/Gruen/Orange/Violett). */
-const FARBEN: Record<UmfangFeld, string> = {
-  bauchumfang: CHART_MINT,
-  beinumfang: CHART_BLUE,
-  armumfang: CHART_GREEN,
-  ruckenumfang: CHART_ORANGE,
-  brustumfang: CHART_VIOLET,
-}
 
 /**
  * One small chart per circumference (small multiples) instead of five lines on
@@ -71,7 +61,8 @@ export default function BodyMeasurementsChart({
                       type="monotone"
                       dataKey={feld}
                       name={name}
-                      stroke={FARBEN[feld]}
+                      // Every measurement has its own small chart and title: color only says "body".
+                      stroke={BEREICH_FARBE.koerper}
                       strokeWidth={2}
                       dot={false}
                       // Wer den Bauch jede Woche misst und den Arm jeden Monat, hat

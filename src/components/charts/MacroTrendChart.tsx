@@ -4,7 +4,8 @@ import { makroVerlauf } from '../../lib/analysis/nutrition-charts'
 import type { AnalysisFoodEntry } from '../../hooks/use-nutrition-analysis'
 import { MAKRO_VERLAUF_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
-import { CHART_BLUE, CHART_GREEN, CHART_MINT, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
+import { achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
+import { MAKRO_FARBEN, MAKRO_LABEL } from '../../lib/analysis/nutrition-charts'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = MAKRO_VERLAUF_TITEL
@@ -28,13 +29,13 @@ export default function MacroTrendChart({
           <XAxis {...achseProps} dataKey="label" />
           <YAxis {...yAchseProps} unit=" g" />
           <Tooltip />
-          <Line type="monotone" dataKey="eiweiss" name="Eiweiß (g)" stroke={CHART_MINT} dot={false} />
-          <Line type="monotone" dataKey="fett" name="Fett (g)" stroke={CHART_GREEN} dot={false} />
+          <Line type="monotone" dataKey="eiweiss" name="Eiweiß (g)" stroke={MAKRO_FARBEN[MAKRO_LABEL.eiweiss]} dot={false} />
+          <Line type="monotone" dataKey="fett" name="Fett (g)" stroke={MAKRO_FARBEN[MAKRO_LABEL.fett]} dot={false} />
           <Line
             type="monotone"
             dataKey="kohlenhydrate"
             name="Kohlenhydrate (g)"
-            stroke={CHART_BLUE}
+            stroke={MAKRO_FARBEN[MAKRO_LABEL.kohlenhydrate]}
             dot={false}
           />
           <Legend />

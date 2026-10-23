@@ -27,4 +27,10 @@ describe('ProgressRing', () => {
     const { container } = render(<ProgressRing anteil={0} label="x" />)
     expect(container.querySelector('.ring-fill')).toBeNull()
   })
+
+  // The ring only ever shows calories: nutrition's orange, not training's mint (area colors, 23.10.2026).
+  it('zeichnet in der Ernährungsfarbe', () => {
+    const { container } = render(<ProgressRing anteil={0.5} label="x" />)
+    expect(container.querySelector('.ring-fill')).toHaveClass('stroke-chart-orange')
+  })
 })

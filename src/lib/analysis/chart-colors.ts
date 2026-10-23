@@ -37,5 +37,12 @@ export const gitterProps = { stroke: CHART_GRID, strokeDasharray: '3 3', vertica
  */
 export const BEREICH_FARBE = { training: CHART_MINT, ernaehrung: CHART_ORANGE, koerper: CHART_VIOLET } as const
 
+/**
+ * Nutrition's three macros share one chart, so they stay in the orange family
+ * and differ by lightness (relative luminance in brackets), which still parts
+ * them for color-blind eyes; each keeps its label. All ≥3:1 on a card (contrast.test.ts).
+ */
+export const ORANGE_TOENE = { kern: CHART_ORANGE /* 0.33 */, amber: '#ffb347' /* 0.54 */, sand: '#ffdcb0' /* 0.76 */ } as const
+
 /** Fixed cycle for charts with more categories than dedicated colors (T6, E4). */
 export const CHART_PALETTE = [CHART_MINT, CHART_BLUE, CHART_GREEN, CHART_ORANGE, CHART_VIOLET]
