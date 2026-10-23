@@ -5,7 +5,6 @@ import BottomNav from './BottomNav'
 import { attachPressFeedback } from '../lib/press-feedback'
 
 vi.mock('../lib/press-feedback', () => ({ attachPressFeedback: vi.fn(() => vi.fn()) }))
-vi.mock('../lib/gsap-loader', () => ({ loadGsap: () => Promise.resolve({}) }))
 
 function renderNav(initialPath = '/') {
   return render(
@@ -57,10 +56,11 @@ describe('BottomNav', () => {
     expect(home.className).toContain('focus-visible:ring-offset-surface-raised')
   })
 
-  it('attaches tap feedback to every tab', () => {
+  // The elastic spring overshoots 1.0 while the active fill swaps, which read as the bar
+  // growing and shrinking on a tap (user report 23.10.2026). Tabs only dim while pressed.
+  it('does not spring the tabs on tap, they only dim', () => {
     renderNav()
-    for (const name of ['Home', 'Training', 'Ernährung', 'Körper']) {
-      expect(attachPressFeedback).toHaveBeenCalledWith(screen.getByRole('link', { name }))
-    }
+    expect(attachPressFeedback).not.toHaveBeenCalled()
+    expect(screen.getByRole('link', { name: 'Training' }).className).toContain('active:opacity-80')
   })
 })
