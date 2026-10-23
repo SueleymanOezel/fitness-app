@@ -30,7 +30,7 @@ export default function PageHero({
       <div className="flex items-center gap-4">
         {aside}
         <div className="flex min-w-0 flex-col gap-1">
-          <p className={labelClass}>{label}</p>
+          <h2 className={`font-sans ${labelClass}`}>{label}</h2>
           <p className={titelClass} data-testid={titelTestId}>
             {titel}
           </p>

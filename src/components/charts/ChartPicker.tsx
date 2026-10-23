@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useProfile } from '../../hooks/use-profile'
 import { parseAuswahl, toggleAuswahl } from '../../lib/analysis/auswahl'
-import { CHART_IDS, chartsFor, type Bereich } from '../../lib/analysis/registry'
-import { cardClass, checkLabelClass, listClass } from '../../lib/ui-classes'
+import { CHART_IDS, CHARTS, chartsFor, type Bereich } from '../../lib/analysis/registry'
+import { cardClass, checkLabelClass, interactiveClass, listClass } from '../../lib/ui-classes'
 import Pressable from '../Pressable'
 
 /**
@@ -77,6 +77,8 @@ export default function ChartPicker({
         type="checkbox"
         checked={auswahl.istGewaehlt(id)}
         onChange={() => auswahl.umschalten(id)}
+        // Nine identical "Auf dem Dashboard zeigen" boxes say nothing to a screen reader; the chart's name does.
+        aria-label={`${CHARTS.find((chart) => chart.id === id)?.titel ?? 'Graph'} auf dem Dashboard zeigen`}
       />
       Auf dem Dashboard zeigen
     </label>
@@ -87,10 +89,11 @@ export default function ChartPicker({
 export function AnpassenSchalter({ auswahl }: { auswahl: ReturnType<typeof useChartSelection> }) {
   return (
     <div className="flex flex-col gap-2">
+      {/* A quiet text action, not a fifth chip next to the period chips. */}
       <Pressable
-        variant="secondary"
+        variant="bare"
         type="button"
-        className="self-start"
+        className={`inline-flex min-h-11 items-center self-start rounded-full text-sm font-semibold text-accent-text underline-offset-2 hover:underline ${interactiveClass}`}
         aria-pressed={auswahl.anpassen}
         onClick={() => auswahl.setAnpassen(!auswahl.anpassen)}
       >

@@ -17,6 +17,8 @@ type Props = {
   icon?: ReactNode
   /** Not every confirmation destroys something (finishing a workout): trigger and confirm button default to danger. */
   variante?: PressableVariant
+  /** Accessible name when the visible label alone is ambiguous in a list ("Löschen" next to every plan). */
+  ariaLabel?: string
   /** Quiet trigger (text button in the danger color, no fill) for a destructive action that should not shout from a list row; the dialog's confirm button stays red. */
   ruhig?: boolean
 }
@@ -38,6 +40,7 @@ export default function ConfirmDelete({
   icon,
   variante = 'danger',
   ruhig = false,
+  ariaLabel,
 }: Props) {
   const [open, setOpen] = useState(false)
 
@@ -47,6 +50,7 @@ export default function ConfirmDelete({
         variant={ruhig ? 'bare' : variante}
         className={ruhig ? `inline-flex min-h-11 items-center rounded-full px-3 text-sm font-medium text-danger-text ${interactiveClass}` : className}
         type="button"
+        aria-label={ariaLabel}
         onClick={() => setOpen(true)}
       >
         <span className="inline-flex items-center justify-center gap-2">

@@ -89,7 +89,6 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
           key={day.id}
           day={day}
           exercises={exercises}
-          primaer={index === 0}
           canMoveUp={index > 0}
           canMoveDown={index < days.length - 1}
           onMoveDay={(direction) => run(() => moveDay(day.id, direction), 'Verschieben fehlgeschlagen.')}
@@ -136,7 +135,6 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
 function DayBlock({
   day,
   exercises,
-  primaer,
   canMoveUp,
   canMoveDown,
   onMoveDay,
@@ -147,8 +145,6 @@ function DayBlock({
 }: {
   day: WorkoutPlanDay
   exercises: PickableExercise[]
-  /** The one primary action of the screen sits on the first day; the others stay quiet. */
-  primaer: boolean
   canMoveUp: boolean
   canMoveDown: boolean
   onMoveDay: (direction: 'up' | 'down') => void
@@ -176,12 +172,12 @@ function DayBlock({
       {(canMoveUp || canMoveDown) && (
         <div className="flex flex-wrap gap-2">
           {canMoveUp && (
-            <Pressable variant="secondary" className="min-w-11 px-3" type="button" aria-label="Tag nach oben" onClick={() => onMoveDay('up')}>
+            <Pressable variant="secondary" className="min-w-11 px-3" type="button" aria-label={`${day.name} nach oben`} onClick={() => onMoveDay('up')}>
               ↑︎
             </Pressable>
           )}
           {canMoveDown && (
-            <Pressable variant="secondary" className="min-w-11 px-3" type="button" aria-label="Tag nach unten" onClick={() => onMoveDay('down')}>
+            <Pressable variant="secondary" className="min-w-11 px-3" type="button" aria-label={`${day.name} nach unten`} onClick={() => onMoveDay('down')}>
               ↓︎
             </Pressable>
           )}
@@ -256,7 +252,7 @@ function DayBlock({
           </li>
         ))}
       </ul>
-      <Pressable variant={primaer ? 'primary' : 'secondary'} type="button" onClick={() => setPickerOpen(true)}>
+      <Pressable variant="secondary" type="button" onClick={() => setPickerOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">
           <VitaIcon name="add" tone="mono" size={20} />
           Übung hinzufügen

@@ -70,7 +70,7 @@ describe('ChartPicker', () => {
     const { result } = renderHook(() => useChartSelection('u1'))
     act(() => result.current.setAnpassen(true))
     render(<ChartPicker id="T1" auswahl={result.current} />)
-    expect(screen.getByRole('checkbox', { name: 'Auf dem Dashboard zeigen' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'Trainingsfrequenz auf dem Dashboard zeigen' })).toBeChecked()
   })
 
   it('hides the box until the dashboard is being customized', () => {
@@ -91,7 +91,7 @@ describe('ChartPicker', () => {
     const { result } = renderHook(() => useChartSelection('u1'))
     act(() => result.current.setAnpassen(true))
     render(<ChartPicker id="K1" auswahl={result.current} />)
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Auf dem Dashboard zeigen' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Gewichtsverlauf (kg) auf dem Dashboard zeigen' }))
     await waitFor(() => expect(updateProfile).toHaveBeenCalledWith({ analyse_auswahl: ['T1', 'K1'] }))
   })
 })

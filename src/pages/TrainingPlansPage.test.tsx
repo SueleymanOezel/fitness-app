@@ -88,7 +88,7 @@ describe('TrainingPlansPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Aktivieren' }))
     await waitFor(() => expect(result.activatePlan).toHaveBeenCalledWith('p1'))
 
-    fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+    fireEvent.click(screen.getByRole('button', { name: / löschen$/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
     await waitFor(() => expect(result.deletePlan).toHaveBeenCalledWith('p1'))
   })
@@ -130,7 +130,7 @@ describe('TrainingPlansPage', () => {
 
     const { default: TrainingPlansPage } = await import('./TrainingPlansPage')
     renderWithProviders(<TrainingPlansPage />)
-    fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+    fireEvent.click(screen.getByRole('button', { name: / löschen$/ }))
 
     expect(result.deletePlan).not.toHaveBeenCalled()
     expect(screen.getByRole('heading', { name: 'Plan löschen?' })).toBeInTheDocument()
