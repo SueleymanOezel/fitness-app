@@ -108,9 +108,19 @@ Seit 22.09.2026: Ein per `/graphify` gebauter Wissensgraph-Snapshot liegt unter 
 
 Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer Chat sofort weiß, was gemacht wurde und was als Nächstes ansteht.
 
-### ▶ Neuer Chat: genau hier weitermachen (Stand 23.10.2026)
+### ▶ Neuer Chat: genau hier weitermachen (Stand 23.10.2026, nach dem zweiten Fix-Durchgang)
 
-**Stand:** Alles ist gemerged, deployed, live verifiziert (Hash lokal = live, Marker im Live-Bundle). **Kein offener Feature-PR, keine aktive Worktree** (offen nur Dependabot-PRs #32, #69–#72, #80). `master` = `c82fefc` (PR #108), Live-Bundle `index-DisErC5I.js`. Letzter Audit-Stand: **26/40** (Snapshot `.impeccable/critique/2026-10-18T23-32-05Z__vitaloop-web-app.md`); die daraus abgeleiteten Funde sind bis auf die unten genannten Reste umgesetzt, ein **erneutes Re-Audit (`/impeccable critique`, dual-agent, Fixture-Prüfung 390 px) steht noch aus** und ist der naheliegende nächste Schritt.
+**Stand:** Alles gemerged, deployed, live verifiziert. **Kein offener Feature-PR, keine aktive Worktree.** `master` = `0aef32c` (PR #114), Live-Bundle `index-DByBnWT4.js`. **Re-Audit 23.10.: 26/40** (Snapshot `.impeccable/critique/2026-10-23T00-39-11Z__vitaloop-web-app.md`); alle daraus abgeleiteten Funde sind umgesetzt (PRs #109–#114, Wiki `Re-Audit-2026-10-23-Fixes`). **Naheliegender nächster Schritt: erneutes Re-Audit** (`/impeccable critique`, zwei Agenten nacheinander, Fixture 390 px; Detektor-Overlay nur im Test-Tab per CDP `Page.setBypassCSP`).
+
+**Zweiter Durchgang 23.10. (Nutzer: „Gym + Erfassen“ zuerst, Look jetzt mitnehmen, alles inkl. Minor):**
+- #109 Session: RIR-Reihe nie unter der Pausen-Leiste (Formular scrollt nach dem Speichern mit `scroll-mb` in Leistenhöhe ins Bild), Häkchen-Icon, `aria-expanded`, „<Übung> entfernen“ ruhig in der offenen Karte.
+- #110 Eintrags-Sheet: Suche fokussiert (`data-autofocus`), „Scannen | Manuell“ in einer Reihe, Barcode-Nummer eingeklappt, Mengenfeld fokussiert mit Komma (`parseDecimal`) und Schnellmengen, `ProductPicker onCancel` optional (im Dialog nur das ✕).
+- #111 Look: **Barlow / Barlow Semi Condensed** (selbst gehostet via `@fontsource`, Latin-Subset), `--font-display` für Titel/Kennzahlen/Timer, Seitentitel in Versalien; Graphfarbe je Bereich (`BEREICH_FARBE`: Training Mint, Ernährung Orange, Körper Lila).
+- #112 Analyse: „Kurz gesagt“ (`src/lib/analysis/erkenntnisse.ts`), eine Übungsauswahl für T2–T5 (Prop `uebung`), Hauptgraphen T1/T2/T8 + „Mehr Graphen“, kompakte Checkliste im Anpassen-Modus (`AnpassenListe`), Einheiten in allen Titeln, `ganzzahligeAchse`.
+- #113 Konsistenz/A11y: Primär nach Bedeutung (aktuelle Mahlzeit), Profil mit Zurück-Pfeil, eindeutige aria-Namen (`ConfirmDelete ariaLabel`), `PageHero`-Label als `h2`.
+- #114 Minor: Home „Diese Woche 2 von 3“ statt „—“, Login mit Nutzensatz + Passwortregel + Feldfehlern (`aria-invalid`, roter Rand in `inputClass`), Makros = 100 %, Historie ohne Doppelnamen, `ChartFrame leerHinweis`.
+
+**Noch offen:** „Kurz gesagt“ nur in der Trainings-Analyse; Trainings-kcal stehen neben, nicht in der Zielrechnung (bewusst); verschachtelte Scrollbereiche im Eintrags-Sheet; Dependabot-PRs #32, #69–#72, #80. Arbeitsweise: Folge-PRs, die dieselben Dateien anfassen, auf den vorigen Branch stapeln und Merge-Reihenfolge im PR nennen.
 
 **Erledigt am 22./23.10.2026 (je ein PR, Wiki `Re-Audit-2026-10-23-Fixes`):**
 - #102 Live-Session: Pausen-Timer und „Satz abschließen“ sind **eine feste Leiste unten** (`leisteClass` in `WorkoutSessionPage.tsx`, der Button hängt per `form`-Attribut am Formular `satz-form`); „Letztes Mal: 70 kg × 8 · RIR 1“ bei **jedem** Satz (`useLetzteWerte` liefert jetzt `rir`).
