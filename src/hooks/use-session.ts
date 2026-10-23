@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { cacheLeeren } from '../lib/stale-cache'
+import { gespeicherteSession } from '../lib/stored-session'
 
 /**
  * The last session this tab learned about. Every page calls useSession() on its
@@ -23,12 +24,16 @@ export function useSession() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      bekannteSession = data.session
-      setSession(data.session)
+      // null with a stored session = the refresh failed on the network, not a sign-out.
+      const aktuell = data.session ?? gespeicherteSession()
+      bekannteSession = aktuell
+      setSession(aktuell)
       setLoading(false)
     })
 
-    const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
+      // INITIAL_SESSION is null for the same network hiccup; getSession above decides that case.
+      if (event === 'INITIAL_SESSION' && newSession === null) return
       bekannteSession = newSession
       // Signed out (or the session expired for good): the last-known copies of this user's data go with it.
       if (newSession === null) cacheLeeren()
