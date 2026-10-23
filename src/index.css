@@ -56,6 +56,8 @@
   --color-chart-green: #49be69;
   --color-chart-orange: #ff6f43;
   --color-chart-violet: #8766ed;
+  /* Body data: its own magenta lilac (hue 308°, 6.2:1 on a card), apart from the action lilac. */
+  --color-chart-koerper: #e283d6;
   --color-chart-grid: #5e5f66;
 
   /* Barlow: plain-spoken grotesk with gym-signage roots. Text in Barlow, titles and numbers in the semi-condensed cut — a scoreboard voice for kg, kcal and timers. */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { contrastRatio } from './contrast'
-import { ORANGE_TOENE } from './analysis/chart-colors'
+import { BEREICH_FARBE, ORANGE_TOENE } from './analysis/chart-colors'
 
 describe('contrastRatio', () => {
   it('gives the maximum ratio for black on white', () => {
@@ -83,5 +83,12 @@ describe('contrastRatio', () => {
   // Area colors on data (macro bars and lines): every tone is a graphic on a card and needs 3:1.
   it.each(Object.entries(ORANGE_TOENE))('clears the 3:1 graphics minimum on a card for area tone %s', (_name, farbe) => {
     expect(contrastRatio(farbe, SURFACE)).toBeGreaterThanOrEqual(3)
+  })
+
+  // Body data had exactly the action lilac (#8766ed): a weight line and a button were the same color.
+  it('gives body data its own color: apart from the action lilac and at least 3:1 on a card', () => {
+    expect(BEREICH_FARBE.koerper).not.toBe(ACCENT)
+    expect(contrastRatio(BEREICH_FARBE.koerper, ACCENT)).toBeGreaterThan(1.5)
+    expect(contrastRatio(BEREICH_FARBE.koerper, SURFACE)).toBeGreaterThanOrEqual(3)
   })
 })
