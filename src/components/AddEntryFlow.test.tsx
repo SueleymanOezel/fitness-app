@@ -48,7 +48,7 @@ describe('AddEntryFlow', () => {
     const { default: AddEntryFlow } = await import('./AddEntryFlow')
     render(<AddEntryFlow onAdd={onAdd} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Barcode scannen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Scannen' }))
     expect(screen.getByText('Scanner aktiv')).toBeInTheDocument()
 
     mockOnDetected.current('4001234567890')
@@ -66,7 +66,7 @@ describe('AddEntryFlow', () => {
     const { default: AddEntryFlow } = await import('./AddEntryFlow')
     render(<AddEntryFlow onAdd={vi.fn()} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Barcode scannen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Scannen' }))
     mockOnDetected.current('4001234567890')
     await waitFor(() => expect(screen.getByText('Gefundenes Produkt')).toBeInTheDocument())
 
@@ -78,6 +78,23 @@ describe('AddEntryFlow', () => {
     expect(screen.queryByText(/≈/)).not.toBeInTheDocument()
   })
 
+  it('offers quick amounts and focuses the amount field', async () => {
+    mockFindOrFetch.mockResolvedValue(product)
+    const { default: AddEntryFlow } = await import('./AddEntryFlow')
+    render(<AddEntryFlow onAdd={vi.fn()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Scannen' }))
+    mockOnDetected.current('4001234567890')
+    await waitFor(() => expect(screen.getByLabelText('Menge (g)')).toHaveFocus())
+
+    fireEvent.click(screen.getByRole('button', { name: '200 g' }))
+    expect(screen.getByLabelText('Menge (g)')).toHaveValue('200')
+    expect(screen.getByText('≈ 400 kcal')).toBeInTheDocument()
+    // A comma is a decimal mark, not an error.
+    fireEvent.change(screen.getByLabelText('Menge (g)'), { target: { value: '12,5' } })
+    expect(screen.getByText('≈ 25 kcal')).toBeInTheDocument()
+  })
+
   it('falls back to the manual form when the barcode is not found', async () => {
     mockFindOrFetch.mockResolvedValue(null)
     const onAdd = vi.fn().mockResolvedValue(undefined)
@@ -85,7 +102,7 @@ describe('AddEntryFlow', () => {
     const { default: AddEntryFlow } = await import('./AddEntryFlow')
     render(<AddEntryFlow onAdd={onAdd} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Barcode scannen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Scannen' }))
     mockOnDetected.current('9999999999999')
 
     await waitFor(() =>
@@ -101,7 +118,7 @@ describe('AddEntryFlow', () => {
     const { default: AddEntryFlow } = await import('./AddEntryFlow')
     render(<AddEntryFlow onAdd={vi.fn()} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Manuell hinzufügen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Manuell' }))
 
     expect(screen.getByRole('button', { name: 'Simulierte manuelle Erstellung' })).toBeInTheDocument()
     expect(mockFindOrFetch).not.toHaveBeenCalled()
@@ -114,7 +131,7 @@ describe('AddEntryFlow', () => {
     const { default: AddEntryFlow } = await import('./AddEntryFlow')
     render(<AddEntryFlow onAdd={onAdd} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Barcode scannen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Scannen' }))
     mockOnDetected.current('4001234567890')
 
     await waitFor(() =>
@@ -130,7 +147,7 @@ describe('AddEntryFlow', () => {
     const { default: AddEntryFlow } = await import('./AddEntryFlow')
     render(<AddEntryFlow onAdd={onAdd} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Barcode scannen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Scannen' }))
     mockOnDetected.current('4001234567890')
 
     await waitFor(() => expect(screen.getByText('Gefundenes Produkt')).toBeInTheDocument())

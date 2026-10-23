@@ -58,7 +58,7 @@ describe('ProductPicker', () => {
     const { default: ProductPicker } = await import('./ProductPicker')
     render(<ProductPicker onPicked={onPicked} onCancel={vi.fn()} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Manuell hinzufügen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Manuell' }))
     fireEvent.click(screen.getByRole('button', { name: 'Produkt speichern' }))
 
     await waitFor(() =>
@@ -83,7 +83,7 @@ describe('ProductPicker', () => {
     const { default: ProductPicker } = await import('./ProductPicker')
     render(<ProductPicker onPicked={vi.fn()} onCancel={vi.fn()} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Barcode scannen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Scannen' }))
     mockOnDetected.current('4001234567890')
 
     await waitFor(() =>
@@ -99,7 +99,7 @@ describe('ProductPicker', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Barcode prüfen' }))
     expect(screen.getByRole('alert')).toHaveTextContent('8–14 Ziffern')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Barcode scannen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Scannen' }))
     fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }))
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()

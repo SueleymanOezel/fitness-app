@@ -75,6 +75,6 @@ describe('ProductPicker: recent products and search', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Skyr Natur/ }))
 
-    expect(screen.getByLabelText('Menge (g)')).toHaveValue(250)
+    expect(screen.getByLabelText('Menge (g)')).toHaveValue('250')
   })
 })
