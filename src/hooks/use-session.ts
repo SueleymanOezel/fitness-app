@@ -19,8 +19,11 @@ export function vergissSession() {
 }
 
 export function useSession() {
-  const [session, setSession] = useState<Session | null>(bekannteSession ?? null)
-  const [loading, setLoading] = useState(bekannteSession === undefined)
+  // First start: trust storage right away. Offline, getSession() waits up to 30 s on refresh
+  // retries; it and SIGNED_OUT below still correct this if the session turns out dead.
+  const [start] = useState(() => bekannteSession ?? gespeicherteSession() ?? undefined)
+  const [session, setSession] = useState<Session | null>(start ?? null)
+  const [loading, setLoading] = useState(start === undefined)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {

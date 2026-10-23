@@ -81,6 +81,22 @@ describe('useSession', () => {
     expect(cacheLesen('u1', 'profile')).toEqual({ id: 'u1' })
   })
 
+  // Offline, auth-js retries the refresh for up to 30 s and getSession() waits for it:
+  // starting from storage keeps the app visible instead of a blank loading screen.
+  it('starts from the stored session without waiting for getSession', async () => {
+    const { AUTH_STORAGE_KEY } = await import('../lib/stored-session')
+    const gespeichert = { access_token: 'a', refresh_token: 'r', expires_at: 1, user: { id: 'u1' } }
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(gespeichert))
+    mockGetSession.mockReturnValue(new Promise(() => {}))
+    mockOnAuthStateChange.mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } })
+
+    const { useSession } = await import('./use-session')
+    const { result } = renderHook(() => useSession())
+
+    expect(result.current.loading).toBe(false)
+    expect(result.current.session).toEqual(gespeichert)
+  })
+
   it('drops every last-known data copy when the user signs out', async () => {
     const { cacheSchreiben, cacheLesen } = await import('../lib/stale-cache')
     cacheSchreiben('u1', 'profile', { id: 'u1' })
