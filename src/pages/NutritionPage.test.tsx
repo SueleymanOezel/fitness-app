@@ -308,7 +308,7 @@ describe('NutritionPage', () => {
     zeigeDashboard()
 
     // Capturing needs a section, and the sections live on the entries page.
-    expect(screen.queryByRole('button', { name: 'Barcode scannen' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Scannen' })).not.toBeInTheDocument()
   })
 
   it('shows the remaining calories and the goal in the hero', () => {

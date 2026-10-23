@@ -75,12 +75,6 @@ describe('QuickAddDialog', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
-  it('schließt über Abbrechen', () => {
-    const { onClose } = zeige()
-    fireEvent.click(screen.getByRole('button', { name: 'Stub abbrechen' }))
-    expect(onClose).toHaveBeenCalled()
-  })
-
   it('zeigt ohne benannte Abschnitte einen Hinweis statt einer leeren Chip-Zeile', () => {
     zeige({ sections: [] })
     expect(screen.queryByRole('group', { name: 'Mahlzeit' })).not.toBeInTheDocument()

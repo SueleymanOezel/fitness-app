@@ -216,7 +216,7 @@ describe('NutritionEntriesPage', () => {
     await renderPage(entriesResult({ entries: [{ ...entry, mahlzeit: null }] }))
 
     // Collapsed by default: no capture form visible until "Eintrag hinzufügen" is clicked.
-    expect(screen.queryByRole('button', { name: 'Barcode scannen' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Scannen' })).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Barcode-Nummer eingeben')).not.toBeInTheDocument()
 
     const addButtons = screen.getAllByRole('button', { name: 'Eintrag hinzufügen' })

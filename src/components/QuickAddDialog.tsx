@@ -61,7 +61,6 @@ function QuickAddForm({ sections, addEntry, onClose }: Omit<Props, 'open'>) {
           await addEntry(productId, menge, slot)
           onClose()
         }}
-        onCancel={onClose}
       />
     </div>
   )

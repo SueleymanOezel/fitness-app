@@ -14,7 +14,8 @@ type Step = 'idle' | 'scanning' | 'looking-up' | 'manual-entry'
 type Props = {
   /** `letzteMenge`: the amount eaten last time, when the product came from the user's history. */
   onPicked: (product: Product, letzteMenge?: number) => void
-  onCancel: () => void
+  /** Only where there is somewhere to go back to (the edit form); inside a dialog the dialog's own close button is the way out. */
+  onCancel?: () => void
 }
 
 export default function ProductPicker({ onPicked, onCancel }: Props) {
@@ -118,6 +119,8 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
             className={inputClass}
             type="search"
             enterKeyHint="search"
+            // Dialog.tsx focuses this after opening: typing a name is the fastest way to a meal.
+            data-autofocus
             value={suche}
             onChange={(event) => setSuche(event.target.value)}
             placeholder="z. B. Haferflocken"
@@ -152,19 +155,25 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
         )}
       </div>
       <div className={`${cardClass} flex flex-col`}>
-      <Pressable variant="secondary" type="button" onClick={() => setStep('scanning')}>
-        <span className="inline-flex items-center justify-center gap-2">
-          <VitaIcon name="scan" tone="mono" size={20} />
-          Barcode scannen
-        </span>
-      </Pressable>
-      <Pressable variant="secondary" type="button" onClick={() => setStep('manual-entry')}>
-        <span className="inline-flex items-center justify-center gap-2">
-          <VitaIcon name="add" tone="mono" size={20} />
-          Manuell hinzufügen
-        </span>
-      </Pressable>
-      <form onSubmit={handleTypedBarcode} className="flex flex-col gap-3">
+      {/* The two other ways in, side by side: one decision, not a stack of four. */}
+      <div className="grid grid-cols-2 gap-2">
+        <Pressable variant="secondary" type="button" onClick={() => setStep('scanning')}>
+          <span className="inline-flex items-center justify-center gap-2">
+            <VitaIcon name="scan" tone="mono" size={20} />
+            Scannen
+          </span>
+        </Pressable>
+        <Pressable variant="secondary" type="button" onClick={() => setStep('manual-entry')}>
+          <span className="inline-flex items-center justify-center gap-2">
+            <VitaIcon name="add" tone="mono" size={20} />
+            Manuell
+          </span>
+        </Pressable>
+      </div>
+      {/* Typing the digits is the fallback when the camera cannot read a code — folded until needed. */}
+      <details open={error !== null || undefined}>
+        <summary className="min-h-11 cursor-pointer py-2.5 text-sm font-medium text-text-muted">Barcode-Nummer eintippen</summary>
+      <form onSubmit={handleTypedBarcode} className="flex flex-col gap-3 pt-2">
         <label className={fieldLabelClass}>
           Barcode-Nummer eingeben
           <input
@@ -182,11 +191,14 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
           </span>
         </Pressable>
       </form>
+      </details>
       {error && <p role="alert">{error}</p>}
       </div>
-      <Pressable variant="secondary" className="self-start" type="button" onClick={onCancel}>
-        Abbrechen
-      </Pressable>
+      {onCancel && (
+        <Pressable variant="secondary" className="self-start" type="button" onClick={onCancel}>
+          Abbrechen
+        </Pressable>
+      )}
     </div>
   )
 }
