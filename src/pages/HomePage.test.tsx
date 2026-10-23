@@ -153,7 +153,7 @@ describe('HomePage', () => {
   it('shows a message instead of a streak count when there is none yet', () => {
     stubDefaults()
     renderWithProviders(<HomePage />)
-    expect(screen.getByText('Diese Woche 0 von 3')).toBeInTheDocument()
+    expect(screen.getByText('0 von 3')).toBeInTheDocument()
   })
 
   it('does not query Home analysis data without a pinned selection', () => {

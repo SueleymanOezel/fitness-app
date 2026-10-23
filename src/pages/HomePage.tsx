@@ -67,11 +67,10 @@ function Dashboard({ userId }: { userId: string }) {
   const gewichtsAenderung = changeSince(rows, 'gewicht')
 
   const kacheln: StatTile[] = [
-    {
-      label: 'Wochen im Plan',
-      wert: streak.wochen === 0 ? '—' : String(streak.wochen),
-      hinweis: `Diese Woche ${streak.dieseWoche} von ${streak.ziel}`,
-    },
+    // A first week has no completed plan weeks yet: show this week's progress instead of a bare "—".
+    streak.wochen === 0
+      ? { label: 'Diese Woche', wert: `${streak.dieseWoche} von ${streak.ziel}`, hinweis: 'Trainings im Plan' }
+      : { label: 'Wochen im Plan', wert: String(streak.wochen), hinweis: `Diese Woche ${streak.dieseWoche} von ${streak.ziel}` },
     {
       label: 'Gewicht',
       wert: gewichtAktuell == null ? '—' : `${formatValue(gewichtAktuell.value)} kg`,

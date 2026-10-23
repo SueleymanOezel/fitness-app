@@ -62,9 +62,19 @@ export function makroAnteileHeute(entries: MakroTagEintrag[], heute: string): Ma
   }
   const gesamtKcal = kcal.eiweiss + kcal.fett + kcal.kohlenhydrate
   if (gesamtKcal === 0) return []
-  return (['eiweiss', 'fett', 'kohlenhydrate'] as const).map((makro) => ({
+  const makros = ['eiweiss', 'fett', 'kohlenhydrate'] as const
+  // Largest remainder: three rounded shares must add up to 100, not 99 or 101.
+  const roh = makros.map((makro) => (kcal[makro] / gesamtKcal) * 100)
+  const anteile = roh.map(Math.floor)
+  const rest = 100 - anteile.reduce((summe, wert) => summe + wert, 0)
+  roh
+    .map((wert, index) => ({ index, nachkomma: wert - Math.floor(wert) }))
+    .sort((a, b) => b.nachkomma - a.nachkomma)
+    .slice(0, rest)
+    .forEach(({ index }) => (anteile[index] += 1))
+  return makros.map((makro, index) => ({
     makro: MAKRO_LABEL[makro],
-    anteil: Math.round((kcal[makro] / gesamtKcal) * 100),
+    anteil: anteile[index],
     gramm: Math.round(gramm[makro]),
   }))
 }

@@ -105,9 +105,13 @@ export default function LoginPage() {
     if (authError) setError(authFehlerText(authError))
   }
 
+  // Which field a validation message is about, so it can be marked and announced with it.
+  const fehlerFeld = error == null ? null : !email.trim() ? 'email' : password.length < 8 ? 'password' : null
+
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4">
       <img src="/logo.webp" alt="VitaLoop" className="h-28 w-auto" />
+      <p className="max-w-sm text-center text-text-muted">Training, Essen und Körper in einer App. Ohne Abo, ohne Werbung.</p>
       <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
         <h1 className="text-lg font-semibold">
           {mode === 'login' ? 'Einloggen' : 'Registrieren'}
@@ -121,6 +125,8 @@ export default function LoginPage() {
             type="email"
             autoComplete="email"
             className={inputClass}
+            aria-invalid={fehlerFeld === 'email' || undefined}
+            aria-describedby={error ? 'login-fehler' : undefined}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
@@ -134,9 +140,16 @@ export default function LoginPage() {
             type="password"
             autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
             className={inputClass}
+            aria-invalid={fehlerFeld === 'password' || undefined}
+            aria-describedby={[mode === 'signup' ? 'passwort-regel' : '', error ? 'login-fehler' : ''].join(' ').trim() || undefined}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
+          {mode === 'signup' && (
+            <p id="passwort-regel" className="text-sm text-text-muted">
+              Mindestens 8 Zeichen.
+            </p>
+          )}
         </div>
         {mode === 'login' && (
           <Pressable
@@ -148,7 +161,7 @@ export default function LoginPage() {
           </Pressable>
         )}
         {error && (
-          <p role="alert" className="text-sm text-danger">
+          <p id="login-fehler" role="alert" className="text-sm text-danger">
             {error}
           </p>
         )}

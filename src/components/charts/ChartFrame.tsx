@@ -14,6 +14,7 @@ export default function ChartFrame({
   vorspann,
   leerCta,
   zusammenfassung,
+  leerHinweis,
   children,
 }: {
   titel: string
@@ -37,6 +38,8 @@ export default function ChartFrame({
    * readable at a glance and the text alternative for a screen reader.
    */
   zusammenfassung?: string
+  /** What is still missing, e.g. "Erscheint ab zwei Wiegungen." — a stranger then knows what to do. */
+  leerHinweis?: string
   children: ReactNode
 }) {
   return (
@@ -47,7 +50,9 @@ export default function ChartFrame({
       {vorspann}
       {leer ? (
         <>
-          <p className="text-sm text-text-muted">Noch nicht genug Daten für diesen Graphen.</p>
+          <p className="text-sm text-text-muted">
+            Noch nicht genug Daten für diesen Graphen.{leerHinweis && ` ${leerHinweis}`}
+          </p>
           {leerCta && (
             <PressableLink to={leerCta.to} className={linkClass}>
               {leerCta.label}

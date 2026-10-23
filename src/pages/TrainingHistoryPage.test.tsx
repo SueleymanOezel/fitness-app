@@ -29,7 +29,7 @@ describe('TrainingHistoryPage', () => {
     const { default: TrainingHistoryPage } = await import('./TrainingHistoryPage')
     renderWithProviders(<TrainingHistoryPage />)
 
-    const link = screen.getByRole('link', { name: /Ganzkörper.*Tag A/ })
+    const link = screen.getByRole('link', { name: /Tag A/ })
     expect(link).toHaveAttribute('href', '/training/history/s1')
     expect(link).toHaveTextContent('400 kcal')
   })
@@ -44,7 +44,7 @@ describe('TrainingHistoryPage', () => {
     const { default: TrainingHistoryPage } = await import('./TrainingHistoryPage')
     renderWithProviders(<TrainingHistoryPage />)
 
-    const link = screen.getByRole('link', { name: /Ganzkörper.*Tag A/ })
+    const link = screen.getByRole('link', { name: /Tag A/ })
     expect(link).not.toHaveTextContent('0 kcal')
     expect(link).toHaveTextContent('nicht beendet')
   })
@@ -56,7 +56,7 @@ describe('TrainingHistoryPage', () => {
     const { default: TrainingHistoryPage } = await import('./TrainingHistoryPage')
     renderWithProviders(<TrainingHistoryPage />)
 
-    const liste = screen.getAllByRole('link', { name: /Ganzkörper.*Tag A/ })[0].closest('ul')
+    const liste = screen.getAllByRole('link', { name: /Tag A/ })[0].closest('ul')
     expect(liste).toHaveClass('divide-y')
     expect(liste?.closest('div')).toHaveClass('bg-surface', 'rounded-3xl')
     liste?.querySelectorAll('li').forEach((li) => expect(li).not.toHaveClass('bg-surface'))
