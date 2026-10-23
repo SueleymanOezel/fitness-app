@@ -10,6 +10,7 @@ import {
   interactiveClass,
   linkClass,
   listClass,
+  skeletonClass,
   listRowClass,
   stickyActionClass,
 } from './ui-classes'
@@ -118,5 +119,14 @@ describe('ui-classes', () => {
     expect(listClass).toContain('divide-y')
     expect(listRowClass).toContain('items-center')
     expect(listRowClass).not.toContain('justify-center')
+  })
+})
+
+// The bottom nav pill is surface-raised; a skeleton in the same color behind it merged with the pill
+// and the nav looked like it swelled into a big bar on the iPhone (user video 23.10.2026).
+describe('skeletonClass', () => {
+  it('uses the card color, never the nav color', () => {
+    expect(skeletonClass).toContain('bg-surface ')
+    expect(skeletonClass).not.toContain('bg-surface-raised')
   })
 })

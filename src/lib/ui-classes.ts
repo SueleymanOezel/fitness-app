@@ -91,7 +91,9 @@ export const listClass = 'divide-y divide-text-muted/15'
 export const listRowClass = 'flex items-center gap-3 py-3'
 
 /** Platzhalter-Block für Ladezustände; pulsiert nur ohne prefers-reduced-motion. */
-export const skeletonClass = 'rounded-2xl bg-surface-raised animate-pulse motion-reduce:animate-none'
+// Card color, not surface-raised: a chart skeleton behind the nav pill (same raised color) merged
+// with it, and on the iPhone the nav looked like it swelled into a big bar for a frame (user video 23.10.2026).
+export const skeletonClass = 'rounded-2xl bg-surface animate-pulse motion-reduce:animate-none'
 
 /** Titel eines PageHero: eine Stufe unter statClass, damit er neben dem Ring nicht umbricht. */
 export const heroTitleClass = 'font-display text-3xl font-bold tabular-nums'
