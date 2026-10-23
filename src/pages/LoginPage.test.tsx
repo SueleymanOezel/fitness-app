@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 const mockSignIn = vi.fn()
 const mockSignUp = vi.fn()
@@ -18,17 +18,33 @@ vi.mock('../lib/supabase', () => ({
   },
 }))
 
+let mockSession: unknown = null
+vi.mock('../hooks/use-session', () => ({ useSession: () => ({ session: mockSession, loading: false }) }))
+
 async function renderLoginPage() {
   const { default: LoginPage } = await import('./LoginPage')
   return render(
-    <MemoryRouter>
-      <LoginPage />
+    <MemoryRouter initialEntries={['/login']}>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<p>Startseite</p>} />
+      </Routes>
     </MemoryRouter>,
   )
 }
 
 describe('LoginPage', () => {
+  // The installed iPhone app always opens on /login (its start URL was saved at install time):
+  // a signed-in user must land in the app, not on the form (user video 23.10.2026).
+  it('sends a signed-in user straight into the app', async () => {
+    mockSession = { user: { id: 'u1' } }
+    await renderLoginPage()
+    expect(screen.getByText('Startseite')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Einloggen' })).not.toBeInTheDocument()
+  })
+
   beforeEach(() => {
+    mockSession = null
     mockSignIn.mockReset()
     mockSignUp.mockReset()
     mockSignInWithOAuth.mockReset()

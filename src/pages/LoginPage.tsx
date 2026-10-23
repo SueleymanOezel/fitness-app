@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useSession } from '../hooks/use-session'
 import { fieldLabelClass, inputClass } from '../lib/ui-classes'
 import Pressable from '../components/Pressable'
 import { authFehlerText } from '../lib/auth-errors'
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
   const [hinweis, setHinweis] = useState<string | null>(null)
   const navigate = useNavigate()
+  const { session } = useSession()
 
   function validate(): string | null {
     if (!email.trim() || !password) return 'E-Mail und Passwort sind erforderlich.'
@@ -107,6 +109,9 @@ export default function LoginPage() {
 
   // Which field a validation message is about, so it can be marked and announced with it.
   const fehlerFeld = error == null ? null : !email.trim() ? 'email' : password.length < 8 ? 'password' : null
+
+  // The installed iPhone app opens on /login (start URL saved at install); a kept session goes straight in.
+  if (session) return <Navigate to="/" replace />
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4">
