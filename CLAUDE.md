@@ -120,6 +120,10 @@ Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer 
 - #113 Konsistenz/A11y: Primär nach Bedeutung (aktuelle Mahlzeit), Profil mit Zurück-Pfeil, eindeutige aria-Namen (`ConfirmDelete ariaLabel`), `PageHero`-Label als `h2`.
 - #114 Minor: Home „Diese Woche 2 von 3“ statt „—“, Login mit Nutzensatz + Passwortregel + Feldfehlern (`aria-invalid`, roter Rand in `inputClass`), Makros = 100 %, Historie ohne Doppelnamen, `ChartFrame leerHinweis`.
 
+**Nutzer-Meldungen 23.10. (nach dem nächsten Re-Audit in die Fix-Liste aufnehmen):**
+1. **Visueller Fehler in der Bottom-Nav beim Tippen auf „Training“:** der aktive Balken (Hervorhebung) wird kurz groß und dann wieder klein. Ursache noch unklar (Kandidaten: Tap-Feedback-Scale von `attachPressFeedback` auf dem Nav-Tab, Transition beim Wechsel der aktiven Klasse, Lazy-Load/Skeleton der Trainingsseite).
+2. **Angemeldet bleiben:** Wer sich einmal angemeldet hat, soll nach Schließen der App (installierte PWA, iOS/Android) eingeloggt bleiben. Prüfen: Supabase `persistSession`/`autoRefreshToken`, Speicherort der Session (localStorage vs. iOS-PWA-Sandbox), `useSession`-Merkung, Refresh beim Öffnen offline.
+
 **Noch offen:** „Kurz gesagt“ nur in der Trainings-Analyse; Trainings-kcal stehen neben, nicht in der Zielrechnung (bewusst); verschachtelte Scrollbereiche im Eintrags-Sheet; Dependabot-PRs #32, #69–#72, #80. Arbeitsweise: Folge-PRs, die dieselben Dateien anfassen, auf den vorigen Branch stapeln und Merge-Reihenfolge im PR nennen.
 
 **Erledigt am 22./23.10.2026 (je ein PR, Wiki `Re-Audit-2026-10-23-Fixes`):**
