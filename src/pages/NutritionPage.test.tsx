@@ -441,7 +441,7 @@ describe('NutritionPage – ausgewaehlte Graphen', () => {
     // is a statement about machine speed, not about correctness, and a loaded
     // CI runner exceeds it often enough to make the suite intermittently red.
     expect(
-      await screen.findByRole('heading', { name: 'Kalorien pro Tag' }, { timeout: 5000 }),
+      await screen.findByRole('heading', { name: 'Kalorien pro Tag (kcal)' }, { timeout: 5000 }),
     ).toBeInTheDocument()
     expect(mockUseNutritionAnalysis).toHaveBeenCalledWith('u1', 90)
     expect(screen.queryByRole('button', { name: '30 Tage' })).not.toBeInTheDocument()
@@ -461,7 +461,7 @@ describe('NutritionPage – ausgewaehlte Graphen', () => {
     // CI runner exceeds it often enough to make the suite intermittently red.
     const ueberschrift = await screen.findByRole(
       'heading',
-      { name: 'Kalorien pro Tag' },
+      { name: 'Kalorien pro Tag (kcal)' },
       { timeout: 5000 },
     )
     // Scoped to the chart's own section: the day hero above it names the same
@@ -491,7 +491,7 @@ describe('NutritionPage – ausgewaehlte Graphen', () => {
       fehler: '',
     })
     zeigeDashboard()
-    expect(screen.queryByRole('heading', { name: 'Kalorien pro Tag' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Kalorien pro Tag (kcal)' })).not.toBeInTheDocument()
     expect(mockUseNutritionAnalysis).not.toHaveBeenCalled()
   })
 

@@ -27,7 +27,7 @@ describe('NutritionChartList', () => {
       <NutritionChartList ids={[E1]} entries={entries} sessions={[]} ziel={2000} profile={null} />,
     )
     // timeout: die Graphen haengen hinter React.lazy.
-    expect(await screen.findByText('Kalorien pro Tag', {}, { timeout: 5000 })).toBeInTheDocument()
+    expect(await screen.findByText('Kalorien pro Tag (kcal)', {}, { timeout: 5000 })).toBeInTheDocument()
   })
 
   it('renders no chart for an id it does not know', () => {
@@ -43,7 +43,7 @@ describe('NutritionChartList', () => {
     const { rerender } = render(
       <NutritionChartList ids={[E1]} entries={entries} sessions={[]} ziel={2000} profile={null} />,
     )
-    await screen.findByText('Kalorien pro Tag', {}, { timeout: 5000 })
+    await screen.findByText('Kalorien pro Tag (kcal)', {}, { timeout: 5000 })
     expect(screen.queryByRole('checkbox')).toBeNull()
 
     rerender(

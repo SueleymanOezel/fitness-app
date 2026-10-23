@@ -34,7 +34,7 @@ describe('BodyChartList', () => {
   it('renders the charts of the given ids', async () => {
     render(<BodyChartList ids={[K1]} rows={rows} kalorien={[]} fotos={[]} />)
     // timeout: die Graphen haengen hinter React.lazy.
-    expect(await screen.findByText('Gewichtsverlauf', {}, { timeout: 5000 })).toBeInTheDocument()
+    expect(await screen.findByText('Gewichtsverlauf (kg)', {}, { timeout: 5000 })).toBeInTheDocument()
   })
 
   it('renders no chart for an id it does not know', () => {
@@ -48,7 +48,7 @@ describe('BodyChartList', () => {
 
   it('shows the checkbox only when a selection is passed', async () => {
     const { rerender } = render(<BodyChartList ids={[K1]} rows={rows} kalorien={[]} fotos={[]} />)
-    await screen.findByText('Gewichtsverlauf', {}, { timeout: 5000 })
+    await screen.findByText('Gewichtsverlauf (kg)', {}, { timeout: 5000 })
     expect(screen.queryByRole('checkbox')).toBeNull()
 
     rerender(<BodyChartList ids={[K1]} rows={rows} kalorien={[]} fotos={[]} auswahl={auswahl} />)

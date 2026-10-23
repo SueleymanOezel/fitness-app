@@ -64,7 +64,7 @@ describe('BestSetWeightChart', () => {
       />,
     )
     expect(
-      screen.getByRole('heading', { name: 'Bestes Satzgewicht – Bankdruecken' }),
+      screen.getByRole('heading', { name: 'Bestes Satzgewicht (kg) – Bankdruecken' }),
     ).toBeInTheDocument()
   })
 })

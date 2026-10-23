@@ -55,6 +55,26 @@ const zeige = () =>
   )
 
 describe('TrainingAnalysisPage', () => {
+  it('folds the secondary charts and swaps charts for a short list while customizing', () => {
+    mockUseChartSelection.mockReturnValue({
+      auswahl: ['T1'],
+      istGewaehlt: (id: string) => id === 'T1',
+      umschalten: vi.fn(),
+      fehler: '',
+      anpassen: true,
+      setAnpassen: vi.fn(),
+    })
+    zeige()
+    const liste = screen.getByRole('list', { name: 'Graphen auf dem Dashboard' })
+    expect(liste.querySelectorAll('input[type=checkbox]')).toHaveLength(chartsFor('training').length)
+    expect(screen.queryByText(/Mehr Graphen/)).not.toBeInTheDocument()
+  })
+
+  it('offers the remaining charts behind "Mehr Graphen"', () => {
+    zeige()
+    expect(screen.getByText(`Mehr Graphen (${chartsFor('training').length - 3})`)).toBeInTheDocument()
+  })
+
   it('shows the area charts with their picker', async () => {
     zeige()
     expect(screen.getByRole('heading', { name: 'Analyse' })).toBeInTheDocument()

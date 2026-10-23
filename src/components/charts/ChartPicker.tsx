@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useProfile } from '../../hooks/use-profile'
 import { parseAuswahl, toggleAuswahl } from '../../lib/analysis/auswahl'
-import { CHART_IDS } from '../../lib/analysis/registry'
-import { checkLabelClass } from '../../lib/ui-classes'
+import { CHART_IDS, chartsFor, type Bereich } from '../../lib/analysis/registry'
+import { cardClass, checkLabelClass, listClass } from '../../lib/ui-classes'
 import Pressable from '../Pressable'
 
 /**
@@ -99,6 +99,24 @@ export function AnpassenSchalter({ auswahl }: { auswahl: ReturnType<typeof useCh
       {auswahl.anpassen && (
         <p className="text-sm text-text-muted">Hake die Graphen an, die auf deinem Dashboard erscheinen sollen.</p>
       )}
+    </div>
+  )
+}
+
+/** While customizing: one short list of every chart of the area instead of the charts themselves — choosing is faster than scrolling 4000 px. */
+export function AnpassenListe({ bereich, auswahl }: { bereich: Bereich; auswahl: ReturnType<typeof useChartSelection> }) {
+  return (
+    <div className={cardClass}>
+      <ul role="list" aria-label="Graphen auf dem Dashboard" className={listClass}>
+        {chartsFor(bereich).map((chart) => (
+          <li key={chart.id}>
+            <label className={checkLabelClass}>
+              <input type="checkbox" checked={auswahl.istGewaehlt(chart.id)} onChange={() => auswahl.umschalten(chart.id)} />
+              {chart.titel}
+            </label>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

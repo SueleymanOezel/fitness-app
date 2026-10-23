@@ -3,7 +3,7 @@ import { useSession } from '../hooks/use-session'
 import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
 import { useProfile } from '../hooks/use-profile'
 import ZeitraumSwitch from '../components/ZeitraumSwitch'
-import { useChartSelectionFor, AnpassenSchalter } from '../components/charts/ChartPicker'
+import { useChartSelectionFor, AnpassenSchalter, AnpassenListe } from '../components/charts/ChartPicker'
 import NutritionChartList from '../components/charts/NutritionChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
@@ -39,6 +39,8 @@ function Analyse({ userId }: { userId: string }) {
       {auswahl.fehler !== '' && <p role="alert">{auswahl.fehler}</p>}
       {loading ? (
         <ChartSkeleton />
+      ) : auswahl.anpassen ? (
+        <AnpassenListe bereich="nutrition" auswahl={auswahl} />
       ) : (
         <NutritionChartList
           ids={ids}

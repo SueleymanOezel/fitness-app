@@ -21,6 +21,12 @@ export const CHART_TEXT = '#90919a'
 export const achseProps = { tick: { fill: CHART_TEXT, fontSize: 12 }, axisLine: false, tickLine: false }
 /** Y axes also write numbers the German way ("83,5", not "83.5"); two places so steps like 0,15 stay even. */
 export const yAchseProps = { ...achseProps, tickFormatter: (wert: number) => zahlDe(wert, 2) }
+/** Kilo axes that do not start at zero: whole-number bounds and ticks, so the scale reads 82 · 83 · 84, not 82,15 · 82,9. */
+export const ganzzahligeAchse = {
+  domain: [(min: number) => Math.floor(min), (max: number) => Math.ceil(max)] as [(min: number) => number, (max: number) => number],
+  allowDecimals: false,
+}
+
 /** Horizontal guides only, and quiet. */
 export const gitterProps = { stroke: CHART_GRID, strokeDasharray: '3 3', vertical: false, strokeOpacity: 0.6 }
 

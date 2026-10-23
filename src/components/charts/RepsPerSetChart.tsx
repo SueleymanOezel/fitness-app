@@ -34,20 +34,26 @@ export default function RepsPerSetChart({
   picker,
   leerCta,
   mitUebungsauswahl = true,
+  uebung,
 }: {
   sessions: AnalysisSession[]
   sets: AnalysisSet[]
   picker?: ReactNode
   leerCta?: { label: string; to: string }
   mitUebungsauswahl?: boolean
+  /** Set by the analysis page, which shares one exercise select across T2–T5; the chart then shows no select of its own. */
+  uebung?: string | null
 }) {
-  const { optionen, exerciseId, waehlen } = useUebungsauswahl(sets)
+  const auswahl = useUebungsauswahl(sets)
+  const { optionen, waehlen } = auswahl
+  const exerciseId = uebung !== undefined ? uebung : auswahl.exerciseId
+  const eigeneAuswahl = mitUebungsauswahl && uebung === undefined
   const reihen = exerciseId
     ? wiederholungenJeSatz(sessions, sets, exerciseId)
     : { punkte: [], satzNummern: [] }
   const punkte = reihen.punkte.map((punkt) => ({ ...punkt, label: tagesLabel(punkt.tag) }))
   const uebungsName = optionen.find((option) => option.exercise_id === exerciseId)?.name
-  const titel = mitUebungsauswahl || uebungsName == null ? TITEL : `${TITEL} – ${uebungsName}`
+  const titel = eigeneAuswahl || uebungsName == null ? TITEL : `${TITEL} – ${uebungsName}`
 
   return (
     <ChartFrame
@@ -56,7 +62,7 @@ export default function RepsPerSetChart({
       picker={picker}
       leerCta={leerCta}
       vorspann={
-        mitUebungsauswahl && (
+        eigeneAuswahl && (
           <ExerciseSelect optionen={optionen} wert={exerciseId} onChange={waehlen} />
         )
       }
