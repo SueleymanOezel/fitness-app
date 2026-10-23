@@ -160,10 +160,19 @@ describe('WorkoutSessionPage', () => {
 
     renderPage()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Entfernen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^(?!Ja,).+ entfernen$/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Ja, entfernen' }))
 
     await waitFor(() => expect(result.removeExerciseFromSession).toHaveBeenCalledWith('se1'))
+  })
+
+  it('marks the open exercise as expanded', () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+
+    renderPage()
+
+    expect(screen.getByRole('button', { name: 'Bankdrücken' })).toHaveAttribute('aria-expanded', 'true')
   })
 
   it('hides the remove button once a set has been logged for that exercise', async () => {
@@ -172,7 +181,7 @@ describe('WorkoutSessionPage', () => {
 
     renderPage()
 
-    expect(screen.queryByRole('button', { name: 'Entfernen' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^(?!Ja,).+ entfernen$/ })).not.toBeInTheDocument()
   })
 
   it('hides the remove button when only a warm-up set has been logged for that exercise', async () => {
@@ -183,7 +192,7 @@ describe('WorkoutSessionPage', () => {
 
     renderPage()
 
-    expect(screen.queryByRole('button', { name: 'Entfernen' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^(?!Ja,).+ entfernen$/ })).not.toBeInTheDocument()
   })
 
   it('numbers a new set after the highest used number, so a deleted middle set cannot cause a duplicate', async () => {

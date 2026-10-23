@@ -39,6 +39,7 @@ import CompletionCelebration from '../components/CompletionCelebration'
 import ConfirmDelete from '../components/ConfirmDelete'
 import PageSkeleton from '../components/PageSkeleton'
 import { dauerText } from '../lib/dauer'
+import { prefersReducedMotion } from '../lib/motion'
 import { abschlussZahlen, type Vergleich } from '../lib/abschluss'
 import { zahlDe } from '../lib/zahl'
 import { useActiveTrainingDay } from '../hooks/use-active-training-day'
@@ -272,7 +273,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
         {aktuelleId !== null && (
           <Pressable variant="primary" type="submit" form={SATZ_FORM_ID}>
             <span className="inline-flex items-center justify-center gap-2">
-              <VitaIcon name="start" tone="mono" size={20} />
+              <VitaIcon name="save" tone="mono" size={20} />
               Satz abschließen
             </span>
           </Pressable>
@@ -287,21 +288,11 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                   variant="bare"
                   type="button"
                   className={`flex-1 border-0 bg-transparent px-0 text-left text-lg font-semibold ${interactiveClass}`}
+                  aria-expanded={aktuelleId === entry.exercise_id}
                   onClick={() => setOpenExerciseId(entry.exercise_id)}
                 >
                   {entry.name}
                 </Pressable>
-                {!sets.some((set) => set.exercise_id === entry.exercise_id) && (
-                  <ConfirmDelete
-                    label="Entfernen"
-                    className="px-3! py-2! text-sm"
-                    icon={<VitaIcon name="delete" tone="mono" size={16} />}
-                    titel="Übung entfernen?"
-                    text={`${entry.name} wird nur aus diesem Training entfernt, nicht aus dem Plan.`}
-                    bestaetigen="Ja, entfernen"
-                    onConfirm={() => removeExerciseFromSession(entry.id)}
-                  />
-                )}
               </div>
               {aktuelleId === entry.exercise_id && (
                 <LoggedSets
@@ -343,6 +334,17 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                     }
                     return true
                   }}
+                />
+              )}
+              {/* Inside the open card, quiet and last: next to a header it sat where the thumb opens the exercise. */}
+              {aktuelleId === entry.exercise_id && !sets.some((set) => set.exercise_id === entry.exercise_id) && (
+                <ConfirmDelete
+                  ruhig
+                  label={`${entry.name} entfernen`}
+                  titel="Übung entfernen?"
+                  text={`${entry.name} wird nur aus diesem Training entfernt, nicht aus dem Plan.`}
+                  bestaetigen="Ja, entfernen"
+                  onConfirm={() => removeExerciseFromSession(entry.id)}
                 />
               )}
             </div>
@@ -584,11 +586,14 @@ function SetForm({
   const [rir, setRir] = useState<number | null>(null)
   const [istAufwaermsatz, setIstAufwaermsatz] = useState(false)
   const [fehler, setFehler] = useState<{ gewicht?: string; wiederholungen?: string }>({})
+  const formRef = useRef<HTMLFormElement>(null)
 
   return (
     <form
+      ref={formRef}
       id={SATZ_FORM_ID}
-      className="flex flex-col gap-3"
+      // The scroll margin is the bottom bar with the pause in it: scrolled into view, the RIR row ends above it.
+      className="flex scroll-mb-[calc(10rem+env(safe-area-inset-bottom))] flex-col gap-3"
       onSubmit={async (event) => {
         event.preventDefault()
         // Eine Regel für alle Wege, einen Satz zu speichern (src/lib/set-values.ts).
@@ -610,6 +615,10 @@ function SetForm({
         // Forgetting it on silently files real sets as warm-ups, which is the
         // more expensive mistake of the two.
         setIstAufwaermsatz(false)
+        // After the render that shows the pause bar: bring the next set's inputs (RIR last) above it.
+        requestAnimationFrame(() =>
+          formRef.current?.scrollIntoView?.({ block: 'nearest', behavior: prefersReducedMotion() ? 'auto' : 'smooth' }),
+        )
       }}
     >
       <div className="flex flex-col gap-3">
