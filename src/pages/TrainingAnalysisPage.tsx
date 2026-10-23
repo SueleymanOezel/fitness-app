@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useSession } from '../hooks/use-session'
 import { useTrainingAnalysis } from '../hooks/use-training-analysis'
 import ZeitraumSwitch from '../components/ZeitraumSwitch'
-import { useChartSelection } from '../components/charts/ChartPicker'
+import { useChartSelection, AnpassenSchalter } from '../components/charts/ChartPicker'
 import TrainingChartList from '../components/charts/TrainingChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
@@ -30,6 +30,7 @@ function Analyse({ userId }: { userId: string }) {
     <div>
       <h1>Analyse</h1>
       <ZeitraumSwitch wert={zeitraum} onChange={setZeitraum} />
+      <AnpassenSchalter auswahl={auswahl} />
       {/* One message for the area, not one per chart: eight identical alerts
           between the charts would be noise, not information. */}
       {error && <p role="alert">Daten konnten nicht geladen werden.</p>}

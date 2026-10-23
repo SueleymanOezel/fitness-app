@@ -66,7 +66,7 @@ describe('ExerciseVolumeChart', () => {
       />,
     )
     expect(
-      screen.getByRole('heading', { name: 'Volumen je Übung – Bankdruecken' }),
+      screen.getByRole('heading', { name: 'Volumen je Übung (kg) – Bankdruecken' }),
     ).toBeInTheDocument()
   })
 })

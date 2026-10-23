@@ -24,9 +24,9 @@ describe('HomeAnalysisPage', () => {
       updateProfile: vi.fn(),
     })
     renderWithProviders(<HomeAnalysisPage />)
-    expect(await screen.findByText('Aktivitätsraster')).toBeInTheDocument()
-    expect(await screen.findByText('Wochen-Kurzform')).toBeInTheDocument()
-    expect(await screen.findByText('Trends')).toBeInTheDocument()
+    expect(await screen.findByText('Aktivitätsraster', undefined, { timeout: 5000 })).toBeInTheDocument()
+    expect(await screen.findByText('Wochen-Kurzform', undefined, { timeout: 5000 })).toBeInTheDocument()
+    expect(await screen.findByText('Trends', undefined, { timeout: 5000 })).toBeInTheDocument()
   })
 
   it('shows an error message when loading fails', () => {

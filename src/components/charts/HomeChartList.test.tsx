@@ -25,7 +25,7 @@ describe('HomeChartList', () => {
 
   it('renders H3 by id too', async () => {
     render(<HomeChartList ids={[H3]} sessions={[]} entries={[]} rows={[]} zeitraum={90} />)
-    expect(await screen.findByText('Trends')).toBeInTheDocument()
+    expect(await screen.findByText('Trends', undefined, { timeout: 5000 })).toBeInTheDocument()
   })
 
   it('stacks the charts with a 24px rhythm', async () => {

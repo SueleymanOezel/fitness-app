@@ -3,6 +3,7 @@ import { useProfile } from '../../hooks/use-profile'
 import { parseAuswahl, toggleAuswahl } from '../../lib/analysis/auswahl'
 import { CHART_IDS } from '../../lib/analysis/registry'
 import { checkLabelClass } from '../../lib/ui-classes'
+import Pressable from '../Pressable'
 
 /**
  * The pinned charts, read from and written back to `profiles.analyse_auswahl`.
@@ -27,6 +28,8 @@ export function useChartSelectionFor({
   updateProfile,
 }: Pick<ReturnType<typeof useProfile>, 'profile' | 'updateProfile'>) {
   const [fehler, setFehler] = useState('')
+  /** Pin checkboxes only show while the user is customizing the dashboard — not as clutter on every card. */
+  const [anpassen, setAnpassen] = useState(false)
 
   const auswahl = parseAuswahl(profile?.analyse_auswahl, CHART_IDS)
 
@@ -56,7 +59,7 @@ export function useChartSelectionFor({
     }
   }
 
-  return { auswahl, istGewaehlt: (id: string) => auswahl.includes(id), umschalten, fehler }
+  return { auswahl, istGewaehlt: (id: string) => auswahl.includes(id), umschalten, fehler, anpassen, setAnpassen }
 }
 
 export default function ChartPicker({
@@ -66,6 +69,8 @@ export default function ChartPicker({
   id: string
   auswahl: ReturnType<typeof useChartSelection>
 }) {
+  // `=== false`, not falsy: the pages always pass the real hook value; a bare selection object (tests) keeps the box.
+  if (auswahl.anpassen === false) return null
   return (
     <label className={checkLabelClass}>
       <input
@@ -75,5 +80,25 @@ export default function ChartPicker({
       />
       Auf dem Dashboard zeigen
     </label>
+  )
+}
+
+/** Switches the pin checkboxes on the analysis page on and off. */
+export function AnpassenSchalter({ auswahl }: { auswahl: ReturnType<typeof useChartSelection> }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <Pressable
+        variant="secondary"
+        type="button"
+        className="self-start"
+        aria-pressed={auswahl.anpassen}
+        onClick={() => auswahl.setAnpassen(!auswahl.anpassen)}
+      >
+        {auswahl.anpassen ? 'Fertig' : 'Dashboard anpassen'}
+      </Pressable>
+      {auswahl.anpassen && (
+        <p className="text-sm text-text-muted">Hake die Graphen an, die auf deinem Dashboard erscheinen sollen.</p>
+      )}
+    </div>
   )
 }

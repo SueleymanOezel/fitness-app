@@ -14,6 +14,8 @@ const auswahl = {
   auswahl: [T1],
   istGewaehlt: (id: string) => id === T1,
   umschalten: vi.fn(),
+  anpassen: true,
+  setAnpassen: vi.fn(),
   fehler: '',
 }
 

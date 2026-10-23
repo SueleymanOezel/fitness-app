@@ -132,7 +132,7 @@ describe('StrengthChart', () => {
       />,
     )
     expect(
-      screen.getByRole('heading', { name: 'Kraftverlauf – Bankdruecken' }),
+      screen.getByRole('heading', { name: 'Kraftverlauf (geschätztes 1RM) – Bankdruecken' }),
     ).toBeInTheDocument()
   })
 

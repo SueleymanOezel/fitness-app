@@ -41,12 +41,13 @@ export default function ChartFrame({
 }) {
   return (
     <section className={cardClass}>
-      <h2>{titel}</h2>
+      {/* An empty chart steps back: smaller, muted title, so a page of them reads as one "not yet" instead of many headlines. */}
+      <h2 className={leer ? 'text-base text-text-muted' : undefined}>{titel}</h2>
       {picker}
       {vorspann}
       {leer ? (
         <>
-          <p>Noch nicht genug Daten für diesen Graphen.</p>
+          <p className="text-sm text-text-muted">Noch nicht genug Daten für diesen Graphen.</p>
           {leerCta && (
             <PressableLink to={leerCta.to} className={linkClass}>
               {leerCta.label}
