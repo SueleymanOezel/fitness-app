@@ -80,7 +80,7 @@ describe('NutritionAnalysisPage', () => {
     // findByRole, not getByRole: NutritionChartList loads the chart behind
     // React.lazy, so the first render is the Suspense fallback.
     expect(
-      await screen.findByRole('heading', { name: 'Kalorien pro Tag' }, { timeout: 5000 }),
+      await screen.findByRole('heading', { name: 'Kalorien pro Tag (kcal)' }, { timeout: 5000 }),
     ).toBeInTheDocument()
     expect(await screen.findByText('Ziel 1672 kcal', {}, { timeout: 5000 })).toBeInTheDocument()
   })
@@ -119,7 +119,7 @@ describe('NutritionAnalysisPage', () => {
     // Erst den Graphen abwarten, sonst waere "kein Ziel-Text" auch dann wahr,
     // wenn der Graph gleich noch hinter der Suspense-Huelle steckt.
     expect(
-      await screen.findByRole('heading', { name: 'Kalorien pro Tag' }, { timeout: 5000 }),
+      await screen.findByRole('heading', { name: 'Kalorien pro Tag (kcal)' }, { timeout: 5000 }),
     ).toBeInTheDocument()
     expect(screen.queryByText(/^Ziel /)).not.toBeInTheDocument()
   })

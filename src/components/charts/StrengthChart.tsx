@@ -13,7 +13,7 @@ import type { AnalysisSession, AnalysisSet } from '../../hooks/use-training-anal
 import { kraftverlauf } from '../../lib/analysis/training-charts'
 import { KRAFTVERLAUF_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
-import { CHART_MINT, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
+import { CHART_MINT, achseProps, yAchseProps, gitterProps, ganzzahligeAchse } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 import ExerciseSelect from './ExerciseSelect'
 import { useUebungsauswahl } from './useUebungsauswahl'
@@ -27,14 +27,20 @@ export default function StrengthChart({
   picker,
   leerCta,
   mitUebungsauswahl = true,
+  uebung,
 }: {
   sessions: AnalysisSession[]
   sets: AnalysisSet[]
   picker?: ReactNode
   leerCta?: { label: string; to: string }
   mitUebungsauswahl?: boolean
+  /** Set by the analysis page, which shares one exercise select across T2–T5; the chart then shows no select of its own. */
+  uebung?: string | null
 }) {
-  const { optionen, exerciseId, waehlen } = useUebungsauswahl(sets)
+  const auswahl = useUebungsauswahl(sets)
+  const { optionen, waehlen } = auswahl
+  const exerciseId = uebung !== undefined ? uebung : auswahl.exerciseId
+  const eigeneAuswahl = mitUebungsauswahl && uebung === undefined
   const punkte = exerciseId
     ? kraftverlauf(sessions, sets, exerciseId).map((punkt) => ({
         ...punkt,
@@ -42,7 +48,7 @@ export default function StrengthChart({
       }))
     : []
   const uebungsName = optionen.find((option) => option.exercise_id === exerciseId)?.name
-  const titel = mitUebungsauswahl || uebungsName == null ? TITEL : `${TITEL} – ${uebungsName}`
+  const titel = eigeneAuswahl || uebungsName == null ? TITEL : `${TITEL} – ${uebungsName}`
 
   return (
     <ChartFrame
@@ -51,7 +57,7 @@ export default function StrengthChart({
       picker={picker}
       leerCta={leerCta}
       vorspann={
-        mitUebungsauswahl && (
+        eigeneAuswahl && (
           <ExerciseSelect optionen={optionen} wert={exerciseId} onChange={waehlen} />
         )
       }
@@ -62,7 +68,7 @@ export default function StrengthChart({
           <XAxis {...achseProps} dataKey="label" />
           {/* Nicht bei null beginnen: die interessante Spanne sind ein paar
               Kilo, eine Achse ab 0 macht daraus eine Gerade. */}
-          <YAxis {...yAchseProps} domain={['auto', 'auto']} />
+          <YAxis {...yAchseProps} {...ganzzahligeAchse} />
           <Tooltip formatter={(wert?: ValueType) => [`${tooltipZahl(wert)} kg`, 'geschätztes 1RM']} />
           <Line type="monotone" dataKey="wert" stroke={CHART_MINT} dot={false} />
         </LineChart>

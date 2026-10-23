@@ -313,7 +313,7 @@ describe('BodyPage – ausgewaehlte Graphen', () => {
     // is a statement about machine speed, not about correctness, and a loaded
     // CI runner exceeds it often enough to make the suite intermittently red.
     expect(
-      await screen.findByRole('heading', { name: 'Gewichtsverlauf' }, { timeout: 5000 }),
+      await screen.findByRole('heading', { name: 'Gewichtsverlauf (kg)' }, { timeout: 5000 }),
     ).toBeInTheDocument()
     expect(mockUseBodyAnalysis).toHaveBeenCalledWith('u1', 90)
     expect(screen.queryByRole('button', { name: '30 Tage' })).not.toBeInTheDocument()
@@ -334,7 +334,7 @@ describe('BodyPage – ausgewaehlte Graphen', () => {
       fehler: '',
     })
     zeigeDashboard()
-    expect(screen.queryByRole('heading', { name: 'Gewichtsverlauf' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Gewichtsverlauf (kg)' })).not.toBeInTheDocument()
     expect(mockUseBodyAnalysis).not.toHaveBeenCalled()
   })
 

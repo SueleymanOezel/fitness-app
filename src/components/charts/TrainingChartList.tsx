@@ -25,6 +25,8 @@ export type TrainingChartListProps = {
   auswahl?: ReturnType<typeof useChartSelection>
   /** Wird an jeden Chart des Bereichs durchgereicht, siehe ChartFrame. */
   leerCta?: { label: string; to: string }
+  /** One exercise for T2–T5, chosen once on the analysis page. */
+  uebung?: string | null
 }
 
 export default function TrainingChartList({
@@ -33,6 +35,7 @@ export default function TrainingChartList({
   sets,
   auswahl,
   leerCta,
+  uebung,
 }: TrainingChartListProps) {
   const analyse = auswahl != null
 
@@ -49,6 +52,7 @@ export default function TrainingChartList({
             picker={picker}
             leerCta={cta}
             mitUebungsauswahl={analyse}
+            uebung={uebung}
           />
         )
       case T3:
@@ -59,6 +63,7 @@ export default function TrainingChartList({
             picker={picker}
             leerCta={cta}
             mitUebungsauswahl={analyse}
+            uebung={uebung}
           />
         )
       case T4:
@@ -69,6 +74,7 @@ export default function TrainingChartList({
             picker={picker}
             leerCta={cta}
             mitUebungsauswahl={analyse}
+            uebung={uebung}
           />
         )
       case T5:
@@ -79,6 +85,7 @@ export default function TrainingChartList({
             picker={picker}
             leerCta={cta}
             mitUebungsauswahl={analyse}
+            uebung={uebung}
           />
         )
       case T6:

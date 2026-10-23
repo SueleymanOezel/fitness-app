@@ -65,7 +65,7 @@ describe('BodyAnalysisPage', () => {
     // findByRole, not getByRole: BodyChartList loads the chart behind
     // React.lazy, so the first render is the Suspense fallback.
     expect(
-      await screen.findByRole('heading', { name: 'Gewichtsverlauf' }, { timeout: 5000 }),
+      await screen.findByRole('heading', { name: 'Gewichtsverlauf (kg)' }, { timeout: 5000 }),
     ).toBeInTheDocument()
     await waitFor(
       () => expect(screen.getAllByTestId('picker')).toHaveLength(chartsFor('body').length),

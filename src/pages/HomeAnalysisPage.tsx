@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useSession } from '../hooks/use-session'
 import { useHomeAnalysis } from '../hooks/use-home-analysis'
 import ZeitraumSwitch from '../components/ZeitraumSwitch'
-import { useChartSelection, AnpassenSchalter } from '../components/charts/ChartPicker'
+import { useChartSelection, AnpassenSchalter, AnpassenListe } from '../components/charts/ChartPicker'
 import HomeChartList from '../components/charts/HomeChartList'
 import { chartsFor } from '../lib/analysis/registry'
 import { STANDARD_ZEITRAUM, type Zeitraum } from '../lib/analysis/zeitraum'
@@ -35,6 +35,8 @@ function Analyse({ userId }: { userId: string }) {
       {auswahl.fehler !== '' && <p role="alert">{auswahl.fehler}</p>}
       {loading ? (
         <ChartSkeleton />
+      ) : auswahl.anpassen ? (
+        <AnpassenListe bereich="home" auswahl={auswahl} />
       ) : (
         <HomeChartList ids={ids} sessions={sessions} entries={entries} rows={rows} zeitraum={zeitraum} auswahl={auswahl} />
       )}
