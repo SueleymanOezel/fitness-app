@@ -40,7 +40,7 @@ export default function CaloriesPerDayChart({
   const zusammenfassung = `Ø ${Math.round(schnitt)} kcal pro Tag${ziel != null ? ` · Ziel ${ziel} kcal` : ''}`
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker} leerCta={leerCta} zusammenfassung={zusammenfassung}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 2} leerHinweis="Erscheint ab zwei Tagen mit Einträgen." picker={picker} leerCta={leerCta} zusammenfassung={zusammenfassung}>
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={punkte}>
           <CartesianGrid {...gitterProps} />

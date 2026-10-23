@@ -64,6 +64,6 @@ describe('CaloriesPerDayChart', () => {
 
   it('says so with fewer than two logged days', () => {
     render(<CaloriesPerDayChart entries={[eintrag(24, 2100)]} ziel={1672} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen./)).toBeInTheDocument()
   })
 })

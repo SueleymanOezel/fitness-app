@@ -83,6 +83,6 @@ describe('WeightTrendChart', () => {
 
   it('says so with a single weight', () => {
     render(<WeightTrendChart rows={[zeile('a', '2026-08-24', 82.5)]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen./)).toBeInTheDocument()
   })
 })

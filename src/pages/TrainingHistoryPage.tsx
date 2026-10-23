@@ -43,7 +43,7 @@ function HistoryList({ userId }: { userId: string }) {
               <li key={entry.id} className={listRowClass}>
                 <PressableLink to={`/training/history/${entry.id}`} className={`${linkClass} flex-1`}>
                   <span className="flex min-w-0 flex-col">
-                    <span>{`${entry.plan_name ?? '—'} – ${entry.tag_name ?? '—'}`}</span>
+                    <span>{entry.tag_name ?? entry.plan_name ?? 'Training'}</span>
                     <span className="text-sm text-text-muted">
                       {`${new Date(entry.gestartet_am).toLocaleDateString('de-DE')} · ${
                         // An unfinished session has no calorie result; "0 kcal" would read as a measurement.

@@ -41,7 +41,7 @@ describe('StrengthChart', () => {
     render(
       <StrengthChart sessions={[sessions[0]]} sets={[satz('s1', 'e1', 'Bankdruecken', 90)]} />,
     )
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen./)).toBeInTheDocument()
   })
 
   it('switches the exercise', () => {
@@ -60,7 +60,7 @@ describe('StrengthChart', () => {
 
     fireEvent.change(screen.getByLabelText('Übung'), { target: { value: 'e2' } })
     // Kniebeuge hat nur eine Session — zu wenig fuer eine Linie.
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen./)).toBeInTheDocument()
   })
 
   it('keeps the exercise select usable after switching to a data-poor exercise', () => {
@@ -77,11 +77,11 @@ describe('StrengthChart', () => {
       />,
     )
     fireEvent.change(screen.getByLabelText('Übung'), { target: { value: 'e2' } })
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen./)).toBeInTheDocument()
 
     // Zurueckwechseln muss trotz leerem Zustand moeglich sein.
     fireEvent.change(screen.getByLabelText('Übung'), { target: { value: 'e1' } })
-    expect(screen.queryByText('Noch nicht genug Daten für diesen Graphen.')).toBeNull()
+    expect(screen.queryByText(/^Noch nicht genug Daten für diesen Graphen./)).toBeNull()
   })
 
   it('locks in a user with a data-poor default exercise out of nothing', () => {
@@ -99,11 +99,11 @@ describe('StrengthChart', () => {
         ]}
       />,
     )
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen./)).toBeInTheDocument()
     expect(screen.getByLabelText('Übung')).toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('Übung'), { target: { value: 'e2' } })
-    expect(screen.queryByText('Noch nicht genug Daten für diesen Graphen.')).toBeNull()
+    expect(screen.queryByText(/^Noch nicht genug Daten für diesen Graphen./)).toBeNull()
   })
 
   it('hides the exercise select on the dashboard', () => {

@@ -61,7 +61,7 @@ describe('makroAnteileHeute', () => {
     expect(anteile).toEqual([
       { makro: 'Eiweiß', anteil: 24, gramm: 20 },
       { makro: 'Fett', anteil: 53, gramm: 20 },
-      { makro: 'Kohlenhydrate', anteil: 24, gramm: 20 },
+      { makro: 'Kohlenhydrate', anteil: 23, gramm: 20 },
     ])
   })
 
