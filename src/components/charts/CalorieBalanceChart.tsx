@@ -14,7 +14,7 @@ import { kalorienbilanz } from '../../lib/analysis/nutrition-charts'
 import type { AnalysisFoodEntry, AnalysisSessionKalorien } from '../../hooks/use-nutrition-analysis'
 import { KALORIENBILANZ_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
-import { CHART_GRID, CHART_MINT, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
+import { CHART_GRID, BEREICH_FARBE, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = KALORIENBILANZ_TITEL
@@ -44,7 +44,7 @@ export default function CalorieBalanceChart({
           <YAxis {...yAchseProps} />
           <Tooltip formatter={(wert?: ValueType) => [`${wert} kcal`, 'Bilanz']} />
           <ReferenceLine y={0} stroke={CHART_GRID} />
-          <Line type="monotone" dataKey="bilanz" stroke={CHART_MINT} dot={false} />
+          <Line type="monotone" dataKey="bilanz" stroke={BEREICH_FARBE.ernaehrung} dot={false} />
         </LineChart>
       </ResponsiveContainer>
     </ChartFrame>

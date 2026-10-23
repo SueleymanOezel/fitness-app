@@ -58,7 +58,9 @@
   --color-chart-violet: #8766ed;
   --color-chart-grid: #5e5f66;
 
-  --font-sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* Barlow: plain-spoken grotesk with gym-signage roots. Text in Barlow, titles and numbers in the semi-condensed cut — a scoreboard voice for kg, kcal and timers. */
+  --font-sans: 'Barlow', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Barlow Semi Condensed', 'Barlow', system-ui, sans-serif;
 }
 
 :root {
@@ -124,15 +126,18 @@ body {
   h1,
   h2,
   h3 {
-    font-family: var(--font-sans);
+    font-family: var(--font-display);
     font-weight: 600;
     color: var(--color-text);
   }
 
+  /* Page titles in caps, like a board in the gym; the condensed cut keeps long day names on one line. */
   h1 {
     font-size: 36px;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
+    line-height: 1.1;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
     @media (max-width: 1024px) {
       font-size: 28px;
     }

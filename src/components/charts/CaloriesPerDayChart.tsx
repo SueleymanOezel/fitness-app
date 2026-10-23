@@ -14,7 +14,7 @@ import { kalorienJeTag } from '../../lib/analysis/nutrition-charts'
 import type { AnalysisFoodEntry } from '../../hooks/use-nutrition-analysis'
 import { KALORIEN_PRO_TAG_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
-import { CHART_GRID, CHART_MINT, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
+import { CHART_GRID, BEREICH_FARBE, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
 import { tooltipZahl } from '../../lib/zahl'
 import ChartFrame from './ChartFrame'
 
@@ -60,7 +60,7 @@ export default function CaloriesPerDayChart({
               ifOverflow="extendDomain"
             />
           )}
-          <Line type="monotone" dataKey="kalorien" stroke={CHART_MINT} dot={false} />
+          <Line type="monotone" dataKey="kalorien" stroke={BEREICH_FARBE.ernaehrung} dot={false} />
         </LineChart>
       </ResponsiveContainer>
     </ChartFrame>
