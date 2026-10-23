@@ -109,6 +109,11 @@ body {
 }
 
 @layer base {
+  /* iOS flashes a grey box over every tapped link/button; our own press states replace it. */
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   /* Recharts colors legend labels with the series color inline; #4f6ca5 (Gewicht) is 3.0:1 on a card.
      The swatch keeps the series color, the label is plain text. */
   .recharts-legend-item-text {

@@ -63,4 +63,12 @@ describe('BottomNav', () => {
     expect(attachPressFeedback).not.toHaveBeenCalled()
     expect(screen.getByRole('link', { name: 'Training' }).className).toContain('active:opacity-80')
   })
+
+  // iOS lifts and enlarges a held link for its preview, then shrinks it back (still seen on iPhone after #115).
+  it('turns off the iOS link preview and text selection on the tabs', () => {
+    renderNav()
+    const tab = screen.getByRole('link', { name: 'Training' })
+    expect(tab.className).toContain('[-webkit-touch-callout:none]')
+    expect(tab.className).toContain('select-none')
+  })
 })

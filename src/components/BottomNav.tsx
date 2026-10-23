@@ -16,7 +16,7 @@ function NavTab({ to, label, icon, end }: (typeof tabs)[number]) {
       end={end}
       // Icon plus word: four icons alone left a first-time user guessing.
       className={({ isActive }) =>
-        `flex h-12 min-w-16 flex-col items-center justify-center gap-0.5 rounded-2xl text-[11px] font-medium leading-none active:opacity-80 ${interactiveClass} focus-visible:ring-text focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised ${
+        `flex h-12 min-w-16 flex-col items-center justify-center gap-0.5 rounded-2xl text-[11px] font-medium leading-none select-none [-webkit-touch-callout:none] active:opacity-80 ${interactiveClass} focus-visible:ring-text focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised ${
           // Small labels need 4.5:1: accent-text only on the darker active fill (5.4:1), not on the pill (3.5:1).
           isActive ? 'bg-surface text-accent-text' : 'text-text/75'
         }`
