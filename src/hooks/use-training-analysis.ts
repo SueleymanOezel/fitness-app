@@ -25,7 +25,6 @@ export type AnalysisSet = {
 
 type RawSet = {
   id: string
-  workout_session_id: string
   exercise_id: string
   satz_nummer: number
   gewicht: number | null
@@ -34,43 +33,24 @@ type RawSet = {
   exercises: { name: string; name_de: string | null; muskelgruppen_primaer: string[] | null } | null
 }
 
-const COLUMNS = 'id, gestartet_am, beendet_am, gesamt_kalorien'
-const SET_COLUMNS =
-  'id, workout_session_id, exercise_id, satz_nummer, gewicht, wiederholungen, ist_aufwaermsatz, exercises(name, name_de, muskelgruppen_primaer)'
+type RawSession = AnalysisSession & { workout_session_sets: RawSet[] | null }
+
+// Sets ride along as an embed: one round trip instead of sessions-then-sets. The training
+// dashboard waited one round more than the other areas and felt slow on the phone (23.10.2026).
+const COLUMNS =
+  'id, gestartet_am, beendet_am, gesamt_kalorien, workout_session_sets(id, exercise_id, satz_nummer, gewicht, wiederholungen, ist_aufwaermsatz, exercises(name, name_de, muskelgruppen_primaer))'
 
 /** Ein geloeschter Uebungseintrag laesst den Satz stehen; er verliert nur seinen Namen. */
 const UNBEKANNTE_UEBUNG = 'Unbekannte Uebung'
 
 /**
- * Session-IDs je `.in()`-Aufruf. Bei `alles` mit Jahren an Historie waeren
- * alle IDs in einer Abfrage ein Query-String von zehn kB und mehr — genau die
- * Klasse Fehler, die Phase 3 schon einmal traf ("~32 KB Query-String erzeugt,
- * Gateway lehnt ab").
- */
-const ID_CHUNK_SIZE = 100
-
-function inChunks<T>(items: T[], size: number): T[][] {
-  const chunks: T[][] = []
-  for (let start = 0; start < items.length; start += size) {
-    chunks.push(items.slice(start, start + size))
-  }
-  return chunks
-}
-
-/**
  * One query per area, not one per chart: a page shows up to eight training
  * charts, and each of them would otherwise fetch the same rows again.
  *
- * Die Saetze kommen in einer zweiten Abfrage ueber die IDs der geladenen
- * Sessions. Das ist ein Roundtrip mehr als ein eingebetteter Join, dafuer eine
- * Abfrage, deren Filter man lesen und pruefen kann — und sie entfaellt, wenn im
- * Zeitraum gar nicht trainiert wurde.
- *
- * Beide Abfragen sind seitenweise paginiert (wie `use-exercises.ts`), und die
- * Satzabfrage chunkt die Session-IDs zusaetzlich: ohne beides waere ein
- * aktiver Nutzer ueber `365`/`alles` still auf db-max-rows abgeschnitten, und
- * `order('satz_nummer', …)` haette diesen Schnitt systematisch verzerrt (immer
- * die niedrigen Satznummern behalten).
+ * Die Sessions sind seitenweise paginiert (wie `use-exercises.ts`): ohne das
+ * waere ein aktiver Nutzer ueber `365`/`alles` still auf db-max-rows
+ * abgeschnitten. Die eingebetteten Saetze zaehlen nicht gegen dieses Limit
+ * (PostgREST begrenzt nur die Zeilen der Hauptabfrage).
  */
 export function useTrainingAnalysis(userId: string, zeitraum: Zeitraum) {
   const [sessions, setSessions] = useState<AnalysisSession[]>([])
@@ -83,7 +63,7 @@ export function useTrainingAnalysis(userId: string, zeitraum: Zeitraum) {
     const current = ++requestId.current
     const start = rangeStart(zeitraum)
 
-    const sessionErgebnis = await seitenweiseLaden<AnalysisSession>((from, to) => {
+    const ergebnis = await seitenweiseLaden<RawSession>((from, to) => {
       let query = supabase.from('workout_sessions').select(COLUMNS).eq('user_id', userId)
       if (start) query = query.gte('gestartet_am', start)
       return query
@@ -96,56 +76,29 @@ export function useTrainingAnalysis(userId: string, zeitraum: Zeitraum) {
     })
     if (current !== requestId.current) return
 
-    // Ein Session-Fehler laesst geladen leer bleiben statt fruehzeitig zurueck-
-    // zuspringen: ein einziger Schreibpunkt am Ende, wie zuvor — sonst
-    // verdoppelt sich jede Fehlerbehandlung auf zwei Codepfade.
-    const geladen = sessionErgebnis.failed ? [] : sessionErgebnis.rows
-    let satzFehler = false
-    let geladeneSaetze: AnalysisSet[] = []
+    const geladen = ergebnis.failed ? [] : ergebnis.rows
+    const saetze: AnalysisSet[] = geladen
+      .flatMap((session) =>
+        (session.workout_session_sets ?? []).map((row) => ({
+          id: row.id,
+          workout_session_id: session.id,
+          exercise_id: row.exercise_id,
+          exercise_name: exerciseName(row.exercises) || UNBEKANNTE_UEBUNG,
+          muskelgruppen: row.exercises?.muskelgruppen_primaer ?? [],
+          satz_nummer: row.satz_nummer,
+          gewicht: row.gewicht,
+          wiederholungen: row.wiederholungen,
+          ist_aufwaermsatz: row.ist_aufwaermsatz,
+        })),
+      )
+      // Same order the separate sets query used to return.
+      .sort((a, b) => a.satz_nummer - b.satz_nummer || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
 
-    if (!sessionErgebnis.failed) {
-      for (const idChunk of inChunks(
-        geladen.map((session) => session.id),
-        ID_CHUNK_SIZE,
-      )) {
-        const satzErgebnis = await seitenweiseLaden<RawSet>((from, to) =>
-          supabase
-            .from('workout_session_sets')
-            .select(SET_COLUMNS)
-            .in('workout_session_id', idChunk)
-            .order('satz_nummer', { ascending: true })
-            .order('id', { ascending: true })
-            .range(from, to),
-        )
-        if (current !== requestId.current) return
-        if (satzErgebnis.failed) {
-          satzFehler = true
-          geladeneSaetze = []
-          break
-        }
-        geladeneSaetze.push(
-          ...satzErgebnis.rows.map((row) => ({
-            id: row.id,
-            workout_session_id: row.workout_session_id,
-            exercise_id: row.exercise_id,
-            exercise_name: exerciseName(row.exercises) || UNBEKANNTE_UEBUNG,
-            muskelgruppen: row.exercises?.muskelgruppen_primaer ?? [],
-            satz_nummer: row.satz_nummer,
-            gewicht: row.gewicht,
-            wiederholungen: row.wiederholungen,
-            ist_aufwaermsatz: row.ist_aufwaermsatz,
-          })),
-        )
-      }
-    }
-
-    // Nochmal pruefen statt nur der Guards je Schleifendurchlauf: der Linter
-    // (react-hooks/set-state-in-effect) verlangt einen Check unmittelbar vor
-    // den Schreibaufrufen, der nicht in einer Schleife steckt.
-    if (current !== requestId.current) return
-    setSessions(geladen)
-    setSets(geladeneSaetze)
-    setError(sessionErgebnis.failed || satzFehler)
+    setSessions(
+      geladen.map(({ id, gestartet_am, beendet_am, gesamt_kalorien }) => ({ id, gestartet_am, beendet_am, gesamt_kalorien })),
+    )
+    setSets(saetze)
+    setError(ergebnis.failed)
     setLoading(false)
   }, [userId, zeitraum])
 

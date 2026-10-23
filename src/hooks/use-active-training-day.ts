@@ -21,26 +21,28 @@ export function useActiveTrainingDay(userId: string) {
 
   const reload = useCallback(async () => {
     const current = ++requestId.current
+    // Days ride along with the plan: plan, days and last session were three round trips in
+    // a row and the Training dashboard felt slow on the phone (23.10.2026).
     const { data: planRows, error: planError } = await supabase
       .from('workout_plans')
-      .select('*')
+      .select('*, workout_plan_days(id, name, reihenfolge)')
       .eq('user_id', userId)
       .eq('aktiv', true)
-    const activePlan = planError ? null : (((planRows ?? []) as WorkoutPlan[])[0] ?? null)
+    const planRow = planError
+      ? null
+      : (((planRows ?? []) as (WorkoutPlan & { workout_plan_days: NamedPlanDay[] | null })[])[0] ?? null)
 
     // A failed read must not look like "no active plan": every failure ends in
     // one error state, set together with the data below.
     let failed = Boolean(planError)
+    let activePlan: WorkoutPlan | null = null
     let days: NamedPlanDay[] = []
     let lastCompletedDayId: string | null = null
 
-    if (activePlan) {
-      const { data: dayRows, error: dayError } = await supabase
-        .from('workout_plan_days')
-        .select('id, name, reihenfolge')
-        .eq('workout_plan_id', activePlan.id)
-        .order('reihenfolge', { ascending: true })
-      days = (dayRows ?? []) as NamedPlanDay[]
+    if (planRow) {
+      const { workout_plan_days: planDays, ...plan } = planRow
+      activePlan = plan
+      days = [...(planDays ?? [])].sort((a, b) => a.reihenfolge - b.reihenfolge)
 
       // Only finished sessions advance the rotation — an abandoned one would
       // otherwise skip a day, and Postgres sorts its null beendet_am first.
@@ -56,7 +58,7 @@ export function useActiveTrainingDay(userId: string) {
         .limit(1)
       lastCompletedDayId =
         ((lastSessionRows ?? []) as { workout_plan_day_id: string }[])[0]?.workout_plan_day_id ?? null
-      failed = Boolean(dayError || sessionError)
+      failed = Boolean(sessionError)
     }
 
     if (current !== requestId.current) return
