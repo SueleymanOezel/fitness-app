@@ -563,7 +563,7 @@ describe('TrainingPlanEditPage', () => {
     renderPage()
     await screen.findByText('Tag A')
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Tag nach unten' })[0])
+    fireEvent.click(screen.getAllByRole('button', { name: /^.+ nach unten$/ })[0])
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
   })

@@ -214,7 +214,7 @@ describe('BodyPage', () => {
 
     const wert = screen.getByTestId('wert-gewicht')
     expect(wert).toHaveClass('tabular-nums', 'font-bold')
-    expect(screen.getByText('Gewicht', { selector: 'p' })).toHaveClass('text-text-muted', 'font-medium')
+    expect(screen.getByText('Gewicht', { selector: 'h2' })).toHaveClass('text-text-muted', 'font-medium')
   })
 
   it('reports a failed load instead of showing an empty body area', () => {

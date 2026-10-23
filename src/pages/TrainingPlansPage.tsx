@@ -69,6 +69,7 @@ function PlansList({ userId }: { userId: string }) {
                   )}
                   <ConfirmDelete
                     label="Löschen"
+                    ariaLabel={`${plan.name} löschen`}
                     ruhig
                     titel="Plan löschen?"
                     text={`„${plan.name}“ mit allen Tagen und Übungen wird gelöscht. Deine bisherigen Trainings bleiben erhalten.`}

@@ -11,11 +11,12 @@ describe('parentRoute', () => {
     ['/nutrition/entries', '/nutrition'],
     ['/body/photos', '/body'],
     ['/home/analyse', '/'],
+    ['/profile', '/'],
   ])('%s leads back to %s', (pfad, ziel) => {
     expect(parentRoute(pfad)?.to).toBe(ziel)
   })
 
   it('has no parent on the top-level screens', () => {
-    for (const pfad of ['/', '/training', '/nutrition', '/body', '/profile']) expect(parentRoute(pfad)).toBeNull()
+    for (const pfad of ['/', '/training', '/nutrition', '/body']) expect(parentRoute(pfad)).toBeNull()
   })
 })

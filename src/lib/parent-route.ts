@@ -7,6 +7,6 @@ export function parentRoute(pathname: string): { to: string; label: string } | n
   if (/^\/training\/(plans|exercises|history|analyse|session\/[^/]+)$/.test(pathname)) return trainings
   if (/^\/nutrition\/(entries|analyse)$/.test(pathname)) return { to: '/nutrition', label: 'Zurück zur Ernährung' }
   if (/^\/body\/(entries|photos|analyse)$/.test(pathname)) return { to: '/body', label: 'Zurück zum Körperbereich' }
-  if (pathname === '/home/analyse') return { to: '/', label: 'Zurück zur Übersicht' }
+  if (pathname === '/home/analyse' || pathname === '/profile') return { to: '/', label: 'Zurück zur Übersicht' }
   return null
 }

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
 import { useFoodEntries, type EntryPatch, type FoodEntry } from '../hooks/use-food-entries'
-import { mealSections, visibleSections, type MealSection } from '../lib/meal-sections'
+import { abschnittFuerUhrzeit, mealSections, visibleSections, type MealSection } from '../lib/meal-sections'
 import { sumKalorien } from '../lib/entry-calories'
 import FoodEntryList from '../components/FoodEntryList'
 import AddEntryFlow from '../components/AddEntryFlow'
@@ -41,11 +41,13 @@ function EntriesBySection({ userId }: { userId: string }) {
 
   const sections = visibleSections(profile, entries)
   const assignable = mealSections(profile)
+  // The one primary add is the meal of the moment (breakfast in the morning…), not whichever comes first.
+  const jetzt = abschnittFuerUhrzeit(assignable, new Date())
 
   return (
     <div>
       <h1>Einträge heute</h1>
-      {sections.map((section, index) => {
+      {sections.map((section) => {
         // Bound to a const so the narrowing survives into the callback below —
         // TypeScript does not keep a property narrowing across a closure.
         const slot = section.slot
@@ -61,7 +63,7 @@ function EntriesBySection({ userId }: { userId: string }) {
             addEntry={addEntry}
             updateEntry={updateEntry}
             deleteEntry={deleteEntry}
-            isPrimaryAdd={index === 0}
+            isPrimaryAdd={slot != null && slot === jetzt}
           />
         )
       })}
