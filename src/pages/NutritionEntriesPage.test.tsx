@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderWithProviders } from '../test-render'
 import type { FoodEntry } from '../hooks/use-food-entries'
@@ -166,7 +166,13 @@ describe('NutritionEntriesPage', () => {
     expect(screen.getByRole('heading', { name: /Mittagessen/ })).toHaveTextContent('50 kcal')
   })
 
-  it('gives only the first section a primary add button, the rest secondary', async () => {
+  it('gives only the current meal a primary add button, the rest secondary', async () => {
+    // The primary follows the clock (breakfast in the morning); unpinned this failed every evening.
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 23, 8, 0))
+    onTestFinished(() => {
+      vi.useRealTimers()
+    })
     await renderPage(entriesResult({ entries: [] }))
 
     const fruehstueckHeading = screen.getByRole('heading', { name: /Frühstück/ })
