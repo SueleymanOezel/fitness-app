@@ -167,7 +167,7 @@ describe('BodyPage', () => {
     )
 
     zeigeDashboard()
-    fireEvent.click(screen.getByRole('button', { name: 'Heute eintragen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Heute bearbeiten' }))
 
     expect(screen.getByLabelText('Datum')).toHaveValue('2026-08-24')
     expect(screen.getByRole('spinbutton', { name: 'Gewicht (kg)' })).toHaveValue(82.5)
@@ -187,13 +187,13 @@ describe('BodyPage', () => {
     mockUseBodyMetrics.mockReturnValue(metricsResult())
 
     zeigeDashboard()
-    fireEvent.click(screen.getByRole('button', { name: 'Heute eintragen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Heute bearbeiten' }))
     fireEvent.change(screen.getByRole('spinbutton', { name: 'Gewicht (kg)' }), { target: { value: '77' } })
     fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }))
 
     expect(screen.queryByRole('spinbutton', { name: 'Gewicht (kg)' })).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Heute eintragen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Heute bearbeiten' }))
     expect(screen.getByRole('spinbutton', { name: 'Gewicht (kg)' })).toHaveValue(82.5)
   })
 

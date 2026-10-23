@@ -151,7 +151,8 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className={`${cardClass} flex flex-col`}>
-        <h2>Eintrag bearbeiten</h2>
+        <p className={labelClass}>Eintrag bearbeiten</p>
+        <h2>{swapped ? swapped.name : (product?.name ?? 'Unbekanntes Produkt')}</h2>
         <label className={fieldLabelClass}>
           Menge (g)
           <input className={inputClass} type="number" step="any" value={menge} onChange={(event) => setMenge(event.target.value)} />
@@ -186,7 +187,6 @@ export default function FoodEntryEditForm({ entry, userId, sections, onSave, onC
           </div>
         </div>
 
-        <p>{swapped ? swapped.name : (product?.name ?? 'Unbekanntes Produkt')}</p>
         <Pressable variant="secondary" className="self-start" type="button" onClick={() => setPicking(true)}>
           Anderes Produkt wählen
         </Pressable>

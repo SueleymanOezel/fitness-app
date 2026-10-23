@@ -165,7 +165,7 @@ export default function LoginPage() {
         </Pressable>
         <Pressable
           type="button"
-          className="w-full border-0 bg-transparent text-center text-sm text-text-muted underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="w-full border-0 bg-transparent text-center text-sm text-accent-text underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           onClick={toggleMode}
         >
           {mode === 'login' ? 'Noch kein Konto? Registrieren' : 'Schon registriert? Einloggen'}

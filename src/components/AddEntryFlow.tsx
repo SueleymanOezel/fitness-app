@@ -39,6 +39,12 @@ export default function AddEntryFlow({ onAdd, onCancel }: Props) {
     }
   }
 
+  const mengeZahl = Number(menge)
+  const kcalVorschau =
+    product && menge.trim() !== '' && Number.isFinite(mengeZahl) && mengeZahl > 0
+      ? Math.round((product.kalorien * mengeZahl) / 100)
+      : null
+
   if (!product) {
     return (
       <ProductPicker
@@ -60,6 +66,8 @@ export default function AddEntryFlow({ onAdd, onCancel }: Props) {
           Menge (g)
           <input className={inputClass} type="number" step="any" value={menge} onChange={(event) => setMenge(event.target.value)} />
         </label>
+        {/* What the portion adds up to, before it is stored. */}
+        {kcalVorschau != null && <p className="text-sm text-text-muted">{`≈ ${kcalVorschau} kcal`}</p>}
       </div>
       {error && <p role="alert">{error}</p>}
       <Pressable variant="primary" type="submit">

@@ -61,6 +61,23 @@ describe('AddEntryFlow', () => {
     await waitFor(() => expect(onAdd).toHaveBeenCalledWith('p1', 250))
   })
 
+  it('previews the calories of the entered portion', async () => {
+    mockFindOrFetch.mockResolvedValue(product)
+    const { default: AddEntryFlow } = await import('./AddEntryFlow')
+    render(<AddEntryFlow onAdd={vi.fn()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Barcode scannen' }))
+    mockOnDetected.current('4001234567890')
+    await waitFor(() => expect(screen.getByText('Gefundenes Produkt')).toBeInTheDocument())
+
+    // 200 kcal per 100 g, default portion 100 g.
+    expect(screen.getByText('≈ 200 kcal')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Menge (g)'), { target: { value: '250' } })
+    expect(screen.getByText('≈ 500 kcal')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Menge (g)'), { target: { value: '' } })
+    expect(screen.queryByText(/≈/)).not.toBeInTheDocument()
+  })
+
   it('falls back to the manual form when the barcode is not found', async () => {
     mockFindOrFetch.mockResolvedValue(null)
     const onAdd = vi.fn().mockResolvedValue(undefined)
