@@ -24,5 +24,12 @@ export const yAchseProps = { ...achseProps, tickFormatter: (wert: number) => zah
 /** Horizontal guides only, and quiet. */
 export const gitterProps = { stroke: CHART_GRID, strokeDasharray: '3 3', vertical: false, strokeOpacity: 0.6 }
 
+/**
+ * One color per area, so a chart says where it belongs at a glance: training
+ * stays mint, nutrition orange, body violet (the brand's lilac). Multi-series
+ * charts keep their own legends.
+ */
+export const BEREICH_FARBE = { training: CHART_MINT, ernaehrung: CHART_ORANGE, koerper: CHART_VIOLET } as const
+
 /** Fixed cycle for charts with more categories than dedicated colors (T6, E4). */
 export const CHART_PALETTE = [CHART_MINT, CHART_BLUE, CHART_GREEN, CHART_ORANGE, CHART_VIOLET]

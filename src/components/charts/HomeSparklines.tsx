@@ -3,7 +3,7 @@ import { Line, LineChart, ResponsiveContainer } from 'recharts'
 import { gewichtsTrend } from '../../lib/analysis/body-charts'
 import { kalorienJeTag } from '../../lib/analysis/nutrition-charts'
 import { TRENDS_TITEL } from '../../lib/analysis/chart-titles'
-import { CHART_BLUE, CHART_MINT } from '../../lib/analysis/chart-colors'
+import { BEREICH_FARBE } from '../../lib/analysis/chart-colors'
 import { zahlDe } from '../../lib/zahl'
 import ChartFrame from './ChartFrame'
 
@@ -52,7 +52,7 @@ export default function HomeSparklines({
             <Line
               type="monotone"
               dataKey="trend"
-              stroke={CHART_BLUE}
+              stroke={BEREICH_FARBE.koerper}
               dot={false}
               strokeWidth={2}
               isAnimationActive={false}
@@ -64,7 +64,7 @@ export default function HomeSparklines({
             <Line
               type="monotone"
               dataKey="kalorien"
-              stroke={CHART_MINT}
+              stroke={BEREICH_FARBE.ernaehrung}
               dot={false}
               strokeWidth={2}
               isAnimationActive={false}

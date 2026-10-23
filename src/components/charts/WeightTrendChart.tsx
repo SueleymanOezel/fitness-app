@@ -14,7 +14,7 @@ import { gewichtsTrend } from '../../lib/analysis/body-charts'
 import type { BodyMetricRow } from '../../lib/body-metrics'
 import { GEWICHTSVERLAUF_TITEL } from '../../lib/analysis/chart-titles'
 import { tagesLabel } from '../../lib/analysis/tages-label'
-import { CHART_BLUE, CHART_MINT, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
+import { BEREICH_FARBE, CHART_TEXT, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 import { tooltipZahl, zahlDe } from '../../lib/zahl'
 
@@ -52,8 +52,8 @@ export default function WeightTrendChart({
               flatten every change into a straight line. */}
           <YAxis {...yAchseProps} domain={['auto', 'auto']} />
           <Tooltip formatter={(wert?: ValueType) => [`${tooltipZahl(wert)} kg`, '']} />
-          <Line type="monotone" dataKey="gewicht" name="Gewicht" stroke={CHART_BLUE} dot={false} />
-          <Line type="monotone" dataKey="trend" name="Trend" stroke={CHART_MINT} strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="gewicht" name="Gewicht" stroke={CHART_TEXT} dot={false} />
+          <Line type="monotone" dataKey="trend" name="Trend" stroke={BEREICH_FARBE.koerper} strokeWidth={2} dot={false} />
           <Legend />
         </LineChart>
       </ResponsiveContainer>

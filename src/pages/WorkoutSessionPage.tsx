@@ -737,7 +737,7 @@ function PauseTimer({
       <div className="flex items-center gap-2 p-2">
         <div role="timer" className="flex flex-1 items-baseline gap-2 pl-3">
           <span className={labelClass}>Pause</span>
-          <span className="text-2xl font-bold tabular-nums">{formatPause(remainingSeconds)}</span>
+          <span className="font-display text-3xl font-bold tabular-nums">{formatPause(remainingSeconds)}</span>
         </div>
         <Pressable variant="secondary" type="button" className="px-3!" onClick={onLaenger}>
           +30 s

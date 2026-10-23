@@ -13,7 +13,7 @@ import { gewichtGegenKalorien } from '../../lib/analysis/body-charts'
 import type { TagesPunkt } from '../../lib/analysis/nutrition-charts'
 import type { BodyMetricRow } from '../../lib/body-metrics'
 import { GEWICHT_UEBER_KALORIEN_TITEL } from '../../lib/analysis/chart-titles'
-import { CHART_GRID, CHART_MINT, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
+import { CHART_GRID, BEREICH_FARBE, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = GEWICHT_UEBER_KALORIEN_TITEL
@@ -54,7 +54,7 @@ export default function WeightVsCaloriesChart({
               auf derselben Seite der Null liegen. */}
           <ReferenceLine y={0} stroke={CHART_GRID} ifOverflow="extendDomain" />
           <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-          <Scatter name="Woche" data={punkte} fill={CHART_MINT} />
+          <Scatter name="Woche" data={punkte} fill={BEREICH_FARBE.koerper} />
         </ScatterChart>
       </ResponsiveContainer>
     </ChartFrame>

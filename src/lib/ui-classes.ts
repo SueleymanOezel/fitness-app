@@ -48,7 +48,7 @@ export const buttonDangerClass =
   `rounded-2xl border-0 bg-surface-raised px-4 py-3 font-semibold text-danger-text disabled:opacity-50 ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
 
 /** Large figure (weight, PR, calories): bold, tight, digits that do not jump. */
-export const statClass = 'text-3xl font-bold tracking-tight tabular-nums'
+export const statClass = 'font-display text-4xl font-bold tabular-nums'
 
 /** Quiet label above/next to a figure: visibly a different weight than the value. */
 export const labelClass = 'text-sm font-medium text-text-muted'
@@ -94,9 +94,9 @@ export const listRowClass = 'flex items-center gap-3 py-3'
 export const skeletonClass = 'rounded-2xl bg-surface-raised animate-pulse motion-reduce:animate-none'
 
 /** Titel eines PageHero: eine Stufe unter statClass, damit er neben dem Ring nicht umbricht. */
-export const heroTitleClass = 'text-2xl font-bold tracking-tight tabular-nums'
+export const heroTitleClass = 'font-display text-3xl font-bold tabular-nums'
 
 /** Kennzahl-Kachel im StatStrip: eigene Fläche auf der Seite, Label und Wert eine Stufe kleiner als im Hero. */
 export const tileClass = 'rounded-2xl bg-surface p-3 space-y-1'
 export const tileLabelClass = 'text-xs font-medium text-text-muted'
-export const tileValueClass = 'text-xl font-bold tracking-tight tabular-nums'
+export const tileValueClass = 'font-display text-2xl font-bold tabular-nums'
