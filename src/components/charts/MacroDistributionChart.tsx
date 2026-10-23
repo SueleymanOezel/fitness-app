@@ -16,7 +16,7 @@ import { makroAnteileHeute, MAKRO_FARBEN } from '../../lib/analysis/nutrition-ch
 import type { AnalysisFoodEntry } from '../../hooks/use-nutrition-analysis'
 import { MAKRO_VERTEILUNG_HEUTE_TITEL } from '../../lib/analysis/chart-titles'
 import { localDay } from '../../lib/local-time'
-import { CHART_MINT, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
+import { BEREICH_FARBE, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = MAKRO_VERTEILUNG_HEUTE_TITEL
@@ -49,7 +49,7 @@ export default function MacroDistributionChart({
               a later frame, so the gram labels would flash in after a delay (and
               never appear at all in a synchronous jsdom test). The label is the
               whole point of this bar, so it must be there from the first paint. */}
-          <Bar dataKey="anteil" fill={CHART_MINT} isAnimationActive={false}>
+          <Bar dataKey="anteil" fill={BEREICH_FARBE.ernaehrung} isAnimationActive={false}>
             {anteile.map((eintrag) => (
               <Cell key={eintrag.makro} fill={MAKRO_FARBEN[eintrag.makro]} />
             ))}

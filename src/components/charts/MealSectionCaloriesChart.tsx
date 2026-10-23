@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react'
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 import { kalorienJeAbschnitt } from '../../lib/analysis/nutrition-charts'
 import type { AnalysisFoodEntry } from '../../hooks/use-nutrition-analysis'
 import type { MealSectionNames } from '../../lib/meal-sections'
 import { KALORIEN_JE_ABSCHNITT_TITEL } from '../../lib/analysis/chart-titles'
-import { CHART_PALETTE, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
+import { BEREICH_FARBE, achseProps, yAchseProps, gitterProps } from '../../lib/analysis/chart-colors'
 import ChartFrame from './ChartFrame'
 
 export const TITEL = KALORIEN_JE_ABSCHNITT_TITEL
@@ -35,14 +35,8 @@ export default function MealSectionCaloriesChart({
           <XAxis {...achseProps} dataKey="name" />
           <YAxis {...yAchseProps} />
           <Tooltip formatter={(wert?: ValueType) => [`${wert} kcal`, 'Kalorien']} />
-          {/* key=index statt punkt.name: Abschnittsnamen sind frei editierbarer
-              Profiltext, zwei gleich benannte Abschnitte waeren sonst kein
-              eindeutiger React-Key. */}
-          <Bar dataKey="kalorien" fill={CHART_PALETTE[0]}>
-            {punkte.map((_punkt, index) => (
-              <Cell key={index} fill={CHART_PALETTE[index % CHART_PALETTE.length]} />
-            ))}
-          </Bar>
+          {/* One color: the axis already names each section, and nutrition is orange. */}
+          <Bar dataKey="kalorien" fill={BEREICH_FARBE.ernaehrung} />
         </BarChart>
       </ResponsiveContainer>
     </ChartFrame>

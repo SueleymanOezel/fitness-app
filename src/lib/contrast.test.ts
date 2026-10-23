@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { contrastRatio } from './contrast'
+import { ORANGE_TOENE } from './analysis/chart-colors'
 
 describe('contrastRatio', () => {
   it('gives the maximum ratio for black on white', () => {
@@ -77,5 +78,10 @@ describe('contrastRatio', () => {
 
   it('clears AA for the accent text tint on a card surface (text links in cards)', () => {
     expect(contrastRatio(ACCENT_TEXT, SURFACE)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  // Area colors on data (macro bars and lines): every tone is a graphic on a card and needs 3:1.
+  it.each(Object.entries(ORANGE_TOENE))('clears the 3:1 graphics minimum on a card for area tone %s', (_name, farbe) => {
+    expect(contrastRatio(farbe, SURFACE)).toBeGreaterThanOrEqual(3)
   })
 })
