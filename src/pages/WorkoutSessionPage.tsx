@@ -293,6 +293,23 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                 >
                   {entry.name}
                 </Pressable>
+                {/* Progress on every card, so a glance shows how far the whole workout is. */}
+                <span
+                  className={`shrink-0 text-sm font-semibold tabular-nums ${
+                    targetReached(entry.ziel_saetze, workingSetCount(entry.exercise_id)) ? 'text-chart-mint' : 'text-text-muted'
+                  }`}
+                >
+                  <span aria-hidden="true">
+                    {entry.ziel_saetze
+                      ? `${workingSetCount(entry.exercise_id)}/${entry.ziel_saetze}`
+                      : workingSetCount(entry.exercise_id)}
+                  </span>
+                  <span className="sr-only">
+                    {entry.ziel_saetze
+                      ? `${workingSetCount(entry.exercise_id)} von ${entry.ziel_saetze} Sätzen`
+                      : `${workingSetCount(entry.exercise_id)} Sätze`}
+                  </span>
+                </span>
               </div>
               {aktuelleId === entry.exercise_id && (
                 <LoggedSets
