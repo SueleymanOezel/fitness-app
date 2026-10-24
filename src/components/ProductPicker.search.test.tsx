@@ -34,6 +34,21 @@ beforeEach(() => {
 afterEach(cleanup)
 
 describe('ProductPicker: recent products and search', () => {
+  // On the iPhone the focused search opened the keyboard, which covered the recent products
+  // and "Scannen", the fastest ways in (re-audit 23.10.2026). Searching is one tap away.
+  it('does not ask the dialog to focus the search field', () => {
+    render(<ProductPicker onPicked={vi.fn()} />)
+    expect(screen.getByLabelText('Produkt suchen')).not.toHaveAttribute('data-autofocus')
+  })
+
+  it('shows at most four recent products, the search finds the rest', () => {
+    mockZuletzt.mockReturnValue(
+      Array.from({ length: 7 }, (_, i) => ({ product: produkt(`p${i}`, `Produkt ${i}`), letzteMenge: 100 })),
+    )
+    render(<ProductPicker onPicked={vi.fn()} />)
+    expect(within(screen.getByRole('list', { name: 'Zuletzt gegessen' })).getAllByRole('button')).toHaveLength(4)
+  })
+
   it('offers the recently eaten products first, with the amount of last time', () => {
     const onPicked = vi.fn()
     render(<ProductPicker onPicked={onPicked} onCancel={vi.fn()} />)

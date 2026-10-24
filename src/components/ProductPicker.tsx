@@ -102,7 +102,7 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
   const begriff = suche.trim().toLocaleLowerCase('de-DE')
   const treffer: { product: Product; letzteMenge?: number }[] =
     begriff === ''
-      ? zuletzt.slice(0, 8)
+      ? zuletzt.slice(0, 4) // at most four choices at a glance; the search finds the rest
       : [
           ...zuletzt.filter((eintrag) => eintrag.product.name.toLocaleLowerCase('de-DE').includes(begriff)),
           ...gefunden
@@ -119,8 +119,8 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
             className={inputClass}
             type="search"
             enterKeyHint="search"
-            // Dialog.tsx focuses this after opening: typing a name is the fastest way to a meal.
-            data-autofocus
+            // No data-autofocus: on the iPhone the keyboard then covered the recent products and
+            // "Scannen", the fastest ways in. Searching is one tap away.
             value={suche}
             onChange={(event) => setSuche(event.target.value)}
             placeholder="z. B. Haferflocken"
