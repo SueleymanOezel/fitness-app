@@ -65,6 +65,12 @@ describe('ui-classes', () => {
     expect(inputClass).toContain('focus-visible:ring-accent')
   })
 
+  // Detector finding 24.10.2026: placeholder text-muted was 3.2:1 on the field.
+  it('gives placeholders the placeholder token, not the muted text colour', () => {
+    expect(inputClass).toContain('placeholder:text-placeholder')
+    expect(inputClass).not.toContain('placeholder:text-text-muted')
+  })
+
   it('keeps field text at 16px regular even inside a small label (no iOS focus zoom)', () => {
     expect(inputClass.split(' ')).toEqual(expect.arrayContaining(['text-base', 'font-normal']))
   })
@@ -128,12 +134,5 @@ describe('skeletonClass', () => {
   it('uses the card color, never the nav color', () => {
     expect(skeletonClass).toContain('bg-surface ')
     expect(skeletonClass).not.toContain('bg-surface-raised')
-  })
-})
-
-describe('inputClass placeholder', () => {
-  it('uses the placeholder token, not the muted text colour (3.2:1 on a field)', () => {
-    expect(inputClass).toContain('placeholder:text-placeholder')
-    expect(inputClass).not.toContain('placeholder:text-text-muted')
   })
 })
