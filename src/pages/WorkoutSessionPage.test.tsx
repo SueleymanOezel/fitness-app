@@ -594,6 +594,27 @@ describe('WorkoutSessionPage', () => {
     expect(await screen.findByRole('button', { name: 'Bankdrücken' })).toHaveClass('border-0')
   })
 
+  // Collapsed cards showed only a name: no sense of how far the whole workout is (re-audit 23.10.2026).
+  it('shows each exercise card its set progress, warm-ups not counted', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({
+        exercises: [exercise, { ...exercise, exercise_id: 'ex2', name: 'Kniebeuge', reihenfolge: 2, ziel_saetze: 3 }],
+        sets: [
+          loggedSet({ id: 'w', satz_nummer: 1, ist_aufwaermsatz: true }),
+          loggedSet({ id: 'a', satz_nummer: 2 }),
+          loggedSet({ id: 'b', satz_nummer: 3 }),
+        ],
+      }),
+    )
+
+    renderPage()
+    expect(await screen.findByText('2 von 2 Sätzen')).toBeInTheDocument()
+    expect(screen.getByText('0 von 3 Sätzen')).toBeInTheDocument()
+    // The name button keeps its plain accessible name.
+    expect(screen.getByRole('button', { name: 'Kniebeuge' })).toBeInTheDocument()
+  })
+
   it('completes the session using the profile weight', async () => {
     signedIn()
     const result = sessionResult()
