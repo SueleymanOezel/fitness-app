@@ -42,6 +42,8 @@
 
   --color-text: #fefeff;
   --color-text-muted: #90919a;
+  /* Placeholder in a field (surface-raised): 4.9:1; text-muted was 3.2:1 there (detector, 24.10.2026). Still dimmer than typed text. */
+  --color-placeholder: #b4b5bd;
   /*
    * Textfarbe fuer Text auf hellen/gesaettigten Flaechen (Accent-Buttons,
    * aktiver Chip, Danger-Toast) — #fefeff auf #8766ed/#f27a6b faellt unter
