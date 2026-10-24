@@ -91,4 +91,11 @@ describe('contrastRatio', () => {
     expect(contrastRatio(BEREICH_FARBE.koerper, ACCENT)).toBeGreaterThan(1.5)
     expect(contrastRatio(BEREICH_FARBE.koerper, SURFACE)).toBeGreaterThanOrEqual(3)
   })
+
+  // Detector finding 24.10.2026: placeholder text-muted #90919a was 3.2:1 on the field.
+  it('gives placeholders at least 4.5:1 on a field, still dimmer than typed text', () => {
+    const PLACEHOLDER = '#b4b5bd'
+    expect(contrastRatio(PLACEHOLDER, SURFACE_RAISED)).toBeGreaterThanOrEqual(4.5)
+    expect(contrastRatio(PLACEHOLDER, '#fefeff')).toBeGreaterThan(1.5)
+  })
 })

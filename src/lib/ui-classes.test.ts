@@ -130,3 +130,10 @@ describe('skeletonClass', () => {
     expect(skeletonClass).not.toContain('bg-surface-raised')
   })
 })
+
+describe('inputClass placeholder', () => {
+  it('uses the placeholder token, not the muted text colour (3.2:1 on a field)', () => {
+    expect(inputClass).toContain('placeholder:text-placeholder')
+    expect(inputClass).not.toContain('placeholder:text-text-muted')
+  })
+})
