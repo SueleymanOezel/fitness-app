@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 
 const mockUseSession = vi.fn()
 vi.mock('../hooks/use-session', () => ({ useSession: () => mockUseSession() }))
@@ -57,7 +58,11 @@ async function renderPage(result = profileResult()) {
   mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
   mockUseProfile.mockReturnValue(result)
   const { default: ProfilePage } = await import('./ProfilePage')
-  render(<ProfilePage />)
+  render(
+    <MemoryRouter>
+      <ProfilePage />
+    </MemoryRouter>,
+  )
   return result
 }
 
@@ -69,56 +74,19 @@ describe('ProfilePage', () => {
     mockSignOut.mockResolvedValue({ error: null })
   })
 
-  it('keeps the delete-account confirm button disabled until "LÖSCHEN" is typed exactly', async () => {
+  // Re-audit 23.10.2026: one long card with 15 fields, and deleting the account on the same page.
+  it('groups the form into sections and folds the rarely edited meal names', async () => {
     await renderPage()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Konto löschen' }))
-    const confirmButton = screen.getByRole('button', { name: 'Konto endgültig löschen' })
-    expect(confirmButton).toBeDisabled()
-
-    fireEvent.change(screen.getByLabelText('Bestätigung: LÖSCHEN eingeben'), {
-      target: { value: 'löschen' },
-    })
-    expect(confirmButton).toBeDisabled()
-
-    fireEvent.change(screen.getByLabelText('Bestätigung: LÖSCHEN eingeben'), {
-      target: { value: 'LÖSCHEN' },
-    })
-    expect(confirmButton).toBeEnabled()
+    for (const titel of ['Über dich', 'Ziel', 'Tagesziel', 'Konto']) {
+      expect(screen.getByRole('heading', { name: titel })).toBeInTheDocument()
+    }
+    expect(screen.getByText('Mahlzeiten umbenennen').closest('details')).not.toHaveAttribute('open')
   })
 
-  it('calls the delete-account function and navigates to /login when the account is deleted', async () => {
-    mockInvoke.mockResolvedValue({ data: { ok: true }, error: null })
+  it('moves deleting the account to its own page, behind a quiet link', async () => {
     await renderPage()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Konto löschen' }))
-    fireEvent.change(screen.getByLabelText('Bestätigung: LÖSCHEN eingeben'), {
-      target: { value: 'LÖSCHEN' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Konto endgültig löschen' }))
-
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/login'))
-    expect(mockInvoke).toHaveBeenCalledWith('delete-account')
-    expect(mockSignOut).toHaveBeenCalledWith({ scope: 'local' })
-  })
-
-  it('shows an inline error and keeps the confirmation text when the function call fails', async () => {
-    mockInvoke.mockResolvedValue({ data: null, error: { message: 'network' } })
-    await renderPage()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Konto löschen' }))
-    fireEvent.change(screen.getByLabelText('Bestätigung: LÖSCHEN eingeben'), {
-      target: { value: 'LÖSCHEN' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Konto endgültig löschen' }))
-
-    await waitFor(() =>
-      expect(screen.getByRole('alert')).toHaveTextContent(
-        'Konto konnte nicht gelöscht werden. Bitte erneut versuchen.',
-      ),
-    )
-    expect(screen.getByLabelText('Bestätigung: LÖSCHEN eingeben')).toHaveValue('LÖSCHEN')
-    expect(mockNavigate).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: 'Konto löschen' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Konto löschen' })).toHaveAttribute('href', '/profile/konto-loeschen')
   })
 
   it('fills the form with the stored profile', async () => {

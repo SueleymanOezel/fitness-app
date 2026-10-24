@@ -12,6 +12,7 @@ describe('parentRoute', () => {
     ['/body/photos', '/body'],
     ['/home/analyse', '/'],
     ['/profile', '/'],
+    ['/profile/konto-loeschen', '/profile'],
   ])('%s leads back to %s', (pfad, ziel) => {
     expect(parentRoute(pfad)?.to).toBe(ziel)
   })
