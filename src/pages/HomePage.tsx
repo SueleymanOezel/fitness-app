@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
 import { useFoodEntries } from '../hooks/use-food-entries'
@@ -13,7 +14,7 @@ import { chartsFor } from '../lib/analysis/registry'
 import { useHomeAnalysis } from '../hooks/use-home-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 import { useTrainingStreak } from '../hooks/use-training-streak'
-import { PressableLink } from '../components/Pressable'
+import Pressable, { PressableLink } from '../components/Pressable'
 import PageHero from '../components/PageHero'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import KalorienAufschluesselung from '../components/KalorienAufschluesselung'
@@ -28,6 +29,9 @@ import { gewichtDieseWoche, kalorienSchnittDieseWoche, wochenAussage } from '../
 import type { BodyMetricRow } from '../lib/body-metrics'
 import EmptyState from '../components/EmptyState'
 import PageSkeleton, { ChartSkeleton } from '../components/PageSkeleton'
+import BodyEntryDialog from '../components/BodyEntryDialog'
+import QuickAddDialog from '../components/QuickAddDialog'
+import { mealSections } from '../lib/meal-sections'
 
 /** German notation: comma as the decimal mark, at most one place. */
 function formatValue(value: number) {
@@ -46,13 +50,16 @@ export default function HomePage() {
 function Dashboard({ userId }: { userId: string }) {
   const profileResult = useProfile(userId)
   const { profile, loading: profileLoading } = profileResult
-  const { entries, loading: entriesLoading } = useFoodEntries(userId)
+  const { entries, loading: entriesLoading, addEntry } = useFoodEntries(userId)
   const { plan, day, loading: trainingLoading, error: trainingError } = useActiveTrainingDay(userId)
-  const { rows, loading: rowsLoading, error: rowsError } = useBodyMetrics(userId)
+  const { rows, loading: rowsLoading, error: rowsError, saveEntry } = useBodyMetrics(userId)
   const { streak, loading: streakLoading } = useTrainingStreak(userId)
   const offen = useOffeneSession(userId)
   const auswahl = useChartSelectionFor(profileResult)
   const trainingKcal = useTrainingKcalHeute(userId)
+  // Home is where the day starts: weighing in and logging a meal open right here (re-audit 24.10.2026).
+  const [gewichtOffen, setGewichtOffen] = useState(false)
+  const [mahlzeitOffen, setMahlzeitOffen] = useState(false)
 
   if (profileLoading || entriesLoading || trainingLoading || rowsLoading || streakLoading) {
     return <PageSkeleton titel="Home" />
@@ -69,10 +76,11 @@ function Dashboard({ userId }: { userId: string }) {
   const kacheln: StatTile[] = [
     // A first week has no completed plan weeks yet: show this week's progress instead of a bare "—".
     streak.wochen === 0
-      ? { label: 'Diese Woche', wert: `${streak.dieseWoche} von ${streak.ziel}`, hinweis: 'Trainings im Plan' }
-      : { label: 'Wochen im Plan', wert: String(streak.wochen), hinweis: `Diese Woche ${streak.dieseWoche} von ${streak.ziel}` },
+      ? { label: 'Diese Woche', wert: `${streak.dieseWoche} von ${streak.ziel}`, hinweis: 'Trainings im Plan', to: '/training' }
+      : { label: 'Wochen im Plan', wert: String(streak.wochen), hinweis: `Diese Woche ${streak.dieseWoche} von ${streak.ziel}`, to: '/training' },
     {
       label: 'Gewicht',
+      onClick: () => setGewichtOffen(true),
       wert: gewichtAktuell == null ? '—' : `${formatValue(gewichtAktuell.value)} kg`,
       // latestValue may find a weight without a prior entry to compare against —
       // changeSince is then null, and the tile must still show the current
@@ -132,7 +140,26 @@ function Dashboard({ userId }: { userId: string }) {
         untertitel={status.untertitel ?? undefined}
         aside={<ProgressRing anteil={status.anteil} label={status.ringLabel} />}
         details={profile && <KalorienAufschluesselung profile={profile} trainingKcal={trainingKcal} />}
+        action={
+          profile && (
+            <Pressable variant="secondary" type="button" onClick={() => setMahlzeitOffen(true)}>
+              <span className="inline-flex items-center justify-center gap-2">
+                <VitaIcon name="add" tone="mono" size={20} />
+                Eintrag hinzufügen
+              </span>
+            </Pressable>
+          )
+        }
       />
+      <BodyEntryDialog open={gewichtOffen} onClose={() => setGewichtOffen(false)} rows={rows} saveEntry={saveEntry} />
+      {profile && (
+        <QuickAddDialog
+          open={mahlzeitOffen}
+          onClose={() => setMahlzeitOffen(false)}
+          sections={mealSections(profile)}
+          addEntry={addEntry}
+        />
+      )}
       <WochenKarte userId={userId} trainings={streak.dieseWoche} rows={rows} />
       <DashboardHomeCharts userId={userId} auswahl={auswahl.auswahl} />
     </div>
