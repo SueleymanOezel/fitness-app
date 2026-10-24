@@ -30,7 +30,7 @@ describe('ActivityGridChart', () => {
     const trainingszellen = [...zellen].filter((zelle) => zelle.getAttribute('data-status') === 'trainingstag')
     expect(trainingszellen).toHaveLength(1)
     expect(trainingszellen[0]).toHaveAttribute('title', '2026-08-24')
-    expect(trainingszellen[0]).toHaveClass('bg-accent')
+    expect(trainingszellen[0]).toHaveClass('bg-chart-mint')
   })
 
   it('renders all-restday cells when there are no sessions in the range', () => {

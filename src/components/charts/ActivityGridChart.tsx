@@ -53,7 +53,7 @@ export default function ActivityGridChart({
             <li key={tag.datum}>
               <div
                 className={`size-3.5 rounded-sm ${
-                  tag.status === 'trainingstag' ? 'bg-accent' : 'bg-surface border border-text-muted/40'
+                  tag.status === 'trainingstag' ? 'bg-chart-mint' : 'bg-surface border border-text-muted/40'
                 }`}
                 title={tag.datum}
                 data-status={tag.status}

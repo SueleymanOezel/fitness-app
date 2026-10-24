@@ -13,6 +13,8 @@ export const CHART_BLUE = '#4f6ca5'
 export const CHART_GREEN = '#49be69'
 export const CHART_ORANGE = '#ff6f43'
 export const CHART_VIOLET = '#8766ed'
+/** Body data only: apart from the action lilac (#8766ed) so a weight line never reads as a button. */
+export const CHART_KOERPER = '#e283d6'
 export const CHART_GRID = '#5e5f66'
 /** --color-text-muted: 5:1 on a card. Recharts' default tick color #666 is 2.7:1. */
 export const CHART_TEXT = '#90919a'
@@ -32,10 +34,11 @@ export const gitterProps = { stroke: CHART_GRID, strokeDasharray: '3 3', vertica
 
 /**
  * One color per area, so a chart says where it belongs at a glance: training
- * stays mint, nutrition orange, body violet (the brand's lilac). Multi-series
+ * stays mint, nutrition orange, body a magenta lilac of its own; the brand
+ * lilac is left to actions (buttons, links, the active tab). Multi-series
  * charts keep their own legends.
  */
-export const BEREICH_FARBE = { training: CHART_MINT, ernaehrung: CHART_ORANGE, koerper: CHART_VIOLET } as const
+export const BEREICH_FARBE = { training: CHART_MINT, ernaehrung: CHART_ORANGE, koerper: CHART_KOERPER } as const
 
 /**
  * Nutrition's three macros share one chart, so they stay in the orange family
