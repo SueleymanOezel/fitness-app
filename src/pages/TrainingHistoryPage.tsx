@@ -1,6 +1,6 @@
 import { useSession } from '../hooks/use-session'
 import { useWorkoutHistory } from '../hooks/use-workout-history'
-import { cardClass, linkClass, listClass, listRowClass } from '../lib/ui-classes'
+import { cardClass, listClass, listRowClass, rowLinkClass } from '../lib/ui-classes'
 import { PressableLink } from '../components/Pressable'
 import EmptyState from '../components/EmptyState'
 import LoadError from '../components/LoadError'
@@ -41,7 +41,7 @@ function HistoryList({ userId }: { userId: string }) {
           <ul role="list" className={listClass}>
             {sessions.map((entry) => (
               <li key={entry.id} className={listRowClass}>
-                <PressableLink to={`/training/history/${entry.id}`} className={`${linkClass} flex-1`}>
+                <PressableLink to={`/training/history/${entry.id}`} className={`${rowLinkClass} flex-1`}>
                   <span className="flex min-w-0 flex-col">
                     <span>{entry.tag_name ?? entry.plan_name ?? 'Training'}</span>
                     <span className="text-sm text-text-muted">

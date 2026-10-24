@@ -83,7 +83,14 @@ export const checkLabelClass = 'flex min-h-11 items-center gap-3 text-text'
  * Bereichs-/Zurück-Link als eigene Zeile (ersetzt die alte a-Basisregel).
  * Links im Fließtext bekommen keine Klasse, nur die Farbe aus dem Basis-Layer.
  */
-export const linkClass = `inline-flex min-h-11 items-center gap-2 rounded-lg text-accent-text underline-offset-4 hover:underline ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
+const linkBaseClass = `inline-flex min-h-11 items-center gap-2 rounded-lg underline-offset-4 hover:underline ${interactiveClass} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`
+export const linkClass = `${linkBaseClass} text-accent-text`
+
+/**
+ * A navigation row in a list (Pläne, Historie, Analyse …): text colour with a chevron, so the
+ * lilac stays the signal for actions (re-audit 24.10.2026). Inline text links keep linkClass.
+ */
+export const rowLinkClass = `${linkBaseClass} text-text`
 
 /** Liste in einer Karte: Zeilen mit dezenter Trennlinie statt Karte in Karte. */
 export const listClass = 'divide-y divide-text-muted/15'

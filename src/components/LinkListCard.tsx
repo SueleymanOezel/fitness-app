@@ -1,6 +1,6 @@
 import { PressableLink } from './Pressable'
 import { VitaIcon, type VitaIconName } from './icons/VitaIcon'
-import { cardClass, linkClass, listClass, listRowClass } from '../lib/ui-classes'
+import { cardClass, listClass, listRowClass, rowLinkClass } from '../lib/ui-classes'
 
 export type LinkListItem = {
   to: string
@@ -19,7 +19,7 @@ export default function LinkListCard({ items }: { items: LinkListItem[] }) {
       <ul role="list" className={listClass}>
         {items.map((item, index) => (
           <li key={`${index}|${item.to}|${item.label}`} className={listRowClass}>
-            <PressableLink to={item.to} className={`${linkClass} flex-1`} aria-label={item.ariaLabel}>
+            <PressableLink to={item.to} className={`${rowLinkClass} flex-1`} aria-label={item.ariaLabel}>
               {item.icon && <VitaIcon name={item.icon} tone="brand" size={20} />}
               <span>{item.label}</span>
               {item.wert && <span className="ml-auto tabular-nums text-text">{item.wert}</span>}

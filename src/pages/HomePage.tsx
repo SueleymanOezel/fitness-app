@@ -23,7 +23,7 @@ import OpenSessionHero from '../components/OpenSessionHero'
 import { useOffeneSession } from '../hooks/use-workout-session'
 import ProgressRing from '../components/ProgressRing'
 import StatStrip, { type StatTile } from '../components/StatStrip'
-import { cardClass, labelClass, linkClass } from '../lib/ui-classes'
+import { cardClass, labelClass, rowLinkClass } from '../lib/ui-classes'
 import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
 import { gewichtDieseWoche, kalorienSchnittDieseWoche, wochenAussage } from '../lib/week-summary'
 import type { BodyMetricRow } from '../lib/body-metrics'
@@ -182,7 +182,7 @@ function WochenKarte({ userId, trainings, rows }: { userId: string; trainings: n
     <div className={cardClass}>
       <p className={labelClass}>Diese Woche</p>
       <p className="text-lg font-semibold">{text}</p>
-      <PressableLink to="/home/analyse" className={linkClass}>
+      <PressableLink to="/home/analyse" className={rowLinkClass}>
         <VitaIcon name="analysis" tone="brand" size={20} />
         <span>Zur Analyse</span>
         <span aria-hidden="true" className="ml-auto text-text-muted">
