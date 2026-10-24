@@ -13,7 +13,7 @@ export default function HomeAnalysisPage() {
   const userId = session?.user.id
 
   if (!userId) {
-    return <PageSkeleton titel="Analyse" />
+    return <PageSkeleton titel="Gesamtanalyse" />
   }
 
   return <Analyse userId={userId} />
@@ -28,7 +28,7 @@ function Analyse({ userId }: { userId: string }) {
 
   return (
     <div>
-      <h1>Analyse</h1>
+      <h1>Gesamtanalyse</h1>
       <ZeitraumSwitch wert={zeitraum} onChange={setZeitraum} />
       <AnpassenSchalter auswahl={auswahl} />
       {error && <p role="alert">Daten konnten nicht geladen werden.</p>}

@@ -38,6 +38,6 @@ describe('PersonalRecordsList', () => {
 
   it('states the empty case without records', () => {
     render(<PersonalRecordsList sessions={[]} sets={[]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 })

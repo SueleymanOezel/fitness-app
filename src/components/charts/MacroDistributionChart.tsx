@@ -36,7 +36,7 @@ export default function MacroDistributionChart({
   const anteile = makroAnteileHeute(entries, heute)
 
   return (
-    <ChartFrame titel={TITEL} leer={anteile.length < 1} picker={picker} leerCta={leerCta}>
+    <ChartFrame titel={TITEL} leer={anteile.length < 1} leerHinweis="Erscheint mit dem ersten Eintrag heute." picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={anteile}>
           <CartesianGrid {...gitterProps} />

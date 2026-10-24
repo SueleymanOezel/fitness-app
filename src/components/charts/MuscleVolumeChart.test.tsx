@@ -24,6 +24,6 @@ describe('MuscleVolumeChart', () => {
 
   it('states the empty case without any assignable set', () => {
     render(<MuscleVolumeChart sets={[satz([], 80)]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 })

@@ -55,7 +55,7 @@ describe('RepsPerSetChart', () => {
 
   it('states the empty case for a single session', () => {
     render(<RepsPerSetChart sessions={[sitzung('s1', '2026-08-17')]} sets={[satz('s1', 1, 10)]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 
   it('keeps the exercise select usable in the empty state', () => {
@@ -71,7 +71,7 @@ describe('RepsPerSetChart', () => {
       />,
     )
     fireEvent.change(screen.getByLabelText('Übung'), { target: { value: 'e2' } })
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
     expect(screen.getByLabelText('Übung')).toBeInTheDocument()
   })
 

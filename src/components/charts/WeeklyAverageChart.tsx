@@ -21,7 +21,7 @@ export default function WeeklyAverageChart({
   const punkte = wochenschnitt(entries)
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 1} picker={picker} leerCta={leerCta}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 1} leerHinweis="Erscheint mit dem ersten Eintrag." picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={punkte}>
           <CartesianGrid {...gitterProps} />

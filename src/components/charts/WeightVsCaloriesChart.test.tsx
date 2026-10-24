@@ -45,11 +45,11 @@ describe('WeightVsCaloriesChart', () => {
         kalorien={[{ tag: '2026-08-11', kalorien: 2500 }]}
       />,
     )
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 
   it('states the empty case without logged food', () => {
     render(<WeightVsCaloriesChart rows={rows} kalorien={[]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 })

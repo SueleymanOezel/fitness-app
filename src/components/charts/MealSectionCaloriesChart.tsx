@@ -28,7 +28,7 @@ export default function MealSectionCaloriesChart({
   const hatDaten = punkte.some((punkt) => punkt.kalorien > 0)
 
   return (
-    <ChartFrame titel={TITEL} leer={!hatDaten} picker={picker} leerCta={leerCta}>
+    <ChartFrame titel={TITEL} leer={!hatDaten} leerHinweis="Erscheint mit dem ersten Eintrag im Zeitraum." picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={punkte}>
           <CartesianGrid {...gitterProps} />

@@ -51,6 +51,12 @@ describe('PhotoTimeline', () => {
 
   it('states the empty case without photos', () => {
     render(<PhotoTimeline fotos={[]} rows={[zeile('2026-08-24', 82.5)]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
+  })
+
+  // Re-audit 24.10.2026: empty charts did not say when they fill up.
+  it('says when the timeline fills up', () => {
+    render(<PhotoTimeline fotos={[]} rows={[]} />)
+    expect(screen.getByText(/Erscheint mit dem ersten Fortschrittsfoto/)).toBeInTheDocument()
   })
 })

@@ -30,7 +30,7 @@ export default function MuscleFocusChart({
   }
 
   return (
-    <ChartFrame titel={TITEL} leer={max === 0} picker={picker} leerCta={leerCta}>
+    <ChartFrame titel={TITEL} leer={max === 0} leerHinweis="Erscheint nach dem ersten Training mit Arbeitssätzen." picker={picker} leerCta={leerCta}>
       <div className="flex gap-4">
         <MuskelSilhouetteFigur
           gruppen={VORNE}

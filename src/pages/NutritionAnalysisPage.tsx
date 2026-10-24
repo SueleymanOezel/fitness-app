@@ -15,7 +15,7 @@ export default function NutritionAnalysisPage() {
   const userId = session?.user.id
 
   if (!userId) {
-    return <PageSkeleton titel="Analyse" />
+    return <PageSkeleton titel="Ernährungsanalyse" />
   }
 
   return <Analyse userId={userId} />
@@ -32,7 +32,7 @@ function Analyse({ userId }: { userId: string }) {
 
   return (
     <div>
-      <h1>Analyse</h1>
+      <h1>Ernährungsanalyse</h1>
       <ZeitraumSwitch wert={zeitraum} onChange={setZeitraum} />
       <AnpassenSchalter auswahl={auswahl} />
       {error && <p role="alert">Daten konnten nicht geladen werden.</p>}

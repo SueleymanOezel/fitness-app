@@ -22,11 +22,11 @@ describe('MacroDistributionChart', () => {
 
   it('states the empty case without any logged macro today', () => {
     render(<MacroDistributionChart entries={[]} heute="2026-08-24" />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 
   it('ignores entries from other days', () => {
     render(<MacroDistributionChart entries={[eintrag(23, 30, 20, 50)]} heute="2026-08-24" />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 })

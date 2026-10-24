@@ -49,13 +49,13 @@ describe('TrainingFrequencyChart', () => {
       />,
     )
     expect(
-      screen.queryByText('Noch nicht genug Daten für diesen Graphen.'),
+      screen.queryByText(/^Noch nicht genug Daten für diesen Graphen\./),
     ).not.toBeInTheDocument()
     expect(container.querySelectorAll('.recharts-bar-rectangle')).toHaveLength(1)
   })
 
   it('says so when nothing was trained at all', () => {
     render(<TrainingFrequencyChart sessions={[]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 })

@@ -17,7 +17,7 @@ export default function TrainingAnalysisPage() {
   const userId = session?.user.id
 
   if (!userId) {
-    return <PageSkeleton titel="Analyse" />
+    return <PageSkeleton titel="Trainingsanalyse" />
   }
 
   return <Analyse userId={userId} />
@@ -37,7 +37,7 @@ function Analyse({ userId }: { userId: string }) {
 
   return (
     <div>
-      <h1>Analyse</h1>
+      <h1>Trainingsanalyse</h1>
       <ZeitraumSwitch wert={zeitraum} onChange={setZeitraum} />
       <AnpassenSchalter auswahl={auswahl} />
       {/* One message for the area, not one per chart: eight identical alerts
@@ -60,16 +60,17 @@ function Analyse({ userId }: { userId: string }) {
               </ul>
             </section>
           )}
-          {/* One choice for every exercise chart (Kraft, Volumen, Satzgewicht, Wiederholungen). */}
-          <ExerciseSelect optionen={uebung.optionen} wert={uebung.exerciseId} onChange={uebung.waehlen} />
           <TrainingChartList
-            ids={haupt}
+            ids={[T1]}
             sessions={sessions}
             sets={sets}
             auswahl={auswahl}
-            uebung={uebung.exerciseId}
             leerCta={{ label: 'Training starten', to: '/training' }}
           />
+          {/* One choice for every exercise chart (Kraft, Volumen, Satzgewicht, Wiederholungen), placed
+              right above the first of them, not above the frequency chart it does not drive. */}
+          <ExerciseSelect optionen={uebung.optionen} wert={uebung.exerciseId} onChange={uebung.waehlen} />
+          <TrainingChartList ids={[T2, T8]} sessions={sessions} sets={sets} auswahl={auswahl} uebung={uebung.exerciseId} />
           <details className="group">
             <summary className="min-h-11 cursor-pointer py-2.5 font-medium">{`Mehr Graphen (${weitere.length})`}</summary>
             <div className="pt-4">

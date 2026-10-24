@@ -32,11 +32,11 @@ describe('MealSectionCaloriesChart', () => {
 
   it('states the empty case without a profile yet', () => {
     render(<MealSectionCaloriesChart entries={[eintrag(1, 300)]} profile={null} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 
   it('states the empty case without any calories in range', () => {
     render(<MealSectionCaloriesChart entries={[]} profile={namen} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 })

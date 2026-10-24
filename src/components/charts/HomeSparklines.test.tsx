@@ -37,6 +37,6 @@ describe('HomeSparklines', () => {
 
   it('shows the empty state without enough points in either source', () => {
     render(<HomeSparklines rows={[]} entries={[]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 })

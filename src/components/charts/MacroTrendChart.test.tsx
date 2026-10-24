@@ -30,6 +30,6 @@ describe('MacroTrendChart', () => {
 
   it('states the empty case with a single day', () => {
     render(<MacroTrendChart entries={[eintrag(24, 120, 40, 180)]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 })

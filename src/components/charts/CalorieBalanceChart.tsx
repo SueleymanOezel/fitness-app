@@ -36,7 +36,7 @@ export default function CalorieBalanceChart({
   }))
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker} leerCta={leerCta}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 2} leerHinweis="Erscheint ab zwei Tagen mit Einträgen." picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={punkte}>
           <CartesianGrid {...gitterProps} />

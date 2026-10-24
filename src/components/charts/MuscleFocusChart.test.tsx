@@ -18,7 +18,7 @@ const satz = (workoutSessionId: string, muskelgruppen: string[]) => ({
 describe('MuscleFocusChart', () => {
   it('states the empty case when nothing was trained in the period', () => {
     render(<MuscleFocusChart sets={[]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 
   it('renders all ten zones exactly once', () => {
