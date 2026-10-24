@@ -32,7 +32,7 @@ export default function SessionLoadChart({
   const mitKalorien = punkte.some((punkt) => punkt.kalorien != null)
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 1} picker={picker} leerCta={leerCta}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 1} leerHinweis="Erscheint nach dem ersten abgeschlossenen Training." picker={picker} leerCta={leerCta}>
       <h3 className="text-sm font-medium text-text-muted">Minuten</h3>
       <ResponsiveContainer width="100%" height={150}>
         <BarChart data={punkte} syncId="dauer-kalorien">

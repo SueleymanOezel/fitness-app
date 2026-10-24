@@ -44,11 +44,11 @@ describe('WeightChangeRateChart', () => {
 
   it('states the empty case with a single rate', () => {
     render(<WeightChangeRateChart rows={[zeile('2026-08-01', 85), zeile('2026-08-08', 84)]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 
   it('states the empty case without a full week of history', () => {
     render(<WeightChangeRateChart rows={[zeile('2026-08-01', 85), zeile('2026-08-04', 84)]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 })

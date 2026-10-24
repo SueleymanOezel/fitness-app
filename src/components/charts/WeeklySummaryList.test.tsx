@@ -26,6 +26,6 @@ describe('WeeklySummaryList', () => {
 
   it('shows the empty state without any signal', () => {
     render(<WeeklySummaryList sessions={[]} entries={[]} rows={[]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 })

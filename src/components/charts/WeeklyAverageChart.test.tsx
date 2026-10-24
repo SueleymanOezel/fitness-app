@@ -21,6 +21,6 @@ describe('WeeklyAverageChart', () => {
 
   it('states the empty case without any entries', () => {
     render(<WeeklyAverageChart entries={[]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 })

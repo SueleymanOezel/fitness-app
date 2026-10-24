@@ -55,6 +55,24 @@ const zeige = () =>
   )
 
 describe('TrainingAnalysisPage', () => {
+  // Re-audit 24.10.2026: the exercise picker sat above the frequency chart it does not drive.
+  it('puts the exercise picker right above the strength chart it drives', async () => {
+    const satz = (id: string, sessionId: string, exerciseId: string, name: string) => ({
+      id, workout_session_id: sessionId, exercise_id: exerciseId, exercise_name: name, muskelgruppen: ['chest'],
+      satz_nummer: 1, gewicht: 60, wiederholungen: 8, ist_aufwaermsatz: false,
+    })
+    mockUseTrainingAnalysis.mockReturnValue({
+      ...mockUseTrainingAnalysis(),
+      sets: [satz('x1', 'a', 'e1', 'Bankdrücken'), satz('x2', 'b', 'e1', 'Bankdrücken'), satz('x3', 'b', 'e2', 'Kniebeuge')],
+    })
+    zeige()
+    const frequenz = await screen.findByRole('heading', { name: /Trainingsfrequenz/ }, { timeout: 5000 })
+    const kraft = await screen.findByRole('heading', { name: /Kraftverlauf/ }, { timeout: 5000 })
+    const auswahl = screen.getByLabelText('Übung')
+    expect(frequenz.compareDocumentPosition(auswahl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(auswahl.compareDocumentPosition(kraft) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
   it('folds the secondary charts and swaps charts for a short list while customizing', () => {
     mockUseChartSelection.mockReturnValue({
       auswahl: ['T1'],
@@ -77,7 +95,7 @@ describe('TrainingAnalysisPage', () => {
 
   it('shows the area charts with their picker', async () => {
     zeige()
-    expect(screen.getByRole('heading', { name: 'Analyse' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Trainingsanalyse' })).toBeInTheDocument()
     // findByRole, not getByRole: TrainingChartList loads TrainingFrequencyChart
     // behind React.lazy, so the first render is the Suspense fallback.
     expect(

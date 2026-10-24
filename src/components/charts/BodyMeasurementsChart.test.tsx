@@ -65,6 +65,6 @@ describe('BodyMeasurementsChart', () => {
 
   it('states the empty case with a single measured day', () => {
     render(<BodyMeasurementsChart rows={[zeile('2026-08-24', 90)]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 })

@@ -36,7 +36,7 @@ describe('ExerciseVolumeChart', () => {
 
   it('states the empty case without any usable set', () => {
     render(<ExerciseVolumeChart sessions={[sitzung('s1', '2026-08-17')]} sets={[]} />)
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 
   it('keeps the exercise select usable in the empty state', () => {
@@ -53,7 +53,7 @@ describe('ExerciseVolumeChart', () => {
       />,
     )
     fireEvent.change(screen.getByLabelText('Übung'), { target: { value: 'e2' } })
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
     expect(screen.getByLabelText('Übung')).toBeInTheDocument()
   })
 

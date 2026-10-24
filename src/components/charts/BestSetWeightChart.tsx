@@ -53,7 +53,7 @@ export default function BestSetWeightChart({
   return (
     <ChartFrame
       titel={titel}
-      leer={punkte.length < 2}
+      leer={punkte.length < 2} leerHinweis="Erscheint ab zwei Trainings mit dieser Übung."
       picker={picker}
       leerCta={leerCta}
       vorspann={

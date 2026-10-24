@@ -33,7 +33,7 @@ export default function BodyMeasurementsChart({
   const felder = UMFANG_FIELDS.filter((feld) => punkte.some((punkt) => punkt[feld] != null))
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker} leerCta={leerCta}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 2} leerHinweis="Erscheint ab zwei Messungen." picker={picker} leerCta={leerCta}>
       <div className="flex flex-col gap-4">
         {felder.map((feld) => {
           const { name, einheit } = feldTeile(feld)

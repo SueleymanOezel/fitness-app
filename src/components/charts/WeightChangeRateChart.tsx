@@ -34,7 +34,7 @@ export default function WeightChangeRateChart({
   }))
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 2} picker={picker} leerCta={leerCta}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 2} leerHinweis="Erscheint, wenn du über mehr als eine Woche mehrmals gewogen hast." picker={picker} leerCta={leerCta}>
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={punkte}>
           <CartesianGrid {...gitterProps} />

@@ -32,7 +32,7 @@ describe('ChartFrame', () => {
         <div data-testid="inhalt" />
       </ChartFrame>,
     )
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
     expect(screen.queryByTestId('inhalt')).not.toBeInTheDocument()
   })
 
@@ -56,7 +56,7 @@ describe('ChartFrame', () => {
       </ChartFrame>,
     )
     expect(screen.getByText('Übung')).toBeInTheDocument()
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 
   it('shows a call-to-action link in the empty state when leerCta is set', () => {

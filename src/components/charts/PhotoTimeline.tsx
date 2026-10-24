@@ -35,7 +35,7 @@ export default function PhotoTimeline({
   const punkte = fotoZeitleiste(fotos, rows)
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 1} picker={picker} leerCta={leerCta}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 1} leerHinweis="Erscheint mit dem ersten Fortschrittsfoto." picker={picker} leerCta={leerCta}>
       <ul role="list" className={listClass}>
         {punkte.map((punkt) => (
           <li key={punkt.id} className="flex flex-col items-start gap-3 py-3">

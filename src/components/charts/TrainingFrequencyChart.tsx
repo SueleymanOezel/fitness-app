@@ -29,7 +29,7 @@ export default function TrainingFrequencyChart({
   return (
     // Spec section 5: lines need two points, bars need one. A single bar still
     // states something ("3 Einheiten diese Woche"); a single line point does not.
-    <ChartFrame titel={TITEL} leer={punkte.length < 1} picker={picker} leerCta={leerCta} zusammenfassung={zusammenfassung}>
+    <ChartFrame titel={TITEL} leer={punkte.length < 1} leerHinweis="Erscheint nach dem ersten abgeschlossenen Training." picker={picker} leerCta={leerCta} zusammenfassung={zusammenfassung}>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={punkte}>
           <CartesianGrid {...gitterProps} />

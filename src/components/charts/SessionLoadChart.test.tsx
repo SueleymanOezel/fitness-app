@@ -56,6 +56,6 @@ describe('SessionLoadChart', () => {
         ]}
       />,
     )
-    expect(screen.getByText('Noch nicht genug Daten für diesen Graphen.')).toBeInTheDocument()
+    expect(screen.getByText(/^Noch nicht genug Daten für diesen Graphen\./)).toBeInTheDocument()
   })
 })
