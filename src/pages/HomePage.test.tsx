@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, screen } from '@testing-library/react'
+import { cleanup, fireEvent, screen } from '@testing-library/react'
 import HomePage from './HomePage'
 import { renderWithProviders } from '../test-render'
 
@@ -64,6 +64,29 @@ function stubDefaults() {
 }
 
 describe('HomePage', () => {
+  // Re-audit 24.10.2026: Home was a dead end; weighing in or logging a meal took a tab switch first.
+  it('opens the weight entry right from the weight tile', async () => {
+    stubDefaults()
+    renderWithProviders(<HomePage />)
+    fireEvent.click(screen.getByRole('button', { name: /Gewicht/ }))
+    expect(await screen.findByRole('spinbutton', { name: /Gewicht/ })).toBeInTheDocument()
+  })
+
+  it('adds a meal right from the calorie card', async () => {
+    stubDefaults()
+    const { profile, ...rest } = mockUseProfile()
+    mockUseProfile.mockReturnValue({ ...rest, profile: { ...profile, mahlzeit_1_name: 'Frühstück', mahlzeit_2_name: 'Mittagessen' } })
+    renderWithProviders(<HomePage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Eintrag hinzufügen' }))
+    expect(await screen.findByRole('heading', { name: /^Eintrag für/ })).toBeInTheDocument()
+  })
+
+  it('leads from the week tile to training', () => {
+    stubDefaults()
+    renderWithProviders(<HomePage />)
+    expect(screen.getByRole('link', { name: /Diese Woche/ })).toHaveAttribute('href', '/training')
+  })
+
   it('shows todays calories in the calorie card', () => {
     stubDefaults()
     renderWithProviders(<HomePage />)
