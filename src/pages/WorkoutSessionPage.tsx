@@ -254,7 +254,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
 
   return (
     // The one bottom bar (pause + "Satz abschließen") floats over the page: room to scroll past it.
-    <div className={pause !== null || pauseEnde !== null ? 'pb-36' : 'pb-20'}>
+    <div className={pause !== null || pauseEnde !== null ? 'pb-40' : 'pb-24'}>
       <div className="flex flex-col gap-1">
         <h1>{session.tag_name ?? 'Training'}</h1>
         <Laufzeit seit={session.gestartet_am} saetze={arbeitssaetzeGesamt} />
@@ -421,7 +421,8 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
         variante="secondary"
         className="w-full"
         label="Training abschließen"
-        icon={<VitaIcon name="save" tone="mono" size={20} />}
+        // Its own icon: with the set's check it read like "Satz abschließen" right below it.
+        icon={<VitaIcon name="goal" tone="mono" size={20} />}
         titel="Training abschließen?"
         text={`${arbeitssaetzeGesamt} ${arbeitssaetzeGesamt === 1 ? 'Satz' : 'Sätze'} erfasst. Danach lässt sich das Training nicht mehr fortsetzen.`}
         bestaetigen="Abschließen"
@@ -484,12 +485,17 @@ function SessionCompletionScreen({
   // the next day only counts once the fresh rotation has replaced it.
   const naechster = naechsterTag && naechsterTag.id !== tagId ? naechsterTag.name : null
   const mitVorher = vergleiche.filter((vergleich) => vergleich.vorher != null)
+  // The page swaps under the user's finger; focus on the title tells a screen reader where they are.
+  const titelRef = useRef<HTMLHeadingElement>(null)
+  useEffect(() => titelRef.current?.focus(), [])
 
   return (
     <div>
       <CompletionCelebration>
         <div className="flex flex-col gap-6">
-          <h1 className="text-center">Training abgeschlossen</h1>
+          <h1 ref={titelRef} tabIndex={-1} className="text-center focus:outline-none">
+            Training abgeschlossen
+          </h1>
           <dl className="grid grid-cols-2 gap-4">
             <Kennzahl label="Dauer" wert={dauerMinuten} einheit="Minuten" />
             {kalorien != null && <Kennzahl label="Verbrauch" wert={Math.round(kalorien)} einheit="kcal" />}

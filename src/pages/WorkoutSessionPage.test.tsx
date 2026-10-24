@@ -615,6 +615,27 @@ describe('WorkoutSessionPage', () => {
     expect(screen.getByRole('button', { name: 'Kniebeuge' })).toBeInTheDocument()
   })
 
+  // Re-audit 24.10.2026: the final action looked like the set button (same check) and sat right above it.
+  it('gives "Training abschließen" its own icon, apart from the set check', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+    renderPage()
+    const abschliessen = await screen.findByRole('button', { name: 'Training abschließen' })
+    expect(abschliessen.querySelector('svg')).toHaveAttribute('data-icon', 'goal')
+    expect(screen.getByRole('button', { name: 'Satz abschließen' }).querySelector('svg')).toHaveAttribute('data-icon', 'save')
+  })
+
+  it('moves focus to the result heading after finishing, so a screen reader hears it', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+    renderPage()
+    await screen.findByText('Bankdrücken')
+    fireEvent.click(screen.getByRole('button', { name: 'Training abschließen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Abschließen' }))
+    const titel = await screen.findByRole('heading', { name: 'Training abgeschlossen' })
+    await waitFor(() => expect(titel).toHaveFocus())
+  })
+
   it('completes the session using the profile weight', async () => {
     signedIn()
     const result = sessionResult()

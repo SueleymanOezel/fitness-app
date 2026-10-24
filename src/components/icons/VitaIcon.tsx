@@ -250,6 +250,7 @@ export function VitaIcon({ name, size = 24, tone = 'mono', title, ...props }: Vi
       fill="none"
       aria-hidden={title ? undefined : true}
       role={title ? 'img' : undefined}
+      data-icon={name}
       {...props}
     >
       {title && <title>{title}</title>}
