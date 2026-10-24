@@ -9,6 +9,7 @@ import {
   inputClass,
   interactiveClass,
   linkClass,
+  rowLinkClass,
   listClass,
   skeletonClass,
   listRowClass,
@@ -128,5 +129,15 @@ describe('skeletonClass', () => {
   it('uses the card color, never the nav color', () => {
     expect(skeletonClass).toContain('bg-surface ')
     expect(skeletonClass).not.toContain('bg-surface-raised')
+  })
+})
+
+// Re-audit 24.10.2026: every list row was link lilac, so the lilac stopped meaning "action".
+describe('rowLinkClass', () => {
+  it('is a link row in text colour, same shape and focus ring as a link', () => {
+    expect(rowLinkClass).toContain('text-text')
+    expect(rowLinkClass).not.toContain('text-accent-text')
+    expect(rowLinkClass).toContain('min-h-11')
+    expect(rowLinkClass).toContain('focus-visible:ring-2')
   })
 })

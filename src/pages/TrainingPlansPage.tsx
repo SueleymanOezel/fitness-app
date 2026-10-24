@@ -1,6 +1,6 @@
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlans } from '../hooks/use-workout-plans'
-import { cardClass, linkClass, listClass } from '../lib/ui-classes'
+import { cardClass, listClass, rowLinkClass } from '../lib/ui-classes'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable, { PressableLink } from '../components/Pressable'
@@ -47,7 +47,7 @@ function PlansList({ userId }: { userId: string }) {
             {plans.map((plan) => (
               <li key={plan.id} className="flex flex-col gap-2 py-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <PressableLink to={`/training/plans/${plan.id}`} className={linkClass}>
+                  <PressableLink to={`/training/plans/${plan.id}`} className={rowLinkClass}>
                     {plan.name}
                     <span aria-hidden="true" className="text-text-muted">
                       ›

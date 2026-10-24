@@ -560,7 +560,7 @@ function Differenz({ heute, vorher }: { heute: number | null; vorher: number | n
   const delta = Math.round((heute - vorher) * 100) / 100
   const text = delta === 0 ? '±0 kg' : `${delta > 0 ? '+' : '−'}${zahlDe(Math.abs(delta))} kg`
   return (
-    <span className={`shrink-0 font-semibold tabular-nums ${delta > 0 ? 'text-accent-text' : 'text-text-muted'}`}>
+    <span className={`shrink-0 font-semibold tabular-nums ${delta > 0 ? 'text-chart-mint' : 'text-text-muted'}`}>
       {text}
     </span>
   )

@@ -32,4 +32,11 @@ describe('LinkListCard', () => {
     zeige([{ to: '/d', label: 'Ohne Icon' }])
     expect(screen.getByRole('link', { name: 'Ohne Icon' })).toBeInTheDocument()
   })
+
+  it('keeps the rows in text colour: the lilac is for actions', () => {
+    zeige([{ to: '/a', label: 'Pläne', icon: 'plans' }])
+    const link = screen.getByRole('link', { name: 'Pläne' })
+    expect(link).toHaveClass('text-text')
+    expect(link).not.toHaveClass('text-accent-text')
+  })
 })
