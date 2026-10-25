@@ -31,6 +31,8 @@ export default function LoginPage() {
     const validationError = validate()
     if (validationError) {
       setError(validationError)
+      // Straight into the field to fix, so nobody has to hunt for it.
+      document.getElementById(!email.trim() ? 'email' : 'password')?.focus()
       return
     }
 
@@ -76,6 +78,7 @@ export default function LoginPage() {
     setHinweis(null)
     if (!email.trim()) {
       setError('Bitte trag zuerst deine E-Mail-Adresse ein.')
+      document.getElementById('email')?.focus()
       return
     }
     const { error: authError } = await supabase.auth.resetPasswordForEmail(email.trim(), {

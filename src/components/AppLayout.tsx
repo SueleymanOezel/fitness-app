@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import BottomNav from './BottomNav'
 import { ToastProvider } from './ToastProvider'
@@ -18,6 +18,15 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const fokus = pathname.startsWith('/training/session/')
   // Every sub page has its way back at the top, where the thumb expects it.
   const zurueck = parentRoute(pathname)
+  // After a page change focus lands on the new content, not on the tapped nav link, so a screen
+  // reader starts reading the page. main is the target because a page swaps its h1 once loaded.
+  const mainRef = useRef<HTMLElement>(null)
+  const ersterPfad = useRef<string | null>(pathname)
+  useEffect(() => {
+    if (pathname === ersterPfad.current) return
+    ersterPfad.current = null
+    mainRef.current?.focus({ preventScroll: true })
+  }, [pathname])
   return (
     <ToastProvider>
       <div
@@ -42,7 +51,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             Du bist offline. Du siehst den letzten Stand, Änderungen lassen sich gerade nicht speichern.
           </p>
         )}
-        <main>{children}</main>
+        <main ref={mainRef} tabIndex={-1} className="focus:outline-none">{children}</main>
         {!fokus && <BottomNav />}
       </div>
     </ToastProvider>

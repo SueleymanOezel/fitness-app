@@ -1,5 +1,6 @@
-import { lazy, Suspense } from 'react'
-import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
+import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router-dom'
+import { seitenTitel } from './lib/page-title'
 import ProtectedRoute from './components/ProtectedRoute'
 import AppLayout from './components/AppLayout'
 import LoginPage from './pages/LoginPage'
@@ -31,9 +32,18 @@ const NutritionAnalysisPage = lazy(() => import('./pages/NutritionAnalysisPage')
 const BodyAnalysisPage = lazy(() => import('./pages/BodyAnalysisPage'))
 const HomeAnalysisPage = lazy(() => import('./pages/HomeAnalysisPage'))
 
+function SeitenTitel() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    document.title = seitenTitel(pathname)
+  }, [pathname])
+  return null
+}
+
 export default function App() {
   return (
     <BrowserRouter>
+      <SeitenTitel />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />

@@ -89,6 +89,7 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Einloggen' }))
 
     expect(screen.getByRole('alert')).toHaveTextContent('E-Mail und Passwort sind erforderlich.')
+    expect(screen.getByLabelText('E-Mail')).toHaveFocus()
     expect(mockSignIn).not.toHaveBeenCalled()
   })
 
@@ -100,6 +101,7 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Einloggen' }))
 
     expect(screen.getByRole('alert')).toHaveTextContent('mindestens 8 Zeichen')
+    expect(screen.getByLabelText('Passwort')).toHaveFocus()
     expect(mockSignIn).not.toHaveBeenCalled()
   })
 
