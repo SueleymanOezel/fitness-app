@@ -55,6 +55,25 @@ describe('AppLayout', () => {
     expect(screen.getByRole('navigation')).toBeInTheDocument()
   })
 
+  it('moves focus to the page content after a page change, but not on the first load', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <AppLayout>
+          <p>content</p>
+        </AppLayout>
+      </MemoryRouter>,
+    )
+    const main = screen.getByRole('main')
+    expect(main).not.toHaveFocus()
+
+    const trainingTab = screen.getByRole('link', { name: /Training/ })
+    trainingTab.focus()
+    act(() => {
+      trainingTab.click()
+    })
+    expect(main).toHaveFocus()
+  })
+
   it('tells the user when the device goes offline and hides the notice when it is back', () => {
     render(
       <MemoryRouter>
