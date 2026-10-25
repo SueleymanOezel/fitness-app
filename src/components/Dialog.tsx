@@ -14,10 +14,9 @@ type GsapContext = { add: (fn: () => void) => unknown; revert: () => void }
  * imperatively via showModal()/close() because a plain `open` attribute on
  * <dialog> renders a non-modal dialog with no backdrop at all.
  *
- * The close button sits inside the dialog but is laid out below the card
- * content (see the design spec) — visually a separate circle under the
- * sheet, like the reference design, while staying inside the dialog's own
- * focus trap so Tab never escapes it.
+ * The close button sits top right inside the dialog (re-audit 26.10.2026: below
+ * the sheet it fell out of view on tall dialogs), inside the dialog's own focus
+ * trap so Tab never escapes it.
  *
  * Open/close animate via a lazily-loaded GSAP (src/lib/gsap-loader.ts) and
  * collapse to the plain instant show/hide under prefers-reduced-motion
@@ -112,18 +111,20 @@ export default function Dialog({
       onClose={onClose}
       className="m-auto max-w-none rounded-3xl bg-transparent p-0 backdrop:bg-bg/70 backdrop:backdrop-blur-sm"
     >
-      {/* Feste Breite statt Inhaltsbreite: sonst schrumpft der Dialog auf dem Handy auf seinen schmalsten Inhalt. */}
-      <div ref={contentRef} className="flex w-[min(28rem,calc(100vw-2rem))] flex-col gap-4 [&>h2]:px-6">
-        {children}
-      </div>
+      {/* Top right where every platform puts it, sticky so a long sheet keeps its way out in view.
+          -mb-11 lets it float over the first card instead of pushing the content down. */}
       <Pressable
         type="button"
         onClick={closeAnimated}
         aria-label="Schließen"
-        className="mx-auto mt-4 flex h-11 w-11 items-center justify-center rounded-full bg-surface-raised text-text"
+        className="sticky top-2 z-10 mr-2 -mb-11 ml-auto flex h-11 w-11 items-center justify-center rounded-full bg-surface-raised text-text"
       >
         <VitaIcon name="close" size={20} />
       </Pressable>
+      {/* Feste Breite statt Inhaltsbreite: sonst schrumpft der Dialog auf dem Handy auf seinen schmalsten Inhalt. */}
+      <div ref={contentRef} className="flex w-[min(28rem,calc(100vw-2rem))] flex-col gap-4 [&>h2]:px-6">
+        {children}
+      </div>
     </dialog>
   )
 }

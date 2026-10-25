@@ -99,9 +99,9 @@ describe('ProfilePage', () => {
     expect(screen.getByLabelText('Geschlecht')).toHaveValue('maennlich')
     expect(screen.getByLabelText('Aktivitätslevel')).toHaveValue('moderat')
     expect(screen.getByLabelText('Ziel')).toHaveValue('halten')
-    expect(screen.getByLabelText('Ziel-Delta (kcal)')).toHaveValue(500)
+    expect(screen.getByLabelText('Abstand zum Bedarf (kcal pro Tag)')).toHaveValue(500)
     // The term is explained right at the field and read out with it.
-    expect(screen.getByLabelText('Ziel-Delta (kcal)')).toHaveAccessibleDescription(/unter deinem Verbrauch/)
+    expect(screen.getByLabelText('Abstand zum Bedarf (kcal pro Tag)')).toHaveAccessibleDescription(/unter deinem Verbrauch/)
   })
 
   it('writes every field in a single update when saving', async () => {

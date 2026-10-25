@@ -152,7 +152,7 @@ describe('LoginPage', () => {
     mockSignInWithOAuth.mockResolvedValue({ data: { provider: 'google', url: 'https://x' }, error: null })
     await renderLoginPage()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Mit Google anmelden' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter mit Google' }))
 
     await waitFor(() =>
       expect(mockSignInWithOAuth).toHaveBeenCalledWith({
@@ -166,7 +166,7 @@ describe('LoginPage', () => {
     await renderLoginPage()
     fireEvent.click(screen.getByRole('button', { name: 'Noch kein Konto? Registrieren' }))
 
-    expect(screen.getByRole('button', { name: 'Mit Google anmelden' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Weiter mit Google' })).toBeInTheDocument()
   })
 
   it('shows an error when Google sign-in fails instead of silently doing nothing', async () => {
@@ -176,7 +176,7 @@ describe('LoginPage', () => {
     })
     await renderLoginPage()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Mit Google anmelden' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter mit Google' }))
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Das hat nicht geklappt'))
   })

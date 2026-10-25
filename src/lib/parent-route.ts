@@ -3,7 +3,7 @@ export function parentRoute(pathname: string): { to: string; label: string } | n
   const trainings = { to: '/training', label: 'Zurück zum Training' }
   const plaene = { to: '/training/plans', label: 'Zurück zu meinen Plänen' }
   if (/^\/training\/plans\/[^/]+$/.test(pathname)) return plaene
-  if (/^\/training\/history\/[^/]+$/.test(pathname)) return { to: '/training/history', label: 'Zurück zur Historie' }
+  if (/^\/training\/history\/[^/]+$/.test(pathname)) return { to: '/training/history', label: 'Zurück zum Verlauf' }
   if (/^\/training\/(plans|exercises|history|analyse|session\/[^/]+)$/.test(pathname)) return trainings
   if (/^\/nutrition\/(entries|analyse)$/.test(pathname)) return { to: '/nutrition', label: 'Zurück zur Ernährung' }
   if (/^\/body\/(entries|photos|analyse)$/.test(pathname)) return { to: '/body', label: 'Zurück zum Körperbereich' }

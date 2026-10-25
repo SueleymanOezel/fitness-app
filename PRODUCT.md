@@ -33,7 +33,7 @@ Vier reale Nutzungsszenen, alle auf dem Handy:
 - Performance/Bundle-Größe ist eine explizit gewählte Priorität.
 - Sicherheit: OWASP Top 10 (2025), RLS auf allen Tabellen, keine Secrets im Code.
 - Begriffe: Satz, Wiederholungen (Wdh.), RIR (Wiederholungen in Reserve), Aufwärmsatz, 1RM (geschätzt nach Epley), Mahlzeiten-Abschnitt, Ziel-Delta.
-- Offen/nicht gebaut: Foto-Analyse von Mahlzeiten (Gemini, spätere Phase), Health-Sync über Apple Shortcuts, Installierbarkeit als echte PWA (Manifest/Service Worker fehlen derzeit).
+- Offen/nicht gebaut: Foto-Analyse von Mahlzeiten (Gemini, spätere Phase), Health-Sync über Apple Shortcuts. Installierbar als PWA (Manifest + eigener Service Worker, offline lesbar); Offline-Schreiben ist nicht gebaut.
 
 ## Brand Commitments
 

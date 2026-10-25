@@ -30,7 +30,7 @@ describe('TrainingPlansPage', () => {
     renderWithProviders(<TrainingPlansPage />)
 
     expect(screen.getByRole('link', { name: /Ganzkörper/ })).toHaveAttribute('href', '/training/plans/p1')
-    expect(screen.getByText(/aktiv/i)).toBeInTheDocument()
+    expect(screen.getByText('Aktiv')).toBeInTheDocument()
   })
 
   it('lists all plans in one divided card', async () => {
@@ -75,7 +75,7 @@ describe('TrainingPlansPage', () => {
     expect(screen.queryByLabelText('Neuer Plan')).not.toBeInTheDocument()
   })
 
-  it('activates and deletes a plan', async () => {
+  it('activates a plan and keeps deleting out of the list', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     const result = plansResult({
       plans: [{ id: 'p1', name: 'Ganzkörper', aktiv: false }],
@@ -85,12 +85,9 @@ describe('TrainingPlansPage', () => {
     const { default: TrainingPlansPage } = await import('./TrainingPlansPage')
     renderWithProviders(<TrainingPlansPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Aktivieren' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ganzkörper aktivieren' }))
     await waitFor(() => expect(result.activatePlan).toHaveBeenCalledWith('p1'))
-
-    fireEvent.click(screen.getByRole('button', { name: / löschen$/ }))
-    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
-    await waitFor(() => expect(result.deletePlan).toHaveBeenCalledWith('p1'))
+    expect(screen.queryByRole('button', { name: /löschen/i })).not.toBeInTheDocument()
   })
 
   it('reports a failed write instead of swallowing it', async () => {
@@ -104,7 +101,7 @@ describe('TrainingPlansPage', () => {
     const { default: TrainingPlansPage } = await import('./TrainingPlansPage')
     renderWithProviders(<TrainingPlansPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Aktivieren' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ganzkörper aktivieren' }))
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
   })
@@ -121,18 +118,5 @@ describe('TrainingPlansPage', () => {
     expect(screen.queryByText('Noch kein Plan.')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
     expect(reload).toHaveBeenCalled()
-  })
-
-  it('asks before deleting a plan', async () => {
-    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
-    const result = plansResult()
-    mockUseWorkoutPlans.mockReturnValue(result)
-
-    const { default: TrainingPlansPage } = await import('./TrainingPlansPage')
-    renderWithProviders(<TrainingPlansPage />)
-    fireEvent.click(screen.getByRole('button', { name: / löschen$/ }))
-
-    expect(result.deletePlan).not.toHaveBeenCalled()
-    expect(screen.getByRole('heading', { name: 'Plan löschen?' })).toBeInTheDocument()
   })
 })

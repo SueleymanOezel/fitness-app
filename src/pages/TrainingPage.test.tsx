@@ -221,7 +221,7 @@ describe('TrainingPage', () => {
 
     zeigeDashboard()
 
-    const link = screen.getByRole('link', { name: 'Trainingshistorie' })
+    const link = screen.getByRole('link', { name: 'Verlauf' })
     expect(link).toHaveAttribute('href', '/training/history')
     expect(link.closest('ul')).toHaveClass('divide-y')
     expect(screen.getByRole('link', { name: 'Übungen' })).toHaveAttribute('href', '/training/exercises')

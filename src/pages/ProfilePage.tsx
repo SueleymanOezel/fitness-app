@@ -282,7 +282,7 @@ function LoadedProfileForm({
             </select>
           </label>
           <label className={fieldLabelClass}>
-            Ziel-Delta (kcal)
+            Abstand zum Bedarf (kcal pro Tag)
             <input
               className={inputClass}
               type="number"
@@ -333,7 +333,7 @@ function LoadedProfileForm({
           <p role="alert">
             Bitte plausible Werte eingeben (Alter {RANGES.alter[0]}–{RANGES.alter[1]}, Größe{' '}
             {RANGES.groesse[0]}–{RANGES.groesse[1]} cm, Gewicht {RANGES.aktuelles_gewicht[0]}–
-            {RANGES.aktuelles_gewicht[1]} kg, Ziel-Delta {RANGES.ziel_delta_kcal[0]}–
+            {RANGES.aktuelles_gewicht[1]} kg, Abstand zum Bedarf {RANGES.ziel_delta_kcal[0]}–
             {RANGES.ziel_delta_kcal[1]} kcal).
           </p>
         )}

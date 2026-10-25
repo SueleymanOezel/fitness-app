@@ -37,7 +37,7 @@ function Detail({ sessionId }: { sessionId: string }) {
         <p role="alert">Diese Trainingseinheit gibt es nicht mehr.</p>
         <PressableLink to="/training/history" className={linkClass}>
           <VitaIcon name="back" tone="brand" size={20} />
-          Zurück zur Historie
+          Zurück zum Verlauf
         </PressableLink>
       </div>
     )
@@ -75,7 +75,7 @@ function Detail({ sessionId }: { sessionId: string }) {
         onDelete={(setId) => deleteSet(setId)}
       />
       <ConfirmDelete
-        label="Session löschen"
+        label="Training löschen"
         className="self-start"
         titel="Training löschen?"
         text="Alle Sätze dieser Trainingseinheit werden gelöscht. Das wirkt sich auch auf deine Analyse aus."
