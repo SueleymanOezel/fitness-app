@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { abschlussZahlen } from './abschluss'
+import { abschlussZahlen, hoehepunktVon } from './abschluss'
 
 const satz = (exercise_id: string, gewicht: number | null, wiederholungen: number | null, ist_aufwaermsatz = false) => ({
   exercise_id,
@@ -41,5 +41,32 @@ describe('abschlussZahlen', () => {
   it('marks a first time with no previous values', () => {
     const { vergleiche } = abschlussZahlen([satz('a', 50, 10)], [{ exercise_id: 'a', name: 'Neu' }], new Map())
     expect(vergleiche[0].vorher).toBeNull()
+  })
+})
+describe('hoehepunktVon', () => {
+  const v = (name: string, heute: number | null, vorher: number | null) => ({
+    exercise_id: name,
+    name,
+    heute: { gewicht: heute, wiederholungen: 8 },
+    vorher: vorher === undefined ? null : { gewicht: vorher, wiederholungen: 8 },
+  })
+
+  it('puts a new record first', () => {
+    const rekord = { exercise_id: 'e1', name: 'Bankdrücken', neuesEinsRM: 96.67, altesEinsRM: 90 }
+    expect(hoehepunktVon([rekord], [v('Kniebeuge', 100, 90)])).toEqual({
+      wert: '≈ 96,7 kg',
+      text: 'Neuer Rekord · Bankdrücken (geschätztes 1RM)',
+    })
+  })
+
+  it('otherwise names the biggest step up from last time', () => {
+    expect(hoehepunktVon([], [v('Bankdrücken', 72.5, 70), v('Kniebeuge', 100, 95), v('Rudern', 50, 55)])).toEqual({
+      wert: '+5 kg',
+      text: 'Kniebeuge · mehr als beim letzten Mal',
+    })
+  })
+
+  it('has nothing to say without a record or a heavier set', () => {
+    expect(hoehepunktVon([], [v('Bankdrücken', 70, 70), v('Klimmzüge', null, null)])).toBeNull()
   })
 })

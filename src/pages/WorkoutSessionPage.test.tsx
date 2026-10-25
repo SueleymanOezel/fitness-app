@@ -586,6 +586,39 @@ describe('WorkoutSessionPage', () => {
     expect(result.completeSession).not.toHaveBeenCalled()
   })
 
+  // Re-audit 26.10.2026: the question did not say what was still missing.
+  it('names the exercises still open when asking to finish', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({
+        exercises: [exercise, { ...exercise, id: 'se2', exercise_id: 'ex2', name: 'Kniebeuge', reihenfolge: 2, ziel_saetze: 3 }],
+        sets: [loggedSet({ id: 'a', satz_nummer: 1 })],
+      }),
+    )
+
+    renderPage()
+    fireEvent.click(await screen.findByRole('button', { name: 'Training abschließen' }))
+    expect(await screen.findByText(/Noch offen: Bankdrücken \(1\/2\), Kniebeuge \(0\/3\)\./)).toBeInTheDocument()
+  })
+
+  it('offers the finish in the bottom bar once every target is met, instead of an empty set form', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({
+        exercises: [{ ...exercise, ziel_saetze: 1 }],
+        sets: [loggedSet({ id: 'a', satz_nummer: 1 })],
+      }),
+    )
+
+    renderPage()
+    const abschliessen = await screen.findByRole('button', { name: 'Training abschließen' })
+    expect(abschliessen).toHaveClass('bg-accent')
+    expect(screen.queryByRole('button', { name: 'Satz abschließen' })).not.toBeInTheDocument()
+
+    fireEvent.click(abschliessen)
+    expect(await screen.findByText(/^Alle Sätze geschafft\. 1 Satz erfasst\./)).toBeInTheDocument()
+  })
+
   it('renders the exercise name as a borderless card header', async () => {
     signedIn()
     mockUseWorkoutSession.mockReturnValue(sessionResult())
@@ -720,7 +753,7 @@ describe('WorkoutSessionPage', () => {
     expect(screen.getByText('25')).toHaveAttribute('data-count-to', '25')
     expect(screen.getByText('Minuten')).toBeInTheDocument()
     expect(screen.getByText('187')).toBeInTheDocument()
-    expect(screen.getByText('kcal')).toBeInTheDocument()
+    expect(screen.getByText('kcal verbraucht')).toBeInTheDocument()
     expect(screen.getByText('3 Wochen im Plan · diese Woche 0 von 3')).toBeInTheDocument()
     // The live session view is gone, not just covered.
     expect(screen.queryByRole('button', { name: 'Training abschließen' })).not.toBeInTheDocument()
@@ -748,11 +781,14 @@ describe('WorkoutSessionPage', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Abschließen' }))
     await screen.findByText('Training abgeschlossen')
 
-    expect(screen.getByText('Sätze', { selector: 'dt' }).closest('div')).toHaveTextContent('1')
+    // One value, its unit as the label: no more "Sätze: 1 Satz".
+    expect(screen.getByText('Satz', { selector: 'dt' }).closest('div')).toHaveTextContent('1')
     expect(screen.getByText('625')).toHaveAttribute('data-count-to', '625') // 62,5 kg × 10, warm-up left out
     expect(screen.getByText('Im Vergleich zum letzten Mal')).toBeInTheDocument()
     expect(screen.getByText('62,5 kg × 10 · zuletzt 60 kg × 10')).toBeInTheDocument()
-    expect(screen.getByText('+2,5 kg')).toBeInTheDocument()
+    // The step up is the headline and stays in the comparison row.
+    expect(screen.getAllByText('+2,5 kg')).toHaveLength(2)
+    expect(screen.getByText('Bankdrücken · mehr als beim letzten Mal')).toBeInTheDocument()
     expect(screen.getByText('Nächstes Mal: Tag B – Ziehen')).toBeInTheDocument()
     mockUseLetzteWerte.mockReturnValue(new Map())
   })
@@ -793,7 +829,7 @@ describe('WorkoutSessionPage', () => {
 
     expect(await screen.findByText('Training abgeschlossen')).toBeInTheDocument()
     expect(screen.getByText('Minuten')).toBeInTheDocument()
-    expect(screen.queryByText('kcal')).toBeNull()
+    expect(screen.queryByText('kcal verbraucht')).toBeNull()
   })
 
   it('never shows the "already completed" fallback while completion is still in flight', async () => {
@@ -857,7 +893,9 @@ describe('WorkoutSessionPage', () => {
 
     expect(await screen.findByText('Neue Rekorde')).toBeInTheDocument()
     expect(screen.getByText('Bankdrücken')).toBeInTheDocument()
-    expect(screen.getByText('≈ 116,7 kg')).toBeInTheDocument()
+    // The first record is also the headline.
+    expect(screen.getAllByText('≈ 116,7 kg')).toHaveLength(2)
+    expect(screen.getByText('Neuer Rekord · Bankdrücken (geschätztes 1RM)')).toBeInTheDocument()
     expect(screen.getByText('geschätztes 1RM · vorher ≈ 105,0 kg')).toBeInTheDocument()
     expect(screen.getByText('≈ 80,0 kg')).toBeInTheDocument()
     expect(screen.getByText('geschätztes 1RM · erste Ausführung')).toBeInTheDocument()
