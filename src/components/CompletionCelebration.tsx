@@ -36,6 +36,9 @@ export default function CompletionCelebration({ children }: { children: ReactNod
               0,
             )
           })
+          if (root.querySelector('[data-hero]')) {
+            tl.from('[data-hero]', { opacity: 0, scale: 0.9, duration: 0.5, ease: 'back.out(1.7)' }, 0.15)
+          }
           // Ohne Rekorde gibt es keine Ziele: GSAP würde sonst "target not found" warnen.
           if (root.querySelector('[data-pr-card]')) {
             tl.from('[data-pr-card]', { opacity: 0, y: 12, stagger: 0.12, duration: 0.4 }, 0.5)
