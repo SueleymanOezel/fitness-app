@@ -522,6 +522,31 @@ describe('TrainingPlanEditPage', () => {
     expect(screen.getAllByText('✓ Gespeichert')).toHaveLength(1)
   })
 
+  it('does not confirm an older write that resolves after a newer failed one', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    let alteFertig: () => void = () => {}
+    const update = vi
+      .fn()
+      .mockImplementationOnce(() => new Promise<void>((resolve) => (alteFertig = resolve)))
+      .mockRejectedValueOnce(new Error('x'))
+    mockUseWorkoutPlan.mockReturnValue(planResult({ updateDayExercise: update }))
+    mockUseExercises.mockReturnValue({ exercises: [exercise], loading: false, createExercise: vi.fn() })
+
+    renderPage()
+    await screen.findByText('Tag A')
+    fireEvent.click(screen.getByRole('button', { name: /Bankdrücken/ }))
+    const saetze = screen.getByLabelText('Sätze')
+    fireEvent.change(saetze, { target: { value: '4' } })
+    fireEvent.blur(saetze)
+    fireEvent.change(saetze, { target: { value: '5' } })
+    fireEvent.blur(saetze)
+    expect(await screen.findByText('Speichern fehlgeschlagen.')).toBeInTheDocument()
+    alteFertig()
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(2))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(screen.queryByText('✓ Gespeichert')).not.toBeInTheDocument()
+  })
+
   it('opens only the first day and folds the others, with order and size in the header', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     const einTag = planResult().days[0]

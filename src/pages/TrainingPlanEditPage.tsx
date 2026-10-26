@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlan, type DayExercisePatch, type WorkoutPlanDay } from '../hooks/use-workout-plans'
@@ -349,6 +349,8 @@ function TargetField({
 }) {
   const [draft, setDraft] = useState(String(stored ?? ''))
   const [gespeichert, setGespeichert] = useState(false)
+  // Only the newest write may report: an older one resolving late must not confirm a failed newer one.
+  const neuester = useRef(0)
   useEffect(() => {
     if (!gespeichert) return
     const timer = setTimeout(() => setGespeichert(false), 2500)
@@ -364,7 +366,11 @@ function TargetField({
       return
     }
     if (value === stored) return
-    void onCommit(value).then(setGespeichert)
+    const nummer = ++neuester.current
+    setGespeichert(false)
+    void onCommit(value).then((ok) => {
+      if (nummer === neuester.current) setGespeichert(ok)
+    })
   }
 
   return (
