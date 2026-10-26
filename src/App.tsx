@@ -14,6 +14,7 @@ import BodyPhotosPage from './pages/BodyPhotosPage'
 import NutritionEntriesPage from './pages/NutritionEntriesPage'
 import ProfilePage from './pages/ProfilePage'
 import DeleteAccountPage from './pages/DeleteAccountPage'
+import HelpPage from './pages/HelpPage'
 import NotFoundPage from './pages/NotFoundPage'
 import TrainingPlansPage from './pages/TrainingPlansPage'
 import TrainingPlanWizardPage from './pages/TrainingPlanWizardPage'
@@ -104,6 +105,7 @@ export default function App() {
           />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/konto-loeschen" element={<DeleteAccountPage />} />
+          <Route path="/profile/hilfe" element={<HelpPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

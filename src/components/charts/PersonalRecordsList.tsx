@@ -31,7 +31,7 @@ export default function PersonalRecordsList({
   const rekorde = persoenlicheRekorde(sessions, sets)
 
   return (
-    <ChartFrame titel={TITEL} leer={rekorde.length < 1} leerHinweis="Erscheint nach dem ersten Training mit Gewicht." picker={picker} leerCta={leerCta}>
+    <ChartFrame titel={TITEL} hilfe="einsRM" leer={rekorde.length < 1} leerHinweis="Erscheint nach dem ersten Training mit Gewicht." picker={picker} leerCta={leerCta}>
       <ul role="list" className={listClass}>
         {rekorde.map((rekord) => (
           <li key={rekord.exercise_id} className={listRowClass}>

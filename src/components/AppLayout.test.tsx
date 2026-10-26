@@ -19,6 +19,34 @@ describe('AppLayout', () => {
     expect(link).toHaveClass('min-h-11', 'min-w-11')
   })
 
+  it('offers help next to the profile on every area screen', () => {
+    render(
+      <MemoryRouter>
+        <AppLayout>
+          <p>content</p>
+        </AppLayout>
+      </MemoryRouter>,
+    )
+    const link = screen.getByRole('link', { name: 'Hilfe' })
+    expect(link).toHaveAttribute('href', '/profile/hilfe')
+    expect(link).toHaveClass('min-h-11', 'min-w-11')
+  })
+
+  it.each([
+    ['/training/analyse', true],
+    ['/training/session/s1', false],
+    ['/profile/hilfe', false],
+  ])('on %s shows the help link: %s', (route, sichtbar) => {
+    render(
+      <MemoryRouter initialEntries={[route]}>
+        <AppLayout>
+          <p>content</p>
+        </AppLayout>
+      </MemoryRouter>,
+    )
+    expect(screen.queryByRole('link', { name: 'Hilfe' }) != null).toBe(sichtbar)
+  })
+
   it('drops the tab bar in the live workout and offers the way back at the top instead', () => {
     render(
       <MemoryRouter initialEntries={['/training/session/s1']}>

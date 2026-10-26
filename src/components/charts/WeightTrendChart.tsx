@@ -43,7 +43,7 @@ export default function WeightTrendChart({
       : `${zahlDe(letzter.gewicht, 1)} kg · ${delta === 0 ? '±' : delta < 0 ? '−' : '+'}${zahlDe(Math.abs(delta), 1)} kg seit ${erster.label}`
 
   return (
-    <ChartFrame titel={TITEL} leer={punkte.length < 2} leerHinweis="Erscheint ab zwei Wiegungen." picker={picker} leerCta={leerCta} zusammenfassung={zusammenfassung}>
+    <ChartFrame titel={TITEL} hilfe="trend" leer={punkte.length < 2} leerHinweis="Erscheint ab zwei Wiegungen." picker={picker} leerCta={leerCta} zusammenfassung={zusammenfassung}>
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={punkte}>
           <CartesianGrid {...gitterProps} />

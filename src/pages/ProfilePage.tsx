@@ -363,6 +363,10 @@ function LoadedProfileForm({
         <CalorieGoalEditor profile={profile} onUpdate={onUpdate} />
       </section>
 
+      <PressableLink to="/profile/hilfe" className={`${linkClass} self-start`}>
+        Hilfe und Begriffe
+      </PressableLink>
+
       <section className="flex flex-col gap-3 border-t border-text-muted/15 pt-6">
         <h2>Konto</h2>
         <Pressable
