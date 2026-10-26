@@ -50,11 +50,11 @@ describe('streakText', () => {
   })
 
   it('uses the singular for one week and adds the running week while it is open', () => {
-    expect(streakText({ wochen: 1, dieseWoche: 1, ziel: 3 })).toBe('1 Woche im Plan · diese Woche 1 von 3')
+    expect(streakText({ wochen: 1, dieseWoche: 1, ziel: 3 })).toBe('1 Woche in Folge · diese Woche 1 von 3')
   })
 
   it('drops the progress once the week is done', () => {
-    expect(streakText({ wochen: 4, dieseWoche: 3, ziel: 3 })).toBe('4 Wochen im Plan')
+    expect(streakText({ wochen: 4, dieseWoche: 3, ziel: 3 })).toBe('4 Wochen in Folge')
   })
 })
 

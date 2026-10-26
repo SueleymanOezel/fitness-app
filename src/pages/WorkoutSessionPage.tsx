@@ -12,7 +12,6 @@ import {
 } from '../hooks/use-workout-session'
 import {
   cardClass,
-  checkLabelClass,
   interactiveClass,
   labelClass,
   linkClass,
@@ -22,6 +21,7 @@ import {
   stickyActionClass,
 } from '../lib/ui-classes'
 import RirChips from '../components/RirChips'
+import Chip from '../components/Chip'
 import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import { useExercises } from '../hooks/use-exercises'
@@ -724,14 +724,10 @@ function SetForm({
             {fehler.wiederholungen}
           </p>
         )}
-        <label className={checkLabelClass}>
-          <input
-            type="checkbox"
-            checked={istAufwaermsatz}
-            onChange={(event) => setIstAufwaermsatz(event.target.checked)}
-          />
+        {/* A 44 px chip instead of a 16 px checkbox: tapped between sets with sweaty hands (re-audit 26.10.2026). */}
+        <Chip active={istAufwaermsatz} className="self-start" onClick={() => setIstAufwaermsatz(!istAufwaermsatz)}>
           Aufwärmsatz
-        </label>
+        </Chip>
         <RirChips value={rir} onChange={setRir} />
       </div>
     </form>
@@ -808,7 +804,7 @@ function PauseTimer({
       </div>
       <div
         aria-hidden="true"
-        className="h-1 bg-accent transition-[width] duration-300 ease-linear motion-reduce:transition-none"
+        className="h-1 bg-chart-mint transition-[width] duration-300 ease-linear motion-reduce:transition-none"
         style={{ width: `${anteil * 100}%` }}
       />
     </div>

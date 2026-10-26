@@ -530,7 +530,7 @@ describe('WorkoutSessionPage', () => {
     renderPage()
 
     fireEvent.click(screen.getByText('Bankdrücken'))
-    fireEvent.click(screen.getByLabelText('Aufwärmsatz'))
+    fireEvent.click(screen.getByRole('button', { name: 'Aufwärmsatz' }))
 
     expect(screen.getByText('Aufwärmsatz — zählt nicht zum Ziel')).toBeInTheDocument()
     expect(screen.queryByText('Satz 1 von 2')).not.toBeInTheDocument()
@@ -755,7 +755,7 @@ describe('WorkoutSessionPage', () => {
     expect(screen.getByText('Minuten')).toBeInTheDocument()
     expect(screen.getByText('187')).toBeInTheDocument()
     expect(screen.getByText('kcal verbraucht')).toBeInTheDocument()
-    expect(screen.getByText('3 Wochen im Plan · diese Woche 0 von 3')).toBeInTheDocument()
+    expect(screen.getByText('3 Wochen in Folge · diese Woche 0 von 3')).toBeInTheDocument()
     // The live session view is gone, not just covered.
     expect(screen.queryByRole('button', { name: 'Training abschließen' })).not.toBeInTheDocument()
   })

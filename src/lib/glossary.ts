@@ -22,8 +22,8 @@ export const BEGRIFFE = {
     text: 'Ein geglätteter Verlauf deiner Wiegungen. Schwankungen durch Wasser oder Essen fallen weniger ins Gewicht; ein Wert zählt nach einer Woche nur noch halb. Achte auf den Trend, nicht auf einzelne Tage.',
   },
   wochenImPlan: {
-    titel: 'Wochen im Plan',
-    text: 'So viele Wochen in Folge hast du so oft trainiert, wie dein aktiver Plan vorsieht (ohne Plan: einmal pro Woche). Die laufende Woche zählt mit, sobald ihr Ziel erreicht ist.',
+    titel: 'Wochen in Folge',
+    text: 'So viele Wochen hintereinander hast du so oft trainiert, wie dein aktiver Plan vorsieht (ohne Plan: einmal pro Woche). Die laufende Woche zählt mit, sobald ihr Ziel erreicht ist.',
   },
   tagesbedarf: {
     titel: 'Tagesbedarf',

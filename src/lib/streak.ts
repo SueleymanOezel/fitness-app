@@ -56,7 +56,7 @@ export function streakText({ wochen, dieseWoche, ziel }: PlanStreak): string {
   if (wochen === 0) {
     return dieseWoche === 0 ? 'Noch keine Woche im Plan.' : `Diese Woche ${dieseWoche} von ${ziel}`
   }
-  const serie = `${wochen} ${wochen === 1 ? 'Woche' : 'Wochen'} im Plan`
+  const serie = `${wochen} ${wochen === 1 ? 'Woche' : 'Wochen'} in Folge`
   return dieseWoche >= ziel ? serie : `${serie} · ${fortschritt}`
 }
 

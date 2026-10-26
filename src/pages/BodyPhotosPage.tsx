@@ -2,7 +2,8 @@ import { useState, type ChangeEvent } from 'react'
 import { useSession } from '../hooks/use-session'
 import { useBodyPhotos } from '../hooks/use-body-photos'
 import { today } from '../lib/body-metrics'
-import { cardClass, fieldLabelClass, inputClass } from '../lib/ui-classes'
+import { buttonSecondaryClass, cardClass, fieldLabelClass, inputClass } from '../lib/ui-classes'
+import { VitaIcon } from '../components/icons/VitaIcon'
 import { useToast } from '../components/ToastProvider'
 import ConfirmDelete from '../components/ConfirmDelete'
 import PageSkeleton from '../components/PageSkeleton'
@@ -59,15 +60,14 @@ function Photos({ userId }: { userId: string }) {
           Datum
           <input className={inputClass} type="date" value={datum} onChange={(event) => setDatum(event.target.value)} />
         </label>
-        <label className={fieldLabelClass}>
-          Foto
-          <input
-            className="text-sm text-text-muted file:mr-3 file:rounded-2xl file:border-0 file:bg-surface-raised file:px-4 file:py-2 file:text-text"
-            type="file"
-            accept="image/*"
-            disabled={busy}
-            onChange={choose}
-          />
+        {/* A real button instead of the browser's file field (re-audit 26.10.2026); the phone offers
+            camera or gallery itself, so no `capture` that would rule out the gallery. */}
+        <label
+          className={`${buttonSecondaryClass} flex cursor-pointer items-center justify-center gap-2 has-[input:disabled]:cursor-default has-[input:disabled]:opacity-50 has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-accent`}
+        >
+          <VitaIcon name="photos" tone="mono" size={20} />
+          {busy ? 'Wird hochgeladen …' : 'Foto hinzufügen'}
+          <input className="sr-only" type="file" accept="image/*" disabled={busy} onChange={choose} />
         </label>
       </div>
 

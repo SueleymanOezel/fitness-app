@@ -73,7 +73,7 @@ function ExercisesList({ userId }: { userId: string }) {
           size={20}
           className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2"
         />
-        <input className={`${inputClass} pl-12`} value={query} onChange={(event) => setQuery(event.target.value)} />
+        <input className={`${inputClass} pl-12`} placeholder="Übung suchen, z. B. Kniebeuge" value={query} onChange={(event) => setQuery(event.target.value)} />
       </label>
       <ExerciseFilterChips
         muskelgruppen={muskelgruppen}
