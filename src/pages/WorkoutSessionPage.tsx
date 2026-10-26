@@ -40,7 +40,7 @@ import ConfirmDelete from '../components/ConfirmDelete'
 import PageSkeleton from '../components/PageSkeleton'
 import { dauerText } from '../lib/dauer'
 import { prefersReducedMotion } from '../lib/motion'
-import { abschlussZahlen, type Vergleich } from '../lib/abschluss'
+import { abschlussZahlen, hoehepunktVon, type Vergleich } from '../lib/abschluss'
 import { zahlDe } from '../lib/zahl'
 import { useActiveTrainingDay } from '../hooks/use-active-training-day'
 import { SATZ_LEGENDE } from '../components/LoggedSets'
@@ -219,12 +219,40 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
   // The exercise that is open: the one the user tapped, otherwise the first one
   // whose target is not reached yet — the session opens straight on the next set.
   const sortiert = [...exercises].sort((a, b) => a.reihenfolge - b.reihenfolge)
+  const offen = sortiert.filter(
+    (entry) => entry.ziel_saetze != null && entry.ziel_saetze > 0 && !targetReached(entry.ziel_saetze, workingSetCount(entry.exercise_id)),
+  )
+  // Every exercise has a target and met it: nothing left to log, so the bottom bar offers the finish instead.
+  const allesErledigt =
+    sortiert.length > 0 && sortiert.every((entry) => targetReached(entry.ziel_saetze, workingSetCount(entry.exercise_id)))
   const aktuelleId =
     openExerciseId ??
-    (sortiert.find((entry) => !targetReached(entry.ziel_saetze, workingSetCount(entry.exercise_id))) ?? sortiert[0])
-      ?.exercise_id ??
+    (sortiert.find((entry) => !targetReached(entry.ziel_saetze, workingSetCount(entry.exercise_id))) ??
+      (allesErledigt ? undefined : sortiert[0]))?.exercise_id ??
     null
   const arbeitssaetzeGesamt = sets.filter((set) => !set.ist_aufwaermsatz).length
+  const saetzeText = `${arbeitssaetzeGesamt} ${arbeitssaetzeGesamt === 1 ? 'Satz' : 'Sätze'} erfasst.`
+  // The usual mistake is finishing with an exercise forgotten, so the question names what is still open.
+  const abschlussText =
+    offen.length > 0
+      ? `${saetzeText} Noch offen: ${offen
+          .map((entry) => `${entry.name} (${workingSetCount(entry.exercise_id)}/${entry.ziel_saetze})`)
+          .join(', ')}. Danach lässt sich das Training nicht mehr fortsetzen.`
+      : `${allesErledigt ? 'Alle Sätze geschafft. ' : ''}${saetzeText} Danach lässt sich das Training nicht mehr fortsetzen.`
+  const abschliessen = (
+    <ConfirmDelete
+      variante={allesErledigt ? 'primary' : 'secondary'}
+      className="w-full"
+      label="Training abschließen"
+      // Its own icon: with the set's check it read like "Satz abschließen".
+      icon={<VitaIcon name="goal" tone="mono" size={20} />}
+      titel="Training abschließen?"
+      text={abschlussText}
+      bestaetigen="Abschließen"
+      onConfirm={complete}
+    />
+  )
+  const abschlussInLeiste = allesErledigt && aktuelleId === null
 
   /**
    * Where the form starts: the last working set of this exercise today, else its
@@ -278,6 +306,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
             </span>
           </Pressable>
         )}
+        {abschlussInLeiste && abschliessen}
       </div>
       <ul role="list" className="flex flex-col gap-3">
         {exercises.map((entry) => (
@@ -414,20 +443,9 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
           </>
         )}
       </div>
-      {/* Not sticky and not primary: it sat right under "Satz abschließen" and one
-          mistap ended the workout for good. Now it is the last thing on the page
-          and asks first. */}
-      <ConfirmDelete
-        variante="secondary"
-        className="w-full"
-        label="Training abschließen"
-        // Its own icon: with the set's check it read like "Satz abschließen" right below it.
-        icon={<VitaIcon name="goal" tone="mono" size={20} />}
-        titel="Training abschließen?"
-        text={`${arbeitssaetzeGesamt} ${arbeitssaetzeGesamt === 1 ? 'Satz' : 'Sätze'} erfasst. Danach lässt sich das Training nicht mehr fortsetzen.`}
-        bestaetigen="Abschließen"
-        onConfirm={complete}
-      />
+      {/* While sets are left it is not sticky and not primary: right under "Satz abschließen"
+          one mistap ended the workout for good. It moves into the bar only once all is done. */}
+      {!abschlussInLeiste && abschliessen}
     </div>
   )
 }
@@ -485,6 +503,7 @@ function SessionCompletionScreen({
   // the next day only counts once the fresh rotation has replaced it.
   const naechster = naechsterTag && naechsterTag.id !== tagId ? naechsterTag.name : null
   const mitVorher = vergleiche.filter((vergleich) => vergleich.vorher != null)
+  const hoehepunkt = hoehepunktVon(neueRekorde, vergleiche)
   // The page swaps under the user's finger; focus on the title tells a screen reader where they are.
   const titelRef = useRef<HTMLHeadingElement>(null)
   useEffect(() => titelRef.current?.focus(), [])
@@ -496,11 +515,18 @@ function SessionCompletionScreen({
           <h1 ref={titelRef} tabIndex={-1} className="text-center focus:outline-none">
             Training abgeschlossen
           </h1>
-          <dl className="grid grid-cols-2 gap-4">
-            <Kennzahl label="Dauer" wert={dauerMinuten} einheit="Minuten" />
-            {kalorien != null && <Kennzahl label="Verbrauch" wert={Math.round(kalorien)} einheit="kcal" />}
-            <Kennzahl label="Sätze" wert={saetze} einheit={saetze === 1 ? 'Satz' : 'Sätze'} />
-            {volumen > 0 && <Kennzahl label="Volumen" wert={volumen} einheit="kg" />}
+          {/* One headline worth the moment (a record, else a step up), instead of four equal tiles. */}
+          {hoehepunkt && (
+            <p className="text-center">
+              <span className={`${statClass} block text-chart-mint`}>{hoehepunkt.wert}</span>
+              <span className={`${labelClass} block text-balance`}>{hoehepunkt.text}</span>
+            </p>
+          )}
+          <dl className={`${cardClass} grid grid-cols-2 gap-4`}>
+            <Kennzahl wert={dauerMinuten} label="Minuten" />
+            {kalorien != null && <Kennzahl wert={Math.round(kalorien)} label="kcal verbraucht" />}
+            <Kennzahl wert={saetze} label={saetze === 1 ? 'Satz' : 'Sätze'} />
+            {volumen > 0 && <Kennzahl wert={volumen} label="kg Volumen (ohne Aufwärmen)" />}
           </dl>
           {mitVorher.length > 0 && (
             <section data-reveal className="flex flex-col gap-3">
@@ -572,17 +598,18 @@ function Differenz({ heute, vorher }: { heute: number | null; vorher: number | n
   )
 }
 
-function Kennzahl({ label, wert, einheit }: { label: string; wert: number; einheit: string }) {
+/** Value first, the unit-bearing label under it: "9 / Sätze" instead of "Sätze: 9 Sätze". */
+function Kennzahl({ label, wert }: { label: string; wert: number }) {
   return (
-    <div className={cardClass}>
+    <div className="flex flex-col-reverse">
       <dt className={labelClass}>{label}</dt>
       <dd>
-        <span className={statClass} data-count-to={wert}>{wert}</span>{' '}
-        <span className={labelClass}>{einheit}</span>
+        <span className={statClass} data-count-to={wert}>{wert}</span>
       </dd>
     </div>
   )
 }
+
 
 // ziel_saetze = 0 means "no target", not "already done": the schema has no CHECK
 // on the column and the plan editor only rejects negative values.
