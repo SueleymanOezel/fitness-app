@@ -14,8 +14,9 @@ import { cardClass, fieldLabelClass, inputClass } from '../lib/ui-classes'
 import { VitaIcon } from './icons/VitaIcon'
 import Pressable from './Pressable'
 
-function inputFrom(entry: BodyMetricRow | undefined): BodyMetricInput {
-  if (!entry) return EMPTY_INPUT
+function inputFrom(entry: BodyMetricRow | undefined, letztesGewicht: number | null): BodyMetricInput {
+  // A new day starts from the last weight: the morning weigh-in is a small correction, not typing it all.
+  if (!entry) return letztesGewicht == null ? EMPTY_INPUT : { ...EMPTY_INPUT, gewicht: String(letztesGewicht) }
   const filled = { ...EMPTY_INPUT }
   for (const field of MEASUREMENT_FIELDS) {
     filled[field] = entry[field] == null ? '' : String(entry[field])
@@ -25,15 +26,18 @@ function inputFrom(entry: BodyMetricRow | undefined): BodyMetricInput {
 
 export default function BodyEntryForm({
   entry,
+  letztesGewicht = null,
   onSave,
   onClose,
 }: {
   entry?: BodyMetricRow
+  /** Shown in the weight field when there is no entry for the day yet. */
+  letztesGewicht?: number | null
   onSave: (datum: string, values: BodyMetricValues) => Promise<void>
   onClose: () => void
 }) {
   const [datum, setDatum] = useState(entry?.datum ?? today())
-  const [draft, setDraft] = useState<BodyMetricInput>(() => inputFrom(entry))
+  const [draft, setDraft] = useState<BodyMetricInput>(() => inputFrom(entry, letztesGewicht))
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   // Weight is the daily value; the rest stays folded unless this entry already has some.

@@ -209,7 +209,7 @@ describe('WorkoutSessionPage', () => {
 
     fireEvent.click(screen.getByText('Bankdrücken'))
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
 
     await waitFor(() => expect(result.logSet).toHaveBeenCalledWith('ex1', 4, expect.anything()))
   })
@@ -227,7 +227,7 @@ describe('WorkoutSessionPage', () => {
     fireEvent.click(screen.getByText('Bankdrücken'))
     fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '60' } })
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
 
     await waitFor(() =>
       expect(result.logSet).toHaveBeenCalledWith('ex1', 1, {
@@ -289,7 +289,7 @@ describe('WorkoutSessionPage', () => {
     )
     fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '65' } })
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '8' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
 
     await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(3))
     const zeilen = screen.getAllByRole('row')
@@ -372,7 +372,7 @@ describe('WorkoutSessionPage', () => {
     fireEvent.click(screen.getByText('Bankdrücken'))
     fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '60' } })
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
 
     await waitFor(() => expect(screen.getByText(/Pause/)).toBeInTheDocument())
 
@@ -384,7 +384,7 @@ describe('WorkoutSessionPage', () => {
     // now belongs to the second exercise.
     await waitFor(() => expect(screen.queryByRole('timer')).not.toBeInTheDocument())
     expect(screen.getByRole('status')).toHaveTextContent('Satz 1 von 2 · Kniebeuge')
-    expect(screen.getByRole('button', { name: 'Satz abschließen' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Satz abschließen/ })).toBeInTheDocument()
     expect(screen.getByLabelText('Wiederholungen')).toBeInTheDocument()
   })
 
@@ -399,7 +399,7 @@ describe('WorkoutSessionPage', () => {
 
     fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '60' } })
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
     await screen.findByRole('timer')
 
     await act(async () => {
@@ -431,7 +431,7 @@ describe('WorkoutSessionPage', () => {
 
     fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '60' } })
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
     await screen.findByRole('timer')
 
     fireEvent.click(screen.getByRole('button', { name: 'Überspringen' }))
@@ -514,7 +514,7 @@ describe('WorkoutSessionPage', () => {
 
     fireEvent.click(screen.getByText('Bankdrücken'))
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
 
     // Third row in the table even though it is only the second working set —
     // satz_nummer is a running order, not the target counting.
@@ -536,6 +536,18 @@ describe('WorkoutSessionPage', () => {
     expect(screen.queryByText('Satz 1 von 2')).not.toBeInTheDocument()
   })
 
+  it('names on the button what a tap stores, and follows the fields', () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+    renderPage()
+    fireEvent.click(screen.getByText('Bankdrücken'))
+    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '72,5' } })
+    fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '8' } })
+    expect(screen.getByRole('button', { name: 'Satz abschließen · 72,5 kg × 8' })).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '' } })
+    expect(screen.getByRole('button', { name: 'Satz abschließen · 8 Wdh.' })).toBeInTheDocument()
+  })
+
   it('sends the chosen effort rating and clears it after the set', async () => {
     signedIn()
     const result = sessionResult()
@@ -546,7 +558,7 @@ describe('WorkoutSessionPage', () => {
     fireEvent.click(screen.getByText('Bankdrücken'))
     fireEvent.click(screen.getByRole('button', { name: '2' }))
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
 
     await waitFor(() =>
       expect(result.logSet).toHaveBeenCalledWith('ex1', 1, expect.objectContaining({ rir: 2 })),
@@ -644,7 +656,7 @@ describe('WorkoutSessionPage', () => {
     renderPage()
     const abschliessen = await screen.findByRole('button', { name: 'Training abschließen' })
     expect(abschliessen).toHaveClass('bg-accent')
-    expect(screen.queryByRole('button', { name: 'Satz abschließen' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Satz abschließen/ })).not.toBeInTheDocument()
 
     fireEvent.click(abschliessen)
     expect(await screen.findByText(/^Alle Sätze geschafft\. 1 Satz erfasst\./)).toBeInTheDocument()
@@ -686,7 +698,7 @@ describe('WorkoutSessionPage', () => {
     renderPage()
     const abschliessen = await screen.findByRole('button', { name: 'Training abschließen' })
     expect(abschliessen.querySelector('svg')).toHaveAttribute('data-icon', 'goal')
-    expect(screen.getByRole('button', { name: 'Satz abschließen' }).querySelector('svg')).toHaveAttribute('data-icon', 'save')
+    expect(screen.getByRole('button', { name: /^Satz abschließen/ }).querySelector('svg')).toHaveAttribute('data-icon', 'save')
   })
 
   it('moves focus to the result heading after finishing, so a screen reader hears it', async () => {
@@ -739,7 +751,7 @@ describe('WorkoutSessionPage', () => {
     fireEvent.click(await screen.findByText('Bankdrücken'))
     fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '22,5' } })
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '8' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
 
     await waitFor(() =>
       expect(result.logSet).toHaveBeenCalledWith('ex1', 1, expect.objectContaining({ gewicht: 22.5, wiederholungen: 8 })),
@@ -758,7 +770,7 @@ describe('WorkoutSessionPage', () => {
 
     fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: 'abc' } })
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '-5' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
 
     expect(await screen.findByText(GEWICHT_FEHLER)).toBeInTheDocument()
     expect(screen.getByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
@@ -1001,7 +1013,7 @@ describe('WorkoutSessionPage', () => {
 
     fireEvent.click(screen.getByText('Bankdrücken'))
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
     expect(screen.queryByText(/Pause/)).not.toBeInTheDocument()
@@ -1056,7 +1068,7 @@ describe('WorkoutSessionPage', () => {
     fireEvent.click(screen.getByText('Bankdrücken'))
     fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '60' } })
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
     expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue('60')
@@ -1071,7 +1083,7 @@ describe('WorkoutSessionPage', () => {
     renderPage()
     fireEvent.click(await screen.findByText('Bankdrücken'))
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
 
     expect(await screen.findByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
     expect(screen.getByLabelText('Wiederholungen')).toHaveAttribute('aria-invalid', 'true')
@@ -1086,7 +1098,7 @@ describe('WorkoutSessionPage', () => {
     renderPage()
     fireEvent.click(await screen.findByText('Bankdrücken'))
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '0' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
 
     expect(await screen.findByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
     expect(result.logSet).not.toHaveBeenCalled()
@@ -1100,7 +1112,7 @@ describe('WorkoutSessionPage', () => {
     renderPage()
     fireEvent.click(await screen.findByText('Bankdrücken'))
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '8' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
 
     await waitFor(() =>
       expect(result.logSet).toHaveBeenCalledWith('ex1', 1, expect.objectContaining({ gewicht: null, wiederholungen: 8 })),
@@ -1114,11 +1126,11 @@ describe('WorkoutSessionPage', () => {
     renderPage()
     fireEvent.click(await screen.findByText('Bankdrücken'))
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
     expect(await screen.findByText(WIEDERHOLUNGEN_FEHLER)).toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('Wiederholungen'), { target: { value: '10' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
 
     await waitFor(() => expect(screen.queryByText(WIEDERHOLUNGEN_FEHLER)).not.toBeInTheDocument())
   })
@@ -1252,7 +1264,7 @@ describe('WorkoutSessionPage', () => {
       expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue('72,5')
       expect(screen.getByLabelText('Wiederholungen')).toHaveValue('8')
 
-      fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+      fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
 
       await waitFor(() =>
         expect(result.logSet).toHaveBeenCalledWith('ex1', 2, expect.objectContaining({ gewicht: 72.5, wiederholungen: 8 })),
@@ -1293,12 +1305,12 @@ describe('WorkoutSessionPage', () => {
       mockUseWorkoutSession.mockReturnValue(sessionResult({ sets: [loggedSet()] }))
 
       renderPage()
-      fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+      fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
       const timer = await screen.findByRole('timer')
 
       const leiste = timer.closest('.fixed')
       expect(leiste).not.toBeNull()
-      expect(leiste).toContainElement(screen.getByRole('button', { name: 'Satz abschließen' }))
+      expect(leiste).toContainElement(screen.getByRole('button', { name: /^Satz abschließen/ }))
     })
 
     it('changes weight and reps in steps with - and +', () => {
@@ -1333,7 +1345,7 @@ describe('WorkoutSessionPage', () => {
       mockUseWorkoutSession.mockReturnValue(result)
 
       renderPage()
-      fireEvent.click(screen.getByRole('button', { name: 'Satz abschließen' }))
+      fireEvent.click(screen.getByRole('button', { name: /^Satz abschließen/ }))
       expect(await screen.findByRole('timer')).toHaveTextContent('1:30')
 
       fireEvent.click(screen.getByRole('button', { name: '+30 s' }))

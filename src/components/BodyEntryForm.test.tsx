@@ -66,6 +66,13 @@ describe('BodyEntryForm', () => {
     expect(container.querySelector('details')).toHaveAttribute('open')
   })
 
+  // Re-audit 27.10.2026 (efficiency): the morning weigh-in is a small correction, not typing the whole number.
+  it('starts a new day from the last weight', () => {
+    render(<BodyEntryForm letztesGewicht={82.4} onSave={vi.fn()} onClose={vi.fn()} />)
+    expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(82.4)
+    expect(screen.getByLabelText('Bauchumfang (cm)')).toHaveValue(null)
+  })
+
   it('defaults the date to today', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2026, 7, 24, 9, 0, 0))
