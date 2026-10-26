@@ -244,7 +244,7 @@ function LoadedProfileForm({
           {/* A change of meaning on the app's side, not a mistake of the user's: an info box, no red field
               (re-audit 27.10.2026). */}
           {neuWaehlen && (
-            <p id="aktivitaet-neu" className="rounded-2xl border border-accent/40 bg-surface-raised p-3 text-sm">
+            <p id="aktivitaet-neu" className="border-l-2 border-accent pl-3 text-sm">
               Neu: Das Aktivitätslevel meint jetzt nur deinen Alltag, bisher war der Sport mitgemeint. Bitte einmal neu wählen und speichern.
             </p>
           )}

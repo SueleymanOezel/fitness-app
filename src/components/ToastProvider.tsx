@@ -57,8 +57,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {toast && (
         <div
           role="alert"
-          className={`fixed inset-x-4 top-4 flex flex-row items-center gap-3 text-left rounded-2xl px-4 py-3 font-medium motion-safe:animate-[toast-in_200ms_ease-out] ${
-            toast.type === 'success' ? 'bg-success text-success-ink' : 'bg-danger text-on-bright'
+          // Bottom, just above the tab bar: "Rückgängig" in the thumb's reach, not over the back arrow and
+          // "?" at the top. Mint for success, the app's own color for "done" (re-audit 27.10.2026).
+          className={`fixed inset-x-4 bottom-[var(--nav-clearance)] z-50 flex flex-row items-center gap-3 text-left rounded-2xl px-4 py-3 font-medium shadow-lg motion-safe:animate-[toast-in_200ms_ease-out] ${
+            toast.type === 'success' ? 'bg-chart-mint text-success-ink' : 'bg-danger text-on-bright'
           }`}
         >
           <span className="flex-1">{toast.message}</span>

@@ -21,7 +21,6 @@
   --color-surface-raised: #414249;
 
   --color-accent: #8766ed;
-  --color-success: #ebfd6e;
   --color-success-ink: #17181f;
   --color-danger: #f27a6b;
   /*
@@ -236,7 +235,8 @@ body {
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(-0.5rem);
+    /* Rises from below: the toast sits at the bottom now. */
+    transform: translateY(0.5rem);
   }
   to {
     opacity: 1;
