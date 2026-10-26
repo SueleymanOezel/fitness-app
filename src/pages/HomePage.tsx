@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
 import { useFoodEntries } from '../hooks/use-food-entries'
-import { zielHeute } from '../lib/nutrition-goal'
+import { effectiveCalorieGoal, zielHeute } from '../lib/nutrition-goal'
 import { sumKalorien } from '../lib/entry-calories'
 import { kalorienStatus } from '../lib/calorie-status'
 import { useActiveTrainingDay } from '../hooks/use-active-training-day'
@@ -26,12 +26,17 @@ import StatStrip, { type StatTile } from '../components/StatStrip'
 import { cardClass, labelClass, rowLinkClass } from '../lib/ui-classes'
 import { useNutritionAnalysis } from '../hooks/use-nutrition-analysis'
 import { gewichtDieseWoche, kalorienSchnittDieseWoche, wochenAussage } from '../lib/week-summary'
-import type { BodyMetricRow } from '../lib/body-metrics'
+import { MEASUREMENT_FIELDS, today, type BodyMetricRow, type BodyMetricValues } from '../lib/body-metrics'
 import EmptyState from '../components/EmptyState'
 import PageSkeleton, { ChartSkeleton } from '../components/PageSkeleton'
 import BodyEntryDialog from '../components/BodyEntryDialog'
 import QuickAddDialog from '../components/QuickAddDialog'
 import { mealSections } from '../lib/meal-sections'
+import ErststartDialog from '../components/ErststartDialog'
+import ErsteSchritte from '../components/ErsteSchritte'
+import { erststartGesehen, merkeErststartGesehen } from '../lib/first-start'
+
+const LEERE_WERTE = Object.fromEntries(MEASUREMENT_FIELDS.map((feld) => [feld, null])) as BodyMetricValues
 
 /** German notation: comma as the decimal mark, at most one place. */
 function formatValue(value: number) {
@@ -49,7 +54,7 @@ export default function HomePage() {
 
 function Dashboard({ userId }: { userId: string }) {
   const profileResult = useProfile(userId)
-  const { profile, loading: profileLoading } = profileResult
+  const { profile, loading: profileLoading, updateProfile } = profileResult
   const { entries, loading: entriesLoading, addEntry } = useFoodEntries(userId)
   const { plan, day, loading: trainingLoading, error: trainingError } = useActiveTrainingDay(userId)
   const { rows, loading: rowsLoading, error: rowsError, saveEntry } = useBodyMetrics(userId)
@@ -60,6 +65,10 @@ function Dashboard({ userId }: { userId: string }) {
   // Home is where the day starts: weighing in and logging a meal open right here (re-audit 24.10.2026).
   const [gewichtOffen, setGewichtOffen] = useState(false)
   const [mahlzeitOffen, setMahlzeitOffen] = useState(false)
+  // Decided once the profile is in; stays open through step 3 even though the goal is set by then.
+  const [erststart, setErststart] = useState<'offen' | 'zu' | null>(null)
+  // A fresh key on every opening starts the dialog at step 1 again.
+  const [erststartRunde, setErststartRunde] = useState(0)
 
   if (profileLoading || entriesLoading || trainingLoading || rowsLoading || streakLoading) {
     return <PageSkeleton titel="Home" />
@@ -68,6 +77,18 @@ function Dashboard({ userId }: { userId: string }) {
   // goal bleibt null, wenn das Profil nicht geladen werden konnte — die Kalorien-Karte
   // zeigt das Gegessene dann trotzdem, nur ohne Restwert gegen ein Ziel. Ein
   // Bereich, der nicht laedt, soll die anderen nicht mit sperren.
+  const zielGesetzt = profile != null && effectiveCalorieGoal(profile) != null
+  if (erststart === null && profile) {
+    setErststart(!zielGesetzt && !erststartGesehen(userId) ? 'offen' : 'zu')
+  }
+  function erststartZu() {
+    merkeErststartGesehen(userId)
+    setErststart('zu')
+  }
+
+  // A new account is one without a goal or a weigh-in; an old one without a plan gets the plain empty state below.
+  const ersteSchritte = profile != null && erststart === 'zu' && (!zielGesetzt || rows.length === 0)
+
   const goal = profile ? zielHeute(profile, trainingKcal) : null
   const status = kalorienStatus(sumKalorien(entries), goal, trainingKcal)
   const gewichtAktuell = latestValue(rows, 'gewicht')
@@ -98,9 +119,44 @@ function Dashboard({ userId }: { userId: string }) {
     <div>
       <h1>Home</h1>
       {rowsError && <p role="alert">Gewichtsdaten konnten nicht geladen werden.</p>}
+      {/* The first start's open ends (re-audit 26.10.2026). */}
+      {ersteSchritte && (
+        <ErsteSchritte
+          schritte={[
+            {
+              label: 'Tagesziel festlegen',
+              erledigt: zielGesetzt,
+              onClick: () => {
+                setErststartRunde((runde) => runde + 1)
+                setErststart('offen')
+              },
+            },
+            { label: 'Trainingsplan anlegen', erledigt: plan != null, to: '/training/plans/new' },
+            { label: 'Erstes Gewicht eintragen', erledigt: rows.length > 0, onClick: () => setGewichtOffen(true) },
+            { label: 'Heute eine Mahlzeit eintragen', erledigt: entries.length > 0, onClick: () => setMahlzeitOffen(true) },
+          ]}
+        />
+      )}
+      {profile && (
+        <ErststartDialog
+          key={erststartRunde}
+          open={erststart === 'offen'}
+          onClose={erststartZu}
+          profile={profile}
+          updateProfile={updateProfile}
+          // On a failed plan load the assistant step is skipped rather than offered blindly.
+          hatPlan={plan != null || trainingError}
+          ersteWiegung={
+            rows.length > 0 || rowsError
+              ? null
+              : (gewicht) => saveEntry(today(), { ...LEERE_WERTE, gewicht })
+          }
+        />
+      )}
       <StatStrip tiles={kacheln} />
       {trainingError && <p role="alert">Training konnte nicht geladen werden.</p>}
-      {!trainingError && plan == null && (
+      {/* The checklist already carries "Trainingsplan anlegen" for a new account. */}
+      {!trainingError && plan == null && !ersteSchritte && (
         <EmptyState
           titel="Kein aktiver Plan."
           text="Lege einen Plan an, dann siehst du hier, was heute ansteht."

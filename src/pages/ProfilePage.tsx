@@ -7,7 +7,7 @@ import { cardClass, fieldLabelClass, inputClass, linkClass } from '../lib/ui-cla
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable, { PressableLink } from '../components/Pressable'
 import PageSkeleton from '../components/PageSkeleton'
-import { AKTIVITAET_LABEL } from '../lib/nutrition-goal'
+import { AKTIVITAET, GESCHLECHT, RANGES, ZIEL, parseNumber } from '../lib/profile-fields'
 import { aktivitaetNeuGewaehlt, merkeAktivitaetGewaehlt } from '../lib/activity-level-notice'
 
 type Draft = {
@@ -30,30 +30,6 @@ type Draft = {
 export const MAX_SECTION_NAME_LENGTH = 40
 
 const PRESET_SECTION_NAMES = ['Frühstück', 'Mittagessen', 'Abendessen', 'Snacks'] as const
-
-/**
- * These bounds are not cosmetic: the calorie goal is computed from these values,
- * so a mistyped weight of 800 kg would silently produce an absurd target.
- */
-const RANGES = {
-  alter: [10, 120],
-  groesse: [100, 250],
-  aktuelles_gewicht: [30, 300],
-  ziel_delta_kcal: [0, 1500],
-} as const
-
-const GESCHLECHT = [
-  ['maennlich', 'männlich'],
-  ['weiblich', 'weiblich'],
-] as const
-
-const AKTIVITAET = Object.entries(AKTIVITAET_LABEL)
-
-const ZIEL = [
-  ['abnehmen', 'abnehmen'],
-  ['halten', 'halten'],
-  ['zunehmen', 'zunehmen'],
-] as const
 
 function toDraft(profile: Profile): Draft {
   return {
@@ -80,13 +56,6 @@ function sectionName(value: string, slot: number) {
   const trimmed = value.trim().slice(0, MAX_SECTION_NAME_LENGTH)
   if (trimmed) return trimmed
   return slot <= 4 ? PRESET_SECTION_NAMES[slot - 1] : null
-}
-
-/** Empty stays empty (null); out-of-range is rejected so it never reaches the database. */
-function parseNumber(value: string, [min, max]: readonly [number, number]) {
-  if (value.trim() === '') return null
-  const parsed = Number(value)
-  return Number.isFinite(parsed) && parsed >= min && parsed <= max ? parsed : undefined
 }
 
 function toPatch(draft: Draft): Partial<Profile> | null {

@@ -68,7 +68,7 @@ describe('HomePage', () => {
   it('opens the weight entry right from the weight tile', async () => {
     stubDefaults()
     renderWithProviders(<HomePage />)
-    fireEvent.click(screen.getByRole('button', { name: /Gewicht/ }))
+    fireEvent.click(screen.getByRole('button', { name: /^Gewicht/ }))
     expect(await screen.findByRole('spinbutton', { name: /Gewicht/ })).toBeInTheDocument()
   })
 
@@ -109,6 +109,8 @@ describe('HomePage', () => {
 
   it('shows "Kein aktiver Plan" without an active plan', () => {
     stubDefaults()
+    // An account past its first steps (goal and a weigh-in): the plain empty state, no checklist.
+    mockUseBodyMetrics.mockReturnValue({ rows: [{ id: 'b1', datum: '2026-10-01', gewicht: 80 }], loading: false, error: false, saveEntry: vi.fn(), deleteEntry: vi.fn(), reload: vi.fn() })
     renderWithProviders(<HomePage />)
     expect(screen.getByText('Kein aktiver Plan.')).toBeInTheDocument()
   })
@@ -233,10 +235,24 @@ describe('HomePage', () => {
     expect(screen.queryByRole('link', { name: 'Ernährung' })).not.toBeInTheDocument()
   })
 
+  it('opens the first start once for an account without a goal', () => {
+    stubDefaults()
+    const { profile, ...rest } = mockUseProfile()
+    mockUseProfile.mockReturnValue({ ...rest, profile: { ...profile, taegliches_kalorienziel: null } })
+    renderWithProviders(<HomePage />)
+    expect(screen.getByRole('heading', { name: 'Willkommen bei VitaLoop' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Später' }))
+    // Put off: the checklist takes over, and a new visit does not pop up again.
+    expect(screen.getByRole('button', { name: /Tagesziel festlegen/ })).toBeInTheDocument()
+    expect(localStorage.getItem('vl-erststart-gesehen:u1')).toBe('1')
+  })
+
   it('renders cleanly for a brand-new account', () => {
     stubDefaults()
     const { container } = renderWithProviders(<HomePage />)
     expect(container.textContent).not.toMatch(/undefined|NaN/)
-    expect(screen.getByRole('link', { name: 'Trainingsplan anlegen' })).toHaveAttribute('href', '/training/plans')
+    // The first steps carry the plan; no second "Kein aktiver Plan" card next to them.
+    expect(screen.getByRole('link', { name: /Trainingsplan anlegen/ })).toHaveAttribute('href', '/training/plans/new')
+    expect(screen.queryByText('Kein aktiver Plan.')).not.toBeInTheDocument()
   })
 })
