@@ -109,10 +109,17 @@ describe('ProfilePage', () => {
     await renderPage()
     expect(screen.getByLabelText('Aktivitätslevel')).toHaveAccessibleDescription(/ohne Sport/)
     expect(screen.getByText(/Bitte einmal neu wählen/)).toBeInTheDocument()
+    // A change on the app's side, not the user's mistake: no invalid field (re-audit 27.10.2026).
+    expect(screen.getByLabelText('Aktivitätslevel')).not.toHaveAttribute('aria-invalid')
+    expect(screen.getByLabelText('Aktivitätslevel')).toHaveAccessibleDescription(/Bitte einmal neu wählen/)
 
     fireEvent.change(screen.getByLabelText('Aktivitätslevel'), { target: { value: 'sitzend' } })
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
     await waitFor(() => expect(screen.queryByText(/Bitte einmal neu wählen/)).not.toBeInTheDocument())
+    // The pinned button itself confirms; a change makes it "Speichern" again.
+    expect(screen.getByRole('button', { name: 'Gespeichert' })).toHaveClass('sticky')
+    fireEvent.change(screen.getByLabelText('Alter (Jahre)'), { target: { value: '31' } })
+    expect(screen.getByRole('button', { name: 'Speichern' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Fast nur sitzend (Büro, kaum Wege)' })).toBeInTheDocument()
   })
   it('writes every field in a single update when saving', async () => {

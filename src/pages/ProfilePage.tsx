@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useSession } from '../hooks/use-session'
 import { useProfile, type Profile } from '../hooks/use-profile'
 import CalorieGoalEditor from '../components/CalorieGoalEditor'
-import { cardClass, fieldLabelClass, inputClass, linkClass } from '../lib/ui-classes'
+import { cardClass, fieldLabelClass, inputClass, linkClass, stickyActionClass } from '../lib/ui-classes'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable, { PressableLink } from '../components/Pressable'
 import PageSkeleton from '../components/PageSkeleton'
@@ -226,8 +226,7 @@ function LoadedProfileForm({
             Aktivitätslevel
             <select
               className={inputClass}
-              aria-describedby="aktivitaet-hinweis"
-              aria-invalid={neuWaehlen || undefined}
+              aria-describedby={neuWaehlen ? 'aktivitaet-hinweis aktivitaet-neu' : 'aktivitaet-hinweis'}
               value={draft.aktivitaetslevel}
               onChange={(event) => set('aktivitaetslevel', event.target.value)}
             >
@@ -242,8 +241,12 @@ function LoadedProfileForm({
           <p id="aktivitaet-hinweis" className="-mt-1 text-sm text-text-muted">
             Nur dein Alltag ohne Sport. Deine Trainings rechnet die App aus den Einheiten dazu.
           </p>
+          {/* A change of meaning on the app's side, not a mistake of the user's: an info box, no red field
+              (re-audit 27.10.2026). */}
           {neuWaehlen && (
-            <p className="text-sm">Bitte einmal neu wählen und speichern: Bisher war hier dein Sport mitgemeint.</p>
+            <p id="aktivitaet-neu" className="rounded-2xl border border-accent/40 bg-surface-raised p-3 text-sm">
+              Neu: Das Aktivitätslevel meint jetzt nur deinen Alltag, bisher war der Sport mitgemeint. Bitte einmal neu wählen und speichern.
+            </p>
           )}
         </div>
 
@@ -317,12 +320,18 @@ function LoadedProfileForm({
           </p>
         )}
         {status === 'failed' && <p role="alert">Profil konnte nicht gespeichert werden.</p>}
-        {status === 'saved' && <p role="status">Gespeichert.</p>}
+        {status === 'saved' && (
+          <p role="status" className="sr-only">
+            Gespeichert.
+          </p>
+        )}
 
-        <Pressable variant="primary" type="submit">
+        {/* Pinned while the form is in view: it sat ~1300 px below the first field (re-audit 27.10.2026).
+            One save for all fields stays on purpose, see the draft comment above. */}
+        <Pressable variant="primary" type="submit" className={stickyActionClass}>
           <span className="inline-flex items-center justify-center gap-2">
             <VitaIcon name="save" tone="mono" size={20} />
-            Speichern
+            {status === 'saved' ? 'Gespeichert' : 'Speichern'}
           </span>
         </Pressable>
       </form>
