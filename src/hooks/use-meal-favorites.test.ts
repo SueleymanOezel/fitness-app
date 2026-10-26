@@ -44,6 +44,19 @@ describe('useMahlzeitFavoriten', () => {
     gelesen = []
   })
 
+  it('reloads every mounted list after a save in one of them', async () => {
+    aufrufe.length = 0
+    itemsFehler = null
+    const { useMahlzeitFavoriten } = await import('./use-meal-favorites')
+    const dialog = renderHook(() => useMahlzeitFavoriten('u1'))
+    renderHook(() => useMahlzeitFavoriten('u1'))
+    await waitFor(() => expect(aufrufe.filter((a) => a.art === 'eq' && a.wert === 'u1')).toHaveLength(2))
+
+    await dialog.result.current.speichern('Mittag', [{ product_id: 'p1', menge: 100 }])
+    // Both instances read again, not only the one that saved.
+    await waitFor(() => expect(aufrufe.filter((a) => a.art === 'eq' && a.wert === 'u1')).toHaveLength(4))
+  })
+
   it('saves the favorite with its items in order', async () => {
     aufrufe.length = 0
     itemsFehler = null

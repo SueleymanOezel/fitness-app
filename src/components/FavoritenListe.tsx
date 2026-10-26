@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { useMahlzeitFavoriten, type Favorit } from '../hooks/use-meal-favorites'
 import { cardClass, interactiveClass, labelClass, listClass } from '../lib/ui-classes'
 import ConfirmDelete from './ConfirmDelete'
@@ -18,11 +19,13 @@ function kcal(favorit: Favorit) {
  */
 export default function FavoritenListe({ userId, onWaehlen }: { userId: string; onWaehlen?: (favorit: Favorit) => void }) {
   const { favoriten, loeschen } = useMahlzeitFavoriten(userId)
+  // Unique: an open add dialog and "Deine Favoriten" can be on the page at once.
+  const titelId = useId()
   if (favoriten.length === 0) return null
 
   return (
-    <section className={cardClass} aria-labelledby="favoriten-titel">
-      <h3 id="favoriten-titel" className="font-semibold">
+    <section className={cardClass} aria-labelledby={titelId}>
+      <h3 id={titelId} className="font-semibold">
         {onWaehlen ? 'Favoriten' : 'Deine Favoriten'}
       </h3>
       <ul role="list" className={listClass}>

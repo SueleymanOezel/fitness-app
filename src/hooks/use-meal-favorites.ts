@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
+const GEAENDERT = 'vl-favoriten-geaendert'
+
 export type FavoritZutat = { product_id: string; menge: number; name: string; kalorien: number | null }
 export type Favorit = { id: string; name: string; zutaten: FavoritZutat[] }
 
@@ -42,17 +44,22 @@ export function useMahlzeitFavoriten(userId: string) {
 
   useEffect(() => {
     let aktiv = true
-    void lesen().then((neu) => {
-      if (aktiv && neu) setFavoriten(neu)
-    })
+    const laden = () =>
+      void lesen().then((neu) => {
+        if (aktiv && neu) setFavoriten(neu)
+      })
+    laden()
+    // Several lists can be mounted at once (an add dialog and "Deine Favoriten"): a change in one
+    // reloads all, instead of each showing its own stale copy until a remount.
+    window.addEventListener(GEAENDERT, laden)
     return () => {
       aktiv = false
+      window.removeEventListener(GEAENDERT, laden)
     }
   }, [lesen])
 
-  async function reload() {
-    const neu = await lesen()
-    if (neu) setFavoriten(neu)
+  function reload() {
+    window.dispatchEvent(new Event(GEAENDERT))
   }
 
   /** The favorite first, then its items; if the items fail, the empty favorite is removed again. */
@@ -72,13 +79,13 @@ export function useMahlzeitFavoriten(userId: string) {
       await supabase.from('meal_favorites').delete().eq('id', favoritId)
       throw new Error('favorite items insert failed')
     }
-    await reload()
+    reload()
   }
 
   async function loeschen(id: string) {
     const { error } = await supabase.from('meal_favorites').delete().eq('id', id)
     if (error) throw new Error('favorite delete failed')
-    await reload()
+    reload()
   }
 
   return { favoriten, speichern, loeschen }
