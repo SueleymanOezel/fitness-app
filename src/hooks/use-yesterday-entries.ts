@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { localDay } from '../lib/local-time'
 
 export type GesternEintrag = { product_id: string; menge: number; mahlzeit: number }
 
@@ -16,7 +17,10 @@ export function gesternRange(jetzt = new Date()) {
  * without a meal or a product are left out; they have nowhere to go.
  */
 export function useGesternEintraege(userId: string) {
-  const [eintraege, setEintraege] = useState<GesternEintrag[]>([])
+  // Keyed by user and day: rows of another account, or of the day before yesterday after midnight,
+  // never pass for this user's yesterday, even before the new read has answered (or if it fails).
+  const schluessel = `${userId}@${localDay(new Date().toISOString())}`
+  const [geladen, setGeladen] = useState<{ schluessel: string; eintraege: GesternEintrag[] } | null>(null)
 
   useEffect(() => {
     let aktuell = true
@@ -32,12 +36,12 @@ export function useGesternEintraege(userId: string) {
       .order('zeitpunkt', { ascending: true })
       .then(({ data, error }) => {
         // A failed read only hides the shortcut; the day can still be entered by hand.
-        if (aktuell && !error) setEintraege((data ?? []) as GesternEintrag[])
+        if (aktuell && !error) setGeladen({ schluessel, eintraege: (data ?? []) as GesternEintrag[] })
       })
     return () => {
       aktuell = false
     }
-  }, [userId])
+  }, [userId, schluessel])
 
-  return { eintraege }
+  return { eintraege: geladen?.schluessel === schluessel ? geladen.eintraege : [] }
 }
