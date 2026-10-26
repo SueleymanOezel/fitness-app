@@ -40,9 +40,9 @@ describe('ErststartDialog', () => {
     oeffnen()
     koerperAusfuellen()
     // Mifflin-St Jeor 1780 × 1,4 (sitzend) = 2492, minus 400 to lose weight.
-    expect(screen.getByText('2.092 kcal')).toBeInTheDocument()
+    expect(screen.getByText('2092 kcal')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'halten' }))
-    expect(screen.getByText('2.492 kcal')).toBeInTheDocument()
+    expect(screen.getByText('2492 kcal')).toBeInTheDocument()
     expect(screen.queryByLabelText(/Abstand zum Bedarf/)).not.toBeInTheDocument()
   })
 
@@ -62,6 +62,7 @@ describe('ErststartDialog', () => {
   it('closes after the goal when there is a plan already', async () => {
     const { onClose } = oeffnen({ hatPlan: true })
     expect(screen.getByText('Schritt 1 von 2')).toBeInTheDocument()
+    expect(screen.getByText(/^Zwei kurze Schritte/)).toBeInTheDocument()
     koerperAusfuellen()
     fireEvent.click(screen.getByRole('button', { name: 'Ziel speichern' }))
     await waitFor(() => expect(onClose).toHaveBeenCalled())

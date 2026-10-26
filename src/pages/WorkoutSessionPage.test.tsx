@@ -587,6 +587,36 @@ describe('WorkoutSessionPage', () => {
     expect(result.completeSession).not.toHaveBeenCalled()
   })
 
+  // Re-audit 27.10.2026: a session started by mistake could only be finished, landing in history and calories.
+  it('discards a session after asking and leaves for the training page', async () => {
+    signedIn()
+    const result = sessionResult()
+    mockUseWorkoutSession.mockReturnValue(result)
+
+    renderPage()
+    await screen.findByText('Bankdrücken')
+    fireEvent.click(screen.getByRole('button', { name: 'Training verwerfen' }))
+    expect(result.deleteSession).not.toHaveBeenCalled()
+    fireEvent.click(await screen.findByRole('button', { name: 'Verwerfen' }))
+    await waitFor(() => expect(result.deleteSession).toHaveBeenCalledTimes(1))
+    expect(mockNavigate).toHaveBeenCalledWith('/training', { replace: true })
+  })
+
+  it('asks whether a session open for hours is still going', async () => {
+    signedIn()
+    mockUseWorkoutSession.mockReturnValue(sessionResult())
+    renderPage()
+    expect(await screen.findByText('Noch aktiv? Sonst unten abschließen oder verwerfen.')).toBeInTheDocument()
+
+    mockUseWorkoutSession.mockReturnValue(
+      sessionResult({ session: { id: 's1', workout_plan_day_id: 'd1', gestartet_am: new Date().toISOString(), beendet_am: null, gesamt_kalorien: null } }),
+    )
+    cleanup()
+    renderPage()
+    await screen.findByText('Bankdrücken')
+    expect(screen.queryByText(/Noch aktiv\?/)).not.toBeInTheDocument()
+  })
+
   // Re-audit 26.10.2026: the question did not say what was still missing.
   it('names the exercises still open when asking to finish', async () => {
     signedIn()

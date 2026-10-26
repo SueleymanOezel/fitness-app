@@ -5,6 +5,7 @@ import { cardClass, fieldLabelClass, inputClass, interactiveClass, labelClass } 
 import Dialog from './Dialog'
 import Pressable from './Pressable'
 import { useToast } from './ToastProvider'
+import { zahlDe } from '../lib/zahl'
 
 /** "Als Favorit speichern" under a meal: today's foods and amounts become one tap next time. */
 export default function FavoritSpeichern({ userId, vorschlag, entries }: { userId: string; vorschlag: string; entries: FoodEntry[] }) {
@@ -63,7 +64,7 @@ function Formular({ userId, vorschlag, entries, onFertig }: { userId: string; vo
         </label>
         <ul role="list" className={labelClass}>
           {zutaten.map((entry) => (
-            <li key={entry.id}>{`${entry.products?.name ?? 'Unbekannt'} · ${entry.menge.toLocaleString('de-DE')} g`}</li>
+            <li key={entry.id}>{`${entry.products?.name ?? 'Unbekannt'} · ${zahlDe(entry.menge)} g`}</li>
           ))}
         </ul>
         <p className="text-sm text-text-muted">Beim Hinzufügen steht er dann ganz oben und trägt alles mit einem Tipp ein.</p>
