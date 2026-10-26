@@ -45,6 +45,7 @@ export default function ExerciseVolumeChart({
   return (
     <ChartFrame
       titel={titel}
+      hilfe="volumen"
       leer={punkte.length < 1} leerHinweis="Erscheint nach dem ersten Training mit dieser Übung."
       picker={picker}
       leerCta={leerCta}

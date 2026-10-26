@@ -40,10 +40,21 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               <VitaIcon name="back" tone="brand" />
             </PressableLink>
           ) : (
-            // Profile is a setting, not a fifth area — it stays out of the bottom nav.
-            <PressableLink to="/profile" aria-label="Profil" className={iconLinkClass}>
-              <VitaIcon name="profile" />
-            </PressableLink>
+            <>
+              {/* Help one tap away on every area screen (re-audit 26.10.2026: "kein Hilfe-Einstieg"). */}
+              <PressableLink to="/profile/hilfe" aria-label="Hilfe" className={`${iconLinkClass} text-accent-text`}>
+                <span
+                  aria-hidden="true"
+                  className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-current text-sm font-bold"
+                >
+                  ?
+                </span>
+              </PressableLink>
+              {/* Profile is a setting, not a fifth area — it stays out of the bottom nav. */}
+              <PressableLink to="/profile" aria-label="Profil" className={iconLinkClass}>
+                <VitaIcon name="profile" />
+              </PressableLink>
+            </>
           )}
         </header>
         {!online && (

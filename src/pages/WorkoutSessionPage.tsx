@@ -44,6 +44,8 @@ import { abschlussZahlen, hoehepunktVon, type Vergleich } from '../lib/abschluss
 import { zahlDe } from '../lib/zahl'
 import { useActiveTrainingDay } from '../hooks/use-active-training-day'
 import { SATZ_LEGENDE } from '../components/LoggedSets'
+import HilfeKnopf from '../components/HilfeKnopf'
+import type { Begriff } from '../lib/glossary'
 
 export default function WorkoutSessionPage() {
   const { session } = useSession()
@@ -528,7 +530,7 @@ function SessionCompletionScreen({
             <Kennzahl wert={dauerMinuten} label="Minuten" />
             {kalorien != null && <Kennzahl wert={Math.round(kalorien)} label="kcal verbraucht" />}
             <Kennzahl wert={saetze} label={saetze === 1 ? 'Satz' : 'Sätze'} />
-            {volumen > 0 && <Kennzahl wert={volumen} label="kg Volumen (ohne Aufwärmen)" />}
+            {volumen > 0 && <Kennzahl wert={volumen} label="kg Volumen (ohne Aufwärmen)" hilfe="volumen" />}
           </dl>
           {mitVorher.length > 0 && (
             <section data-reveal className="flex flex-col gap-3">
@@ -550,7 +552,10 @@ function SessionCompletionScreen({
           )}
           {neueRekorde.length > 0 && (
             <section className="flex flex-col gap-3">
-              <h2>Neue Rekorde</h2>
+              <h2>
+                Neue Rekorde
+                <HilfeKnopf begriff="einsRM" />
+              </h2>
               <ul role="list" className="flex flex-col gap-3">
                 {neueRekorde.map((rekord) => (
                   <li key={rekord.exercise_id} data-pr-card className={`${cardClass} relative overflow-hidden`}>
@@ -601,10 +606,13 @@ function Differenz({ heute, vorher }: { heute: number | null; vorher: number | n
 }
 
 /** Value first, the unit-bearing label under it: "9 / Sätze" instead of "Sätze: 9 Sätze". */
-function Kennzahl({ label, wert }: { label: string; wert: number }) {
+function Kennzahl({ label, wert, hilfe }: { label: string; wert: number; hilfe?: Begriff }) {
   return (
     <div className="flex flex-col-reverse">
-      <dt className={labelClass}>{label}</dt>
+      <dt className={labelClass}>
+        {label}
+        {hilfe && <HilfeKnopf begriff={hilfe} />}
+      </dt>
       <dd>
         <span className={statClass} data-count-to={wert}>{wert}</span>
       </dd>

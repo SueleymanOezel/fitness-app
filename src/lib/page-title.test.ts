@@ -11,6 +11,7 @@ describe('seitenTitel', () => {
     ['/training/history/abc', 'Trainingseinheit · VitaLoop'],
     ['/body/photos', 'Fortschrittsfotos · VitaLoop'],
     ['/profile/konto-loeschen', 'Konto löschen · VitaLoop'],
+    ['/profile/hilfe', 'Hilfe · VitaLoop'],
     ['/gibt-es-nicht', 'Seite nicht gefunden · VitaLoop'],
   ])('%s → %s', (pfad, titel) => {
     expect(seitenTitel(pfad)).toBe(titel)

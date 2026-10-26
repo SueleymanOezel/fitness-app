@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { cardClass, linkClass } from '../../lib/ui-classes'
 import { PressableLink } from '../Pressable'
+import HilfeKnopf from '../HilfeKnopf'
+import type { Begriff } from '../../lib/glossary'
 
 /**
  * Shared shell for every chart: title, the dashboard checkbox, and the empty
@@ -15,6 +17,7 @@ export default function ChartFrame({
   leerCta,
   zusammenfassung,
   leerHinweis,
+  hilfe,
   children,
 }: {
   titel: string
@@ -40,12 +43,17 @@ export default function ChartFrame({
   zusammenfassung?: string
   /** What is still missing, e.g. "Erscheint ab zwei Wiegungen." — a stranger then knows what to do. */
   leerHinweis?: string
+  /** A term in the title that a stranger may not know ("1RM", "Volumen"): adds a "?" with its explanation. */
+  hilfe?: Begriff
   children: ReactNode
 }) {
   return (
     <section className={cardClass}>
       {/* An empty chart steps back: smaller, muted title, so a page of them reads as one "not yet" instead of many headlines. */}
-      <h2 className={leer ? 'text-base text-text-muted' : undefined}>{titel}</h2>
+      <h2 className={leer ? 'text-base text-text-muted' : undefined}>
+        {titel}
+        {hilfe && <HilfeKnopf begriff={hilfe} />}
+      </h2>
       {picker}
       {vorspann}
       {leer ? (

@@ -53,6 +53,7 @@ export default function StrengthChart({
   return (
     <ChartFrame
       titel={titel}
+      hilfe="einsRM"
       leer={punkte.length < 2}
       leerHinweis="Erscheint ab zwei Trainings mit dieser Übung."
       picker={picker}

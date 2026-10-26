@@ -24,6 +24,7 @@ function seitenName(pathname: string): string {
     '/body/analyse': 'Körperanalyse',
     '/profile': 'Profil',
     '/profile/konto-loeschen': 'Konto löschen',
+    '/profile/hilfe': 'Hilfe',
   }
   if (pathname in feste) return feste[pathname]
   if (/^\/training\/plans\/[^/]+$/.test(pathname)) return 'Plan bearbeiten'
