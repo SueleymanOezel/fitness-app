@@ -86,6 +86,38 @@ describe('BodyEntryForm', () => {
     expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(82.4)
   })
 
+  // Re-audit 27.10.2026: "900" as weight saved nothing, with a summary hidden under the sticky buttons.
+  it('marks a wrong weight at the field, moves focus there and keeps the dialog open', async () => {
+    const onSave = vi.fn()
+    render(<BodyEntryForm onSave={onSave} onClose={vi.fn()} />)
+    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '900' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Bitte prüfen: Gewicht.')
+    const feld = screen.getByLabelText(/^Gewicht \(kg\)/)
+    expect(feld).toHaveAttribute('aria-invalid', 'true')
+    expect(feld).toHaveAccessibleDescription('Bitte 30–300 kg angeben.')
+    await waitFor(() => expect(document.activeElement).toBe(feld))
+    expect(onSave).not.toHaveBeenCalled()
+
+    fireEvent.change(feld, { target: { value: '90' } })
+    expect(feld).not.toHaveAttribute('aria-invalid')
+  })
+
+  it('unfolds the measurements when the wrong value is in there', () => {
+    render(<BodyEntryForm onSave={vi.fn()} onClose={vi.fn()} />)
+    fireEvent.change(screen.getByLabelText('Bauchumfang (cm)'), { target: { value: '5' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+    expect(screen.getByText('Umfänge und Körperfett').closest('details')).toHaveAttribute('open')
+    expect(screen.getByText('Bitte 10–300 cm angeben.')).toBeInTheDocument()
+  })
+
+  it('asks for at least one value when everything is empty', () => {
+    render(<BodyEntryForm onSave={vi.fn()} onClose={vi.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('Bitte mindestens einen Wert eintragen.')
+  })
+
   it('defaults the date to today', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2026, 7, 24, 9, 0, 0))

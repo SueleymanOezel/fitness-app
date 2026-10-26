@@ -2,12 +2,16 @@ import { useState, type FormEvent } from 'react'
 import {
   EMPTY_INPUT,
   FIELD_LABELS,
+  feldHinweis,
+  ungueltigeFelder,
+  type MeasurementField,
   MEASUREMENT_FIELDS,
   parseBodyMetrics,
   today,
   type BodyMetricInput,
   type BodyMetricRow,
   type BodyMetricValues,
+  feldTeile,
 } from '../lib/body-metrics'
 import { DatumBelegtError, ProfileWeightSyncError } from '../hooks/use-body-metrics'
 import { cardClass, fieldLabelClass, inputClass } from '../lib/ui-classes'
@@ -41,15 +45,21 @@ export default function BodyEntryForm({
   // True while the weight field still holds the untouched prefill (not a value the user typed).
   const [vorbelegt, setVorbelegt] = useState(!entry && letztesGewicht != null)
   const [error, setError] = useState('')
+  const [falsch, setFalsch] = useState<MeasurementField[]>([])
   const [saving, setSaving] = useState(false)
   // Weight is the daily value; the rest stays folded unless this entry already has some.
   const [weitereOffen] = useState(() => MEASUREMENT_FIELDS.some((field) => field !== 'gewicht' && draft[field] !== ''))
+  // A wrong measurement must not hide in the folded part (re-audit 27.10.2026: "900" saved nothing, visibly).
+  const umfangFalsch = falsch.some((field) => field !== 'gewicht')
 
   function feld(field: (typeof MEASUREMENT_FIELDS)[number]) {
     return (
       <label key={field} className={fieldLabelClass}>
         {FIELD_LABELS[field]}
         <input
+          id={`koerper-${field}`}
+          aria-invalid={falsch.includes(field) || undefined}
+          aria-describedby={falsch.includes(field) ? `koerper-${field}-fehler` : undefined}
           className={inputClass}
           type="number"
           // Every one of these columns is numeric: without step="any" the
@@ -60,8 +70,14 @@ export default function BodyEntryForm({
           onChange={(event) => {
             setDraft({ ...draft, [field]: event.target.value })
             if (field === 'gewicht') setVorbelegt(false)
+            setFalsch((alt) => alt.filter((name) => name !== field))
           }}
         />
+        {falsch.includes(field) && (
+          <span id={`koerper-${field}-fehler`} className="text-sm text-danger-text">
+            {feldHinweis(field)}
+          </span>
+        )}
       </label>
     )
   }
@@ -70,11 +86,18 @@ export default function BodyEntryForm({
     event.preventDefault()
     setError('')
 
+    const fehlerhaft = ungueltigeFelder(draft)
+    setFalsch(fehlerhaft)
+    if (fehlerhaft.length > 0) {
+      setError(`Bitte prüfen: ${fehlerhaft.map((field) => feldTeile(field).name).join(', ')}.`)
+      // After the render that unfolds the measurements, so a field inside them can take focus.
+      requestAnimationFrame(() => document.getElementById(`koerper-${fehlerhaft[0]}`)?.focus())
+      return
+    }
     const values = parseBodyMetrics(draft)
     if (!values) {
-      setError(
-        'Bitte mindestens einen plausiblen Wert eintragen (Gewicht 30–300 kg, Umfänge 10–300 cm, Körperfett 0–100 %).',
-      )
+      setError('Bitte mindestens einen Wert eintragen.')
+      document.getElementById('koerper-gewicht')?.focus()
       return
     }
 
@@ -106,6 +129,12 @@ export default function BodyEntryForm({
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className={cardClass}>
         <h2>{entry ? `Werte vom ${entry.datum.split('-').reverse().join('.')}` : 'Werte eintragen'}</h2>
+        {/* At the top, not under the sticky buttons where it was covered; each field names its own fix. */}
+        {error !== '' && (
+          <p role="alert" className="text-danger-text">
+            {error}
+          </p>
+        )}
         <label className={fieldLabelClass}>
           Datum
           <input
@@ -127,14 +156,13 @@ export default function BodyEntryForm({
           />
         </label>
         {feld('gewicht')}
-        <details open={weitereOffen}>
+        <details open={weitereOffen || umfangFalsch}>
           <summary className="min-h-11 cursor-pointer py-2.5 font-medium">Umfänge und Körperfett</summary>
           <div className="flex flex-col gap-3 pt-2">
             {MEASUREMENT_FIELDS.filter((field) => field !== 'gewicht').map(feld)}
           </div>
         </details>
       </div>
-      {error !== '' && <p role="alert">{error}</p>}
       {/* Sticky: with the measurements unfolded the form is taller than the screen. */}
       <div className="sticky bottom-0 flex flex-col gap-2 rounded-3xl bg-bg/90 py-2 backdrop-blur-sm">
         <Pressable variant="primary" type="submit" disabled={saving}>
