@@ -5,7 +5,7 @@ Lebendes Dokument — bei jeder neuen Migration (`supabase/migrations/*.sql`) hi
 ## Bereiche
 
 - **Nutzer & Profil** — `profiles`, 1:1 mit Supabase Auth (`auth.users`)
-- **Ernährung** — `products` (Community-Datenbank), `food_entries`
+- **Ernährung** — `products` (Community-Datenbank), `food_entries`, `meal_favorites` + `meal_favorite_items` (gespeicherte Mahlzeiten)
 - **Training** — `exercises`, `workout_plans`, `workout_plan_days`, `workout_plan_day_exercises`, `workout_sessions`, `workout_session_sets`
 - **Körper** — `body_metrics`, `body_photos`
 - **Kalender** — `day_status`
@@ -26,8 +26,11 @@ erDiagram
     profiles ||--o{ body_photos : "besitzt"
     profiles ||--o{ day_status : "besitzt"
     profiles ||--o{ health_sync_data : "besitzt"
+    profiles ||--o{ meal_favorites : "besitzt"
 
     products ||--o{ food_entries : "referenziert"
+    products ||--o{ meal_favorite_items : "referenziert"
+    meal_favorites ||--o{ meal_favorite_items : "enthält"
 
     exercises ||--o{ workout_plan_day_exercises : "referenziert"
     exercises ||--o{ workout_session_sets : "referenziert"
@@ -81,6 +84,21 @@ erDiagram
         numeric menge
         timestamptz zeitpunkt
         int mahlzeit
+    }
+
+    meal_favorites {
+        uuid id PK
+        uuid user_id FK
+        text name
+        timestamptz created_at
+    }
+
+    meal_favorite_items {
+        uuid id PK
+        uuid favorite_id FK
+        uuid product_id FK
+        numeric menge
+        int reihenfolge
     }
 
     exercises {
@@ -193,6 +211,8 @@ erDiagram
 ```
 
 ## Fachliche Notizen
+
+- `meal_favorites` / `meal_favorite_items` (Migration `0015`): eine gespeicherte Mahlzeit mit festen Mengen, die ein Tipp als normale `food_entries` in die gewählte Mahlzeit einträgt (der Favorit selbst ist kein Eintrag). Zwei Tabellen statt JSON, damit `product_id` ein echter Fremdschlüssel bleibt: Löscht der Besitzer ein Produkt, fällt es aus dem Favoriten (`on delete cascade`), mit dem Konto verschwinden alle Favoriten. RLS: `meal_favorites` über `user_id`, die Zutaten über den Eltern-Favoriten (wie `workout_plan_day_exercises`).
 
 - `products` und `exercises` sind geteilte Community-Tabellen (kein `user_id`-Owner-Filter beim Lesen), `created_by` markiert nur, wer den Eintrag ursprünglich angelegt hat.
 - `day_status` (geplanter Status) und `workout_sessions` (tatsächlich durchgeführtes Training) sind bewusst getrennt — das Home-Dashboard gleicht Plan gegen Realität ab.

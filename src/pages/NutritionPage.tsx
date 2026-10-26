@@ -36,7 +36,7 @@ export default function NutritionPage() {
 function NutritionDashboard({ userId }: { userId: string }) {
   const profileResult = useProfile(userId)
   const { profile, loading: profileLoading, error: profileError, reload } = profileResult
-  const { entries, loading: entriesLoading, addEntry } = useFoodEntries(userId)
+  const { entries, loading: entriesLoading, addEntry, addEntries, removeEntries } = useFoodEntries(userId)
   const auswahl = useChartSelectionFor(profileResult)
   const [addOpen, setAddOpen] = useState(false)
   const trainingKcal = useTrainingKcalHeute(userId)
@@ -89,7 +89,15 @@ function NutritionDashboard({ userId }: { userId: string }) {
           </Pressable>
         }
       />
-      <QuickAddDialog open={addOpen} onClose={() => setAddOpen(false)} sections={mealSections(profile)} addEntry={addEntry} />
+      <QuickAddDialog
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        sections={mealSections(profile)}
+        addEntry={addEntry}
+        userId={userId}
+        addEntries={addEntries}
+        removeEntries={removeEntries}
+      />
       {goal == null && (
         <p>
           Für ein Tagesziel <PressableLink to="/profile">Profil vervollständigen</PressableLink>.

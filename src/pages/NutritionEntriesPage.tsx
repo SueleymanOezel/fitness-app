@@ -12,6 +12,9 @@ import Pressable from '../components/Pressable'
 import PageSkeleton from '../components/PageSkeleton'
 import { useToast } from '../components/ToastProvider'
 import { useGesternEintraege, type GesternEintrag } from '../hooks/use-yesterday-entries'
+import FavoritenListe from '../components/FavoritenListe'
+import FavoritSpeichern from '../components/FavoritSpeichern'
+import { useFavoritEintragen } from '../hooks/use-enter-favorite'
 
 export default function NutritionEntriesPage() {
   const { session } = useSession()
@@ -112,6 +115,7 @@ function SectionBlock({
   const [dialogOpen, setDialogOpen] = useState(false)
   const [kopiertGerade, setKopiertGerade] = useState(false)
   const showToast = useToast()
+  const favoritEintragen = useFavoritEintragen(addEntries, removeEntries)
 
   // The same breakfast every day in one tap instead of one search per food (re-audit 26.10.2026: efficiency).
   async function vonGestern() {
@@ -159,6 +163,7 @@ function SectionBlock({
               Eintrag hinzufügen
             </span>
           </Pressable>
+          {entries.length > 0 && <FavoritSpeichern userId={userId} vorschlag={name} entries={entries} />}
           {/* Only for a meal still empty today: once copied (or eaten) it is gone, so it cannot double up. */}
           {gestern.length > 0 && entries.length === 0 && (
             <Pressable variant="secondary" type="button" disabled={kopiertGerade} onClick={() => void vonGestern()}>
@@ -170,6 +175,15 @@ function SectionBlock({
               state each time it opens, instead of showing the last attempt's leftovers. */}
           <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
             {dialogOpen && <h2>{`Eintrag für ${name}`}</h2>}
+            {dialogOpen && (
+              <FavoritenListe
+                userId={userId}
+                onWaehlen={(favorit) => {
+                  setDialogOpen(false)
+                  void favoritEintragen(favorit, slot)
+                }}
+              />
+            )}
             {dialogOpen && (
               <AddEntryFlow
                 onAdd={async (productId, menge) => {
