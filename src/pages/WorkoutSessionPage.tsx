@@ -17,7 +17,6 @@ import {
   linkClass,
   listClass,
   listRowClass,
-  statClass,
   stickyActionClass,
 } from '../lib/ui-classes'
 import RirChips from '../components/RirChips'
@@ -539,12 +538,20 @@ function SessionCompletionScreen({
           <h1 ref={titelRef} tabIndex={-1} className="text-center focus:outline-none">
             Training abgeschlossen
           </h1>
-          {/* One headline worth the moment (a record, else a step up), instead of four equal tiles. */}
+          {/* The one moment worth celebrating (a record, else a step up) as the hero; the numbers below
+              are context (re-audit 27.10.2026: "the only real peak was a stat grid"). */}
           {hoehepunkt && (
-            <p className="text-center">
-              <span className={`${statClass} block text-chart-mint`}>{hoehepunkt.wert}</span>
-              <span className={`${labelClass} block text-balance`}>{hoehepunkt.text}</span>
-            </p>
+            <section
+              data-hero
+              aria-labelledby="hoehepunkt-titel"
+              className="rounded-3xl bg-surface p-6 text-center ring-1 ring-chart-mint/40"
+            >
+              <h2 id="hoehepunkt-titel" className={`${labelClass} text-chart-mint`}>
+                Dein Höhepunkt
+              </h2>
+              <p className="font-display text-6xl font-bold tabular-nums text-chart-mint">{hoehepunkt.wert}</p>
+              <p className="mt-1 text-balance">{hoehepunkt.text}</p>
+            </section>
           )}
           <dl className={`${cardClass} grid grid-cols-2 gap-4`}>
             <Kennzahl wert={dauerMinuten} label="Minuten" />
@@ -597,7 +604,12 @@ function SessionCompletionScreen({
             </section>
           )}
           <p data-reveal>{streakLoading ? '…' : streakText(streak)}</p>
-          {naechster && <p data-reveal className={labelClass}>{`Nächstes Mal: ${naechster}`}</p>}
+          {naechster && (
+            <div data-reveal className={cardClass}>
+              <p className={labelClass}>Nächstes Mal</p>
+              <p className="text-lg font-semibold">{naechster}</p>
+            </div>
+          )}
         </div>
       </CompletionCelebration>
       <Pressable variant="primary" type="button" className={stickyActionClass} onClick={onFertig}>
@@ -634,7 +646,8 @@ function Kennzahl({ label, wert, hilfe }: { label: string; wert: number; hilfe?:
         {hilfe && <HilfeKnopf begriff={hilfe} />}
       </dt>
       <dd>
-        <span className={statClass} data-count-to={wert}>{wert}</span>
+        {/* Smaller than the hero above: context, not the headline. */}
+        <span className="font-display text-2xl font-bold tabular-nums" data-count-to={wert}>{wert}</span>
       </dd>
     </div>
   )
