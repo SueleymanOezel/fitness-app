@@ -108,7 +108,20 @@ Seit 22.09.2026: Ein per `/graphify` gebauter Wissensgraph-Snapshot liegt unter 
 
 Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer Chat sofort weiß, was gemacht wurde und was als Nächstes ansteht.
 
-### ▶ Neuer Chat: genau hier weitermachen (Stand 24.10.2026, nachts — Nutzer: „morgen genau hier weiter“)
+### ▶ Neuer Chat: genau hier weitermachen (Stand 26.10.2026)
+
+**Re-Audit 26.10.: 29/40** (Snapshot `.impeccable/critique/2026-10-25T23-26-52Z__vitaloop-web-app.md`, Trend 26→26→27→27→29). **Nutzer-Ziel: mindestens 36/40 (90 %).** Entscheidungen: Löschen **gemischt** (Essens-Eintrag + Satz: sofort löschen + Toast „Rückgängig“ 5 s; Plan/Training/Konto behalten Dialog), **Erststart als 3-Schritt-Dialog** (Körperdaten → Ziel live → Plan-Assistent/„Später“, danach Checkliste) + „?“-Erklärungen an Kennzahlen, **schnelle Punkte zuerst**. Fix-Runde, je ein PR, danach Re-Audit:
+**Stand: Schritte 1–3 gemerged (#132, #134, #135), deployed (`index-BPSNUvUm.js`), live verifiziert; Worktrees/Branches weg, graphify + Wiki `Re-Audit-2026-10-26` nachgezogen. Nächster Schritt: 4 (Undo).**
+1. Titel je Route + Fokus auf `<main>` nach Seitenwechsel + Login-Fehler-Fokus → **PR #132** (Branch `a11y-titles-focus`)
+2. Begriffe + Dialog-X oben rechts (sticky) + Meine Pläne (Mint-Punkt „Aktiv“, Löschen im Plan-Editor) + PRODUCT.md-PWA-Zeile → **PR #133** (Branch `clear-terms`, auf #132 gestapelt), offen. „Entfernen“ (aus Plan/Training) vs. „Löschen“ (Daten) bewusst getrennt gelassen. **#132 gemerged; #133 landete im Branch von #132 statt in master (Base sprang nicht um) → derselbe Commit als PR #134 gegen master.** Bei gestapelten PRs künftig: nach dem Merge des unteren den Base-Branch löschen oder den oberen vor dem Merge auf master umstellen.
+3. Abschluss-Dialog nennt offene Übungen, „Training abschließen“ in der Leiste wenn alles erledigt, Ergebnis-Hauptaussage (`hoehepunktVon`) → **PR #135** (Branch `session-finish-clarity`, Base master), offen
+4. Undo-Toast (s. o.)
+5. Bereichsfarbe an Karten (OpenSessionHero, Gewicht) + Trainings-kcal aufs Tagesziel (Aktivitätslevel = Alltag ohne Sport, Nutzer-Rückfrage dazu noch offen) + sichtbare Zeile „+X kcal durch Training“
+6. Erststart + Hilfen (Übungsanleitung „Keine Anleitung hinterlegt“ erst prüfen — evtl. Fixture-Artefakt)
+7. Plan-Editor (Tage einklappen, „Gespeichert“), Minor (Aufwärm-Checkbox 24 px, Aktivitätsraster Mo versetzt, Pausen-Leiste lila Streifen, Fotos-Upload, Übungssuche-Placeholder) → Re-Audit
+PRODUCT.md-Zeile „Manifest/Service Worker fehlen“ ist veraltet (seit 4c-1 vorhanden) — Prüfer lesen sie als Fund.
+
+### (Vorher) Stand 24.10.2026, nachts
 
 **Stand:** Alles gemerged und deployed. **Kein offener Feature-PR, keine aktive Worktree, kein laufender Server.** `master` = `9c2af69` (Doku), letzter Code-Merge PR #131. Live-Bundle `index-CizkvgE7.js`. **Re-Audit 24.10. (dritter Lauf): 27/40**, Snapshot `.impeccable/critique/2026-10-24T02-04-17Z__vitaloop-web-app.md`, Trend 26 → 26 → 26 → 27 → 27. Detektor im Browser: 0 Funde (einziger CLI-Fund `broken-image` BodyPhotosPage.tsx:82 ist ein Fehlalarm).
 
