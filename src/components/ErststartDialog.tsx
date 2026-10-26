@@ -78,6 +78,20 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
     ['aktivitaet', 'Alltag', !draft.aktivitaet],
   ] as const
   const falsch = (feld: string) => (geprueft && ungueltig.some(([name, , fehlt]) => name === feld && fehlt)) || undefined
+  // The fix, right under the field (re-audit 27.10.2026: one white line under all fields was too far away).
+  const HINWEIS: Record<string, string> = {
+    alter: `Bitte ${RANGES.alter[0]}–${RANGES.alter[1]} Jahre angeben.`,
+    groesse: `Bitte ${RANGES.groesse[0]}–${RANGES.groesse[1]} cm angeben.`,
+    gewicht: `Bitte ${RANGES.aktuelles_gewicht[0]}–${RANGES.aktuelles_gewicht[1]} kg angeben.`,
+    geschlecht: 'Bitte auswählen.',
+    aktivitaet: 'Bitte auswählen.',
+  }
+  const feldFehler = (feld: string) =>
+    falsch(feld) && (
+      <p id={`erststart-${feld}-fehler`} className="text-sm text-danger-text">
+        {HINWEIS[feld]}
+      </p>
+    )
   const delta = draft.ziel === 'halten' ? 0 : parseNumber(draft.delta, RANGES.ziel_delta_kcal)
   const eingabe: CalorieGoalInput | null =
     werte && delta != null
@@ -146,6 +160,9 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
       </h2>
     </>
   )
+  // "Später" next to the main action, pinned to the dialog's bottom edge: the way out never needs scrolling.
+  // Own backdrop: the form scrolls behind it, and text showing between the buttons read as clutter.
+  const leisteClass = 'sticky bottom-2 z-10 -mx-1 grid grid-cols-[auto_1fr] gap-2 rounded-3xl bg-bg/85 p-1 backdrop-blur-sm'
   const spaeter = (
     <Pressable variant="secondary" type="button" onClick={onClose}>
       Später
@@ -159,18 +176,27 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
           <div className={cardClass}>
             {kopf('Willkommen bei VitaLoop')}
             <p>{`${schritte === 2 ? 'Zwei' : 'Drei'} kurze Schritte, dann rechnet die App dein Tagesziel aus.`}</p>
+            {/* Announced once for a screen reader; each field carries its own fix below. */}
+            {fehler && (
+              <p id="erststart-fehler" role="alert" className="text-danger-text">
+                {fehler}
+              </p>
+            )}
             <label className={fieldLabelClass}>
               Alter (Jahre)
-              <input id="erststart-alter" aria-invalid={falsch('alter')} aria-describedby={falsch('alter') && 'erststart-fehler'} className={inputClass} type="number" inputMode="numeric" value={draft.alter} onChange={(e) => set('alter', e.target.value)} />
+              <input id="erststart-alter" aria-invalid={falsch('alter')} aria-describedby={falsch('alter') && 'erststart-alter-fehler'} className={inputClass} type="number" inputMode="numeric" value={draft.alter} onChange={(e) => set('alter', e.target.value)} />
             </label>
+            {feldFehler('alter')}
             <label className={fieldLabelClass}>
               Größe (cm)
-              <input id="erststart-groesse" aria-invalid={falsch('groesse')} aria-describedby={falsch('groesse') && 'erststart-fehler'} className={inputClass} type="number" inputMode="decimal" step="any" value={draft.groesse} onChange={(e) => set('groesse', e.target.value)} />
+              <input id="erststart-groesse" aria-invalid={falsch('groesse')} aria-describedby={falsch('groesse') && 'erststart-groesse-fehler'} className={inputClass} type="number" inputMode="decimal" step="any" value={draft.groesse} onChange={(e) => set('groesse', e.target.value)} />
             </label>
+            {feldFehler('groesse')}
             <label className={fieldLabelClass}>
               Gewicht heute (kg)
-              <input id="erststart-gewicht" aria-invalid={falsch('gewicht')} aria-describedby={falsch('gewicht') && 'erststart-fehler'} className={inputClass} type="number" inputMode="decimal" step="any" value={draft.gewicht} onChange={(e) => set('gewicht', e.target.value)} />
+              <input id="erststart-gewicht" aria-invalid={falsch('gewicht')} aria-describedby={falsch('gewicht') && 'erststart-gewicht-fehler'} className={inputClass} type="number" inputMode="decimal" step="any" value={draft.gewicht} onChange={(e) => set('gewicht', e.target.value)} />
             </label>
+            {feldFehler('gewicht')}
             <fieldset className="flex flex-col gap-1.5">
               <legend className={`${fieldLabelClass} mb-1.5`}>Geschlecht (für den Grundumsatz)</legend>
               <div className="flex gap-2">
@@ -179,7 +205,7 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
                     key={wert}
                     id={index === 0 ? 'erststart-geschlecht' : undefined}
                     aria-invalid={falsch('geschlecht')}
-                    aria-describedby={falsch('geschlecht') && 'erststart-fehler'}
+                    aria-describedby={falsch('geschlecht') && 'erststart-geschlecht-fehler'}
                     className="aria-invalid:ring-1 aria-invalid:ring-danger"
                     active={draft.geschlecht === wert}
                     onClick={() => set('geschlecht', wert)}
@@ -188,10 +214,11 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
                   </Chip>
                 ))}
               </div>
+              {feldFehler('geschlecht')}
             </fieldset>
             <label className={fieldLabelClass}>
               Dein Alltag (ohne Sport)
-              <select id="erststart-aktivitaet" aria-invalid={falsch('aktivitaet')} aria-describedby={falsch('aktivitaet') && 'erststart-fehler'} className={inputClass} value={draft.aktivitaet} onChange={(e) => set('aktivitaet', e.target.value)}>
+              <select id="erststart-aktivitaet" aria-invalid={falsch('aktivitaet')} aria-describedby={falsch('aktivitaet') && 'erststart-aktivitaet-fehler'} className={inputClass} value={draft.aktivitaet} onChange={(e) => set('aktivitaet', e.target.value)}>
                 <option value="">bitte wählen</option>
                 {AKTIVITAET.map(([wert, label]) => (
                   <option key={wert} value={wert}>
@@ -200,17 +227,15 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
                 ))}
               </select>
             </label>
+            {feldFehler('aktivitaet')}
             <p className="-mt-1 text-sm text-text-muted">Deine Trainings rechnet die App aus den Einheiten dazu.</p>
-            {fehler && (
-              <p id="erststart-fehler" role="alert">
-                {fehler}
-              </p>
-            )}
           </div>
-          <Pressable variant="primary" type="submit">
-            Weiter
-          </Pressable>
-          {spaeter}
+          <div className={leisteClass}>
+            {spaeter}
+            <Pressable variant="primary" type="submit">
+              Weiter
+            </Pressable>
+          </div>
         </form>
       )}
       {schritt === 2 && (
@@ -258,17 +283,19 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
               </p>
             )}
             {fehler && (
-              <p id="erststart-fehler" role="alert">
+              <p id="erststart-fehler" role="alert" className="text-danger-text">
                 {fehler}
               </p>
             )}
           </div>
-          <Pressable variant="primary" type="submit" disabled={speichert}>
-            {speichert ? 'Speichert …' : 'Ziel speichern'}
-          </Pressable>
-          <Pressable variant="secondary" type="button" onClick={() => setSchritt(1)}>
-            Zurück
-          </Pressable>
+          <div className={leisteClass}>
+            <Pressable variant="secondary" type="button" onClick={() => setSchritt(1)}>
+              Zurück
+            </Pressable>
+            <Pressable variant="primary" type="submit" disabled={speichert}>
+              {speichert ? 'Speichert …' : 'Ziel speichern'}
+            </Pressable>
+          </div>
         </form>
       )}
       {schritt === 3 && (
