@@ -74,6 +74,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     ermittleNeueRekorde,
     addExercisesToSession,
     removeExerciseFromSession,
+    deleteSession,
   } = useWorkoutSession(sessionId)
   const { exercises: katalogUebungen } = useExercises(userId)
   const letzteWerte = useLetzteWerte(
@@ -256,6 +257,20 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     />
   )
   const abschlussInLeiste = allesErledigt && aktuelleId === null
+  // A session started by mistake (or forgotten) must not land in the history and the day's calories (re-audit 27.10.2026).
+  const verwerfen = (
+    <ConfirmDelete
+      ruhig
+      label="Training verwerfen"
+      titel="Training verwerfen?"
+      text="Das Training und alle Sätze darin werden gelöscht. Es zählt dann weder im Verlauf noch bei Rekorden und Kalorien."
+      bestaetigen="Verwerfen"
+      onConfirm={async () => {
+        await deleteSession()
+        navigate('/training', { replace: true })
+      }}
+    />
+  )
 
   /**
    * Where the form starts: the last working set of this exercise today, else its
@@ -450,6 +465,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
       {/* While sets are left it is not sticky and not primary: right under "Satz abschließen"
           one mistap ended the workout for good. It moves into the bar only once all is done. */}
       {!abschlussInLeiste && abschliessen}
+      {verwerfen}
     </div>
   )
 }
@@ -464,7 +480,11 @@ function Laufzeit({ seit, saetze }: { seit: string; saetze: number }) {
   const minuten = Math.max(0, Math.floor((jetzt - new Date(seit).getTime()) / 60000))
   const dauer = dauerText(minuten)
   return (
-    <p className={labelClass}>{`Läuft seit ${dauer} · ${saetze} ${saetze === 1 ? 'Satz' : 'Sätze'}`}</p>
+    <>
+      <p className={labelClass}>{`Läuft seit ${dauer} · ${saetze} ${saetze === 1 ? 'Satz' : 'Sätze'}`}</p>
+      {/* Hours in, the likelier case is a session left open than a long workout. */}
+      {minuten >= 180 && <p className="text-sm">Noch aktiv? Sonst unten abschließen oder verwerfen.</p>}
+    </>
   )
 }
 

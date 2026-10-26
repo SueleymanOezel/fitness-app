@@ -7,6 +7,7 @@ import { cardClass, fieldLabelClass, inputClass, labelClass } from '../lib/ui-cl
 import Dialog from './Dialog'
 import Chip from './Chip'
 import Pressable, { PressableLink } from './Pressable'
+import { zahlDe } from '../lib/zahl'
 
 type Props = {
   open: boolean
@@ -132,7 +133,7 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
         <form onSubmit={weiter} className="flex flex-col gap-4" noValidate>
           <div className={cardClass}>
             {kopf('Willkommen bei VitaLoop')}
-            <p>Drei kurze Schritte, dann rechnet die App dein Tagesziel aus.</p>
+            <p>{`${schritte === 2 ? 'Zwei' : 'Drei'} kurze Schritte, dann rechnet die App dein Tagesziel aus.`}</p>
             <label className={fieldLabelClass}>
               Alter (Jahre)
               <input className={inputClass} type="number" inputMode="numeric" value={draft.alter} onChange={(e) => set('alter', e.target.value)} />
@@ -211,9 +212,9 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
               // Live: the target follows every change, before anything is saved.
               <p aria-live="polite" className="rounded-2xl bg-surface-raised p-4">
                 <span className={`${labelClass} block`}>Dein Tagesziel</span>
-                <span className="font-display block text-3xl font-bold tabular-nums">{`${ziel.toLocaleString('de-DE')} kcal`}</span>
+                <span className="font-display block text-3xl font-bold tabular-nums">{`${zahlDe(ziel, 0)} kcal`}</span>
                 <span className={`${labelClass} block`}>
-                  {`Bedarf ${Math.round(bedarf).toLocaleString('de-DE')} kcal${delta ? ` ${draft.ziel === 'abnehmen' ? '−' : '+'} ${delta} kcal` : ''}, an Trainingstagen kommt das Training dazu.`}
+                  {`Bedarf ${zahlDe(bedarf, 0)} kcal${delta ? ` ${draft.ziel === 'abnehmen' ? '−' : '+'} ${delta} kcal` : ''}, an Trainingstagen kommt das Training dazu.`}
                 </span>
               </p>
             )}

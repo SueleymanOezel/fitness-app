@@ -226,7 +226,7 @@ describe('HomePage', () => {
     stubDefaults()
     mockUseTrainingStreak.mockReturnValue({ streak: { wochen: 2, dieseWoche: 1, ziel: 3 }, loading: false })
     renderWithProviders(<HomePage />)
-    expect(screen.getByText('Diese Woche')).toBeInTheDocument()
+    expect(screen.getByText('Wochenbilanz')).toBeInTheDocument()
     expect(screen.getByText('1 Training')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Zur Analyse/ })).toHaveAttribute('href', '/home/analyse')
     // The tab bar already links the areas; no second list of them on the page.

@@ -247,7 +247,8 @@ function WochenKarte({ userId, trainings, rows }: { userId: string; trainings: n
   })
   return (
     <div className={cardClass}>
-      <p className={labelClass}>Diese Woche</p>
+      {/* Not "Diese Woche": the first tile already carries that name (re-audit 27.10.2026). */}
+      <p className={labelClass}>Wochenbilanz</p>
       <p className="text-lg font-semibold">{text}</p>
       <PressableLink to="/home/analyse" className={rowLinkClass}>
         <VitaIcon name="analysis" tone="brand" size={20} />
