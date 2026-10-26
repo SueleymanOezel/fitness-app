@@ -25,7 +25,8 @@ export function useMahlzeitFavoriten(userId: string) {
       .order('created_at', { ascending: true })
     // A failed read only hides the favorites; adding one food by hand still works.
     if (error) return null
-    return ((data ?? []) as unknown as Zeile[]).map((zeile) => ({
+    // A favorite whose last product was deleted (cascade) has nothing left to enter: not shown.
+    return ((data ?? []) as unknown as Zeile[]).filter((zeile) => zeile.meal_favorite_items.length > 0).map((zeile) => ({
       id: zeile.id,
       name: zeile.name,
       zutaten: [...zeile.meal_favorite_items]
@@ -56,6 +57,7 @@ export function useMahlzeitFavoriten(userId: string) {
 
   /** The favorite first, then its items; if the items fail, the empty favorite is removed again. */
   async function speichern(name: string, zutaten: { product_id: string; menge: number }[]) {
+    if (zutaten.length === 0) throw new Error('favorite without items')
     const { data, error } = await supabase
       .from('meal_favorites')
       .insert({ user_id: userId, name: name.trim() })
