@@ -108,9 +108,9 @@ Seit 22.09.2026: Ein per `/graphify` gebauter Wissensgraph-Snapshot liegt unter 
 
 Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer Chat sofort weiß, was gemacht wurde und was als Nächstes ansteht.
 
-### ▶ Neuer Chat: genau hier weitermachen (Stand 26.10.2026, abends — Nutzer: „morgen weiter“)
+### ▶ Neuer Chat: genau hier weitermachen (Stand 27.10.2026)
 
-**Stand:** Alles gemerged und deployed. **Kein offener PR, keine Worktree, kein laufender Server**, alte Worktree-Ordner unter `.claude/worktrees/` sind komplett gelöscht. `master` = `6cf8350` (Merge #137) plus Doku-Commit. Live-Bundle **`index-cE8pFKnq.js`** (Hash lokal = live, Marker von #136/#137 im Live-Bundle). Tests: `npx vitest run --exclude ".claude/**"` = 177 Dateien / 1392 Tests grün.
+**Stand:** Alles gemerged und deployed. **Kein offener PR, keine Worktree, kein laufender Server.** `master` = `34e490c` (Merge #138) plus Doku-Commit. Live-Bundle **`index-FhIVyOXS.js`** (Hash lokal = live, Marker von #138 im Live-Bundle). Tests: `npx vitest run --exclude ".claude/**"` = 179 Dateien / 1402 Tests grün. Nutzer-Vorgabe 26./27.10.: „du bist der Pro“ — Claude entscheidet Produkt-/Design-Details selbst, Ziel bleibt Re-Audit ≥ 36/40.
 
 **Ziel des Nutzers: Re-Audit ≥ 36/40 (90 %).** Letzter Re-Audit 26.10.: **29/40** (Snapshot `.impeccable/critique/2026-10-25T23-26-52Z__vitaloop-web-app.md`, Trend 26→26→27→27→29; Heuristiken 1–9 je 3, Hilfe 2). Für 36: sechs Heuristiken auf 4, Hilfe auf 3. Wiki `Re-Audit-2026-10-26`.
 
@@ -122,10 +122,12 @@ Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer 
 | 3 | #135 | live | Abschluss-Dialog nennt offene Übungen; alles erledigt → „Training abschließen“ in der festen Leiste; Ergebnis-Hauptaussage `hoehepunktVon` (`src/lib/abschluss.ts`) |
 | 4 | #136 | live | Eintrag/Satz sofort löschen, Toast „Rückgängig“ 6 s (`ToastProvider` mit `action`, `restoreEntry`/`restoreSet` legen die Zeile mit derselben ID wieder an) |
 | 5 | #137 | live | `zielHeute` = Tagesziel + Trainings-kcal; Aktivitätslevel = **Alltag ohne Sport**, DGE-Faktoren 1,4/1,6/1,8/2,0/2,2 (`AKTIVITAET_LABEL`); Training auch auf festes Ziel; Hinweis „Level neu wählen“ bis zum Speichern (geräte-lokal, `src/lib/activity-level-notice.ts`); `PageHero bereich` färbt Labels (Mint/Orange/Körper) |
-| **6** | — | **als Nächstes** | **Erststart als 3-Schritt-Dialog** (Körperdaten → Ziel mit Live-Berechnung → Plan-Assistent oder „Später“; danach Home-Checkliste „Erstes Essen / erstes Gewicht“) + **„?“-Erklärungen** an Kennzahlen (Volumen, 1RM, Wochen im Plan, Trend). Vorher prüfen: „Keine Anleitung hinterlegt“ im Übungsdetail evtl. nur Fixture-Artefakt (Fixture mockt Anleitungen nicht?) — sonst Anleitungen aus free-exercise-db zeigen. Eher architektonisch → `superpowers:brainstorming` zuerst, Fragen einzeln an den Nutzer |
-| 7 | — | offen | Plan-Editor (Tage einklappen, Reorder in die Kopfzeile, sichtbares „Gespeichert“), Minor: Aufwärm-Checkbox 24 px (als Chip), Aktivitätsraster Mo-Zeile versetzt (`ActivityGridChart`), Pausen-Leiste lila Streifen, Fotos-Upload als Button mit `capture`, Übungssuche-Placeholder, „Wochen im Plan 1“ ohne „von 8“, leere Analyse-Graphen ans Ende → danach **Re-Audit** (dual-agent wie am 26.10., Prüfer A ohne frühere Snapshots) |
+| 6a | #138 | live | Hilfe-Einstieg: „?“ in der Kopfzeile (überall außer Live-Training und Hilfe-Seite) → `/profile/hilfe` („So fängst du an“ + Begriffe); `HilfeKnopf` (natives `popover`, iOS 17+) an 1RM/Volumen/Trend/Rekorde, Ergebnis-Screen, „So entsteht dein Ziel“; Texte zentral `src/lib/glossary.ts`. „Keine Anleitung hinterlegt“ war Fixture-Artefakt (868/873 Übungen haben eine Anleitung) |
+| **6b** | — | **als Nächstes** | **Erststart als 3-Schritt-Dialog** (Körperdaten → Ziel mit Live-Berechnung → Plan-Assistent oder „Später“; danach Home-Checkliste „Erstes Essen / erstes Gewicht“). Erkennung „neu“ z. B. an leerem Profil (alter/groesse null) |
+| 7 | — | offen | Plan-Editor (Tage einklappen, Reorder in die Kopfzeile, sichtbares „Gespeichert“), Minor: Aufwärm-Checkbox 24 px (als Chip), Aktivitätsraster Mo-Zeile versetzt (`ActivityGridChart`), Pausen-Leiste lila Streifen, Fotos-Upload als Button mit `capture`, Übungssuche-Placeholder, „Wochen im Plan 1“ ohne „von 8“, leere Analyse-Graphen ans Ende |
+| 8 | — | offen | **Effizienz (Heuristik 7, im Audit 3)**: „Mahlzeit kopieren“ (gestern → heute) bzw. Favoriten, „Satz wie vorher“ prüfen (Vorbelegung existiert schon) → danach **Re-Audit** (dual-agent wie am 26.10., Prüfer A ohne frühere Snapshots) |
 
-**Vom Nutzer am iPhone zu prüfen (nach Deploy #136/#137):** Profil → Aktivitätslevel neu wählen und speichern (ändert das Tagesziel); Dialog-X oben rechts; „Rückgängig“ nach Löschen eines Eintrags/Satzes (echte DB: Insert mit fester ID, laut RLS erlaubt, nur mit Fixture getestet).
+**Vom Nutzer am iPhone zu prüfen (nach Deploy #136–#138):** „?“-Erklärungen öffnen/schließen (Popover, iOS 17+); Profil → Aktivitätslevel neu wählen und speichern (ändert das Tagesziel); Dialog-X oben rechts; „Rückgängig“ nach Löschen eines Eintrags/Satzes (echte DB: Insert mit fester ID, laut RLS erlaubt, nur mit Fixture getestet).
 
 **Stolperfallen dieser Runde:**
 - Gestapelte PRs: GitHub stellt die Base nach dem Merge des unteren PRs nicht um (#133 landete im Branch von #132) → oberen PR vor dem Merge auf `master` umstellen, oder lieber unabhängige PRs auf `master` bauen.
