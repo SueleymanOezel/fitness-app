@@ -12,7 +12,7 @@ export type KalorienStatus = {
  * Gemeinsame Sprachregelung für Home und Ernährung. Ein Ziel ≤ 0 gilt als
  * „kein Ziel“, damit der Ring nie durch 0 teilt oder negativ läuft.
  */
-export function kalorienStatus(verbrauchtExakt: number, ziel: number | null): KalorienStatus {
+export function kalorienStatus(verbrauchtExakt: number, ziel: number | null, trainingKcal = 0): KalorienStatus {
   const gegessen = Math.round(verbrauchtExakt)
   if (ziel == null || !(ziel > 0)) {
     return {
@@ -29,7 +29,11 @@ export function kalorienStatus(verbrauchtExakt: number, ziel: number | null): Ka
   return {
     gegessen,
     titel,
-    untertitel: `Ziel ${zielGerundet} kcal · ${gegessen} gegessen`,
+    // Training raised today's goal: said on the card itself, not only in the folded breakdown.
+    untertitel:
+      trainingKcal > 0
+        ? `Ziel ${zielGerundet} kcal inkl. ${Math.round(trainingKcal)} Training · ${gegessen} gegessen`
+        : `Ziel ${zielGerundet} kcal · ${gegessen} gegessen`,
     anteil: Math.min(1, Math.max(0, verbrauchtExakt / ziel)),
     ringLabel: `${titel}, Ziel ${zielGerundet} kcal`,
   }

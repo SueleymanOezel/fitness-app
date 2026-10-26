@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useSession } from '../hooks/use-session'
 import { useProfile, type Profile } from '../hooks/use-profile'
 import { useFoodEntries } from '../hooks/use-food-entries'
-import { effectiveCalorieGoal } from '../lib/nutrition-goal'
+import { zielHeute } from '../lib/nutrition-goal'
 import { mealSections, visibleSections } from '../lib/meal-sections'
 import { sumKalorien } from '../lib/entry-calories'
 import { kalorienStatus } from '../lib/calorie-status'
@@ -56,8 +56,8 @@ function NutritionDashboard({ userId }: { userId: string }) {
     )
   }
 
-  const goal = effectiveCalorieGoal(profile)
-  const status = kalorienStatus(sumKalorien(entries), goal)
+  const goal = zielHeute(profile, trainingKcal)
+  const status = kalorienStatus(sumKalorien(entries), goal, trainingKcal)
   const anteile = makroAnteileHeute(entries, localDay(new Date().toISOString()))
   const makroKacheln = [MAKRO_LABEL.eiweiss, MAKRO_LABEL.kohlenhydrate, MAKRO_LABEL.fett].map((label) => {
     const anteil = anteile.find((eintrag) => eintrag.makro === label)
@@ -75,10 +75,11 @@ function NutritionDashboard({ userId }: { userId: string }) {
       <h1>Ernährung</h1>
       <PageHero
         label="Heute"
+        bereich="ernaehrung"
         titel={status.titel}
         untertitel={status.untertitel ?? undefined}
         aside={<ProgressRing anteil={status.anteil} label={status.ringLabel} />}
-        details={<KalorienAufschluesselung profile={profile} trainingKcal={trainingKcal} />}
+        details={<KalorienAufschluesselung userId={userId} profile={profile} trainingKcal={trainingKcal} />}
         action={
           <Pressable variant="primary" type="button" onClick={() => setAddOpen(true)}>
             <span className="inline-flex items-center justify-center gap-2">

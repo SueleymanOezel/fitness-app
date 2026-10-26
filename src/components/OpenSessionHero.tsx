@@ -20,6 +20,7 @@ export default function OpenSessionHero({ offen }: { offen: OffeneSession }) {
   return (
     <PageHero
       label="Training läuft"
+      bereich="training"
       titel={offen.tag_name ?? 'Training'}
       untertitel={`seit ${dauerText(minuten)}`}
       action={

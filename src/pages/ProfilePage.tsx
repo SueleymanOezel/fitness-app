@@ -7,6 +7,8 @@ import { cardClass, fieldLabelClass, inputClass, linkClass } from '../lib/ui-cla
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable, { PressableLink } from '../components/Pressable'
 import PageSkeleton from '../components/PageSkeleton'
+import { AKTIVITAET_LABEL } from '../lib/nutrition-goal'
+import { aktivitaetNeuGewaehlt, merkeAktivitaetGewaehlt } from '../lib/activity-level-notice'
 
 type Draft = {
   name: string
@@ -45,13 +47,7 @@ const GESCHLECHT = [
   ['weiblich', 'weiblich'],
 ] as const
 
-const AKTIVITAET = [
-  ['sitzend', 'sitzend'],
-  ['leicht', 'leicht aktiv'],
-  ['moderat', 'moderat aktiv'],
-  ['hoch', 'hoch aktiv'],
-  ['sehr_hoch', 'sehr hoch aktiv'],
-] as const
+const AKTIVITAET = Object.entries(AKTIVITAET_LABEL)
 
 const ZIEL = [
   ['abnehmen', 'abnehmen'],
@@ -173,6 +169,8 @@ function LoadedProfileForm({
   // a half-saved profile (new height, old weight) would compute a wrong goal.
   const [draft, setDraft] = useState<Draft>(() => toDraft(profile))
   const [status, setStatus] = useState<'idle' | 'saved' | 'invalid' | 'failed'>('idle')
+  // A level saved before 26.10.2026 meant "including sport": ask once to pick it again.
+  const [neuWaehlen, setNeuWaehlen] = useState(() => profile.aktivitaetslevel != null && !aktivitaetNeuGewaehlt(profile.id))
 
   function set<K extends keyof Draft>(field: K, value: string) {
     setDraft((current) => ({ ...current, [field]: value }))
@@ -189,6 +187,10 @@ function LoadedProfileForm({
 
     try {
       await onUpdate(patch)
+      if (patch.aktivitaetslevel != null) {
+        merkeAktivitaetGewaehlt(profile.id)
+        setNeuWaehlen(false)
+      }
       setStatus('saved')
     } catch {
       setStatus('failed')
@@ -255,6 +257,8 @@ function LoadedProfileForm({
             Aktivitätslevel
             <select
               className={inputClass}
+              aria-describedby="aktivitaet-hinweis"
+              aria-invalid={neuWaehlen || undefined}
               value={draft.aktivitaetslevel}
               onChange={(event) => set('aktivitaetslevel', event.target.value)}
             >
@@ -266,6 +270,12 @@ function LoadedProfileForm({
               ))}
             </select>
           </label>
+          <p id="aktivitaet-hinweis" className="-mt-1 text-sm text-text-muted">
+            Nur dein Alltag ohne Sport. Deine Trainings rechnet die App aus den Einheiten dazu.
+          </p>
+          {neuWaehlen && (
+            <p className="text-sm">Bitte einmal neu wählen und speichern: Bisher war hier dein Sport mitgemeint.</p>
+          )}
         </div>
 
         <div className={cardClass}>

@@ -13,7 +13,16 @@ type Props = {
   details?: ReactNode
   titelClass?: string
   titelTestId?: string
+  /** Area the card belongs to: its label takes the area color, so a glance tells where you are. */
+  bereich?: keyof typeof BEREICH_TEXT
 }
+
+// Area colors as on the charts and in the tab bar; all clear 4.5:1 on the card (contrast.test.ts).
+const BEREICH_TEXT = {
+  training: 'text-chart-mint',
+  ernaehrung: 'text-chart-orange',
+  koerper: 'text-chart-koerper',
+} as const
 
 export default function PageHero({
   label,
@@ -24,13 +33,15 @@ export default function PageHero({
   details,
   titelClass = heroTitleClass,
   titelTestId,
+  bereich,
 }: Props) {
   return (
     <section className={cardClass} aria-label={label}>
       <div className="flex items-center gap-4">
         {aside}
         <div className="flex min-w-0 flex-col gap-1">
-          <h2 className={`font-sans ${labelClass}`}>{label}</h2>
+          {/* The area color replaces the muted gray instead of being added to it: two text colors would let CSS order decide. */}
+          <h2 className={`font-sans ${bereich ? `text-sm font-semibold ${BEREICH_TEXT[bereich]}` : labelClass}`}>{label}</h2>
           <p className={titelClass} data-testid={titelTestId}>
             {titel}
           </p>

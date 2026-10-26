@@ -188,7 +188,7 @@ describe('NutritionPage', () => {
 
     zeigeDashboard()
 
-    // 2000 is the manual override, not the Mifflin-St-Jeor value (2759) for this profile.
+    // 2000 is the manual override, not the Mifflin-St-Jeor value (3204) for this profile.
     expect(screen.getByText(/Ziel 2000 kcal/)).toBeInTheDocument()
   })
 
@@ -467,12 +467,12 @@ describe('NutritionPage – ausgewaehlte Graphen', () => {
     // Scoped to the chart's own section: the day hero above it names the same
     // goal, so an unscoped query would pass even with no reference line drawn.
     const abschnitt = ueberschrift.closest('section')!
-    // 10*80 + 6.25*180 - 5*30 + 5 = 1780 kcal BMR, x 1.55 (moderat) = 2759 —
+    // 10*80 + 6.25*180 - 5*30 + 5 = 1780 kcal BMR, x 1.8 (moderat, everyday without sport) = 3204 —
     // above both logged days, which is the normal case for someone cutting.
     // findByText: ResponsiveContainer needs one more tick before Recharts
     // draws into the measured box.
     expect(
-      await within(abschnitt).findByText('Ziel 2759 kcal', undefined, { timeout: 5000 }),
+      await within(abschnitt).findByText('Ziel 3204 kcal', undefined, { timeout: 5000 }),
     ).toBeInTheDocument()
   })
 

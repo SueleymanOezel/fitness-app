@@ -104,6 +104,17 @@ describe('ProfilePage', () => {
     expect(screen.getByLabelText('Abstand zum Bedarf (kcal pro Tag)')).toHaveAccessibleDescription(/unter deinem Verbrauch/)
   })
 
+  // 26.10.2026: the level means everyday life without sport now; a level saved before meant sport too.
+  it('asks once to pick the activity level again, until the profile is saved', async () => {
+    await renderPage()
+    expect(screen.getByLabelText('Aktivitätslevel')).toHaveAccessibleDescription(/ohne Sport/)
+    expect(screen.getByText(/Bitte einmal neu wählen/)).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Aktivitätslevel'), { target: { value: 'sitzend' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+    await waitFor(() => expect(screen.queryByText(/Bitte einmal neu wählen/)).not.toBeInTheDocument())
+    expect(screen.getByRole('option', { name: 'Fast nur sitzend (Büro, kaum Wege)' })).toBeInTheDocument()
+  })
   it('writes every field in a single update when saving', async () => {
     const result = await renderPage()
 

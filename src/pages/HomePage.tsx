@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
 import { useFoodEntries } from '../hooks/use-food-entries'
-import { effectiveCalorieGoal } from '../lib/nutrition-goal'
+import { zielHeute } from '../lib/nutrition-goal'
 import { sumKalorien } from '../lib/entry-calories'
 import { kalorienStatus } from '../lib/calorie-status'
 import { useActiveTrainingDay } from '../hooks/use-active-training-day'
@@ -68,8 +68,8 @@ function Dashboard({ userId }: { userId: string }) {
   // goal bleibt null, wenn das Profil nicht geladen werden konnte — die Kalorien-Karte
   // zeigt das Gegessene dann trotzdem, nur ohne Restwert gegen ein Ziel. Ein
   // Bereich, der nicht laedt, soll die anderen nicht mit sperren.
-  const goal = profile ? effectiveCalorieGoal(profile) : null
-  const status = kalorienStatus(sumKalorien(entries), goal)
+  const goal = profile ? zielHeute(profile, trainingKcal) : null
+  const status = kalorienStatus(sumKalorien(entries), goal, trainingKcal)
   const gewichtAktuell = latestValue(rows, 'gewicht')
   const gewichtsAenderung = changeSince(rows, 'gewicht')
 
@@ -125,6 +125,7 @@ function Dashboard({ userId }: { userId: string }) {
       {offen === null && plan != null && day != null && (
         <PageHero
           label="Heute · Training"
+          bereich="training"
           titel={day.name}
           untertitel={plan.name}
           action={
@@ -136,10 +137,11 @@ function Dashboard({ userId }: { userId: string }) {
       )}
       <PageHero
         label="Kalorien"
+        bereich="ernaehrung"
         titel={status.titel}
         untertitel={status.untertitel ?? undefined}
         aside={<ProgressRing anteil={status.anteil} label={status.ringLabel} />}
-        details={profile && <KalorienAufschluesselung profile={profile} trainingKcal={trainingKcal} />}
+        details={profile && <KalorienAufschluesselung userId={userId} profile={profile} trainingKcal={trainingKcal} />}
         action={
           profile && (
             <Pressable variant="secondary" type="button" onClick={() => setMahlzeitOffen(true)}>

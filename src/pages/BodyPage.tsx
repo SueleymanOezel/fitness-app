@@ -66,6 +66,7 @@ function Dashboard({ userId }: { userId: string }) {
       <PageHero
         // The value already says kg; "Gewicht (kg)" above "82,4 kg" said it twice.
         label={feldTeile('gewicht').name}
+        bereich="koerper"
         titel={gewicht == null ? '—' : `${formatValue(gewicht.value)} ${unitOf('gewicht')}`}
         titelClass={statClass}
         titelTestId="wert-gewicht"

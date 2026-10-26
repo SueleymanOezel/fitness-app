@@ -97,9 +97,9 @@ describe('NutritionAnalysisPage', () => {
       updateProfile: vi.fn(),
     })
     zeige()
-    // 10*82.5 + 6.25*180 - 5*30 + 5 = 1805 kcal BMR, x 1.55 (moderat) = 2798 —
+    // 10*82.5 + 6.25*180 - 5*30 + 5 = 1805 kcal BMR, x 1.8 (moderat, everyday without sport) = 3249 —
     // above both logged days, which is the normal case for someone cutting.
-    expect(await screen.findByText('Ziel 2798 kcal', {}, { timeout: 5000 })).toBeInTheDocument()
+    expect(await screen.findByText('Ziel 3249 kcal', {}, { timeout: 5000 })).toBeInTheDocument()
   })
 
   it('draws without a goal when the profile is incomplete', async () => {

@@ -11,6 +11,9 @@ describe('kalorienStatus', () => {
     expect(status.gegessen).toBe(1360)
   })
 
+  it('nennt das Training, wenn es das Ziel heute angehoben hat', () => {
+    expect(kalorienStatus(1360, 2412, 412.4).untertitel).toBe('Ziel 2412 kcal inkl. 412 Training · 1360 gegessen')
+  })
   it('meldet eine Überschreitung und begrenzt den Ring auf voll', () => {
     const status = kalorienStatus(2300, 2000)
     expect(status.titel).toBe('300 kcal drüber')

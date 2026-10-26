@@ -8,15 +8,29 @@ export type CalorieGoalInput = {
   alter: number | null
 }
 
-const ACTIVITY_FACTORS: Record<NonNullable<CalorieGoalInput['aktivitaetslevel']>, number> = {
-  sitzend: 1.2,
-  leicht: 1.375,
-  moderat: 1.55,
-  hoch: 1.725,
-  sehr_hoch: 1.9,
+/**
+ * Everyday activity WITHOUT sport, as physical activity levels of the German
+ * nutrition society (DGE): sport is counted on top from the logged workouts
+ * (MET), so a factor that already contained it would count training twice.
+ */
+export const ACTIVITY_FACTORS: Record<NonNullable<CalorieGoalInput['aktivitaetslevel']>, number> = {
+  sitzend: 1.4,
+  leicht: 1.6,
+  moderat: 1.8,
+  hoch: 2.0,
+  sehr_hoch: 2.2,
 }
 
-/** Daily need before the goal's surplus/deficit: Mifflin-St-Jeor BMR times the activity factor. Null while the profile is incomplete. */
+/** Profile labels: what the day looks like, not how much sport (that is logged). */
+export const AKTIVITAET_LABEL: Record<NonNullable<CalorieGoalInput['aktivitaetslevel']>, string> = {
+  sitzend: 'Fast nur sitzend (Büro, kaum Wege)',
+  leicht: 'Sitzend mit Gehen und Stehen',
+  moderat: 'Überwiegend stehend oder gehend',
+  hoch: 'Körperlich anstrengend',
+  sehr_hoch: 'Sehr schwer körperlich',
+}
+
+/** Everyday need before sport and before the goal's surplus/deficit: Mifflin-St-Jeor BMR times the activity factor. Null while the profile is incomplete. */
 export function calculateTdee(input: CalorieGoalInput): number | null {
   const { geschlecht, aktivitaetslevel, ziel, aktuelles_gewicht, groesse, alter } = input
 
@@ -49,25 +63,39 @@ export function effectiveCalorieGoal(
   return calculateCalorieGoal(input)
 }
 
+/** Today's goal: the daily goal plus what today's workouts burned. Training always counts on top, also on a fixed goal. */
+export function zielHeute(
+  input: CalorieGoalInput & { taegliches_kalorienziel: number | null },
+  trainingKcal: number,
+): number | null {
+  const basis = effectiveCalorieGoal(input)
+  return basis == null ? null : basis + Math.max(0, Math.round(trainingKcal))
+}
+
 export type KalorienAufschluesselung = {
-  /** Rounded daily need, from which the goal differs by `delta`. */
-  tagesbedarf: number
-  /** Goal minus need: negative when losing, positive when gaining, 0 when maintaining. */
+  /** Where the sum starts: the computed everyday need, or the goal the user set by hand. */
+  basis: { art: 'bedarf' | 'fest'; kcal: number }
+  /** Goal minus need: negative when losing, positive when gaining, 0 when maintaining or on a fixed goal. */
   delta: number
+  /** Rounded kcal of today's workouts. */
+  training: number
+  /** basis + delta + training: today's goal. */
   ziel: number
 }
 
-/**
- * How the goal comes about, so the sum reads: need + delta = goal. Null for a
- * manually set goal (nothing to break down) or an incomplete profile.
- */
+/** How today's goal comes about, so the sum reads: need + delta + training = goal. Null for an incomplete profile. */
 export function kalorienAufschluesselung(
   input: CalorieGoalInput & { taegliches_kalorienziel: number | null },
+  trainingKcal: number,
 ): KalorienAufschluesselung | null {
-  if (input.taegliches_kalorienziel != null) return null
+  const training = Math.max(0, Math.round(trainingKcal))
+  if (input.taegliches_kalorienziel != null) {
+    const fest = input.taegliches_kalorienziel
+    return { basis: { art: 'fest', kcal: fest }, delta: 0, training, ziel: fest + training }
+  }
   const tdee = calculateTdee(input)
-  const ziel = calculateCalorieGoal(input)
-  if (tdee == null || ziel == null) return null
-  const tagesbedarf = Math.round(tdee)
-  return { tagesbedarf, delta: ziel - tagesbedarf, ziel }
+  const tagesziel = calculateCalorieGoal(input)
+  if (tdee == null || tagesziel == null) return null
+  const bedarf = Math.round(tdee)
+  return { basis: { art: 'bedarf', kcal: bedarf }, delta: tagesziel - bedarf, training, ziel: tagesziel + training }
 }
