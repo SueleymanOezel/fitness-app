@@ -70,6 +70,21 @@ export const EMPTY_INPUT: BodyMetricInput = {
  * was measured. An empty field means "not measured" and stays null — Number('')
  * is 0, not "unknown".
  */
+/** Fields with text that is no number or out of range, in form order: marked at the field, not in a summary. */
+export function ungueltigeFelder(raw: BodyMetricInput): MeasurementField[] {
+  return MEASUREMENT_FIELDS.filter((field) => {
+    const text = raw[field].trim()
+    if (text === '') return false
+    const value = Number(text)
+    return !Number.isFinite(value) || value < BOUNDS[field].min || value > BOUNDS[field].max
+  })
+}
+
+/** The fix for one field, e.g. "Bitte 30–300 kg angeben." */
+export function feldHinweis(field: MeasurementField): string {
+  return `Bitte ${BOUNDS[field].min}–${BOUNDS[field].max} ${feldTeile(field).einheit} angeben.`
+}
+
 export function parseBodyMetrics(raw: BodyMetricInput): BodyMetricValues | null {
   const values = {} as BodyMetricValues
   let anyGiven = false

@@ -55,3 +55,11 @@ describe('parseBodyMetrics', () => {
     expect(parseBodyMetrics(input({ gewicht: '   ' }))).toBeNull()
   })
 })
+
+describe('ungueltigeFelder', () => {
+  it('names only filled fields that are no number or out of range, in form order', async () => {
+    const { ungueltigeFelder, EMPTY_INPUT } = await import('./body-metrics')
+    expect(ungueltigeFelder({ ...EMPTY_INPUT, gewicht: '900', bauchumfang: '85', koerperfettanteil: 'abc' })).toEqual(['gewicht', 'koerperfettanteil'])
+    expect(ungueltigeFelder(EMPTY_INPUT)).toEqual([])
+  })
+})
