@@ -47,6 +47,7 @@ function sessionResult(overrides: Partial<ReturnType<typeof mockUseWorkoutSessio
     logSet: vi.fn(),
     updateSet: vi.fn().mockResolvedValue(undefined),
     deleteSet: vi.fn().mockResolvedValue(undefined),
+    restoreSet: vi.fn().mockResolvedValue(undefined),
     completeSession: vi.fn(),
     deleteSession: vi.fn().mockResolvedValue(undefined),
     ...overrides,
@@ -170,7 +171,6 @@ describe('TrainingHistoryDetailPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Satz 1 bearbeiten' }))
     fireEvent.click(screen.getByRole('button', { name: 'Satz löschen' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     await waitFor(() => expect(result.deleteSet).toHaveBeenCalledWith('set1'))
   })

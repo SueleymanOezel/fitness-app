@@ -22,7 +22,7 @@ export default function TrainingHistoryDetailPage() {
 }
 
 function Detail({ sessionId }: { sessionId: string }) {
-  const { session, sets, loading, updateSet, deleteSet, deleteSession } = useWorkoutSession(sessionId)
+  const { session, sets, loading, updateSet, deleteSet, restoreSet, deleteSession } = useWorkoutSession(sessionId)
   const [bearbeiteterSatz, setBearbeiteterSatz] = useState<SessionSet | null>(null)
   const navigate = useNavigate()
 
@@ -73,6 +73,7 @@ function Detail({ sessionId }: { sessionId: string }) {
         onClose={() => setBearbeiteterSatz(null)}
         onSave={(setId, patch) => updateSet(setId, patch)}
         onDelete={(setId) => deleteSet(setId)}
+        onRestore={restoreSet}
       />
       <ConfirmDelete
         label="Training löschen"

@@ -90,5 +90,15 @@ export function useFoodEntries(userId: string) {
     await reload()
   }
 
-  return { entries, loading, addEntry, updateEntry, deleteEntry }
+  /** „Rückgängig“: the deleted row comes back as it was, same id and time, instead of a delayed delete. */
+  async function restoreEntry(entry: FoodEntry) {
+    const { id, menge, zeitpunkt, product_id, mahlzeit } = entry
+    const { error } = await supabase
+      .from('food_entries')
+      .insert({ id, user_id: userId, product_id, menge, zeitpunkt, mahlzeit })
+    if (error) throw new Error('restore failed')
+    await reload()
+  }
+
+  return { entries, loading, addEntry, updateEntry, deleteEntry, restoreEntry }
 }

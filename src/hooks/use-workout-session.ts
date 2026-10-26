@@ -266,6 +266,24 @@ export function useWorkoutSession(sessionId: string) {
     await reload()
   }
 
+  /** „Rückgängig“: the deleted set comes back unchanged, same id and number. */
+  async function restoreSet(set: SessionSet) {
+    const { id, exercise_id, satz_nummer, gewicht, wiederholungen, rir, ist_aufwaermsatz, abgeschlossen_am } = set
+    const { error } = await supabase.from('workout_session_sets').insert({
+      id,
+      workout_session_id: sessionId,
+      exercise_id,
+      satz_nummer,
+      gewicht,
+      wiederholungen,
+      rir,
+      ist_aufwaermsatz,
+      abgeschlossen_am,
+    })
+    if (error) throw new Error('restore set failed')
+    await reload()
+  }
+
   /** Without a body weight the session still completes, only its calories stay unknown (null). */
   async function completeSession(
     gewichtKg: number | null,
@@ -367,6 +385,7 @@ export function useWorkoutSession(sessionId: string) {
     logSet,
     updateSet,
     deleteSet,
+    restoreSet,
     completeSession,
     ermittleNeueRekorde,
     deleteSession,

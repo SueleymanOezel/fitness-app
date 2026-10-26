@@ -67,6 +67,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
     logSet,
     updateSet,
     deleteSet,
+    restoreSet,
     completeSession,
     ermittleNeueRekorde,
     addExercisesToSession,
@@ -403,6 +404,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
         onClose={() => setBearbeiteterSatz(null)}
         onSave={(setId, patch) => updateSet(setId, patch)}
         onDelete={(setId) => deleteSet(setId)}
+        onRestore={restoreSet}
       />
       <Pressable variant="secondary" type="button" className="w-full" onClick={() => setPickerOpen(true)}>
         <span className="inline-flex items-center justify-center gap-2">

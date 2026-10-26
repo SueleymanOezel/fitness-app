@@ -1,12 +1,19 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import Pressable from './Pressable'
 
 type ToastType = 'success' | 'error'
-type ToastState = { message: string; type: ToastType } | null
+/** One button on the toast, e.g. „Rückgängig“ after a delete. */
+export type ToastAction = { label: string; onClick: () => void }
+type ToastState = { message: string; type: ToastType; action?: ToastAction } | null
 
 /** Long enough to read a short sentence, short enough not to linger. */
 const AUTO_DISMISS_MS = 4000
+/** A toast with a button stays a little longer: reading, deciding and reaching it takes time. */
+const ACTION_DISMISS_MS = 6000
 
-const ToastContext = createContext<((message: string, type: ToastType) => void) | null>(null)
+type ShowToast = (message: string, type: ToastType, action?: ToastAction) => void
+
+const ToastContext = createContext<ShowToast | null>(null)
 
 /**
  * Mounted once in AppLayout, so every authenticated page can call useToast()
@@ -19,19 +26,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<ToastState>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const showToast = useCallback((message: string, type: ToastType) => {
+  const showToast = useCallback<ShowToast>((message, type, action) => {
     // Clear any existing pending timeout before showing a new toast
     if (timeoutRef.current !== null) {
       clearTimeout(timeoutRef.current)
     }
 
-    setToast({ message, type })
+    setToast({ message, type, action })
 
     // Schedule a new timeout and store its ID
     timeoutRef.current = setTimeout(() => {
       setToast(null)
       timeoutRef.current = null
-    }, AUTO_DISMISS_MS)
+    }, action ? ACTION_DISMISS_MS : AUTO_DISMISS_MS)
   }, [])
 
   // Clean up the timeout on unmount
@@ -48,20 +55,36 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={showToast}>
       {children}
       {toast && (
-        <p
+        <div
           role="alert"
-          className={`fixed inset-x-4 top-4 rounded-2xl px-4 py-3 font-medium motion-safe:animate-[toast-in_200ms_ease-out] ${
+          className={`fixed inset-x-4 top-4 flex flex-row items-center gap-3 text-left rounded-2xl px-4 py-3 font-medium motion-safe:animate-[toast-in_200ms_ease-out] ${
             toast.type === 'success' ? 'bg-success text-success-ink' : 'bg-danger text-on-bright'
           }`}
         >
-          {toast.message}
-        </p>
+          <span className="flex-1">{toast.message}</span>
+          {toast.action && (
+            <Pressable
+              variant="bare"
+              type="button"
+              className="-my-2 -mr-2 min-h-11 shrink-0 rounded-xl px-3 font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
+              onClick={() => {
+                const { onClick } = toast.action!
+                if (timeoutRef.current !== null) clearTimeout(timeoutRef.current)
+                timeoutRef.current = null
+                setToast(null)
+                onClick()
+              }}
+            >
+              {toast.action.label}
+            </Pressable>
+          )}
+        </div>
       )}
     </ToastContext.Provider>
   )
 }
 
-/** Call with a message and 'success' or 'error' to show a toast for a few seconds. */
+/** Call with a message and 'success' or 'error' (plus an optional action) to show a toast for a few seconds. */
 // Context, provider, and hook are one unit by design; splitting them would only add an import location.
 // eslint-disable-next-line react-refresh/only-export-components
 export function useToast() {

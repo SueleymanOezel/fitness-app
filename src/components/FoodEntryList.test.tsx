@@ -36,6 +36,7 @@ describe('FoodEntryList', () => {
         sections={[{ slot: 1, name: 'Frühstück' }]}
         onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
         onDelete={vi.fn().mockResolvedValue(undefined)}
+        onRestore={vi.fn()}
       />,
     )
     expect(screen.getByText('Noch keine Einträge heute.')).toBeInTheDocument()
@@ -49,6 +50,7 @@ describe('FoodEntryList', () => {
         sections={[{ slot: 1, name: 'Frühstück' }]}
         onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
         onDelete={vi.fn().mockResolvedValue(undefined)}
+        onRestore={vi.fn()}
       />,
     )
 
@@ -68,6 +70,7 @@ describe('FoodEntryList', () => {
         sections={[{ slot: 1, name: 'Frühstück' }]}
         onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
         onDelete={vi.fn().mockResolvedValue(undefined)}
+        onRestore={vi.fn()}
       />,
     )
 
@@ -85,6 +88,7 @@ describe('FoodEntryList', () => {
         sections={[{ slot: 1, name: 'Frühstück' }]}
         onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
         onDelete={vi.fn().mockResolvedValue(undefined)}
+        onRestore={vi.fn()}
       />,
     )
 
@@ -95,8 +99,10 @@ describe('FoodEntryList', () => {
     expect(screen.queryByLabelText('Menge (g)')).not.toBeInTheDocument()
   })
 
-  it('calls onDelete when the delete button is clicked', () => {
+  // Re-audit 26.10.2026: no second question for one entry, the toast offers the way back.
+  it('deletes at once and offers to undo it from the toast', async () => {
     const onDelete = vi.fn().mockResolvedValue(undefined)
+    const onRestore = vi.fn().mockResolvedValue(undefined)
     renderWithProviders(
       <FoodEntryList
         entries={entries}
@@ -104,17 +110,20 @@ describe('FoodEntryList', () => {
         sections={[{ slot: 1, name: 'Frühstück' }]}
         onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
         onDelete={onDelete}
+        onRestore={onRestore}
       />,
     )
 
     fireEvent.click(screen.getByRole('button', { name: /bearbeiten/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Eintrag löschen' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
-    expect(onDelete).toHaveBeenCalledWith('e1')
+    await waitFor(() => expect(onDelete).toHaveBeenCalledWith('e1'))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Testprodukt gelöscht.')
+    fireEvent.click(screen.getByRole('button', { name: 'Rückgängig' }))
+    await waitFor(() => expect(onRestore).toHaveBeenCalledWith(entries[0]))
   })
 
-  it('shows a visible warning when the delete is rejected', async () => {
+  it('shows a visible warning in the dialog when the delete is rejected', async () => {
     const onDelete = vi.fn().mockRejectedValue(new Error('delete failed'))
     renderWithProviders(
       <FoodEntryList
@@ -123,15 +132,14 @@ describe('FoodEntryList', () => {
         sections={[{ slot: 1, name: 'Frühstück' }]}
         onUpdateEntry={vi.fn().mockResolvedValue(undefined)}
         onDelete={onDelete}
+        onRestore={vi.fn()}
       />,
     )
 
     fireEvent.click(screen.getByRole('button', { name: /bearbeiten/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Eintrag löschen' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
-    await waitFor(() =>
-      expect(screen.getByRole('alert')).toHaveTextContent('nicht geklappt'),
-    )
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Eintrag konnte nicht gelöscht werden.'))
+    expect(screen.getByLabelText('Menge (g)')).toBeInTheDocument()
   })
 })

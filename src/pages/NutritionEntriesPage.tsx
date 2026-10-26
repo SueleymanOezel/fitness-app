@@ -22,7 +22,7 @@ export default function NutritionEntriesPage() {
 
 function EntriesBySection({ userId }: { userId: string }) {
   const { profile, loading: profileLoading, error: profileError, reload } = useProfile(userId)
-  const { entries, loading, addEntry, updateEntry, deleteEntry } = useFoodEntries(userId)
+  const { entries, loading, addEntry, updateEntry, deleteEntry, restoreEntry } = useFoodEntries(userId)
 
   if (loading || profileLoading) return <PageSkeleton titel="Einträge heute" variante="liste" />
 
@@ -63,6 +63,7 @@ function EntriesBySection({ userId }: { userId: string }) {
             addEntry={addEntry}
             updateEntry={updateEntry}
             deleteEntry={deleteEntry}
+            restoreEntry={restoreEntry}
             isPrimaryAdd={slot != null && slot === jetzt}
           />
         )
@@ -80,6 +81,7 @@ function SectionBlock({
   addEntry,
   updateEntry,
   deleteEntry,
+  restoreEntry,
   isPrimaryAdd,
 }: {
   slot: number | null
@@ -90,6 +92,7 @@ function SectionBlock({
   addEntry: (productId: string, menge: number, mahlzeit: number | null) => Promise<void>
   updateEntry: (entryId: string, patch: EntryPatch) => Promise<void>
   deleteEntry: (entryId: string) => Promise<void>
+  restoreEntry: (entry: FoodEntry) => Promise<void>
   isPrimaryAdd: boolean
 }) {
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -103,6 +106,7 @@ function SectionBlock({
         sections={assignable}
         onUpdateEntry={updateEntry}
         onDelete={deleteEntry}
+        onRestore={restoreEntry}
       />
       {/* No add button for the unassigned group — nothing new belongs there. */}
       {slot !== null && (
