@@ -110,6 +110,9 @@ describe('BodyEntryForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
     expect(screen.getByText('Umfänge und Körperfett').closest('details')).toHaveAttribute('open')
     expect(screen.getByText('Bitte 10–300 cm angeben.')).toBeInTheDocument()
+    // Correcting it keeps the section open, also after the field's error is gone.
+    fireEvent.change(screen.getByLabelText(/^Bauchumfang/), { target: { value: '8' } })
+    expect(screen.getByText('Umfänge und Körperfett').closest('details')).toHaveAttribute('open')
   })
 
   it('asks for at least one value when everything is empty', () => {

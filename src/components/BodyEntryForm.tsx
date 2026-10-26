@@ -48,9 +48,9 @@ export default function BodyEntryForm({
   const [falsch, setFalsch] = useState<MeasurementField[]>([])
   const [saving, setSaving] = useState(false)
   // Weight is the daily value; the rest stays folded unless this entry already has some.
-  const [weitereOffen] = useState(() => MEASUREMENT_FIELDS.some((field) => field !== 'gewicht' && draft[field] !== ''))
-  // A wrong measurement must not hide in the folded part (re-audit 27.10.2026: "900" saved nothing, visibly).
-  const umfangFalsch = falsch.some((field) => field !== 'gewicht')
+  const [weitereOffen, setWeitereOffen] = useState(() =>
+    MEASUREMENT_FIELDS.some((field) => field !== 'gewicht' && draft[field] !== ''),
+  )
 
   function feld(field: (typeof MEASUREMENT_FIELDS)[number]) {
     return (
@@ -88,6 +88,9 @@ export default function BodyEntryForm({
 
     const fehlerhaft = ungueltigeFelder(draft)
     setFalsch(fehlerhaft)
+    // A wrong measurement must not hide in the folded part; opened here, then left to the user,
+    // so correcting it does not fold it away on the first keystroke.
+    if (fehlerhaft.some((field) => field !== 'gewicht')) setWeitereOffen(true)
     if (fehlerhaft.length > 0) {
       setError(`Bitte prüfen: ${fehlerhaft.map((field) => feldTeile(field).name).join(', ')}.`)
       // After the render that unfolds the measurements, so a field inside them can take focus.
@@ -156,7 +159,7 @@ export default function BodyEntryForm({
           />
         </label>
         {feld('gewicht')}
-        <details open={weitereOffen || umfangFalsch}>
+        <details open={weitereOffen} onToggle={(event) => setWeitereOffen(event.currentTarget.open)}>
           <summary className="min-h-11 cursor-pointer py-2.5 font-medium">Umfänge und Körperfett</summary>
           <div className="flex flex-col gap-3 pt-2">
             {MEASUREMENT_FIELDS.filter((field) => field !== 'gewicht').map(feld)}
