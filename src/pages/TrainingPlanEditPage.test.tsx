@@ -501,6 +501,69 @@ describe('TrainingPlanEditPage', () => {
     expect(result.updateDayExercise).toHaveBeenCalledWith('de1', { ziel_saetze: 12 })
   })
 
+  it('confirms a saved target right at the field, and only when the write succeeded', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const result = planResult({ updateDayExercise: vi.fn().mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('x')) })
+    mockUseWorkoutPlan.mockReturnValue(result)
+    mockUseExercises.mockReturnValue({ exercises: [exercise], loading: false, createExercise: vi.fn() })
+
+    renderPage()
+    await screen.findByText('Tag A')
+    fireEvent.click(screen.getByRole('button', { name: /Bankdrücken/ }))
+    const saetze = screen.getByLabelText('Sätze')
+    fireEvent.change(saetze, { target: { value: '4' } })
+    fireEvent.blur(saetze)
+    expect(await screen.findByText('✓ Gespeichert')).toBeInTheDocument()
+
+    const wdh = screen.getByLabelText('Wiederholungen')
+    fireEvent.change(wdh, { target: { value: '12' } })
+    fireEvent.blur(wdh)
+    expect(await screen.findByText('Speichern fehlgeschlagen.')).toBeInTheDocument()
+    expect(screen.getAllByText('✓ Gespeichert')).toHaveLength(1)
+  })
+
+  it('does not confirm an older write that resolves after a newer failed one', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    let alteFertig: () => void = () => {}
+    const update = vi
+      .fn()
+      .mockImplementationOnce(() => new Promise<void>((resolve) => (alteFertig = resolve)))
+      .mockRejectedValueOnce(new Error('x'))
+    mockUseWorkoutPlan.mockReturnValue(planResult({ updateDayExercise: update }))
+    mockUseExercises.mockReturnValue({ exercises: [exercise], loading: false, createExercise: vi.fn() })
+
+    renderPage()
+    await screen.findByText('Tag A')
+    fireEvent.click(screen.getByRole('button', { name: /Bankdrücken/ }))
+    const saetze = screen.getByLabelText('Sätze')
+    fireEvent.change(saetze, { target: { value: '4' } })
+    fireEvent.blur(saetze)
+    fireEvent.change(saetze, { target: { value: '5' } })
+    fireEvent.blur(saetze)
+    expect(await screen.findByText('Speichern fehlgeschlagen.')).toBeInTheDocument()
+    alteFertig()
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(2))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(screen.queryByText('✓ Gespeichert')).not.toBeInTheDocument()
+  })
+
+  it('opens only the first day and folds the others, with order and size in the header', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const einTag = planResult().days[0]
+    mockUseWorkoutPlan.mockReturnValue(planResult({ days: [einTag, { ...einTag, id: 'd2', name: 'Tag B', reihenfolge: 2 }] }))
+    mockUseExercises.mockReturnValue({ exercises: [exercise], loading: false, createExercise: vi.fn() })
+
+    renderPage()
+    const tagB = await screen.findByRole('button', { name: /Tag B.*1 Übung/ })
+    expect(screen.getByRole('button', { name: /Tag A/, expanded: true })).toBeInTheDocument()
+    expect(tagB).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getAllByRole('button', { name: /Bankdrücken/ })).toHaveLength(1)
+    expect(screen.getByRole('button', { name: 'Tag B nach oben' })).toBeInTheDocument()
+
+    fireEvent.click(tagB)
+    expect(screen.getAllByRole('button', { name: /Bankdrücken/ })).toHaveLength(2)
+  })
+
   it('rejects a fractional target, which the integer column would round away', async () => {
     // ziel_saetze, ziel_wiederholungen and pausenzeit_sekunden are all integer
     // columns: 2.6 would come back from the reload as 3.
