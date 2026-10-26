@@ -108,24 +108,43 @@ Seit 22.09.2026: Ein per `/graphify` gebauter Wissensgraph-Snapshot liegt unter 
 
 Diese Sektion nach jedem abgeschlossenen Schritt aktualisieren, damit ein neuer Chat sofort weiß, was gemacht wurde und was als Nächstes ansteht.
 
-### ▶ Neuer Chat: genau hier weitermachen (Stand 26.10.2026)
+### ▶ Neuer Chat: genau hier weitermachen (Stand 26.10.2026, abends — Nutzer: „morgen weiter“)
 
-**Re-Audit 26.10.: 29/40** (Snapshot `.impeccable/critique/2026-10-25T23-26-52Z__vitaloop-web-app.md`, Trend 26→26→27→27→29). **Nutzer-Ziel: mindestens 36/40 (90 %).** Entscheidungen: Löschen **gemischt** (Essens-Eintrag + Satz: sofort löschen + Toast „Rückgängig“ 5 s; Plan/Training/Konto behalten Dialog), **Erststart als 3-Schritt-Dialog** (Körperdaten → Ziel live → Plan-Assistent/„Später“, danach Checkliste) + „?“-Erklärungen an Kennzahlen, **schnelle Punkte zuerst**. Fix-Runde, je ein PR, danach Re-Audit:
-**Stand: Schritte 1–3 gemerged (#132, #134, #135), deployed (`index-BPSNUvUm.js`), live verifiziert; Worktrees/Branches weg, graphify + Wiki `Re-Audit-2026-10-26` nachgezogen. Nächster Schritt: 4 (Undo).**
-1. Titel je Route + Fokus auf `<main>` nach Seitenwechsel + Login-Fehler-Fokus → **PR #132** (Branch `a11y-titles-focus`)
-2. Begriffe + Dialog-X oben rechts (sticky) + Meine Pläne (Mint-Punkt „Aktiv“, Löschen im Plan-Editor) + PRODUCT.md-PWA-Zeile → **PR #133** (Branch `clear-terms`, auf #132 gestapelt), offen. „Entfernen“ (aus Plan/Training) vs. „Löschen“ (Daten) bewusst getrennt gelassen. **#132 gemerged; #133 landete im Branch von #132 statt in master (Base sprang nicht um) → derselbe Commit als PR #134 gegen master.** Bei gestapelten PRs künftig: nach dem Merge des unteren den Base-Branch löschen oder den oberen vor dem Merge auf master umstellen.
-3. Abschluss-Dialog nennt offene Übungen, „Training abschließen“ in der Leiste wenn alles erledigt, Ergebnis-Hauptaussage (`hoehepunktVon`) → **PR #135** (Branch `session-finish-clarity`, Base master), offen
-4. Undo-Toast (s. o.)
-5. Bereichsfarbe an Karten (OpenSessionHero, Gewicht) + Trainings-kcal aufs Tagesziel (Aktivitätslevel = Alltag ohne Sport, Nutzer-Rückfrage dazu noch offen) + sichtbare Zeile „+X kcal durch Training“
-6. Erststart + Hilfen (Übungsanleitung „Keine Anleitung hinterlegt“ erst prüfen — evtl. Fixture-Artefakt)
-7. Plan-Editor (Tage einklappen, „Gespeichert“), Minor (Aufwärm-Checkbox 24 px, Aktivitätsraster Mo versetzt, Pausen-Leiste lila Streifen, Fotos-Upload, Übungssuche-Placeholder) → Re-Audit
-PRODUCT.md-Zeile „Manifest/Service Worker fehlen“ ist veraltet (seit 4c-1 vorhanden) — Prüfer lesen sie als Fund.
+**Stand:** Alles gemerged und deployed. **Kein offener PR, keine Worktree, kein laufender Server**, alte Worktree-Ordner unter `.claude/worktrees/` sind komplett gelöscht. `master` = `6cf8350` (Merge #137) plus Doku-Commit. Live-Bundle **`index-cE8pFKnq.js`** (Hash lokal = live, Marker von #136/#137 im Live-Bundle). Tests: `npx vitest run --exclude ".claude/**"` = 177 Dateien / 1392 Tests grün.
+
+**Ziel des Nutzers: Re-Audit ≥ 36/40 (90 %).** Letzter Re-Audit 26.10.: **29/40** (Snapshot `.impeccable/critique/2026-10-25T23-26-52Z__vitaloop-web-app.md`, Trend 26→26→27→27→29; Heuristiken 1–9 je 3, Hilfe 2). Für 36: sechs Heuristiken auf 4, Hilfe auf 3. Wiki `Re-Audit-2026-10-26`.
+
+**Fix-Runde (je ein PR):**
+| # | PR | Stand | Was |
+|---|---|---|---|
+| 1 | #132 | live | `document.title` je Route (`src/lib/page-title.ts`), Fokus auf `<main>` nach Seitenwechsel (`AppLayout`), Login-Fehler → Fokus ins Feld |
+| 2 | #134 (= #133) | live | Begriffe („Training löschen“, „Verlauf“, „Weiter mit Google“, „Graphen auswählen“, „Abstand zum Bedarf“), Dialog-X sticky oben rechts (`Dialog.tsx`), Meine Pläne: Mint-Punkt „Aktiv“, „Plan löschen“ im Plan-Editor (`useWorkoutPlan.deletePlan`) |
+| 3 | #135 | live | Abschluss-Dialog nennt offene Übungen; alles erledigt → „Training abschließen“ in der festen Leiste; Ergebnis-Hauptaussage `hoehepunktVon` (`src/lib/abschluss.ts`) |
+| 4 | #136 | live | Eintrag/Satz sofort löschen, Toast „Rückgängig“ 6 s (`ToastProvider` mit `action`, `restoreEntry`/`restoreSet` legen die Zeile mit derselben ID wieder an) |
+| 5 | #137 | live | `zielHeute` = Tagesziel + Trainings-kcal; Aktivitätslevel = **Alltag ohne Sport**, DGE-Faktoren 1,4/1,6/1,8/2,0/2,2 (`AKTIVITAET_LABEL`); Training auch auf festes Ziel; Hinweis „Level neu wählen“ bis zum Speichern (geräte-lokal, `src/lib/activity-level-notice.ts`); `PageHero bereich` färbt Labels (Mint/Orange/Körper) |
+| **6** | — | **als Nächstes** | **Erststart als 3-Schritt-Dialog** (Körperdaten → Ziel mit Live-Berechnung → Plan-Assistent oder „Später“; danach Home-Checkliste „Erstes Essen / erstes Gewicht“) + **„?“-Erklärungen** an Kennzahlen (Volumen, 1RM, Wochen im Plan, Trend). Vorher prüfen: „Keine Anleitung hinterlegt“ im Übungsdetail evtl. nur Fixture-Artefakt (Fixture mockt Anleitungen nicht?) — sonst Anleitungen aus free-exercise-db zeigen. Eher architektonisch → `superpowers:brainstorming` zuerst, Fragen einzeln an den Nutzer |
+| 7 | — | offen | Plan-Editor (Tage einklappen, Reorder in die Kopfzeile, sichtbares „Gespeichert“), Minor: Aufwärm-Checkbox 24 px (als Chip), Aktivitätsraster Mo-Zeile versetzt (`ActivityGridChart`), Pausen-Leiste lila Streifen, Fotos-Upload als Button mit `capture`, Übungssuche-Placeholder, „Wochen im Plan 1“ ohne „von 8“, leere Analyse-Graphen ans Ende → danach **Re-Audit** (dual-agent wie am 26.10., Prüfer A ohne frühere Snapshots) |
+
+**Vom Nutzer am iPhone zu prüfen (nach Deploy #136/#137):** Profil → Aktivitätslevel neu wählen und speichern (ändert das Tagesziel); Dialog-X oben rechts; „Rückgängig“ nach Löschen eines Eintrags/Satzes (echte DB: Insert mit fester ID, laut RLS erlaubt, nur mit Fixture getestet).
+
+**Stolperfallen dieser Runde:**
+- Gestapelte PRs: GitHub stellt die Base nach dem Merge des unteren PRs nicht um (#133 landete im Branch von #132) → oberen PR vor dem Merge auf `master` umstellen, oder lieber unabhängige PRs auf `master` bauen.
+- PowerShell: deutsche Anführungszeichen „“ beenden Strings in `"…"` und `'…'`, `''` wird in `'…'` zu `'`, `R` ist ein Alias (`Invoke-History`). Code mit solchen Zeichen per Edit-/Write-Tool ändern; Commit-Nachrichten per `git commit -F <datei>`, PR-Text per `gh pr create --body-file`.
+- Bash-Tool-`cd` verschiebt das Arbeitsverzeichnis auch für PowerShell → in PowerShell immer absolute Pfade oder `Set-Location` vorneweg (einmal landete eine `.env` in `.playwright-mcp/`, gelöscht).
+- Toast hängt direkt unter `#root`; die globale Regel `#root > *` macht ihn zur Spalte → `flex-row text-left` steht dort ausdrücklich.
+- Farbklassen nicht addieren (`labelClass` + `text-chart-mint`): die CSS-Reihenfolge entscheidet → Grauton ersetzen statt ergänzen.
+- Vor dem Commit den letzten Testlauf wirklich auswerten (#137 wurde einmal mit einem roten Test gepusht, sofort nachgezogen).
+- Vitest im Haupt-Checkout immer mit `--exclude ".claude/**"`.
+
+**Arbeitsweise unverändert:** Worktree je PR von `origin/master`, `npm ci`, umsetzen + Tests, `npx tsc -b --noEmit`, `npm run lint`, Sicht-Prüfung 390 px per Playwright-Szenario unter `G:/Code Projekte/fitness-app/.playwright-mcp/` (bettet `critique-fixture.js` ein; Szenarien dieser Runde: `pr1-titles.js` … `pr5-check.js`; Route-Override für Sonderfälle siehe `pr3-check.js`), `.env` kopieren/löschen, PR → Nutzer merged → im Haupt-Checkout pull, `npm ci`, Tests, build, `firebase deploy --only hosting:vitaloop`, Hash + Marker live prüfen, Worktree/Branches löschen, `graphify update .`, Wiki `Re-Audit-2026-10-26`, dieser Abschnitt.
+
+**Später wieder aufgreifen:** weitere Anmeldungen (Apple 99 $/Jahr, Microsoft/GitHub kostenlos, Code per E-Mail); Dependabot-PRs #32 (TypeScript 7), #69–#72, #80.
 
 ### (Vorher) Stand 24.10.2026, nachts
 
 **Stand:** Alles gemerged und deployed. **Kein offener Feature-PR, keine aktive Worktree, kein laufender Server.** `master` = `9c2af69` (Doku), letzter Code-Merge PR #131. Live-Bundle `index-CizkvgE7.js`. **Re-Audit 24.10. (dritter Lauf): 27/40**, Snapshot `.impeccable/critique/2026-10-24T02-04-17Z__vitaloop-web-app.md`, Trend 26 → 26 → 26 → 27 → 27. Detektor im Browser: 0 Funde (einziger CLI-Fund `broken-image` BodyPhotosPage.tsx:82 ist ein Fehlalarm).
 
-**▶ Morgen anfangen mit (Nutzer-Entscheidung 24.10.: „Pause fürs Design“):**
+**(Überholt — Punkte 2 und 3 sind am 26.10. in #132–#137 erledigt) Damals geplant:**
 1. **Nutzer benutzt die App selbst** und sammelt eigene Eindrücke. Erst fragen, was ihm aufgefallen ist, bevor neue Design-Arbeit startet. Bei Fehlern, die nur am iPhone auftreten: sofort Bildschirmaufnahme erbitten (siehe Memory „Geräte-Bugs: erst Aufnahme“), nicht raten.
 2. **Produkt-Entscheidung, noch nicht umgesetzt: Trainings-kcal sollen aufs Tagesziel aufgeschlagen werden** (bisher nur angezeigt). Plan: `calculateTdee` (`src/lib/nutrition-goal.ts`) darf den Trainingsanteil dann nicht mehr im Aktivitätsfaktor enthalten (sonst doppelt gezählt; Aktivitätslevel auf „Alltag ohne Sport“ umdeuten oder Faktor senken, Profil-Text anpassen), Ziel heute = Grundbedarf + `useTrainingKcalHeute`; `KalorienAufschluesselung`, `kalorienStatus` (`src/lib/calorie-status.ts`), Ring und Texte auf Home/Ernährung nachziehen; Tests. Vor dem Bauen mit dem Nutzer klären, wie das Aktivitätslevel künftig gemeint ist. Eher architektonisch → `superpowers:brainstorming` zuerst.
 3. **Offene Design-Funde aus dem dritten Re-Audit** (für später, nicht von selbst anfangen): [P1] „So entsteht dein Ziel“ unklar (erledigt sich mit Punkt 2); [P1] Home „Diese Woche“ doppelt (Kachel + Karte), Gewicht-Kachel zeigt „›“, öffnet aber einen Dialog → „+“; [P2] `document.title` wird nie gesetzt (Screenreader hören keinen Seitenwechsel) → Titel je Route; [P2] Lila noch für ausgewählte Chips (Zeitraum, Mahlzeit) und den Pausen-Countdown-Balken (wirkt wie Überlappung) → Auswahl neutral mit Rand, Countdown Mint; [P2] Ergebnis-Screen: Fortschritt „+2,5 kg zum letzten Mal“ als Hero statt vier gleicher Kacheln. Minor: „Session löschen“ → „Training löschen“, Login „Einloggen“ vs. „Mit Google anmelden“, Titel „VERLAUF“ ohne Bereich, Analyse: Achsenlabel „Mittagessen“ fehlt, 1RM-Gerade aus 2 Punkten, Rekorde-Tabelle dreizeilig, RIR-Erklärung weit unter der Frage.
