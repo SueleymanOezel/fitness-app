@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, screen } from '@testing-library/react'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import HomePage from './HomePage'
 import { renderWithProviders } from '../test-render'
 
@@ -253,13 +253,15 @@ describe('HomePage', () => {
     expect(screen.queryByRole('link', { name: 'Ernährung' })).not.toBeInTheDocument()
   })
 
-  it('opens the first start once for an account without a goal', () => {
+  it('opens the first start once for an account without a goal', async () => {
     stubDefaults()
     const { profile, ...rest } = mockUseProfile()
     mockUseProfile.mockReturnValue({ ...rest, profile: { ...profile, taegliches_kalorienziel: null } })
     renderWithProviders(<HomePage />)
     expect(screen.getByRole('heading', { name: 'Willkommen bei VitaLoop' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Später' }))
+    // Focus lands on the checklist that takes over, not on <body>.
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Erste Schritte' })))
     // Put off: the checklist takes over, and a new visit does not pop up again.
     expect(screen.getByRole('button', { name: /Tagesziel festlegen/ })).toBeInTheDocument()
     expect(localStorage.getItem('vl-erststart-gesehen:u1')).toBe('1')

@@ -101,6 +101,9 @@ function Dashboard({ userId }: { userId: string }) {
   function erststartZu() {
     merkeErststartGesehen(userId)
     setErststart('zu')
+    // The dialog's trigger was the page itself: without a target focus fell to <body>. The checklist
+    // that takes over is where the user continues (re-audit 27.10.2026).
+    requestAnimationFrame(() => document.getElementById('erste-schritte')?.focus())
   }
 
   // Only after a first start on this device, until all four were done once: an older account without
