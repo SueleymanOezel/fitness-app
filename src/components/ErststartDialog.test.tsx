@@ -42,6 +42,9 @@ describe('ErststartDialog', () => {
     expect(screen.getByLabelText('Dein Alltag (ohne Sport)')).toHaveAttribute('aria-invalid', 'true')
     expect(screen.getByRole('button', { name: 'männlich' })).toHaveAttribute('aria-invalid', 'true')
     expect(document.activeElement).toBe(screen.getByLabelText('Größe (cm)'))
+    // Each field points at its own fix right below it.
+    expect(screen.getByLabelText('Größe (cm)')).toHaveAccessibleDescription('Bitte 100–250 cm angeben.')
+    expect(screen.getByLabelText('Dein Alltag (ohne Sport)')).toHaveAccessibleDescription('Bitte auswählen.')
     expect(screen.getByText('Schritt 1 von 3')).toBeInTheDocument()
   })
 
