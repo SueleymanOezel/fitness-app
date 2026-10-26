@@ -75,6 +75,8 @@ describe('BodyEntryForm', () => {
 
   it('drops the untouched prefill when a missed earlier day is entered', () => {
     render(<BodyEntryForm letztesGewicht={82.4} onSave={vi.fn()} onClose={vi.fn()} />)
+    fireEvent.change(screen.getByLabelText('Datum'), { target: { value: '' } })
+    expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(82.4)
     fireEvent.change(screen.getByLabelText('Datum'), { target: { value: '2026-01-05' } })
     expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(null)
 

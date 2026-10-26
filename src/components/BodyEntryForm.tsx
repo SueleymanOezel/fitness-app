@@ -118,7 +118,8 @@ export default function BodyEntryForm({
             onChange={(event) => {
               setDatum(event.target.value)
               // The prefill is the latest weight, maybe from after a backdated day: an untouched one goes.
-              if (vorbelegt && event.target.value !== today()) {
+              // ISO dates compare as strings; an emptied field is no backdate and keeps the prefill.
+              if (vorbelegt && /^\d{4}-\d{2}-\d{2}$/.test(event.target.value) && event.target.value < today()) {
                 setDraft((alt) => ({ ...alt, gewicht: '' }))
                 setVorbelegt(false)
               }
