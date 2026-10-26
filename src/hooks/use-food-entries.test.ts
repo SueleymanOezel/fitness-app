@@ -7,6 +7,7 @@ function createQueryBuilder(result: { data: unknown; error?: unknown }) {
     insert: vi.fn(() => builder),
     update: vi.fn(() => builder),
     delete: vi.fn(() => builder),
+    in: vi.fn(() => builder),
     eq: vi.fn(() => builder),
     gte: vi.fn(() => builder),
     lt: vi.fn(() => builder),
@@ -56,6 +57,28 @@ describe('useFoodEntries', () => {
       menge: 150,
       mahlzeit: null,
     })
+  })
+
+  it('copies a whole meal in one insert and hands back the new ids for undo', async () => {
+    const builder = createQueryBuilder({ data: [{ id: 'n1' }, { id: 'n2' }] })
+    mockFrom.mockReturnValue(builder)
+
+    const { useFoodEntries } = await import('./use-food-entries')
+    const { result } = renderHook(() => useFoodEntries('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    const ids = await result.current.addEntries([
+      { product_id: 'p1', menge: 80, mahlzeit: 1 },
+      { product_id: 'p2', menge: 250, mahlzeit: 1 },
+    ])
+    expect(builder.insert).toHaveBeenCalledWith([
+      { user_id: 'u1', product_id: 'p1', menge: 80, mahlzeit: 1 },
+      { user_id: 'u1', product_id: 'p2', menge: 250, mahlzeit: 1 },
+    ])
+    expect(ids).toEqual(['n1', 'n2'])
+
+    await result.current.removeEntries(ids)
+    expect(builder.in).toHaveBeenCalledWith('id', ['n1', 'n2'])
   })
 
   it('ignores a stale reload that answers after a newer one', async () => {

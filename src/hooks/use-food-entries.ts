@@ -100,5 +100,22 @@ export function useFoodEntries(userId: string) {
     await reload()
   }
 
-  return { entries, loading, addEntry, updateEntry, deleteEntry, restoreEntry }
+  /** "Von gestern übernehmen": a whole meal in one insert; the new ids let „Rückgängig“ remove exactly these. */
+  async function addEntries(rows: { product_id: string; menge: number; mahlzeit: number }[]): Promise<string[]> {
+    const { data, error } = await supabase
+      .from('food_entries')
+      .insert(rows.map((row) => ({ user_id: userId, ...row })))
+      .select('id')
+    if (error || !data) throw new Error('insert failed')
+    await reload()
+    return (data as { id: string }[]).map((row) => row.id)
+  }
+
+  async function removeEntries(ids: string[]) {
+    const { error } = await supabase.from('food_entries').delete().in('id', ids)
+    if (error) throw new Error('delete failed')
+    await reload()
+  }
+
+  return { entries, loading, addEntry, addEntries, updateEntry, deleteEntry, removeEntries, restoreEntry }
 }
