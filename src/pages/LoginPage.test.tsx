@@ -194,5 +194,8 @@ describe('LoginPage', () => {
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('E-Mail oder Passwort stimmt nicht.'))
     expect(screen.getByRole('alert')).not.toHaveTextContent('Invalid')
+    // Re-audit 27.10.2026: focus fell to <body> after a refused login; it goes back to the password.
+    expect(screen.getByLabelText('Passwort')).toHaveAttribute('aria-invalid', 'true')
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('Passwort')))
   })
 })

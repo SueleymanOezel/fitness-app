@@ -9,7 +9,9 @@ export default function ErsteSchritte({ schritte }: { schritte: ErsterSchritt[] 
   const erledigt = schritte.filter((schritt) => schritt.erledigt).length
   return (
     <section className={cardClass} aria-labelledby="erste-schritte">
-      <h2 id="erste-schritte">Erste Schritte</h2>
+      <h2 id="erste-schritte" tabIndex={-1} className="focus:outline-none">
+        Erste Schritte
+      </h2>
       <p className={labelClass}>{`${erledigt} von ${schritte.length} erledigt`}</p>
       <ul role="list" className={listClass}>
         {schritte.map((schritt) => (

@@ -13,6 +13,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  // A refused login names the password as the field to fix (the server does not say which one was wrong).
+  const [serverFeld, setServerFeld] = useState<'password' | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [hinweis, setHinweis] = useState<string | null>(null)
   const navigate = useNavigate()
@@ -27,6 +29,7 @@ export default function LoginPage() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError(null)
+    setServerFeld(null)
 
     const validationError = validate()
     if (validationError) {
@@ -62,6 +65,10 @@ export default function LoginPage() {
 
       if (authError) {
         setError(authFehlerText(authError))
+        if (authError.code === 'invalid_credentials') setServerFeld('password')
+        // The submit button was disabled while waiting, so focus fell to <body> (re-audit 27.10.2026):
+        // back into the password field, once the button is enabled again.
+        requestAnimationFrame(() => document.getElementById('password')?.focus())
         return
       }
 
@@ -111,7 +118,7 @@ export default function LoginPage() {
   }
 
   // Which field a validation message is about, so it can be marked and announced with it.
-  const fehlerFeld = error == null ? null : !email.trim() ? 'email' : password.length < 8 ? 'password' : null
+  const fehlerFeld = error == null ? null : !email.trim() ? 'email' : password.length < 8 ? 'password' : serverFeld
 
   // The installed iPhone app opens on /login (start URL saved at install); a kept session goes straight in.
   if (session) return <Navigate to="/" replace />

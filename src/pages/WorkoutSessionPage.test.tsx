@@ -833,6 +833,7 @@ describe('WorkoutSessionPage', () => {
     expect(screen.getAllByText('+2,5 kg')).toHaveLength(2)
     expect(screen.getByText('Bankdrücken · mehr als beim letzten Mal')).toBeInTheDocument()
     expect(screen.getByText('Nächstes Mal')).toBeInTheDocument()
+    expect(document.title).toBe('Training abgeschlossen · VitaLoop')
     expect(screen.getByText('Tag B – Ziehen')).toBeInTheDocument()
     // The peak is its own named section, the hero of the screen.
     expect(screen.getByRole('region', { name: 'Dein Höhepunkt' })).toHaveTextContent('+2,5 kg')

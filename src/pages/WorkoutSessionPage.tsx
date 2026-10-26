@@ -532,6 +532,10 @@ function SessionCompletionScreen({
   // The page swaps under the user's finger; focus on the title tells a screen reader where they are.
   const titelRef = useRef<HTMLHeadingElement>(null)
   useEffect(() => titelRef.current?.focus(), [])
+  // Same path as the running workout, so the route-based title (App.tsx) kept "Training läuft".
+  useEffect(() => {
+    document.title = 'Training abgeschlossen · VitaLoop'
+  }, [])
 
   return (
     <div>
