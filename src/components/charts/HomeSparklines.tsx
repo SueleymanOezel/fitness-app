@@ -32,7 +32,7 @@ export default function HomeSparklines({
     kalorien.length > 0 ? Math.round(kalorien.reduce((summe, tag) => summe + tag.kalorien, 0) / kalorien.length) : null
 
   return (
-    <ChartFrame titel={TITEL} leer={gewicht.length < 2 && kalorien.length < 2} picker={picker}>
+    <ChartFrame titel={TITEL} leer={gewicht.length < 2 && kalorien.length < 2} leerHinweis="Erscheint ab zwei Wiegungen oder zwei Tagen mit Essen." picker={picker}>
       {/* Each line names what it is and where it stands; a bare squiggle says nothing. */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-1">
         <p className="flex flex-col text-sm text-text-muted">

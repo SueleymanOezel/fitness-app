@@ -35,7 +35,7 @@ export default function WeeklySummaryList({
   const zeilen = wochenKurzform(sessions, kalorienJeTag(entries), rows)
 
   return (
-    <ChartFrame titel={TITEL} leer={zeilen.length < 1} picker={picker}>
+    <ChartFrame titel={TITEL} leer={zeilen.length < 1} leerHinweis="Erscheint, sobald ein Training, eine Mahlzeit oder ein Gewicht eingetragen ist." picker={picker}>
       <ul role="list" className={listClass}>
         {zeilen.map((zeile) => (
           <li key={zeile.woche} className={listRowClass}>

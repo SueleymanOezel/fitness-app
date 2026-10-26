@@ -168,6 +168,7 @@ describe('HomePage', () => {
   it('shows the current streak', () => {
     stubDefaults()
     mockUseTrainingStreak.mockReturnValue({ streak: { wochen: 4, dieseWoche: 0, ziel: 3 }, loading: false })
+    mockUseActiveTrainingDay.mockReturnValue({ plan: { id: 'p1', name: 'Plan', aktiv: true, user_id: 'u1' }, day: null, loading: false })
     renderWithProviders(<HomePage />)
     expect(screen.getByText('4')).toBeInTheDocument()
     expect(screen.getByText('Diese Woche 0 von 3')).toBeInTheDocument()
@@ -175,8 +176,26 @@ describe('HomePage', () => {
 
   it('shows a message instead of a streak count when there is none yet', () => {
     stubDefaults()
+    mockUseActiveTrainingDay.mockReturnValue({ plan: { id: 'p1', name: 'Plan', aktiv: true, user_id: 'u1' }, day: null, loading: false })
     renderWithProviders(<HomePage />)
     expect(screen.getByText('0 von 3')).toBeInTheDocument()
+  })
+
+  // Re-audit 27.10.2026: "0 von 1 Trainings im Plan" without any plan.
+  it('counts this week without a target when there is no plan', () => {
+    stubDefaults()
+    renderWithProviders(<HomePage />)
+    const kachel = screen.getByRole('link', { name: /Diese Woche\s*0\s*Trainings/ })
+    expect(kachel).not.toHaveTextContent(/von/)
+  })
+
+  it('leaves the tiles and the week card to the checklist while the first steps are open', () => {
+    stubDefaults()
+    localStorage.setItem('vl-erststart-gesehen:u1', '1')
+    renderWithProviders(<HomePage />)
+    expect(screen.getByRole('heading', { name: 'Erste Schritte' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Gewicht/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Zur Analyse/ })).not.toBeInTheDocument()
   })
 
   it('does not query Home analysis data without a pinned selection', () => {
@@ -225,6 +244,7 @@ describe('HomePage', () => {
   it('sums up the week in one card that links to the analysis', () => {
     stubDefaults()
     mockUseTrainingStreak.mockReturnValue({ streak: { wochen: 2, dieseWoche: 1, ziel: 3 }, loading: false })
+    mockUseActiveTrainingDay.mockReturnValue({ plan: { id: 'p1', name: 'Plan', aktiv: true, user_id: 'u1' }, day: null, loading: false })
     renderWithProviders(<HomePage />)
     expect(screen.getByText('Wochenbilanz')).toBeInTheDocument()
     expect(screen.getByText('1 Training')).toBeInTheDocument()

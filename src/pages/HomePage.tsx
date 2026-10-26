@@ -14,6 +14,7 @@ import { chartsFor } from '../lib/analysis/registry'
 import { useHomeAnalysis } from '../hooks/use-home-analysis'
 import { DASHBOARD_ZEITRAUM } from '../lib/analysis/zeitraum'
 import { useTrainingStreak } from '../hooks/use-training-streak'
+import type { PlanStreak } from '../lib/streak'
 import Pressable, { PressableLink } from '../components/Pressable'
 import PageHero from '../components/PageHero'
 import { VitaIcon } from '../components/icons/VitaIcon'
@@ -35,6 +36,18 @@ import { mealSections } from '../lib/meal-sections'
 import ErststartDialog from '../components/ErststartDialog'
 import ErsteSchritte from '../components/ErsteSchritte'
 import { ersteSchritteFertig, erststartGesehen, merkeErsteSchritteFertig, merkeErststartGesehen } from '../lib/first-start'
+
+function wochenKachel(streak: PlanStreak, hatPlan: boolean): StatTile {
+  // Without a plan there is no weekly target: "0 von 1 Trainings im Plan" claimed one (re-audit 27.10.2026).
+  if (!hatPlan) {
+    return { label: 'Diese Woche', wert: String(streak.dieseWoche), hinweis: streak.dieseWoche === 1 ? 'Training' : 'Trainings', to: '/training' }
+  }
+  // A first week has no completed plan weeks yet: show this week's progress instead of a bare "—".
+  if (streak.wochen === 0) {
+    return { label: 'Diese Woche', wert: `${streak.dieseWoche} von ${streak.ziel}`, hinweis: 'Trainings im Plan', to: '/training' }
+  }
+  return { label: 'Wochen in Folge', wert: String(streak.wochen), hinweis: `Diese Woche ${streak.dieseWoche} von ${streak.ziel}`, to: '/training' }
+}
 
 const LEERE_WERTE = Object.fromEntries(MEASUREMENT_FIELDS.map((feld) => [feld, null])) as BodyMetricValues
 
@@ -101,10 +114,7 @@ function Dashboard({ userId }: { userId: string }) {
   const gewichtsAenderung = changeSince(rows, 'gewicht')
 
   const kacheln: StatTile[] = [
-    // A first week has no completed plan weeks yet: show this week's progress instead of a bare "—".
-    streak.wochen === 0
-      ? { label: 'Diese Woche', wert: `${streak.dieseWoche} von ${streak.ziel}`, hinweis: 'Trainings im Plan', to: '/training' }
-      : { label: 'Wochen in Folge', wert: String(streak.wochen), hinweis: `Diese Woche ${streak.dieseWoche} von ${streak.ziel}`, to: '/training' },
+    wochenKachel(streak, plan != null),
     {
       label: 'Gewicht',
       onClick: () => setGewichtOffen(true),
@@ -159,7 +169,8 @@ function Dashboard({ userId }: { userId: string }) {
           }
         />
       )}
-      <StatStrip tiles={kacheln} />
+      {/* While the first steps are open the tiles would only read "—" and "0": the checklist says it better. */}
+      {!ersteSchritte && <StatStrip tiles={kacheln} />}
       {trainingError && <p role="alert">Training konnte nicht geladen werden.</p>}
       {/* The checklist already carries "Trainingsplan anlegen" for a new account. */}
       {!trainingError && plan == null && !ersteSchritte && (
@@ -227,7 +238,7 @@ function Dashboard({ userId }: { userId: string }) {
           removeEntries={removeEntries}
         />
       )}
-      <WochenKarte userId={userId} trainings={streak.dieseWoche} rows={rows} />
+      {!ersteSchritte && <WochenKarte userId={userId} trainings={streak.dieseWoche} rows={rows} />}
       <DashboardHomeCharts userId={userId} auswahl={auswahl.auswahl} />
     </div>
   )
