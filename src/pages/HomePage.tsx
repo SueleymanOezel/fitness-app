@@ -104,7 +104,7 @@ function Dashboard({ userId }: { userId: string }) {
     // A first week has no completed plan weeks yet: show this week's progress instead of a bare "—".
     streak.wochen === 0
       ? { label: 'Diese Woche', wert: `${streak.dieseWoche} von ${streak.ziel}`, hinweis: 'Trainings im Plan', to: '/training' }
-      : { label: 'Wochen im Plan', wert: String(streak.wochen), hinweis: `Diese Woche ${streak.dieseWoche} von ${streak.ziel}`, to: '/training' },
+      : { label: 'Wochen in Folge', wert: String(streak.wochen), hinweis: `Diese Woche ${streak.dieseWoche} von ${streak.ziel}`, to: '/training' },
     {
       label: 'Gewicht',
       onClick: () => setGewichtOffen(true),

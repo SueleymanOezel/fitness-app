@@ -79,7 +79,7 @@ describe('BodyPhotosPage', () => {
 
     renderPage()
     fireEvent.change(screen.getByLabelText('Datum'), { target: { value: '2026-08-24' } })
-    fireEvent.change(screen.getByLabelText('Foto'), { target: { files: [file] } })
+    fireEvent.change(screen.getByLabelText('Foto hinzufügen'), { target: { files: [file] } })
 
     await waitFor(() => expect(result.uploadPhoto).toHaveBeenCalledWith(file, '2026-08-24'))
   })
@@ -91,7 +91,7 @@ describe('BodyPhotosPage', () => {
     )
 
     renderPage()
-    fireEvent.change(screen.getByLabelText('Foto'), { target: { files: [file] } })
+    fireEvent.change(screen.getByLabelText('Foto hinzufügen'), { target: { files: [file] } })
 
     expect(await screen.findByRole('alert')).toBeInTheDocument()
   })

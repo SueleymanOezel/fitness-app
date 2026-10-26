@@ -77,7 +77,7 @@ export default function ExercisePicker({
     <div className={cardClass}>
       <label className={fieldLabelClass}>
         Übung suchen
-        <input className={inputClass} value={query} onChange={(event) => setQuery(event.target.value)} />
+        <input className={inputClass} placeholder="z. B. Kniebeuge" value={query} onChange={(event) => setQuery(event.target.value)} />
       </label>
       <ExerciseFilterChips
         muskelgruppen={muskelgruppen}
