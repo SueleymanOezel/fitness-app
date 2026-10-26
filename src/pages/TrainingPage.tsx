@@ -106,6 +106,7 @@ function Dashboard({ userId }: { userId: string }) {
       {offen === null && plan != null && day != null && (
         <PageHero
           label={`Heute · ${plan.name}`}
+          bereich="training"
           titel={day.name}
           action={
             <Pressable variant="primary" type="button" disabled={starting} onClick={() => start(day.id)}>

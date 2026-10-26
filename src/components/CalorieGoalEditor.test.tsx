@@ -26,7 +26,7 @@ const calculableProfile: Profile = {
 describe('CalorieGoalEditor', () => {
   it('shows the calculated goal when no manual value is set', () => {
     render(<CalorieGoalEditor profile={calculableProfile} onUpdate={vi.fn()} />)
-    expect(screen.getByText(/2759 kcal/)).toBeInTheDocument()
+    expect(screen.getByText(/3204 kcal/)).toBeInTheDocument()
   })
 
   it('shows a completion hint when profile data is missing', () => {

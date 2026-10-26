@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculateCalorieGoal, effectiveCalorieGoal, kalorienAufschluesselung } from './nutrition-goal'
+import { calculateCalorieGoal, effectiveCalorieGoal, kalorienAufschluesselung, zielHeute } from './nutrition-goal'
 
 const baseInput = {
   geschlecht: 'maennlich' as const,
@@ -14,31 +14,30 @@ const baseInput = {
 describe('calculateCalorieGoal', () => {
   it('calculates TDEE for a male profile at "halten"', () => {
     // BMR = 10*80 + 6.25*180 - 5*30 + 5 = 800 + 1125 - 150 + 5 = 1780
-    // TDEE = 1780 * 1.55 = 2759
-    expect(calculateCalorieGoal(baseInput)).toBe(2759)
+    // Everyday need without sport (DGE): 1780 * 1.8 = 3204
+    expect(calculateCalorieGoal(baseInput)).toBe(3204)
   })
 
   it('calculates TDEE for a female profile', () => {
-    // BMR = 10*80 + 6.25*180 - 5*30 - 161 = 1780 - 161 - 5 = wait see below
     const input = { ...baseInput, geschlecht: 'weiblich' as const }
     // BMR = 10*80 + 6.25*180 - 5*30 - 161 = 800 + 1125 - 150 - 161 = 1614
-    // TDEE = 1614 * 1.55 = 2501.7 -> rounds to 2502
-    expect(calculateCalorieGoal(input)).toBe(2502)
+    // 1614 * 1.8 = 2905.2 -> rounds to 2905
+    expect(calculateCalorieGoal(input)).toBe(2905)
   })
 
   it('subtracts ziel_delta_kcal when ziel is abnehmen', () => {
     const input = { ...baseInput, ziel: 'abnehmen' as const }
-    expect(calculateCalorieGoal(input)).toBe(2759 - 500)
+    expect(calculateCalorieGoal(input)).toBe(3204 - 500)
   })
 
   it('adds ziel_delta_kcal when ziel is zunehmen', () => {
     const input = { ...baseInput, ziel: 'zunehmen' as const }
-    expect(calculateCalorieGoal(input)).toBe(2759 + 500)
+    expect(calculateCalorieGoal(input)).toBe(3204 + 500)
   })
 
   it('applies the sitzend activity factor', () => {
     const input = { ...baseInput, aktivitaetslevel: 'sitzend' as const }
-    expect(calculateCalorieGoal(input)).toBe(Math.round(1780 * 1.2))
+    expect(calculateCalorieGoal(input)).toBe(Math.round(1780 * 1.4))
   })
 
   it('returns null when geschlecht is missing', () => {
@@ -66,7 +65,7 @@ describe('effectiveCalorieGoal', () => {
   })
 
   it('falls back to the calculated value when taegliches_kalorienziel is null', () => {
-    expect(effectiveCalorieGoal({ ...baseInput, taegliches_kalorienziel: null })).toBe(2759)
+    expect(effectiveCalorieGoal({ ...baseInput, taegliches_kalorienziel: null })).toBe(3204)
   })
 })
 
@@ -82,19 +81,34 @@ describe('kalorienAufschluesselung', () => {
     taegliches_kalorienziel: null,
   }
 
-  it('adds up: need plus delta is the goal', () => {
-    const teile = kalorienAufschluesselung(profil)!
+  it('adds up: need plus delta plus the training of today is the goal of today', () => {
+    const teile = kalorienAufschluesselung(profil, 412.6)!
+    expect(teile.basis.art).toBe('bedarf')
     expect(teile.delta).toBe(-400)
-    expect(teile.tagesbedarf + teile.delta).toBe(teile.ziel)
-    expect(teile.ziel).toBe(effectiveCalorieGoal(profil))
+    expect(teile.training).toBe(413)
+    expect(teile.basis.kcal + teile.delta + teile.training).toBe(teile.ziel)
+    expect(teile.ziel).toBe(zielHeute(profil, 412.6))
   })
 
   it('has no delta when maintaining', () => {
-    expect(kalorienAufschluesselung({ ...profil, ziel: 'halten' })!.delta).toBe(0)
+    expect(kalorienAufschluesselung({ ...profil, ziel: 'halten' }, 0)!.delta).toBe(0)
   })
 
-  it('is null for a manual goal or an incomplete profile', () => {
-    expect(kalorienAufschluesselung({ ...profil, taegliches_kalorienziel: 2200 })).toBeNull()
-    expect(kalorienAufschluesselung({ ...profil, groesse: null })).toBeNull()
+  it('puts training on top of a fixed goal too, and is null for an incomplete profile', () => {
+    expect(kalorienAufschluesselung({ ...profil, taegliches_kalorienziel: 2200 }, 300)).toEqual({
+      basis: { art: 'fest', kcal: 2200 },
+      delta: 0,
+      training: 300,
+      ziel: 2500,
+    })
+    expect(kalorienAufschluesselung({ ...profil, groesse: null }, 300)).toBeNull()
+  })
+})
+
+describe('zielHeute', () => {
+  it('is the daily goal plus the training of today, and null without a goal', () => {
+    expect(zielHeute({ ...baseInput, taegliches_kalorienziel: 1800 }, 250)).toBe(2050)
+    expect(zielHeute({ ...baseInput, taegliches_kalorienziel: null }, 0)).toBe(3204)
+    expect(zielHeute({ ...baseInput, ziel: null, taegliches_kalorienziel: null }, 250)).toBeNull()
   })
 })

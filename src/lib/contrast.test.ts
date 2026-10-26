@@ -63,6 +63,11 @@ describe('contrastRatio', () => {
     expect(contrastRatio(DANGER_TEXT, SURFACE_RAISED)).toBeGreaterThanOrEqual(4.5)
   })
 
+  // PageHero labels carry the area color as small text on the card (re-audit 26.10.2026).
+  it('lets every area color clear AA text contrast on the card', () => {
+    for (const farbe of Object.values(BEREICH_FARBE)) expect(contrastRatio(farbe, SURFACE)).toBeGreaterThanOrEqual(4.5)
+  })
+
   it('confirms the new accent-text value clears the 3:1 UI-component minimum against the nav pill', () => {
     expect(contrastRatio(ACCENT_TEXT, SURFACE_RAISED)).toBeGreaterThanOrEqual(3)
   })

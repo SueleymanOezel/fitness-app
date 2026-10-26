@@ -214,7 +214,9 @@ describe('BodyPage', () => {
 
     const wert = screen.getByTestId('wert-gewicht')
     expect(wert).toHaveClass('tabular-nums', 'font-bold')
-    expect(screen.getByText('Gewicht', { selector: 'h2' })).toHaveClass('text-text-muted', 'font-medium')
+    // Small and in the body color (re-audit 26.10.2026): it names the area, the figure stays the loud part.
+    expect(screen.getByText('Gewicht', { selector: 'h2' })).toHaveClass('text-chart-koerper', 'text-sm')
+    expect(screen.getByText('Gewicht', { selector: 'h2' })).not.toHaveClass('font-bold')
   })
 
   it('reports a failed load instead of showing an empty body area', () => {
