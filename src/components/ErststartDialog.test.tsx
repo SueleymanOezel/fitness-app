@@ -75,6 +75,15 @@ describe('ErststartDialog', () => {
     expect(ersteWiegung).not.toHaveBeenCalled()
   })
 
+  it('does not take an empty distance as zero when losing weight', async () => {
+    const { updateProfile } = oeffnen()
+    koerperAusfuellen()
+    fireEvent.change(screen.getByLabelText(/Abstand zum Bedarf/), { target: { value: '' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Ziel speichern' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Bitte einen Abstand')
+    expect(updateProfile).not.toHaveBeenCalled()
+  })
+
   it('can be put off at the first step', () => {
     const { onClose } = oeffnen()
     fireEvent.click(screen.getByRole('button', { name: 'Später' }))

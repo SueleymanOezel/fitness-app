@@ -58,7 +58,7 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
   const werte = koerper(draft)
   const delta = draft.ziel === 'halten' ? 0 : parseNumber(draft.delta, RANGES.ziel_delta_kcal)
   const eingabe: CalorieGoalInput | null =
-    werte && delta !== undefined
+    werte && delta != null
       ? {
           alter: werte.alter,
           groesse: werte.groesse,
@@ -66,7 +66,7 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
           geschlecht: draft.geschlecht as CalorieGoalInput['geschlecht'],
           aktivitaetslevel: draft.aktivitaet as CalorieGoalInput['aktivitaetslevel'],
           ziel: draft.ziel as CalorieGoalInput['ziel'],
-          ziel_delta_kcal: delta ?? 0,
+          ziel_delta_kcal: delta,
         }
       : null
   const bedarf = eingabe && calculateTdee(eingabe)

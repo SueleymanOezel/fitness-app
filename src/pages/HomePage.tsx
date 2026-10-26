@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSession } from '../hooks/use-session'
 import { useProfile } from '../hooks/use-profile'
 import { useFoodEntries } from '../hooks/use-food-entries'
@@ -34,7 +34,7 @@ import QuickAddDialog from '../components/QuickAddDialog'
 import { mealSections } from '../lib/meal-sections'
 import ErststartDialog from '../components/ErststartDialog'
 import ErsteSchritte from '../components/ErsteSchritte'
-import { erststartGesehen, merkeErststartGesehen } from '../lib/first-start'
+import { ersteSchritteFertig, erststartGesehen, merkeErsteSchritteFertig, merkeErststartGesehen } from '../lib/first-start'
 
 const LEERE_WERTE = Object.fromEntries(MEASUREMENT_FIELDS.map((feld) => [feld, null])) as BodyMetricValues
 
@@ -69,6 +69,11 @@ function Dashboard({ userId }: { userId: string }) {
   const [erststart, setErststart] = useState<'offen' | 'zu' | null>(null)
   // A fresh key on every opening starts the dialog at step 1 again.
   const [erststartRunde, setErststartRunde] = useState(0)
+  const zielGesetzt = profile != null && effectiveCalorieGoal(profile) != null
+  const alleSchritte = zielGesetzt && plan != null && rows.length > 0 && entries.length > 0
+  useEffect(() => {
+    if (alleSchritte) merkeErsteSchritteFertig(userId)
+  }, [alleSchritte, userId])
 
   if (profileLoading || entriesLoading || trainingLoading || rowsLoading || streakLoading) {
     return <PageSkeleton titel="Home" />
@@ -77,7 +82,6 @@ function Dashboard({ userId }: { userId: string }) {
   // goal bleibt null, wenn das Profil nicht geladen werden konnte — die Kalorien-Karte
   // zeigt das Gegessene dann trotzdem, nur ohne Restwert gegen ein Ziel. Ein
   // Bereich, der nicht laedt, soll die anderen nicht mit sperren.
-  const zielGesetzt = profile != null && effectiveCalorieGoal(profile) != null
   if (erststart === null && profile) {
     setErststart(!zielGesetzt && !erststartGesehen(userId) ? 'offen' : 'zu')
   }
@@ -86,8 +90,10 @@ function Dashboard({ userId }: { userId: string }) {
     setErststart('zu')
   }
 
-  // A new account is one without a goal or a weigh-in; an old one without a plan gets the plain empty state below.
-  const ersteSchritte = profile != null && erststart === 'zu' && (!zielGesetzt || rows.length === 0)
+  // Only after a first start on this device, until all four were done once: an older account without
+  // a plan gets the plain empty state below instead.
+  const ersteSchritte =
+    profile != null && erststart === 'zu' && erststartGesehen(userId) && !alleSchritte && !ersteSchritteFertig(userId)
 
   const goal = profile ? zielHeute(profile, trainingKcal) : null
   const status = kalorienStatus(sumKalorien(entries), goal, trainingKcal)

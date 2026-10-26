@@ -19,3 +19,23 @@ export function merkeErststartGesehen(userId: string) {
     // Without storage the dialog simply shows again next time.
   }
 }
+
+// Once goal, plan, a weigh-in and a meal were all there at the same time, the checklist is done for
+// good on this device; a later deleted plan gets the normal empty state, not the checklist again.
+const fertigSchluessel = (userId: string) => `vl-erste-schritte-fertig:${userId}`
+
+export function ersteSchritteFertig(userId: string): boolean {
+  try {
+    return localStorage.getItem(fertigSchluessel(userId)) === '1'
+  } catch {
+    return true
+  }
+}
+
+export function merkeErsteSchritteFertig(userId: string) {
+  try {
+    localStorage.setItem(fertigSchluessel(userId), '1')
+  } catch {
+    // Without storage the checklist decides from the data alone.
+  }
+}
