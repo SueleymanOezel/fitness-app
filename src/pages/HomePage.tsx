@@ -55,7 +55,7 @@ export default function HomePage() {
 function Dashboard({ userId }: { userId: string }) {
   const profileResult = useProfile(userId)
   const { profile, loading: profileLoading, updateProfile } = profileResult
-  const { entries, loading: entriesLoading, addEntry } = useFoodEntries(userId)
+  const { entries, loading: entriesLoading, addEntry, addEntries, removeEntries } = useFoodEntries(userId)
   const { plan, day, loading: trainingLoading, error: trainingError } = useActiveTrainingDay(userId)
   const { rows, loading: rowsLoading, error: rowsError, saveEntry } = useBodyMetrics(userId)
   const { streak, loading: streakLoading } = useTrainingStreak(userId)
@@ -222,6 +222,9 @@ function Dashboard({ userId }: { userId: string }) {
           onClose={() => setMahlzeitOffen(false)}
           sections={mealSections(profile)}
           addEntry={addEntry}
+          userId={userId}
+          addEntries={addEntries}
+          removeEntries={removeEntries}
         />
       )}
       <WochenKarte userId={userId} trainings={streak.dieseWoche} rows={rows} />

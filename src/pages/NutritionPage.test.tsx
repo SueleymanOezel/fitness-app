@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { renderWithProviders } from '../test-render'
 import NutritionPage from './NutritionPage'
 
+vi.mock('../hooks/use-meal-favorites', () => ({ useMahlzeitFavoriten: () => ({ favoriten: [], speichern: vi.fn(), loeschen: vi.fn() }) }))
 vi.mock('../hooks/use-training-kcal-heute', () => ({ useTrainingKcalHeute: () => 0 }))
 
 vi.mock('../components/AddEntryFlow', () => ({
@@ -69,7 +70,7 @@ function entriesResult(overrides: Record<string, unknown> = {}) {
 }
 
 function zeigeDashboard() {
-  return render(<NutritionPage />, { wrapper: MemoryRouter })
+  return renderWithProviders(<NutritionPage />)
 }
 
 describe('NutritionPage', () => {

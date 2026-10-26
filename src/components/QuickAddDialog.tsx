@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import AddEntryFlow from './AddEntryFlow'
+import FavoritenListe from './FavoritenListe'
+import { useFavoritEintragen } from '../hooks/use-enter-favorite'
 import Chip from './Chip'
 import Dialog from './Dialog'
 import { PressableLink } from './Pressable'
@@ -11,6 +13,9 @@ type Props = {
   onClose: () => void
   sections: MealSection[]
   addEntry: (productId: string, menge: number, mahlzeit: number | null) => Promise<void>
+  userId: string
+  addEntries: (rows: { product_id: string; menge: number; mahlzeit: number }[]) => Promise<string[]>
+  removeEntries: (ids: string[]) => Promise<void>
 }
 
 /**
@@ -20,15 +25,16 @@ type Props = {
  * vorbelegt sind. Fehler bleiben im Dialog (AddEntryFlow zeigt sie inline):
  * ein Toast läge hinter dem Top-Layer des offenen <dialog>.
  */
-export default function QuickAddDialog({ open, onClose, sections, addEntry }: Props) {
+export default function QuickAddDialog({ open, onClose, ...rest }: Props) {
   return (
     <Dialog open={open} onClose={onClose}>
-      {open && <QuickAddForm sections={sections} addEntry={addEntry} onClose={onClose} />}
+      {open && <QuickAddForm {...rest} onClose={onClose} />}
     </Dialog>
   )
 }
 
-function QuickAddForm({ sections, addEntry, onClose }: Omit<Props, 'open'>) {
+function QuickAddForm({ sections, addEntry, onClose, userId, addEntries, removeEntries }: Omit<Props, 'open'>) {
+  const favoritEintragen = useFavoritEintragen(addEntries, removeEntries)
   const [slot, setSlot] = useState<number | null>(() => abschnittFuerUhrzeit(sections, new Date()))
 
   if (slot === null) {
@@ -56,6 +62,13 @@ function QuickAddForm({ sections, addEntry, onClose }: Omit<Props, 'open'>) {
           ))}
         </div>
       </div>
+      <FavoritenListe
+        userId={userId}
+        onWaehlen={(favorit) => {
+          onClose()
+          void favoritEintragen(favorit, slot)
+        }}
+      />
       <AddEntryFlow
         onAdd={async (productId, menge) => {
           await addEntry(productId, menge, slot)
