@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlan, type DayExercisePatch, type WorkoutPlanDay } from '../hooks/use-workout-plans'
@@ -74,30 +74,34 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
 
   // The hook rejects on a failed write; without this the rejection would go
   // unhandled and the user would see nothing at all.
-  async function run(action: () => Promise<void>, message: string, erfolg?: string) {
+  async function run(action: () => Promise<void>, message: string): Promise<boolean> {
     try {
       await action()
-      if (erfolg) showToast(erfolg, 'success')
+      return true
     } catch {
       showToast(message, 'error')
+      return false
     }
   }
 
   return (
     <div>
       <h1>{plan.name}</h1>
+      <p className={labelClass}>Änderungen speichern sich automatisch.</p>
       {days.map((day, index) => (
         <DayBlock
           key={day.id}
           day={day}
+          // One day open at first: a plan of four days was ~2000 px of fields (re-audit 26.10.2026).
+          anfangsOffen={index === 0}
           exercises={exercises}
           canMoveUp={index > 0}
           canMoveDown={index < days.length - 1}
           onMoveDay={(direction) => run(() => moveDay(day.id, direction), 'Verschieben fehlgeschlagen.')}
-          onAddExercises={(exerciseIds) =>
-            run(() => addExercisesToDay(day.id, exerciseIds), 'Übung hinzufügen fehlgeschlagen.')
-          }
-          onUpdateExercise={(id, patch) => run(() => updateDayExercise(id, patch), 'Speichern fehlgeschlagen.', 'Gespeichert.')}
+          onAddExercises={async (exerciseIds) => {
+            await run(() => addExercisesToDay(day.id, exerciseIds), 'Übung hinzufügen fehlgeschlagen.')
+          }}
+          onUpdateExercise={(id, patch) => run(() => updateDayExercise(id, patch), 'Speichern fehlgeschlagen.')}
           onRemoveExercise={(id) => removeDayExercise(id)}
           onMoveExercise={(exerciseRowId, direction) =>
             run(() => moveDayExercise(day.id, exerciseRowId, direction), 'Verschieben fehlgeschlagen.')
@@ -147,6 +151,7 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
 
 function DayBlock({
   day,
+  anfangsOffen,
   exercises,
   canMoveUp,
   canMoveDown,
@@ -157,16 +162,18 @@ function DayBlock({
   onMoveExercise,
 }: {
   day: WorkoutPlanDay
+  anfangsOffen: boolean
   exercises: PickableExercise[]
   canMoveUp: boolean
   canMoveDown: boolean
   onMoveDay: (direction: 'up' | 'down') => void
   onAddExercises: (exerciseIds: string[]) => Promise<void>
-  onUpdateExercise: (id: string, patch: DayExercisePatch) => void
+  onUpdateExercise: (id: string, patch: DayExercisePatch) => Promise<boolean>
   onRemoveExercise: (id: string) => Promise<void>
   onMoveExercise: (exerciseRowId: string, direction: 'up' | 'down') => void
 }) {
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [tagOffen, setTagOffen] = useState(anfangsOffen)
   // One exercise open at a time, like the live session — the day stays a short list.
   const [offen, setOffen] = useState<string | null>(null)
 
@@ -180,97 +187,116 @@ function DayBlock({
 
   return (
     <section className={cardClass}>
-      <h2>{day.name}</h2>
-      <TagMuskelSilhouette zonen={zonen} />
-      {(canMoveUp || canMoveDown) && (
-        <div className="flex flex-wrap gap-2">
-          {canMoveUp && (
-            <Pressable variant="secondary" className="min-w-11 px-3" type="button" aria-label={`${day.name} nach oben`} onClick={() => onMoveDay('up')}>
-              ↑︎
-            </Pressable>
-          )}
-          {canMoveDown && (
-            <Pressable variant="secondary" className="min-w-11 px-3" type="button" aria-label={`${day.name} nach unten`} onClick={() => onMoveDay('down')}>
-              ↓︎
-            </Pressable>
-          )}
-        </div>
+      {/* Name, size and order in one row: the day folds away, its arrows stay in reach. */}
+      <div className="flex items-center gap-2">
+        <h2 className="min-w-0 flex-1">
+          <Pressable
+            variant="bare"
+            type="button"
+            aria-expanded={tagOffen}
+            className={`flex min-h-11 w-full items-center gap-2 rounded-lg text-left ${interactiveClass}`}
+            onClick={() => setTagOffen(!tagOffen)}
+          >
+            <span aria-hidden="true" className={`inline-block text-text-muted transition-transform motion-reduce:transition-none ${tagOffen ? 'rotate-90' : ''}`}>
+              ›
+            </span>
+            <span className="min-w-0 truncate">{day.name}</span>
+            <span className={`${labelClass} ml-auto shrink-0`}>
+              {day.exercises.length === 1 ? '1 Übung' : `${day.exercises.length} Übungen`}
+            </span>
+          </Pressable>
+        </h2>
+        {canMoveUp && (
+          <Pressable variant="secondary" className="min-w-11 px-3" type="button" aria-label={`${day.name} nach oben`} onClick={() => onMoveDay('up')}>
+            ↑︎
+          </Pressable>
+        )}
+        {canMoveDown && (
+          <Pressable variant="secondary" className="min-w-11 px-3" type="button" aria-label={`${day.name} nach unten`} onClick={() => onMoveDay('down')}>
+            ↓︎
+          </Pressable>
+        )}
+      </div>
+      {tagOffen && (
+        <>
+          <TagMuskelSilhouette zonen={zonen} />
+          <ul role="list" className={listClass}>
+            {day.exercises.map((row, index) => (
+              <li key={row.id} className={`${listRowClass} items-start`}>
+                <ExerciseThumbnail bildUrl={row.exercise?.bild_url ?? null} />
+                <div className="flex flex-1 flex-col gap-2">
+                  <Pressable
+                    variant="bare"
+                    type="button"
+                    aria-expanded={offen === row.id}
+                    className={`flex min-h-11 flex-col items-start rounded-lg text-left ${interactiveClass}`}
+                    onClick={() => setOffen(offen === row.id ? null : row.id)}
+                  >
+                    <span className="font-medium">{row.exercise?.name_de ?? row.exercise?.name}</span>
+                    <span className={labelClass}>{zielText(row)}</span>
+                  </Pressable>
+                  {offen === row.id && (
+                    <>
+                      <TargetField
+                        label="Sätze"
+                        stored={row.ziel_saetze}
+                        onCommit={(value) => onUpdateExercise(row.id, { ziel_saetze: value })}
+                      />
+                      <TargetField
+                        label="Wiederholungen"
+                        stored={row.ziel_wiederholungen}
+                        onCommit={(value) => onUpdateExercise(row.id, { ziel_wiederholungen: value })}
+                      />
+                      <TargetField
+                        label="Pause (Sekunden)"
+                        stored={row.pausenzeit_sekunden}
+                        onCommit={(value) => onUpdateExercise(row.id, { pausenzeit_sekunden: value })}
+                      />
+                      <div className="flex flex-wrap gap-2">
+                        {index > 0 && (
+                          <Pressable
+                            variant="secondary"
+                            className="min-w-11 px-3"
+                            type="button"
+                            aria-label="Nach oben"
+                            onClick={() => onMoveExercise(row.id, 'up')}
+                          >
+                            ↑︎
+                          </Pressable>
+                        )}
+                        {index < day.exercises.length - 1 && (
+                          <Pressable
+                            variant="secondary"
+                            className="min-w-11 px-3"
+                            type="button"
+                            aria-label="Nach unten"
+                            onClick={() => onMoveExercise(row.id, 'down')}
+                          >
+                            ↓︎
+                          </Pressable>
+                        )}
+                        <ConfirmDelete
+                          label="Entfernen"
+                          titel="Übung aus dem Tag entfernen?"
+                          text="Nur der Plan ändert sich. Bereits aufgezeichnete Trainings bleiben unverändert."
+                          bestaetigen="Ja, entfernen"
+                          onConfirm={() => onRemoveExercise(row.id)}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+          <Pressable variant="secondary" type="button" onClick={() => setPickerOpen(true)}>
+            <span className="inline-flex items-center justify-center gap-2">
+              <VitaIcon name="add" tone="mono" size={20} />
+              Übung hinzufügen
+            </span>
+          </Pressable>
+        </>
       )}
-      <ul role="list" className={listClass}>
-        {day.exercises.map((row, index) => (
-          <li key={row.id} className={`${listRowClass} items-start`}>
-            <ExerciseThumbnail bildUrl={row.exercise?.bild_url ?? null} />
-            <div className="flex flex-1 flex-col gap-2">
-              <Pressable
-                variant="bare"
-                type="button"
-                aria-expanded={offen === row.id}
-                className={`flex min-h-11 flex-col items-start rounded-lg text-left ${interactiveClass}`}
-                onClick={() => setOffen(offen === row.id ? null : row.id)}
-              >
-                <span className="font-medium">{row.exercise?.name_de ?? row.exercise?.name}</span>
-                <span className={labelClass}>{zielText(row)}</span>
-              </Pressable>
-              {offen === row.id && (
-                <>
-                  <TargetField
-                    label="Sätze"
-                    stored={row.ziel_saetze}
-                    onCommit={(value) => onUpdateExercise(row.id, { ziel_saetze: value })}
-                  />
-                  <TargetField
-                    label="Wiederholungen"
-                    stored={row.ziel_wiederholungen}
-                    onCommit={(value) => onUpdateExercise(row.id, { ziel_wiederholungen: value })}
-                  />
-                  <TargetField
-                    label="Pause (Sekunden)"
-                    stored={row.pausenzeit_sekunden}
-                    onCommit={(value) => onUpdateExercise(row.id, { pausenzeit_sekunden: value })}
-                  />
-                  <div className="flex flex-wrap gap-2">
-                    {index > 0 && (
-                      <Pressable
-                        variant="secondary"
-                        className="min-w-11 px-3"
-                        type="button"
-                        aria-label="Nach oben"
-                        onClick={() => onMoveExercise(row.id, 'up')}
-                      >
-                        ↑︎
-                      </Pressable>
-                    )}
-                    {index < day.exercises.length - 1 && (
-                      <Pressable
-                        variant="secondary"
-                        className="min-w-11 px-3"
-                        type="button"
-                        aria-label="Nach unten"
-                        onClick={() => onMoveExercise(row.id, 'down')}
-                      >
-                        ↓︎
-                      </Pressable>
-                    )}
-                    <ConfirmDelete
-                      label="Entfernen"
-                      titel="Übung aus dem Tag entfernen?"
-                      text="Nur der Plan ändert sich. Bereits aufgezeichnete Trainings bleiben unverändert."
-                      bestaetigen="Ja, entfernen"
-                      onConfirm={() => onRemoveExercise(row.id)}
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
-      <Pressable variant="secondary" type="button" onClick={() => setPickerOpen(true)}>
-        <span className="inline-flex items-center justify-center gap-2">
-          <VitaIcon name="add" tone="mono" size={20} />
-          Übung hinzufügen
-        </span>
-      </Pressable>
       {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
           rendering the picker only while open resets the search field each
           time it opens, instead of keeping the last search around. */}
@@ -310,6 +336,7 @@ function zielText(row: { ziel_saetze: number | null; ziel_wiederholungen: number
  * Typed into local state and written on blur — a write per keystroke would
  * store every intermediate value (typing "12" would briefly store 1).
  * An emptied field clears the target; Number('') is 0, not "unset".
+ * A short "Gespeichert" right at the field confirms the write where the eye is.
  */
 function TargetField({
   label,
@@ -318,9 +345,15 @@ function TargetField({
 }: {
   label: string
   stored: number | null
-  onCommit: (value: number | null) => void
+  onCommit: (value: number | null) => Promise<boolean>
 }) {
   const [draft, setDraft] = useState(String(stored ?? ''))
+  const [gespeichert, setGespeichert] = useState(false)
+  useEffect(() => {
+    if (!gespeichert) return
+    const timer = setTimeout(() => setGespeichert(false), 2500)
+    return () => clearTimeout(timer)
+  }, [gespeichert])
 
   function commit() {
     const value = draft.trim() === '' ? null : Number(draft)
@@ -331,13 +364,19 @@ function TargetField({
       return
     }
     if (value === stored) return
-    onCommit(value)
+    void onCommit(value).then(setGespeichert)
   }
 
   return (
-    <label className={fieldLabelClass}>
-      {label}
-      <input className={inputClass} type="number" value={draft} onChange={(event) => setDraft(event.target.value)} onBlur={commit} />
-    </label>
+    <div className="flex flex-col gap-1">
+      <label className={fieldLabelClass}>
+        {label}
+        <input className={inputClass} type="number" value={draft} onChange={(event) => setDraft(event.target.value)} onBlur={commit} />
+      </label>
+      {/* Outside the label, so the field's name stays "Sätze" for a screen reader. */}
+      <span role="status" className="text-sm font-medium text-chart-mint">
+        {gespeichert ? '✓ Gespeichert' : ''}
+      </span>
+    </div>
   )
 }
