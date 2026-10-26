@@ -52,7 +52,7 @@ export default function ChartFrame({
       {/* An empty chart steps back: smaller, muted title, so a page of them reads as one "not yet" instead of many headlines. */}
       <h2 className={leer ? 'text-base text-text-muted' : undefined}>
         {titel}
-        {hilfe && <HilfeKnopf begriff={hilfe} />}
+        {hilfe && <HilfeKnopf begriff={hilfe} zu={titel} />}
       </h2>
       {picker}
       {vorspann}

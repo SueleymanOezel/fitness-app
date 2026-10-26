@@ -33,6 +33,33 @@ afterEach(() => {
 })
 
 describe('Dialog', () => {
+  // Re-audit 27.10.2026: a screen reader heard only "Schließen" on opening.
+  it('is named by its heading and starts with focus on it, not on the close button', () => {
+    stubReducedMotion(true)
+    render(
+      <Dialog open onClose={() => {}}>
+        <h2>Eintrag für Frühstück</h2>
+        <input aria-label="Suche" />
+      </Dialog>,
+    )
+    const titel = screen.getByRole('heading', { name: 'Eintrag für Frühstück' })
+    expect(screen.getByRole('dialog', { name: 'Eintrag für Frühstück' })).toBeInTheDocument()
+    expect(document.activeElement).toBe(titel)
+  })
+
+  it('leaves the first focus to an element marked data-autofocus', () => {
+    stubReducedMotion(true)
+    render(
+      <Dialog open onClose={() => {}}>
+        <h2>Löschen?</h2>
+        <button type="button" data-autofocus>
+          Abbrechen
+        </button>
+      </Dialog>,
+    )
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Abbrechen' }))
+  })
+
   it('shows its content when open', () => {
     render(
       <Dialog open onClose={() => {}}>

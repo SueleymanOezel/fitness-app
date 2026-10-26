@@ -29,11 +29,29 @@ function koerperAusfuellen() {
 }
 
 describe('ErststartDialog', () => {
-  it('asks for every body value before going on', () => {
+  it('marks exactly the missing fields and moves focus to the first one', () => {
     oeffnen()
+    fireEvent.change(screen.getByLabelText('Alter (Jahre)'), { target: { value: '30' } })
+    fireEvent.change(screen.getByLabelText('Gewicht heute (kg)'), { target: { value: '800' } })
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
-    expect(screen.getByRole('alert')).toHaveTextContent('Bitte alle Felder ausfüllen')
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Bitte noch ausfüllen: Größe (100–250 cm), Gewicht (30–300 kg), Geschlecht, Alltag.')
+    expect(screen.getByLabelText('Alter (Jahre)')).not.toHaveAttribute('aria-invalid')
+    expect(screen.getByLabelText('Größe (cm)')).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByLabelText('Gewicht heute (kg)')).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByLabelText('Dein Alltag (ohne Sport)')).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByRole('button', { name: 'männlich' })).toHaveAttribute('aria-invalid', 'true')
+    expect(document.activeElement).toBe(screen.getByLabelText('Größe (cm)'))
     expect(screen.getByText('Schritt 1 von 3')).toBeInTheDocument()
+  })
+
+  it('is named by its title and hands focus to the new title on each step', async () => {
+    oeffnen()
+    expect(screen.getByRole('dialog', { name: 'Willkommen bei VitaLoop' })).toBeInTheDocument()
+    koerperAusfuellen()
+    const titel = screen.getByRole('heading', { name: 'Dein Ziel' })
+    expect(document.activeElement).toBe(titel)
+    expect(await screen.findByRole('dialog', { name: 'Dein Ziel' })).toBeInTheDocument()
   })
 
   it('computes the daily goal live while the goal is chosen', () => {

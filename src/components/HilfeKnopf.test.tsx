@@ -12,6 +12,11 @@ describe('HilfeKnopf', () => {
     expect(ziel).toHaveTextContent(BEGRIFFE.volumen.text)
   })
 
+  it('names the chart it belongs to when a page has the same term twice', () => {
+    render(<HilfeKnopf begriff="volumen" zu="Volumen je Übung (kg)" />)
+    expect(screen.getByRole('button', { name: 'Was heißt Volumen? (Volumen je Übung (kg))' })).toBeInTheDocument()
+  })
+
   it('gives every instance its own popover', () => {
     render(
       <>

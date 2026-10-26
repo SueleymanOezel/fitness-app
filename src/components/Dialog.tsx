@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type ReactNode } from 'react'
+import { useCallback, useEffect, useId, useRef, type ReactNode } from 'react'
 import { VitaIcon } from './icons/VitaIcon'
 import { loadGsap } from '../lib/gsap-loader'
 import { prefersReducedMotion } from '../lib/motion'
@@ -36,6 +36,25 @@ export default function Dialog({
   const contentRef = useRef<HTMLDivElement>(null)
   const ctxRef = useRef<GsapContext | null>(null)
   const disposedRef = useRef(false)
+  const titelId = useId()
+
+  // Named by its first heading (re-audit 27.10.2026: a screen reader only heard "Schließen, Schaltfläche").
+  // Watched, because a multi-step dialog swaps its heading without closing.
+  useEffect(() => {
+    const dialog = ref.current
+    const content = contentRef.current
+    if (!open || !dialog || !content) return
+    const benennen = () => {
+      const titel = content.querySelector<HTMLElement>('h1, h2')
+      if (!titel) return dialog.removeAttribute('aria-labelledby')
+      if (!titel.id) titel.id = titelId
+      dialog.setAttribute('aria-labelledby', titel.id)
+    }
+    benennen()
+    const beobachter = new MutationObserver(benennen)
+    beobachter.observe(content, { childList: true, subtree: true })
+    return () => beobachter.disconnect()
+  }, [open, titelId])
 
   // One gsap context per instance, reverted only on unmount — never between
   // open and close, where a revert would reset the content back to opacity 0.
@@ -87,8 +106,16 @@ export default function Dialog({
     if (open && !dialog.open) {
       dialog.showModal()
       // showModal() focuses the first focusable element — in a delete dialog that is the
-      // destructive button. Content marks the safe default with data-autofocus instead.
-      content?.querySelector<HTMLElement>('[data-autofocus]')?.focus()
+      // destructive button. Content marks the safe default with data-autofocus instead;
+      // without one the title takes focus, so a screen reader starts with what the dialog is
+      // (not "Schließen") and no field pops up the phone keyboard.
+      const ziel =
+        content?.querySelector<HTMLElement>('[data-autofocus]') ?? content?.querySelector<HTMLElement>('h1, h2') ?? null
+      if (ziel && !ziel.hasAttribute('data-autofocus') && !ziel.hasAttribute('tabindex')) {
+        ziel.tabIndex = -1
+        ziel.classList.add('focus:outline-none')
+      }
+      ziel?.focus()
       if (content && !prefersReducedMotion()) {
         animate((gsap) => {
           gsap.fromTo(
