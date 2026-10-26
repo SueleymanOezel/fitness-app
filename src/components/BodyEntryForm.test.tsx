@@ -77,6 +77,11 @@ describe('BodyEntryForm', () => {
     render(<BodyEntryForm letztesGewicht={82.4} onSave={vi.fn()} onClose={vi.fn()} />)
     fireEvent.change(screen.getByLabelText('Datum'), { target: { value: '2026-01-05' } })
     expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(null)
+
+    // A weight typed afterwards is the user's, even when it equals the old prefill.
+    fireEvent.change(screen.getByLabelText('Gewicht (kg)'), { target: { value: '82.4' } })
+    fireEvent.change(screen.getByLabelText('Datum'), { target: { value: '2026-01-04' } })
+    expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(82.4)
   })
 
   it('defaults the date to today', () => {

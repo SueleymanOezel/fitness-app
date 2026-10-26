@@ -38,6 +38,8 @@ export default function BodyEntryForm({
 }) {
   const [datum, setDatum] = useState(entry?.datum ?? today())
   const [draft, setDraft] = useState<BodyMetricInput>(() => inputFrom(entry, letztesGewicht))
+  // True while the weight field still holds the untouched prefill (not a value the user typed).
+  const [vorbelegt, setVorbelegt] = useState(!entry && letztesGewicht != null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   // Weight is the daily value; the rest stays folded unless this entry already has some.
@@ -55,7 +57,10 @@ export default function BodyEntryForm({
           step="any"
           value={draft[field]}
           data-autofocus={field === 'gewicht' ? true : undefined}
-          onChange={(event) => setDraft({ ...draft, [field]: event.target.value })}
+          onChange={(event) => {
+            setDraft({ ...draft, [field]: event.target.value })
+            if (field === 'gewicht') setVorbelegt(false)
+          }}
         />
       </label>
     )
@@ -113,8 +118,9 @@ export default function BodyEntryForm({
             onChange={(event) => {
               setDatum(event.target.value)
               // The prefill is the latest weight, maybe from after a backdated day: an untouched one goes.
-              if (!entry && letztesGewicht != null && event.target.value !== today() && draft.gewicht === String(letztesGewicht)) {
+              if (vorbelegt && event.target.value !== today()) {
                 setDraft((alt) => ({ ...alt, gewicht: '' }))
+                setVorbelegt(false)
               }
             }}
           />
