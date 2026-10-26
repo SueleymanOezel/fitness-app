@@ -113,6 +113,22 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className={cardClass}>
+        {/* Scanning first: a core scene at the table, and it sat below the fold behind search and
+            recents (re-audit 27.10.2026). Side by side with "Manuell": one decision, not a stack. */}
+        <div className="grid grid-cols-2 gap-2">
+          <Pressable variant="secondary" type="button" onClick={() => setStep('scanning')}>
+            <span className="inline-flex items-center justify-center gap-2">
+              <VitaIcon name="scan" tone="mono" size={20} />
+              Scannen
+            </span>
+          </Pressable>
+          <Pressable variant="secondary" type="button" onClick={() => setStep('manual-entry')}>
+            <span className="inline-flex items-center justify-center gap-2">
+              <VitaIcon name="add" tone="mono" size={20} />
+              Manuell
+            </span>
+          </Pressable>
+        </div>
         <label className={fieldLabelClass}>
           Produkt suchen
           <input
@@ -155,21 +171,6 @@ export default function ProductPicker({ onPicked, onCancel }: Props) {
         )}
       </div>
       <div className={`${cardClass} flex flex-col`}>
-      {/* The two other ways in, side by side: one decision, not a stack of four. */}
-      <div className="grid grid-cols-2 gap-2">
-        <Pressable variant="secondary" type="button" onClick={() => setStep('scanning')}>
-          <span className="inline-flex items-center justify-center gap-2">
-            <VitaIcon name="scan" tone="mono" size={20} />
-            Scannen
-          </span>
-        </Pressable>
-        <Pressable variant="secondary" type="button" onClick={() => setStep('manual-entry')}>
-          <span className="inline-flex items-center justify-center gap-2">
-            <VitaIcon name="add" tone="mono" size={20} />
-            Manuell
-          </span>
-        </Pressable>
-      </div>
       {/* Typing the digits is the fallback when the camera cannot read a code — folded until needed. */}
       <details open={error !== null || undefined}>
         <summary className="min-h-11 cursor-pointer py-2.5 text-sm font-medium text-text-muted">Barcode-Nummer eintippen</summary>

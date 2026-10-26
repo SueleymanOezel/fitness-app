@@ -37,6 +37,15 @@ describe('ProductPicker', () => {
     mockFindOrFetch.mockReset()
   })
 
+  // Re-audit 27.10.2026: scanning, a core scene, sat below the fold behind search and recents.
+  it('puts scanning before the search field', async () => {
+    const { default: ProductPicker } = await import('./ProductPicker')
+    render(<ProductPicker onPicked={vi.fn()} onCancel={vi.fn()} />)
+    const scannen = screen.getByRole('button', { name: 'Scannen' })
+    const suche = screen.getByLabelText('Produkt suchen')
+    expect(scannen.compareDocumentPosition(suche) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
   it('reports the product found for a typed barcode', async () => {
     mockFindOrFetch.mockResolvedValue(product)
     const onPicked = vi.fn()

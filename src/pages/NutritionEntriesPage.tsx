@@ -78,6 +78,8 @@ function EntriesBySection({ userId }: { userId: string }) {
           />
         )
       })}
+      {/* Managing favorites lives here, away from the add dialogs where only a tap enters one. */}
+      <FavoritenListe userId={userId} />
     </div>
   )
 }
