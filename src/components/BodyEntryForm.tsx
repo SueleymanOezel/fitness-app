@@ -14,8 +14,9 @@ import { cardClass, fieldLabelClass, inputClass } from '../lib/ui-classes'
 import { VitaIcon } from './icons/VitaIcon'
 import Pressable from './Pressable'
 
-function inputFrom(entry: BodyMetricRow | undefined): BodyMetricInput {
-  if (!entry) return EMPTY_INPUT
+function inputFrom(entry: BodyMetricRow | undefined, letztesGewicht: number | null): BodyMetricInput {
+  // A new day starts from the last weight: the morning weigh-in is a small correction, not typing it all.
+  if (!entry) return letztesGewicht == null ? EMPTY_INPUT : { ...EMPTY_INPUT, gewicht: String(letztesGewicht) }
   const filled = { ...EMPTY_INPUT }
   for (const field of MEASUREMENT_FIELDS) {
     filled[field] = entry[field] == null ? '' : String(entry[field])
@@ -25,15 +26,20 @@ function inputFrom(entry: BodyMetricRow | undefined): BodyMetricInput {
 
 export default function BodyEntryForm({
   entry,
+  letztesGewicht = null,
   onSave,
   onClose,
 }: {
   entry?: BodyMetricRow
+  /** Shown in the weight field when there is no entry for the day yet. */
+  letztesGewicht?: number | null
   onSave: (datum: string, values: BodyMetricValues) => Promise<void>
   onClose: () => void
 }) {
   const [datum, setDatum] = useState(entry?.datum ?? today())
-  const [draft, setDraft] = useState<BodyMetricInput>(() => inputFrom(entry))
+  const [draft, setDraft] = useState<BodyMetricInput>(() => inputFrom(entry, letztesGewicht))
+  // True while the weight field still holds the untouched prefill (not a value the user typed).
+  const [vorbelegt, setVorbelegt] = useState(!entry && letztesGewicht != null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   // Weight is the daily value; the rest stays folded unless this entry already has some.
@@ -51,7 +57,10 @@ export default function BodyEntryForm({
           step="any"
           value={draft[field]}
           data-autofocus={field === 'gewicht' ? true : undefined}
-          onChange={(event) => setDraft({ ...draft, [field]: event.target.value })}
+          onChange={(event) => {
+            setDraft({ ...draft, [field]: event.target.value })
+            if (field === 'gewicht') setVorbelegt(false)
+          }}
         />
       </label>
     )
@@ -106,7 +115,15 @@ export default function BodyEntryForm({
             // A future date — or 0007-08-24 from a mistyped year — would sort to
             // the top of the history and hold profiles.aktuelles_gewicht there.
             max={today()}
-            onChange={(event) => setDatum(event.target.value)}
+            onChange={(event) => {
+              setDatum(event.target.value)
+              // The prefill is the latest weight, maybe from after a backdated day: an untouched one goes.
+              // ISO dates compare as strings; an emptied field is no backdate and keeps the prefill.
+              if (vorbelegt && /^\d{4}-\d{2}-\d{2}$/.test(event.target.value) && event.target.value < today()) {
+                setDraft((alt) => ({ ...alt, gewicht: '' }))
+                setVorbelegt(false)
+              }
+            }}
           />
         </label>
         {feld('gewicht')}

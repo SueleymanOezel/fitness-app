@@ -85,6 +85,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
   const [pause, setPause] = useState<{ until: number; sekunden: number } | null>(null)
   /** Text of the "Pause vorbei" bar; null = not showing. */
   const [pauseEnde, setPauseEnde] = useState<string | null>(null)
+  const [entwurf, setEntwurf] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [bearbeiteterSatz, setBearbeiteterSatz] = useState<SessionSet | null>(null)
   const [abschluss, setAbschluss] = useState<
@@ -320,7 +321,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
           <Pressable variant="primary" type="submit" form={SATZ_FORM_ID}>
             <span className="inline-flex items-center justify-center gap-2">
               <VitaIcon name="save" tone="mono" size={20} />
-              Satz abschließen
+              {entwurf ? `Satz abschließen · ${entwurf}` : 'Satz abschließen'}
             </span>
           </Pressable>
         )}
@@ -372,6 +373,7 @@ function LiveSession({ userId, sessionId }: { userId: string; sessionId: string 
                   vorschlag={vorschlagFuer(entry)}
                   letzte={letzteWerte.get(entry.exercise_id)}
                   completedCount={workingSetCount(entry.exercise_id)}
+                  onEntwurf={setEntwurf}
                   onLog={async (values) => {
                     // satz_nummer stays a running order over every set of the
                     // exercise; only the displayed counting skips warm-ups. Max + 1,
@@ -653,6 +655,7 @@ function SetForm({
   letzte,
   completedCount,
   onLog,
+  onEntwurf,
 }: {
   exercise: SessionExercise
   vorschlag: Vorschlag | null
@@ -660,13 +663,21 @@ function SetForm({
   letzte: LetzteWerte extends Map<string, infer V> ? V | undefined : never
   completedCount: number
   onLog: (values: SetValues) => Promise<boolean>
+  /** What "Satz abschließen" would store, for the button far below: no glance back up before the tap. */
+  onEntwurf: (kurz: string | null) => void
 }) {
   const [gewicht, setGewicht] = useState(() => alsText(vorschlag?.gewicht ?? null))
   const [wiederholungen, setWiederholungen] = useState(() => alsText(vorschlag?.wiederholungen ?? null))
+  // Not prefilled, unlike weight and reps: it is optional and easily overlooked, so a carried-over
+  // rating would store an effort the user never gave. A set as planned is still one tap without it.
   const [rir, setRir] = useState<number | null>(null)
   const [istAufwaermsatz, setIstAufwaermsatz] = useState(false)
   const [fehler, setFehler] = useState<{ gewicht?: string; wiederholungen?: string }>({})
   const formRef = useRef<HTMLFormElement>(null)
+  useEffect(() => {
+    const wdh = wiederholungen.trim()
+    onEntwurf(wdh === '' ? null : gewicht.trim() === '' ? `${wdh} Wdh.` : `${gewicht.trim()} kg × ${wdh}`)
+  }, [gewicht, wiederholungen, onEntwurf])
 
   return (
     <form

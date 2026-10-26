@@ -1,6 +1,7 @@
 import { ProfileWeightSyncError } from '../hooks/use-body-metrics'
 import { today, type BodyMetricRow, type BodyMetricValues } from '../lib/body-metrics'
 import BodyEntryForm from './BodyEntryForm'
+import { latestValue } from '../lib/body-change'
 import Dialog from './Dialog'
 import { useToast } from './ToastProvider'
 
@@ -26,6 +27,7 @@ export default function BodyEntryDialog({ open, onClose, rows, saveEntry }: Prop
           // everything already recorded today. Correcting the day means
           // starting from what is stored, not from blanks.
           entry={rows.find((row) => row.datum === today())}
+          letztesGewicht={latestValue(rows, 'gewicht')?.value ?? null}
           onSave={async (datum, values) => {
             try {
               await saveEntry(datum, values)
