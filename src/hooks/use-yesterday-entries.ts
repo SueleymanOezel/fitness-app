@@ -21,6 +21,16 @@ export function useGesternEintraege(userId: string) {
   // never pass for this user's yesterday, even before the new read has answered (or if it fails).
   const schluessel = `${userId}@${localDay(new Date().toISOString())}`
   const [geladen, setGeladen] = useState<{ schluessel: string; eintraege: GesternEintrag[] } | null>(null)
+  const [, setTick] = useState(0)
+
+  // The key only changes on a render: one just after midnight makes a page left open roll over to the
+  // new day. A suspended phone fires the timer on waking, before anything can be tapped.
+  useEffect(() => {
+    const jetzt = new Date()
+    const mitternacht = new Date(jetzt.getFullYear(), jetzt.getMonth(), jetzt.getDate() + 1)
+    const timer = setTimeout(() => setTick((tick) => tick + 1), mitternacht.getTime() - jetzt.getTime() + 1000)
+    return () => clearTimeout(timer)
+  }, [schluessel])
 
   useEffect(() => {
     let aktuell = true

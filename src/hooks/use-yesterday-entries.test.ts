@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { gesternRange, useGesternEintraege } from './use-yesterday-entries'
 
 const antworten: Record<string, { data: unknown; error: unknown }> = {}
@@ -36,5 +36,21 @@ describe('useGesternEintraege', () => {
     expect(result.current.eintraege).toEqual([])
     await new Promise((resolve) => setTimeout(resolve, 0))
     expect(result.current.eintraege).toEqual([])
+  })
+
+  it('drops yesterday once the page stays open past midnight', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date(2026, 9, 27, 23, 59, 0))
+    antworten.c = { data: [{ product_id: 'p1', menge: 80, mahlzeit: 1 }], error: null }
+    const { result } = renderHook(() => useGesternEintraege('c'))
+    await waitFor(() => expect(result.current.eintraege).toHaveLength(1))
+
+    // The new day's read fails: the old rows must not stay.
+    antworten.c = { data: null, error: { message: 'x' } }
+    await act(async () => {
+      vi.advanceTimersByTime(2 * 60 * 1000)
+    })
+    expect(result.current.eintraege).toEqual([])
+    vi.useRealTimers()
   })
 })
