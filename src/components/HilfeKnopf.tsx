@@ -8,7 +8,8 @@ import Pressable from './Pressable'
  * puts it in the top layer, so it also works inside a <dialog>. Only phrasing
  * elements (button, span), so it may sit inside a heading or a <dt>.
  */
-export default function HilfeKnopf({ begriff }: { begriff: Begriff }) {
+/** `zu`: what the "?" sits on, when one page has the same term twice (two charts with "Volumen"). */
+export default function HilfeKnopf({ begriff, zu }: { begriff: Begriff; zu?: string }) {
   const id = useId()
   const { titel, text } = BEGRIFFE[begriff]
   return (
@@ -17,7 +18,7 @@ export default function HilfeKnopf({ begriff }: { begriff: Begriff }) {
       <Pressable
         type="button"
         popoverTarget={id}
-        aria-label={`Was heißt ${titel}?`}
+        aria-label={zu ? `Was heißt ${titel}? (${zu})` : `Was heißt ${titel}?`}
         className="-my-2.5 inline-flex h-11 w-11 shrink-0 items-center justify-center align-middle text-text-muted"
       >
         <span

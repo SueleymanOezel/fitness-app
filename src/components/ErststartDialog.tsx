@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { Profile } from '../hooks/use-profile'
 import { calculateCalorieGoal, calculateTdee, type CalorieGoalInput } from '../lib/nutrition-goal'
 import { AKTIVITAET, GESCHLECHT, RANGES, ZIEL, parseNumber } from '../lib/profile-fields'
@@ -48,7 +48,19 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
   }))
   const [fehler, setFehler] = useState<string | null>(null)
   const [speichert, setSpeichert] = useState(false)
+  const [geprueft, setGeprueft] = useState(false)
   const schritte = hatPlan ? 2 : 3
+  const titelRef = useRef<HTMLHeadingElement>(null)
+  const ersterSchritt = useRef(true)
+
+  // A new step replaces the form under the focus; the new title takes it, so a screen reader hears where it is.
+  useEffect(() => {
+    if (ersterSchritt.current) {
+      ersterSchritt.current = false
+      return
+    }
+    titelRef.current?.focus()
+  }, [schritt])
 
   function set<K extends keyof Draft>(feld: K, wert: string) {
     setDraft((alt) => ({ ...alt, [feld]: wert }))
@@ -56,6 +68,15 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
   }
 
   const werte = koerper(draft)
+  // Which body field is missing or out of range, in form order: marked at the field, not only in a summary.
+  const ungueltig = [
+    ['alter', `Alter (${RANGES.alter[0]}–${RANGES.alter[1]})`, typeof parseNumber(draft.alter, RANGES.alter) !== 'number'],
+    ['groesse', `Größe (${RANGES.groesse[0]}–${RANGES.groesse[1]} cm)`, typeof parseNumber(draft.groesse, RANGES.groesse) !== 'number'],
+    ['gewicht', `Gewicht (${RANGES.aktuelles_gewicht[0]}–${RANGES.aktuelles_gewicht[1]} kg)`, typeof parseNumber(draft.gewicht, RANGES.aktuelles_gewicht) !== 'number'],
+    ['geschlecht', 'Geschlecht', !draft.geschlecht],
+    ['aktivitaet', 'Alltag', !draft.aktivitaet],
+  ] as const
+  const falsch = (feld: string) => (geprueft && ungueltig.some(([name, , fehlt]) => name === feld && fehlt)) || undefined
   const delta = draft.ziel === 'halten' ? 0 : parseNumber(draft.delta, RANGES.ziel_delta_kcal)
   const eingabe: CalorieGoalInput | null =
     werte && delta != null
@@ -75,9 +96,10 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
   function weiter(event: FormEvent) {
     event.preventDefault()
     if (!werte) {
-      setFehler(
-        `Bitte alle Felder ausfüllen (Alter ${RANGES.alter[0]}–${RANGES.alter[1]}, Größe ${RANGES.groesse[0]}–${RANGES.groesse[1]} cm, Gewicht ${RANGES.aktuelles_gewicht[0]}–${RANGES.aktuelles_gewicht[1]} kg).`,
-      )
+      const offen = ungueltig.filter(([, , fehlt]) => fehlt)
+      setGeprueft(true)
+      setFehler(`Bitte noch ausfüllen: ${offen.map(([, label]) => label).join(', ')}.`)
+      document.getElementById(`erststart-${offen[0][0]}`)?.focus()
       return
     }
     setSchritt(2)
@@ -87,6 +109,7 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
     event.preventDefault()
     if (!eingabe || !werte) {
       setFehler(`Bitte einen Abstand von ${RANGES.ziel_delta_kcal[0]} bis ${RANGES.ziel_delta_kcal[1]} kcal eingeben.`)
+      document.getElementById('erststart-delta')?.focus()
       return
     }
     setSpeichert(true)
@@ -117,7 +140,9 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
   const kopf = (titel: string) => (
     <>
       <p className={labelClass}>{`Schritt ${schritt} von ${schritte}`}</p>
-      <h2>{titel}</h2>
+      <h2 ref={titelRef} tabIndex={-1} className="focus:outline-none">
+        {titel}
+      </h2>
     </>
   )
   const spaeter = (
@@ -135,21 +160,27 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
             <p>Drei kurze Schritte, dann rechnet die App dein Tagesziel aus.</p>
             <label className={fieldLabelClass}>
               Alter (Jahre)
-              <input className={inputClass} type="number" inputMode="numeric" value={draft.alter} onChange={(e) => set('alter', e.target.value)} />
+              <input id="erststart-alter" aria-invalid={falsch('alter')} aria-describedby={falsch('alter') && 'erststart-fehler'} className={inputClass} type="number" inputMode="numeric" value={draft.alter} onChange={(e) => set('alter', e.target.value)} />
             </label>
             <label className={fieldLabelClass}>
               Größe (cm)
-              <input className={inputClass} type="number" inputMode="decimal" step="any" value={draft.groesse} onChange={(e) => set('groesse', e.target.value)} />
+              <input id="erststart-groesse" aria-invalid={falsch('groesse')} aria-describedby={falsch('groesse') && 'erststart-fehler'} className={inputClass} type="number" inputMode="decimal" step="any" value={draft.groesse} onChange={(e) => set('groesse', e.target.value)} />
             </label>
             <label className={fieldLabelClass}>
               Gewicht heute (kg)
-              <input className={inputClass} type="number" inputMode="decimal" step="any" value={draft.gewicht} onChange={(e) => set('gewicht', e.target.value)} />
+              <input id="erststart-gewicht" aria-invalid={falsch('gewicht')} aria-describedby={falsch('gewicht') && 'erststart-fehler'} className={inputClass} type="number" inputMode="decimal" step="any" value={draft.gewicht} onChange={(e) => set('gewicht', e.target.value)} />
             </label>
             <fieldset className="flex flex-col gap-1.5">
               <legend className={`${fieldLabelClass} mb-1.5`}>Geschlecht (für den Grundumsatz)</legend>
               <div className="flex gap-2">
-                {GESCHLECHT.map(([wert, label]) => (
-                  <Chip key={wert} active={draft.geschlecht === wert} onClick={() => set('geschlecht', wert)}>
+                {GESCHLECHT.map(([wert, label], index) => (
+                  <Chip
+                    key={wert}
+                    id={index === 0 ? 'erststart-geschlecht' : undefined}
+                    aria-describedby={falsch('geschlecht') && 'erststart-fehler'}
+                    active={draft.geschlecht === wert}
+                    onClick={() => set('geschlecht', wert)}
+                  >
                     {label}
                   </Chip>
                 ))}
@@ -157,7 +188,7 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
             </fieldset>
             <label className={fieldLabelClass}>
               Dein Alltag (ohne Sport)
-              <select className={inputClass} value={draft.aktivitaet} onChange={(e) => set('aktivitaet', e.target.value)}>
+              <select id="erststart-aktivitaet" aria-invalid={falsch('aktivitaet')} aria-describedby={falsch('aktivitaet') && 'erststart-fehler'} className={inputClass} value={draft.aktivitaet} onChange={(e) => set('aktivitaet', e.target.value)}>
                 <option value="">bitte wählen</option>
                 {AKTIVITAET.map(([wert, label]) => (
                   <option key={wert} value={wert}>
@@ -167,7 +198,11 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
               </select>
             </label>
             <p className="-mt-1 text-sm text-text-muted">Deine Trainings rechnet die App aus den Einheiten dazu.</p>
-            {fehler && <p role="alert">{fehler}</p>}
+            {fehler && (
+              <p id="erststart-fehler" role="alert">
+                {fehler}
+              </p>
+            )}
           </div>
           <Pressable variant="primary" type="submit">
             Weiter
@@ -194,10 +229,12 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
                 <label className={fieldLabelClass}>
                   Abstand zum Bedarf (kcal pro Tag)
                   <input
+                    id="erststart-delta"
                     className={inputClass}
                     type="number"
                     inputMode="numeric"
-                    aria-describedby="erststart-delta-hinweis"
+                    aria-invalid={(fehler != null && delta == null) || undefined}
+                    aria-describedby={fehler != null && delta == null ? 'erststart-delta-hinweis erststart-fehler' : 'erststart-delta-hinweis'}
                     value={draft.delta}
                     onChange={(e) => set('delta', e.target.value)}
                   />
@@ -217,7 +254,11 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
                 </span>
               </p>
             )}
-            {fehler && <p role="alert">{fehler}</p>}
+            {fehler && (
+              <p id="erststart-fehler" role="alert">
+                {fehler}
+              </p>
+            )}
           </div>
           <Pressable variant="primary" type="submit" disabled={speichert}>
             {speichert ? 'Speichert …' : 'Ziel speichern'}
