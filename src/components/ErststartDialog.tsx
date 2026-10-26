@@ -177,7 +177,9 @@ export default function ErststartDialog({ open, onClose, profile, updateProfile,
                   <Chip
                     key={wert}
                     id={index === 0 ? 'erststart-geschlecht' : undefined}
+                    aria-invalid={falsch('geschlecht')}
                     aria-describedby={falsch('geschlecht') && 'erststart-fehler'}
+                    className="aria-invalid:ring-1 aria-invalid:ring-danger"
                     active={draft.geschlecht === wert}
                     onClick={() => set('geschlecht', wert)}
                   >

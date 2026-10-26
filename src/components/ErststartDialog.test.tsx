@@ -40,6 +40,7 @@ describe('ErststartDialog', () => {
     expect(screen.getByLabelText('Größe (cm)')).toHaveAttribute('aria-invalid', 'true')
     expect(screen.getByLabelText('Gewicht heute (kg)')).toHaveAttribute('aria-invalid', 'true')
     expect(screen.getByLabelText('Dein Alltag (ohne Sport)')).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByRole('button', { name: 'männlich' })).toHaveAttribute('aria-invalid', 'true')
     expect(document.activeElement).toBe(screen.getByLabelText('Größe (cm)'))
     expect(screen.getByText('Schritt 1 von 3')).toBeInTheDocument()
   })
