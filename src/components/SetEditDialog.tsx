@@ -2,7 +2,8 @@ import { useState, type FormEvent } from 'react'
 import Dialog from './Dialog'
 import Pressable from './Pressable'
 import RirChips from './RirChips'
-import ConfirmDelete from './ConfirmDelete'
+import { useToast } from './ToastProvider'
+import { VitaIcon } from './icons/VitaIcon'
 import type { SessionSet } from '../hooks/use-workout-session'
 import { parseSetInput } from '../lib/set-values'
 import { cardClass, checkLabelClass, labelClass } from '../lib/ui-classes'
@@ -23,6 +24,8 @@ type Props = {
   onClose: () => void
   onSave: (setId: string, patch: SetPatch) => Promise<void>
   onDelete: (setId: string) => Promise<void>
+  /** Puts a just-deleted set back (the toast's „Rückgängig“). */
+  onRestore: (set: SessionSet) => Promise<void>
 }
 
 /**
@@ -31,10 +34,10 @@ type Props = {
  * solange ein Satz gewählt ist, damit die Vorbelegung bei jedem Öffnen frisch ist.
  * Fehler stehen im Dialog: ein Toast läge hinter dem Top-Layer des offenen <dialog>.
  */
-export default function SetEditDialog({ set, onClose, onSave, onDelete }: Props) {
+export default function SetEditDialog({ set, onClose, onSave, onDelete, onRestore }: Props) {
   return (
     <Dialog open={set !== null} onClose={onClose}>
-      {set && <SetEditForm key={set.id} set={set} onClose={onClose} onSave={onSave} onDelete={onDelete} />}
+      {set && <SetEditForm key={set.id} set={set} onClose={onClose} onSave={onSave} onDelete={onDelete} onRestore={onRestore} />}
     </Dialog>
   )
 }
@@ -44,12 +47,16 @@ function SetEditForm({
   onClose,
   onSave,
   onDelete,
+  onRestore,
 }: {
   set: SessionSet
   onClose: () => void
   onSave: Props['onSave']
   onDelete: Props['onDelete']
+  onRestore: Props['onRestore']
 }) {
+  const showToast = useToast()
+  const [loeschFehler, setLoeschFehler] = useState(false)
   // Same field and number format as the live form: "72,5", not "72.5", and −/+ instead of the keyboard.
   const [gewicht, setGewicht] = useState(set.gewicht == null ? '' : zahlDe(set.gewicht))
   const [wiederholungen, setWiederholungen] = useState(set.wiederholungen == null ? '' : String(set.wiederholungen))
@@ -128,18 +135,40 @@ function SetEditForm({
       <Pressable variant="secondary" type="button" className="w-full" onClick={onClose}>
         Abbrechen
       </Pressable>
-      {/* Abgesetzt: direkt neben „Abbrechen“ war ein Fehltipp ein gelöschter Satz. */}
-      <div className="border-t border-text-muted/15 pt-4">
-        <ConfirmDelete
-          label="Satz löschen"
+      {/* Abgesetzt: direkt neben „Abbrechen“ war ein Fehltipp ein gelöschter Satz. Keine Rückfrage
+          mehr: ein Satz lässt sich im Toast zurückholen (Re-Audit 26.10.2026). */}
+      <div className="flex flex-col gap-2 border-t border-text-muted/15 pt-4">
+        {loeschFehler && (
+          <p role="alert" className="text-sm text-danger">
+            Satz konnte nicht gelöscht werden.
+          </p>
+        )}
+        <Pressable
+          variant="danger"
+          type="button"
           className="w-full"
-          titel="Satz löschen?"
-          text="Dieser Satz wird aus dem Training entfernt."
-          onConfirm={async () => {
-            await onDelete(set.id)
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true)
+            try {
+              await onDelete(set.id)
+            } catch {
+              setLoeschFehler(true)
+              setBusy(false)
+              return
+            }
             onClose()
+            showToast('Satz gelöscht.', 'success', {
+              label: 'Rückgängig',
+              onClick: () => void onRestore(set).catch(() => showToast('Satz konnte nicht zurückgeholt werden.', 'error')),
+            })
           }}
-        />
+        >
+          <span className="inline-flex items-center justify-center gap-2">
+            <VitaIcon name="delete" tone="mono" size={20} />
+            Satz löschen
+          </span>
+        </Pressable>
       </div>
     </form>
   )

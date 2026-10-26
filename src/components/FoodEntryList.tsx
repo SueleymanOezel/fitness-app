@@ -2,7 +2,8 @@ import { useState } from 'react'
 import FoodEntryEditForm from './FoodEntryEditForm'
 import { cardClass, interactiveClass, listClass } from '../lib/ui-classes'
 import Dialog from './Dialog'
-import ConfirmDelete from './ConfirmDelete'
+import { useToast } from './ToastProvider'
+import { VitaIcon } from './icons/VitaIcon'
 import type { MealSection } from '../lib/meal-sections'
 import type { EntryPatch, FoodEntry } from '../hooks/use-food-entries'
 import Pressable from './Pressable'
@@ -13,9 +14,11 @@ type Props = {
   sections: MealSection[]
   onUpdateEntry: (entryId: string, patch: EntryPatch) => Promise<void>
   onDelete: (entryId: string) => Promise<void>
+  /** Puts a just-deleted entry back (the toast's „Rückgängig“). */
+  onRestore: (entry: FoodEntry) => Promise<void>
 }
 
-export default function FoodEntryList({ entries, userId, sections, onUpdateEntry, onDelete }: Props) {
+export default function FoodEntryList({ entries, userId, sections, onUpdateEntry, onDelete, onRestore }: Props) {
   if (entries.length === 0) {
     return <p>Noch keine Einträge heute.</p>
   }
@@ -31,6 +34,7 @@ export default function FoodEntryList({ entries, userId, sections, onUpdateEntry
             sections={sections}
             onUpdateEntry={onUpdateEntry}
             onDelete={onDelete}
+            onRestore={onRestore}
           />
         ))}
       </ul>
@@ -44,8 +48,11 @@ function FoodEntryRow({
   sections,
   onUpdateEntry,
   onDelete,
-}: { entry: FoodEntry } & Pick<Props, 'userId' | 'sections' | 'onUpdateEntry' | 'onDelete'>) {
+  onRestore,
+}: { entry: FoodEntry } & Pick<Props, 'userId' | 'sections' | 'onUpdateEntry' | 'onDelete' | 'onRestore'>) {
   const [editing, setEditing] = useState(false)
+  const [loeschFehler, setLoeschFehler] = useState(false)
+  const showToast = useToast()
   const label = entry.products?.name ?? 'Unbekanntes Produkt'
   const kalorien = entry.products ? Math.round((entry.products.kalorien * entry.menge) / 100) : null
 
@@ -56,7 +63,10 @@ function FoodEntryRow({
         variant="bare"
         type="button"
         className={`flex w-full items-center gap-3 rounded-lg py-3 text-left ${interactiveClass}`}
-        onClick={() => setEditing(true)}
+        onClick={() => {
+          setLoeschFehler(false)
+          setEditing(true)
+        }}
       >
         <span className="flex flex-1 flex-col gap-1">
           <span className="font-semibold">{label}</span>
@@ -86,18 +96,39 @@ function FoodEntryRow({
           />
         )}
         {editing && (
-          // Set apart from "Abbrechen", as in the set dialog: one mistap must not delete.
-          <div className="border-t border-text-muted/15 pt-4">
-            <ConfirmDelete
-              label="Eintrag löschen"
+          // Set apart from "Abbrechen", as in the set dialog. No second question: a light delete
+          // is undone from the toast instead (re-audit 26.10.2026), the dialog cost a tap every time.
+          <div className="flex flex-col gap-2 border-t border-text-muted/15 pt-4">
+            {loeschFehler && (
+              <p role="alert" className="text-sm text-danger">
+                Eintrag konnte nicht gelöscht werden.
+              </p>
+            )}
+            <Pressable
+              variant="danger"
+              type="button"
               className="w-full"
-              titel="Eintrag löschen?"
-              text={`${label} wird aus deinem Tagebuch entfernt.`}
-              onConfirm={async () => {
-                await onDelete(entry.id)
+              onClick={async () => {
+                try {
+                  await onDelete(entry.id)
+                } catch {
+                  // Inside the open dialog: a toast would sit behind its top layer.
+                  setLoeschFehler(true)
+                  return
+                }
                 setEditing(false)
+                showToast(`${label} gelöscht.`, 'success', {
+                  label: 'Rückgängig',
+                  onClick: () =>
+                    void onRestore(entry).catch(() => showToast('Eintrag konnte nicht zurückgeholt werden.', 'error')),
+                })
               }}
-            />
+            >
+              <span className="inline-flex items-center justify-center gap-2">
+                <VitaIcon name="delete" tone="mono" size={20} />
+                Eintrag löschen
+              </span>
+            </Pressable>
           </div>
         )}
       </Dialog>

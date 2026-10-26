@@ -82,6 +82,7 @@ function sessionResult(overrides: Partial<ReturnType<typeof mockUseWorkoutSessio
     logSet: vi.fn().mockResolvedValue(undefined),
     updateSet: vi.fn().mockResolvedValue(undefined),
     deleteSet: vi.fn().mockResolvedValue(undefined),
+    restoreSet: vi.fn().mockResolvedValue(undefined),
     completeSession: vi.fn().mockResolvedValue({ beendetAm: '2026-08-21T10:20:00.000Z', gesamtKalorien: 187 }),
     ermittleNeueRekorde: vi.fn().mockResolvedValue([]),
     deleteSession: vi.fn().mockResolvedValue(undefined),

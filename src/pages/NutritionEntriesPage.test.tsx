@@ -80,6 +80,7 @@ function entriesResult(overrides: Record<string, unknown> = {}) {
     addEntry: vi.fn().mockResolvedValue(undefined),
     updateEntry: vi.fn().mockResolvedValue(undefined),
     deleteEntry: vi.fn().mockResolvedValue(undefined),
+    restoreEntry: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   }
 }
@@ -118,7 +119,6 @@ describe('NutritionEntriesPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /bearbeiten/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Eintrag löschen' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     await waitFor(() => expect(result.deleteEntry).toHaveBeenCalledWith('e1'))
   })
