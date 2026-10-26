@@ -68,7 +68,7 @@ describe('HomePage', () => {
   it('opens the weight entry right from the weight tile', async () => {
     stubDefaults()
     renderWithProviders(<HomePage />)
-    fireEvent.click(screen.getByRole('button', { name: /Gewicht/ }))
+    fireEvent.click(screen.getByRole('button', { name: /^Gewicht/ }))
     expect(await screen.findByRole('spinbutton', { name: /Gewicht/ })).toBeInTheDocument()
   })
 
@@ -233,10 +233,46 @@ describe('HomePage', () => {
     expect(screen.queryByRole('link', { name: 'Ernährung' })).not.toBeInTheDocument()
   })
 
+  it('opens the first start once for an account without a goal', () => {
+    stubDefaults()
+    const { profile, ...rest } = mockUseProfile()
+    mockUseProfile.mockReturnValue({ ...rest, profile: { ...profile, taegliches_kalorienziel: null } })
+    renderWithProviders(<HomePage />)
+    expect(screen.getByRole('heading', { name: 'Willkommen bei VitaLoop' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Später' }))
+    // Put off: the checklist takes over, and a new visit does not pop up again.
+    expect(screen.getByRole('button', { name: /Tagesziel festlegen/ })).toBeInTheDocument()
+    expect(localStorage.getItem('vl-erststart-gesehen:u1')).toBe('1')
+  })
+
   it('renders cleanly for a brand-new account', () => {
     stubDefaults()
     const { container } = renderWithProviders(<HomePage />)
     expect(container.textContent).not.toMatch(/undefined|NaN/)
     expect(screen.getByRole('link', { name: 'Trainingsplan anlegen' })).toHaveAttribute('href', '/training/plans')
+  })
+
+  it('keeps the first steps after a first start until all four were done once', () => {
+    stubDefaults()
+    localStorage.setItem('vl-erststart-gesehen:u1', '1')
+    const { unmount } = renderWithProviders(<HomePage />)
+    // Goal set, plan, weight and meal open: the checklist carries the plan, no second "Kein aktiver Plan".
+    expect(screen.getByRole('heading', { name: 'Erste Schritte' })).toBeInTheDocument()
+    expect(screen.queryByText('Kein aktiver Plan.')).not.toBeInTheDocument()
+    unmount()
+
+    mockUseActiveTrainingDay.mockReturnValue({ plan: { id: 'p1', name: 'Plan', aktiv: true, user_id: 'u1' }, day: null, loading: false })
+    mockUseBodyMetrics.mockReturnValue({ rows: [{ id: 'b1', datum: '2026-10-01', gewicht: 80 }], loading: false, error: false, saveEntry: vi.fn(), deleteEntry: vi.fn(), reload: vi.fn() })
+    mockUseFoodEntries.mockReturnValue({ entries: [{ id: 'f1', menge: 100, products: { kalorien: 100 } }], loading: false, addEntry: vi.fn(), updateEntry: vi.fn(), deleteEntry: vi.fn() })
+    const zweiter = renderWithProviders(<HomePage />)
+    expect(screen.queryByRole('heading', { name: 'Erste Schritte' })).not.toBeInTheDocument()
+    zweiter.unmount()
+
+    // Done for good: no meal today and the plan gone again bring back the empty state, not the checklist.
+    mockUseActiveTrainingDay.mockReturnValue({ plan: null, day: null, loading: false })
+    mockUseFoodEntries.mockReturnValue({ entries: [], loading: false, addEntry: vi.fn(), updateEntry: vi.fn(), deleteEntry: vi.fn() })
+    renderWithProviders(<HomePage />)
+    expect(screen.queryByRole('heading', { name: 'Erste Schritte' })).not.toBeInTheDocument()
+    expect(screen.getByText('Kein aktiver Plan.')).toBeInTheDocument()
   })
 })
