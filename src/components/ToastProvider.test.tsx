@@ -22,7 +22,9 @@ describe('ToastProvider', () => {
 
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent('Eintrag gespeichert')
-    expect(alert.className).toContain('bg-success')
+    // Mint, the app's color for "done", at the bottom in the thumb's reach (re-audit 27.10.2026).
+    expect(alert.className).toContain('bg-chart-mint')
+    expect(alert.className).toContain('bottom-[var(--nav-clearance)]')
   })
 
   it('shows an error message with the danger styling', async () => {
