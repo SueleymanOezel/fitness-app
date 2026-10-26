@@ -73,6 +73,12 @@ describe('BodyEntryForm', () => {
     expect(screen.getByLabelText('Bauchumfang (cm)')).toHaveValue(null)
   })
 
+  it('drops the untouched prefill when a missed earlier day is entered', () => {
+    render(<BodyEntryForm letztesGewicht={82.4} onSave={vi.fn()} onClose={vi.fn()} />)
+    fireEvent.change(screen.getByLabelText('Datum'), { target: { value: '2026-01-05' } })
+    expect(screen.getByLabelText('Gewicht (kg)')).toHaveValue(null)
+  })
+
   it('defaults the date to today', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2026, 7, 24, 9, 0, 0))

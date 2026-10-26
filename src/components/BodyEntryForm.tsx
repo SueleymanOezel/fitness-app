@@ -110,7 +110,13 @@ export default function BodyEntryForm({
             // A future date — or 0007-08-24 from a mistyped year — would sort to
             // the top of the history and hold profiles.aktuelles_gewicht there.
             max={today()}
-            onChange={(event) => setDatum(event.target.value)}
+            onChange={(event) => {
+              setDatum(event.target.value)
+              // The prefill is the latest weight, maybe from after a backdated day: an untouched one goes.
+              if (!entry && letztesGewicht != null && event.target.value !== today() && draft.gewicht === String(letztesGewicht)) {
+                setDraft((alt) => ({ ...alt, gewicht: '' }))
+              }
+            }}
           />
         </label>
         {feld('gewicht')}
