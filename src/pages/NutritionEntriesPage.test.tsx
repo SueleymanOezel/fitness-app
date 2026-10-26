@@ -14,6 +14,9 @@ vi.mock('../hooks/use-food-entries', () => ({
   useFoodEntries: (userId: string) => mockUseFoodEntries(userId),
 }))
 
+const mockGestern = vi.fn(() => ({ eintraege: [] as { product_id: string; menge: number; mahlzeit: number }[] }))
+vi.mock('../hooks/use-yesterday-entries', () => ({ useGesternEintraege: () => mockGestern() }))
+
 // The edit form saves the product's nutrients before saving the entry itself;
 // this page's test only cares about the entry-level save, so the product save
 // is stubbed to succeed without hitting the real Supabase client.
@@ -81,6 +84,8 @@ function entriesResult(overrides: Record<string, unknown> = {}) {
     updateEntry: vi.fn().mockResolvedValue(undefined),
     deleteEntry: vi.fn().mockResolvedValue(undefined),
     restoreEntry: vi.fn().mockResolvedValue(undefined),
+    addEntries: vi.fn().mockResolvedValue([]),
+    removeEntries: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   }
 }
@@ -95,6 +100,36 @@ async function renderPage(result = entriesResult()) {
 }
 
 describe('NutritionEntriesPage', () => {
+  it("takes over yesterday's breakfast in one tap and undoes it", async () => {
+    const gestern = [
+      { product_id: 'p1', menge: 80, mahlzeit: 1 },
+      { product_id: 'p2', menge: 250, mahlzeit: 1 },
+      { product_id: 'p3', menge: 200, mahlzeit: 2 },
+    ]
+    mockGestern.mockReturnValue({ eintraege: gestern })
+    onTestFinished(() => {
+      mockGestern.mockReturnValue({ eintraege: [] })
+    })
+    const result = await renderPage(
+      entriesResult({ entries: [], addEntries: vi.fn().mockResolvedValue(['n1', 'n2']) }),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Von gestern übernehmen (2)' }))
+    await waitFor(() => expect(result.addEntries).toHaveBeenCalledWith(gestern.slice(0, 2)))
+    expect(await screen.findByText('2 Einträge von gestern übernommen.')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Rückgängig' }))
+    await waitFor(() => expect(result.removeEntries).toHaveBeenCalledWith(['n1', 'n2']))
+  })
+
+  it('offers yesterday only for a meal that is still empty today', async () => {
+    mockGestern.mockReturnValue({ eintraege: [{ product_id: 'p1', menge: 80, mahlzeit: 1 }] })
+    onTestFinished(() => {
+      mockGestern.mockReturnValue({ eintraege: [] })
+    })
+    await renderPage(entriesResult({ entries: [{ ...entry, mahlzeit: 1 }] }))
+    expect(screen.queryByRole('button', { name: /Von gestern übernehmen/ })).not.toBeInTheDocument()
+  })
+
   it("lists today's entries", async () => {
     await renderPage()
 

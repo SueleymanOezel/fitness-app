@@ -10,6 +10,8 @@ import Dialog from '../components/Dialog'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable from '../components/Pressable'
 import PageSkeleton from '../components/PageSkeleton'
+import { useToast } from '../components/ToastProvider'
+import { useGesternEintraege, type GesternEintrag } from '../hooks/use-yesterday-entries'
 
 export default function NutritionEntriesPage() {
   const { session } = useSession()
@@ -22,7 +24,9 @@ export default function NutritionEntriesPage() {
 
 function EntriesBySection({ userId }: { userId: string }) {
   const { profile, loading: profileLoading, error: profileError, reload } = useProfile(userId)
-  const { entries, loading, addEntry, updateEntry, deleteEntry, restoreEntry } = useFoodEntries(userId)
+  const { entries, loading, addEntry, addEntries, updateEntry, deleteEntry, removeEntries, restoreEntry } =
+    useFoodEntries(userId)
+  const { eintraege: gestern } = useGesternEintraege(userId)
 
   if (loading || profileLoading) return <PageSkeleton titel="Einträge heute" variante="liste" />
 
@@ -64,6 +68,9 @@ function EntriesBySection({ userId }: { userId: string }) {
             updateEntry={updateEntry}
             deleteEntry={deleteEntry}
             restoreEntry={restoreEntry}
+            gestern={slot == null ? [] : gestern.filter((eintrag) => eintrag.mahlzeit === slot)}
+            addEntries={addEntries}
+            removeEntries={removeEntries}
             isPrimaryAdd={slot != null && slot === jetzt}
           />
         )
@@ -82,6 +89,9 @@ function SectionBlock({
   updateEntry,
   deleteEntry,
   restoreEntry,
+  gestern,
+  addEntries,
+  removeEntries,
   isPrimaryAdd,
 }: {
   slot: number | null
@@ -93,9 +103,33 @@ function SectionBlock({
   updateEntry: (entryId: string, patch: EntryPatch) => Promise<void>
   deleteEntry: (entryId: string) => Promise<void>
   restoreEntry: (entry: FoodEntry) => Promise<void>
+  /** Yesterday's entries of this meal; the shortcut shows while today's is empty and yesterday's is not. */
+  gestern: GesternEintrag[]
+  addEntries: (rows: GesternEintrag[]) => Promise<string[]>
+  removeEntries: (ids: string[]) => Promise<void>
   isPrimaryAdd: boolean
 }) {
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [kopiertGerade, setKopiertGerade] = useState(false)
+  const showToast = useToast()
+
+  // The same breakfast every day in one tap instead of one search per food (re-audit 26.10.2026: efficiency).
+  async function vonGestern() {
+    setKopiertGerade(true)
+    try {
+      const ids = await addEntries(gestern)
+      const anzahl = ids.length === 1 ? '1 Eintrag' : `${ids.length} Einträge`
+      showToast(`${anzahl} von gestern übernommen.`, 'success', {
+        label: 'Rückgängig',
+        onClick: () =>
+          void removeEntries(ids).catch(() => showToast('Konnte nicht rückgängig gemacht werden.', 'error')),
+      })
+    } catch {
+      showToast('Konnte nicht von gestern übernommen werden.', 'error')
+    } finally {
+      setKopiertGerade(false)
+    }
+  }
 
   return (
     <section className="flex flex-col gap-3">
@@ -125,6 +159,12 @@ function SectionBlock({
               Eintrag hinzufügen
             </span>
           </Pressable>
+          {/* Only for a meal still empty today: once copied (or eaten) it is gone, so it cannot double up. */}
+          {gestern.length > 0 && entries.length === 0 && (
+            <Pressable variant="secondary" type="button" disabled={kopiertGerade} onClick={() => void vonGestern()}>
+              {`Von gestern übernehmen (${gestern.length})`}
+            </Pressable>
+          )}
           {/* Dialog keeps its children mounted even while closed (see Dialog.tsx) —
               rendering AddEntryFlow only while open resets its product/quantity/error
               state each time it opens, instead of showing the last attempt's leftovers. */}
