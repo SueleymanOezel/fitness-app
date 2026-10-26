@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useSession } from '../hooks/use-session'
 import { useWorkoutPlan, type DayExercisePatch, type WorkoutPlanDay } from '../hooks/use-workout-plans'
 import { useExercises } from '../hooks/use-exercises'
@@ -47,7 +47,9 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
     updateDayExercise,
     removeDayExercise,
     moveDayExercise,
+    deletePlan,
   } = useWorkoutPlan(planId)
+  const navigate = useNavigate()
   const { exercises } = useExercises(userId)
   const [newDayName, setNewDayName] = useState('')
   const [dayNameError, setDayNameError] = useState('')
@@ -128,6 +130,17 @@ function PlanEditor({ userId, planId }: { userId: string; planId: string }) {
         </Pressable>
       </form>
       {dayNameError !== '' && <p role="alert">{dayNameError}</p>}
+      {/* Destructive actions live on the plan's own page, not next to every row of the list. */}
+      <ConfirmDelete
+        label="Plan löschen"
+        ruhig
+        titel="Plan löschen?"
+        text={`„${plan.name}“ mit allen Tagen und Übungen wird gelöscht. Deine bisherigen Trainings bleiben erhalten.`}
+        onConfirm={async () => {
+          await deletePlan()
+          navigate('/training/plans', { replace: true })
+        }}
+      />
     </div>
   )
 }

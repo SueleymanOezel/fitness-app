@@ -121,7 +121,7 @@ function Dashboard({ userId }: { userId: string }) {
         items={[
           { to: '/training/plans', label: 'Meine Pläne', icon: 'plans' },
           { to: '/training/exercises', label: 'Übungen', icon: 'exercises' },
-          { to: '/training/history', label: 'Trainingshistorie', icon: 'history' },
+          { to: '/training/history', label: 'Verlauf', icon: 'history' },
           { to: '/training/analyse', label: 'Analyse', icon: 'analysis' },
         ]}
       />

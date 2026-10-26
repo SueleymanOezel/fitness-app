@@ -195,6 +195,12 @@ export function useWorkoutPlan(planId: string) {
     await reload()
   }
 
+  // No reload: the caller leaves the page of the deleted plan.
+  async function deletePlan() {
+    const { error } = await supabase.from('workout_plans').delete().eq('id', planId)
+    if (error) throw new Error('delete plan failed')
+  }
+
   async function addDay(name: string) {
     const nextReihenfolge = days.length === 0 ? 1 : Math.max(...days.map((day) => day.reihenfolge)) + 1
     const { error } = await supabase
@@ -330,6 +336,7 @@ export function useWorkoutPlan(planId: string) {
     days,
     loading,
     renamePlan,
+    deletePlan,
     addDay,
     renameDay,
     deleteDay,

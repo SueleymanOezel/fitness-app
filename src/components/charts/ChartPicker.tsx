@@ -97,7 +97,7 @@ export function AnpassenSchalter({ auswahl }: { auswahl: ReturnType<typeof useCh
         aria-pressed={auswahl.anpassen}
         onClick={() => auswahl.setAnpassen(!auswahl.anpassen)}
       >
-        {auswahl.anpassen ? 'Fertig' : 'Dashboard anpassen'}
+        {auswahl.anpassen ? 'Fertig' : 'Graphen auswählen'}
       </Pressable>
       {auswahl.anpassen && (
         <p className="text-sm text-text-muted">Hake die Graphen an, die auf deinem Dashboard erscheinen sollen.</p>

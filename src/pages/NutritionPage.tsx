@@ -114,7 +114,7 @@ function NutritionDashboard({ userId }: { userId: string }) {
       <LinkListCard
         items={[
           { to: '/profile', label: 'Ziel im Profil anpassen', icon: 'goal' },
-          { to: '/nutrition/entries', label: 'Einträge ansehen', icon: 'entries' },
+          { to: '/nutrition/entries', label: 'Einträge heute', icon: 'entries' },
           { to: '/nutrition/analyse', label: 'Analyse', icon: 'analysis' },
         ]}
       />

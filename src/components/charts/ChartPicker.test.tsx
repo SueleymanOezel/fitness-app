@@ -82,7 +82,7 @@ describe('ChartPicker', () => {
   it('switches customizing on and off', () => {
     const { result } = renderHook(() => useChartSelection('u1'))
     const { rerender } = render(<AnpassenSchalter auswahl={result.current} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Dashboard anpassen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Graphen auswählen' }))
     rerender(<AnpassenSchalter auswahl={result.current} />)
     expect(screen.getByRole('button', { name: 'Fertig' })).toBeInTheDocument()
   })

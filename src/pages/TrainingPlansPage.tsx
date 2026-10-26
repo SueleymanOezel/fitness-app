@@ -5,7 +5,6 @@ import { useToast } from '../components/ToastProvider'
 import { VitaIcon } from '../components/icons/VitaIcon'
 import Pressable, { PressableLink } from '../components/Pressable'
 import EmptyState from '../components/EmptyState'
-import ConfirmDelete from '../components/ConfirmDelete'
 import LoadError from '../components/LoadError'
 import PageSkeleton from '../components/PageSkeleton'
 
@@ -19,7 +18,7 @@ export default function TrainingPlansPage() {
 }
 
 function PlansList({ userId }: { userId: string }) {
-  const { plans, loading, error, reload, deletePlan, activatePlan } = useWorkoutPlans(userId)
+  const { plans, loading, error, reload, activatePlan } = useWorkoutPlans(userId)
   const showToast = useToast()
 
   if (loading) return <PageSkeleton titel="Meine Pläne" variante="liste" />
@@ -53,29 +52,25 @@ function PlansList({ userId }: { userId: string }) {
                       ›
                     </span>
                   </PressableLink>
+                  {/* A status, not a button: a dot in the training color instead of a pill like "Aktivieren". */}
                   {plan.aktiv && (
-                    <span className="rounded-full bg-surface-raised px-3 py-1 text-sm font-medium text-text">aktiv</span>
+                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-chart-mint">
+                      <span aria-hidden="true" className="h-2 w-2 rounded-full bg-chart-mint" />
+                      Aktiv
+                    </span>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {!plan.aktiv && (
-                    <Pressable
-                      variant="secondary"
-                      type="button"
-                      onClick={() => run(() => activatePlan(plan.id), 'Aktivieren fehlgeschlagen.')}
-                    >
-                      Aktivieren
-                    </Pressable>
-                  )}
-                  <ConfirmDelete
-                    label="Löschen"
-                    ariaLabel={`${plan.name} löschen`}
-                    ruhig
-                    titel="Plan löschen?"
-                    text={`„${plan.name}“ mit allen Tagen und Übungen wird gelöscht. Deine bisherigen Trainings bleiben erhalten.`}
-                    onConfirm={() => deletePlan(plan.id)}
-                  />
-                </div>
+                {!plan.aktiv && (
+                  <Pressable
+                    variant="secondary"
+                    type="button"
+                    className="self-start"
+                    aria-label={`${plan.name} aktivieren`}
+                    onClick={() => run(() => activatePlan(plan.id), 'Aktivieren fehlgeschlagen.')}
+                  >
+                    Aktivieren
+                  </Pressable>
+                )}
               </li>
             ))}
           </ul>

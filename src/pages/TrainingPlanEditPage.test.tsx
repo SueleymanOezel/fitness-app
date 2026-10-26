@@ -55,6 +55,7 @@ function planResult(overrides: Partial<ReturnType<typeof mockUseWorkoutPlan>> = 
     updateDayExercise: vi.fn().mockResolvedValue(undefined),
     removeDayExercise: vi.fn().mockResolvedValue(undefined),
     moveDayExercise: vi.fn().mockResolvedValue(undefined),
+    deletePlan: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   }
 }
@@ -67,6 +68,21 @@ function renderPage() {
 }
 
 describe('TrainingPlanEditPage', () => {
+  it('deletes the plan from its own page after asking, then leaves it', async () => {
+    mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+    const result = planResult()
+    mockUseWorkoutPlan.mockReturnValue(result)
+    mockUseExercises.mockReturnValue({ exercises: [exercise], loading: false, createExercise: vi.fn() })
+
+    renderPage()
+    fireEvent.click(screen.getByRole('button', { name: 'Plan löschen' }))
+    expect(result.deletePlan).not.toHaveBeenCalled()
+    expect(screen.getByRole('heading', { name: 'Plan löschen?' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
+    await waitFor(() => expect(result.deletePlan).toHaveBeenCalled())
+    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Ganzkörper' })).not.toBeInTheDocument())
+  })
   it('shows the day with its exercise and target values', async () => {
     mockUseSession.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     mockUseWorkoutPlan.mockReturnValue(planResult())

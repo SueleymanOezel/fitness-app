@@ -181,7 +181,7 @@ describe('TrainingHistoryDetailPage', () => {
 
     renderPage()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Session löschen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Training löschen' }))
     fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     await waitFor(() => expect(result.deleteSession).toHaveBeenCalled())
@@ -194,7 +194,7 @@ describe('TrainingHistoryDetailPage', () => {
 
     renderPage()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Session löschen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Training löschen' }))
     fireEvent.click(screen.getByRole('button', { name: 'Endgültig löschen' }))
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())

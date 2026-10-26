@@ -119,7 +119,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4">
       <img src="/logo.webp" alt="VitaLoop" className="h-28 w-auto" />
-      <p className="max-w-sm text-center text-text-muted">Training, Essen und Körper in einer App. Ohne Abo, ohne Werbung.</p>
+      <p className="max-w-sm text-center text-text-muted">Training, Ernährung und Körper in einer App. Ohne Abo, ohne Werbung.</p>
       <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
         <h1 className="text-lg font-semibold">
           {mode === 'login' ? 'Einloggen' : 'Registrieren'}
@@ -182,7 +182,7 @@ export default function LoginPage() {
           {mode === 'login' ? 'Einloggen' : 'Registrieren'}
         </Pressable>
         <Pressable variant="secondary" type="button" className="w-full" onClick={handleGoogleSignIn}>
-          Mit Google anmelden
+          Weiter mit Google
         </Pressable>
         <Pressable
           type="button"

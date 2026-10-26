@@ -10,7 +10,7 @@ export default function TrainingHistoryPage() {
   const { session } = useSession()
   const userId = session?.user.id
 
-  if (!userId) return <PageSkeleton titel="Trainingshistorie" variante="liste" />
+  if (!userId) return <PageSkeleton titel="Verlauf" variante="liste" />
 
   return <HistoryList userId={userId} />
 }
@@ -18,14 +18,14 @@ export default function TrainingHistoryPage() {
 function HistoryList({ userId }: { userId: string }) {
   const { sessions, loading, error, reload } = useWorkoutHistory(userId)
 
-  if (loading) return <PageSkeleton titel="Trainingshistorie" variante="liste" />
+  if (loading) return <PageSkeleton titel="Verlauf" variante="liste" />
   if (error) {
-    return <LoadError titel="Trainingshistorie" text="Trainings konnten nicht geladen werden." onRetry={reload} />
+    return <LoadError titel="Verlauf" text="Trainings konnten nicht geladen werden." onRetry={reload} />
   }
 
   return (
     <div>
-      <h1>Trainingshistorie</h1>
+      <h1>Verlauf</h1>
       {sessions.length === 0 ? (
         <EmptyState
           titel="Noch keine Trainings aufgezeichnet."
